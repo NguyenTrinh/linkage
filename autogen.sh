@@ -1,3 +1,3 @@
 #! /bin/sh
 
-libtoolize && aclocal && automake --add-missing --copy && autoconf
+libtoolize --force && aclocal && automake --add-missing --copy && autoconf

@@ -179,6 +179,7 @@ protected:
   
   void on_plugin_load(Plugin* plugin);
   void on_plugin_unload(Plugin* plugin);
+  void on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent);
   
   bool on_toggle_visible();
   

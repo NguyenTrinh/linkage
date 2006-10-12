@@ -48,9 +48,6 @@ public:
 
   void on_load();
   
-  Plugin::PluginParent get_parent();
-  Gtk::Widget* get_widget();
-  
   bool update(Torrent* torrent);
   
   bool on_notify(const Glib::ustring& title,

@@ -29,9 +29,9 @@ liblinkage_1_la_SOURCES = gtkmm_extra/keyfile.cc \
                           TorrentMenuIface.cc \
                           Utils.cc
                           
-liblinkage_1_la_CXXFLAGS = $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) -DPLUGIN_DIR="$(plugindir)"
+liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) -DPLUGIN_DIR="$(plugindir)"
 
-liblinkage_1_la_LDFLAGS = -export-dynamic $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS)
+liblinkage_1_la_LDFLAGS = -export-dynamic -version-info 0:1:0 $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS)
 
 keyfileincludedir = $(includedir)/linkage/gtkmm_extra
 keyfileinclude_HEADERS = gtkmm_extra/keyfile.h

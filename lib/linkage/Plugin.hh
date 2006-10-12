@@ -27,36 +27,35 @@ enum NotifyType { NOTIFY_INFO, NOTIFY_WARNING, NOTIFY_ERROR };
 
 class Plugin
 {
-  sigc::signal<HashList> signal_get_hashlist_;
-  sigc::signal<Torrent*, sha1_hash> signal_get_torrent_;
-
+public:
+  enum PluginParent { PARENT_NONE, PARENT_MAIN, PARENT_DETAILS, PARENT_MENU, PARENT_TOOLBAR };
+  
+  sigc::signal<bool, Plugin*> signal_unloading();
+  
+  sigc::signal<void, Glib::ustring> signal_add_torrent();
+  sigc::signal<bool> signal_ui_toggle_visible();
+  sigc::signal<void> signal_quit();
+  
+  sigc::signal<void, Plugin*, Gtk::Widget*, PluginParent> signal_add_widget();
+  
 protected:  
   Glib::ustring name_, description_;
   int version_;
   
   sigc::signal<bool, Plugin*> signal_unloading_;
   
-  sigc::signal<void, Torrent*> signal_stop_torrent_;
-  sigc::signal<void, Torrent*> signal_start_torrent_;
   sigc::signal<void, Glib::ustring> signal_add_torrent_;
-  sigc::signal<void, Torrent*> signal_remove_torrent_;
   sigc::signal<bool> signal_ui_toggle_visible_;
   sigc::signal<void> signal_quit_;
-  //FIXME: Implement these, shouldn't be virtuals
-  //std::list<Torrent*> list_torrents();
-  //Torrent* get_torrent(sha1_hash hash);
+  
+  sigc::signal<void, Plugin*, Gtk::Widget*, PluginParent> signal_add_widget_;
+
+private:
+  void add_widget(Gtk::Widget* widget, PluginParent parent);
+  bool ui_toggle_visible();
+  void add_torrent(const Glib::ustring& file);
   
 public:
-  virtual sigc::signal<bool, Plugin*> signal_unloading();
-  virtual sigc::signal<void, Torrent*> signal_stop_torrent();
-  virtual sigc::signal<void, Torrent*> signal_start_torrent();
-  virtual sigc::signal<void, Glib::ustring> signal_add_torrent();
-  virtual sigc::signal<void, Torrent*> signal_remove_torrent();
-  virtual sigc::signal<bool> signal_ui_toggle_visible();
-  virtual sigc::signal<void> signal_quit();
-  
-  enum PluginParent { PARENT_NONE, PARENT_MAIN, PARENT_DETAILS, PARENT_MENU, PARENT_TOOLBAR };
-  
   /*Returns the name of the plugin that will be displayed in the UI*/
   virtual Glib::ustring get_name();
   /*Returns a description of the plugin that will be displayed in the settings UI*/

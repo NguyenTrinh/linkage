@@ -2,7 +2,7 @@ bin_PROGRAMS = linkage
 
 flagdir = \"$(prefix)/share/linkage/flags\"
 
-AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(LIBCURL_CPPFLAGS) -DFLAG_DIR="$(flagdir)"
+AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(LIBCURL_CFLAGS) -DFLAG_DIR="$(flagdir)"
 
 linkage_SOURCES = CellRendererPieceMap.hh \
                   FileList.hh \
@@ -25,4 +25,4 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   main.cc
 
                   
-linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(LIBCURL) -L../lib -llinkage-1
+linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(LIBCURL_LIBS) -L../lib -llinkage-1
