@@ -172,12 +172,16 @@ void TorrentManager::add_torrent(torrent_info info)
 {
   int position = torrents.size() + 1;
   int time = 0;
+  Glib::ustring group = SettingsManager::instance()->get<Glib::ustring>("Files", "DefGroup");
   std::vector<int> indices(1, info.num_files());
   
   if (SettingsManager::instance()->has_group(str(info.info_hash())))
+  {
     time = SettingsManager::instance()->get<int>(str(info.info_hash()), "Time");
+    group = SettingsManager::instance()->get<Glib::ustring>(str(info.info_hash()), "Group");
+  }
   
-  Torrent* torrent = new Torrent(position, info.info_hash(), SettingsManager::instance()->get<Glib::ustring>("Files", "DefGroup"), time);
+  Torrent* torrent = new Torrent(position, info.info_hash(), group, time);
   torrent->set_name(info.name());
   torrents[info.info_hash()] = torrent;
   

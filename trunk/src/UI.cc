@@ -692,9 +692,12 @@ void UI::add_torrent(const Glib::ustring& file)
     }
   else
     save_path = SettingsManager::instance()->get<Glib::ustring>("Files", "DefPath");
-    
-  sha1_hash hash = SessionManager::instance()->open_torrent(file, save_path);
-  update(TorrentManager::instance()->get_torrent(hash));
+  
+  if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
+  {
+    sha1_hash hash = SessionManager::instance()->open_torrent(file, save_path);
+    update(TorrentManager::instance()->get_torrent(hash));
+  }
 }
 
 OpenDialog::OpenDialog(Gtk::Window *parent)

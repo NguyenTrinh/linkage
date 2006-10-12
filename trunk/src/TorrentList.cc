@@ -185,21 +185,17 @@ void TorrentList::on_position_changed(const sha1_hash& hash, int position)
 void TorrentList::on_group_changed(const sha1_hash& hash, const Glib::ustring& group)
 {
   Gtk::TreeIter iter = get_iter(hash);
-  
   if (iter)
   {
     bool selected = is_selected(hash); //FIXME: Doesn't honour a multiple selection
     
     Gtk::TreeRow group_row = *get_iter(group);
-    if (group_row[columns.name] != "<i>" + group + "</i>")
-    {
-      model->erase(iter);
-      
-      Gtk::TreeRow new_row = *(model->append(group_row.children()));
-      new_row[columns.hash] = hash;
-      if (selected)
-        get_selection()->select(new_row);
-    }
+    model->erase(iter);
+    
+    Gtk::TreeRow new_row = *(model->append(group_row.children()));
+    new_row[columns.hash] = hash;
+    if (selected)
+      get_selection()->select(new_row);
   }
 }
 
