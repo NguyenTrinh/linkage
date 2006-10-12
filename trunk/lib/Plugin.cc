@@ -37,29 +37,34 @@ Plugin::~Plugin()
 {
 }
 
+sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> Plugin::signal_add_widget()
+{
+  return signal_add_widget_;
+}
+
+void Plugin::add_widget(Gtk::Widget* widget, Plugin::PluginParent parent)
+{
+  signal_add_widget_.emit(this, widget, parent);
+}
+
+bool Plugin::ui_toggle_visible()
+{
+  return signal_ui_toggle_visible_.emit();
+}
+
+void Plugin::add_torrent(const Glib::ustring& file)
+{
+  signal_add_torrent_.emit(file);
+}
+
 sigc::signal<bool, Plugin*> Plugin::signal_unloading()
 {
   return signal_unloading_;
 }
 
-sigc::signal<void, Torrent*> Plugin::signal_stop_torrent()
-{
-  return signal_stop_torrent_;
-}
-
-sigc::signal<void, Torrent*> Plugin::signal_start_torrent()
-{
-  return signal_start_torrent_;
-}
-
 sigc::signal<void, Glib::ustring> Plugin::signal_add_torrent()
 {
   return signal_add_torrent_;
-}
-
-sigc::signal<void, Torrent*> Plugin::signal_remove_torrent()
-{
-  return signal_remove_torrent_;
 }
 
 sigc::signal<bool> Plugin::signal_ui_toggle_visible()
@@ -87,13 +92,6 @@ int Plugin::get_version()
   return version_;
 }
 
-void Plugin::on_load()
-{
-  /* If this method wasn't overridden try to unload */
-  if (signal_unloading_.emit(this))
-    delete this;
-}
-
 Plugin::PluginParent Plugin::get_parent()
 {
   return PARENT_NONE;
@@ -102,6 +100,13 @@ Plugin::PluginParent Plugin::get_parent()
 Gtk::Widget* Plugin::get_widget()
 {
   return 0;
+}
+
+void Plugin::on_load()
+{
+  /* If this method wasn't overridden try to unload */
+  if (signal_unloading_.emit(this))
+    delete this;
 }
 
 bool Plugin::update(Torrent* torrent)

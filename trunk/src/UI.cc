@@ -413,6 +413,7 @@ UI::UI()
   
   PluginManager::instance()->signal_plugin_load().connect(sigc::mem_fun(this, &UI::on_plugin_load));
   PluginManager::instance()->signal_plugin_unload().connect(sigc::mem_fun(this, &UI::on_plugin_unload));
+  PluginManager::instance()->signal_add_widget().connect(sigc::mem_fun(this, &UI::on_add_widget));
   PluginManager::instance()->signal_ui_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
   PluginManager::instance()->signal_add_torrent().connect(sigc::mem_fun(this, &UI::add_torrent));
   PluginManager::instance()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
@@ -463,20 +464,6 @@ void UI::save_state()
 
 void UI::on_plugin_load(Plugin* plugin)
 {
-  Glib::ustring name = plugin->get_name();
-  Gtk::Widget* widget = plugin->get_widget();
-  Plugin::PluginParent parent = plugin->get_parent();
-  switch (parent)
-  {
-    case Plugin::PARENT_MAIN:
-      notebook_main->append_page(*widget, name);
-      widget->show();
-      break;
-    case Plugin::PARENT_DETAILS:
-      notebook_details->append_page(*widget, name);
-      widget->show();
-      break;
-  }
 }
 
 void UI::on_plugin_unload(Plugin* plugin)
@@ -490,6 +477,23 @@ void UI::on_plugin_unload(Plugin* plugin)
       break;
     case Plugin::PARENT_DETAILS:
       notebook_details->remove_page(*widget);
+      break;
+  }
+}
+
+void UI::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent)
+{
+  //FIXME: Add PARENT_MENU, PARENT_TOOLBAR 
+  Glib::ustring name = plugin->get_name();
+  switch (parent)
+  {
+    case Plugin::PARENT_MAIN:
+      notebook_main->append_page(*widget, name);
+      widget->show();
+      break;
+    case Plugin::PARENT_DETAILS:
+      notebook_details->append_page(*widget, name);
+      widget->show();
       break;
   }
 }

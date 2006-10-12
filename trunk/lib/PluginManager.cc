@@ -97,6 +97,11 @@ sigc::signal<void, Plugin*> PluginManager::signal_plugin_unload()
   return signal_plugin_unload_;
 }
 
+sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> PluginManager::signal_add_widget()
+{
+  return signal_add_widget_;
+}
+
 sigc::signal<void, const Glib::ustring&> PluginManager::signal_add_torrent()
 {
   return signal_add_torrent_;
@@ -179,10 +184,8 @@ void PluginManager::load_plugin(const Glib::ustring& file)
         plugin->on_load();
         signal_plugin_load_.emit(plugin);
         plugin->signal_unloading().connect(sigc::mem_fun(this, &PluginManager::on_plugin_unloading));
-        plugin->signal_stop_torrent().connect(sigc::mem_fun(this, &PluginManager::on_stop_torrent));
-        plugin->signal_start_torrent().connect(sigc::mem_fun(this, &PluginManager::on_start_torrent));
+        plugin->signal_add_widget().connect(sigc::mem_fun(this, &PluginManager::on_add_widget));
         plugin->signal_add_torrent().connect(sigc::mem_fun(this, &PluginManager::on_add_torrent));
-        plugin->signal_remove_torrent().connect(sigc::mem_fun(this, &PluginManager::on_remove_torrent));
         plugin->signal_ui_toggle_visible().connect(sigc::mem_fun(this, &PluginManager::on_ui_toggle_visible));
         plugin->signal_quit().connect(sigc::mem_fun(this, &PluginManager::on_quit));
       }
@@ -224,24 +227,14 @@ bool PluginManager::is_loaded(const Glib::ustring& name)
   return false;
 }
 
-void PluginManager::on_stop_torrent(Torrent* torrent)
+void PluginManager::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent)
 {
-  SessionManager::instance()->stop_torrent(torrent->get_hash());
-}
-
-void PluginManager::on_start_torrent(Torrent* torrent)
-{
-  SessionManager::instance()->resume_torrent(torrent->get_hash());
+  signal_add_widget_.emit(plugin, widget, parent);
 }
 
 void PluginManager::on_add_torrent(Glib::ustring file)
 {
   signal_add_torrent_.emit(file);
-}
-
-void PluginManager::on_remove_torrent(Torrent* torrent)
-{
-  SessionManager::instance()->erase_torrent(torrent->get_hash());
 }
 
 bool PluginManager::on_ui_toggle_visible()

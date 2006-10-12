@@ -76,16 +76,6 @@ void TrayPlugin::on_load()
   popup_menu->show_all_children();
 }
 
-Plugin::PluginParent TrayPlugin::get_parent()
-{
-  return Plugin::PARENT_NONE;
-}
-
-Gtk::Widget* TrayPlugin::get_widget()
-{
-  return 0;
-}
-
 bool TrayPlugin::update(Torrent* torrent)
 {
   return false;

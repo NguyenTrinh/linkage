@@ -57,15 +57,15 @@ class PluginManager
   sigc::signal<void, Plugin*> signal_plugin_unload_;
   
   bool on_plugin_unloading(Plugin* plugin);
-  void on_stop_torrent(Torrent* torrent);
-  void on_start_torrent(Torrent* torrent);
+  
+  void on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent);
   void on_add_torrent(Glib::ustring file);
-  void on_remove_torrent(Torrent* torrent);
   bool on_ui_toggle_visible();
   void on_quit();
   
   void on_settings();
   
+  sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> signal_add_widget_;
   sigc::signal<void, const Glib::ustring&> signal_add_torrent_;
   sigc::signal<bool> signal_ui_toggle_visible_;
   sigc::signal<void> signal_quit_;
@@ -81,6 +81,7 @@ public:
   
   std::list<PluginInfo> list_plugins();
   
+  sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> signal_add_widget();
   sigc::signal<void, const Glib::ustring&> signal_add_torrent();
   sigc::signal<bool> signal_ui_toggle_visible();
   sigc::signal<void> signal_quit();

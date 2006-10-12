@@ -66,16 +66,6 @@ void NotifyPlugin::on_load()
 {
 }
 
-Plugin::PluginParent NotifyPlugin::get_parent()
-{
-  return Plugin::PARENT_NONE;
-}
-
-Gtk::Widget* NotifyPlugin::get_widget()
-{
-  return 0;
-}
-
 bool NotifyPlugin::update(Torrent* torrent)
 {
   return false;
