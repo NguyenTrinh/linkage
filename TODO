@@ -1,0 +1,7 @@
+* Implement a AlertManager class, with specific signals for alerts
+* Add color selection to the settings window
+* Enable custom groups with rules
+* Write popup menu for torrents in torrent list
+* Revamp plugins
+* Move all relevant Managers to liblinkage, link gui to it
+
