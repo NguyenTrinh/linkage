@@ -40,41 +40,29 @@ IOManager::IOManager(int argc, char *argv[])
       Glib::signal_io().connect(sigc::mem_fun(this, &IOManager::on_io_input), ioc, Glib::IO_IN);
     else
     {
-      /* Ugly hack, tell running instance to create ~/.config/linkage/PONG 
-       if it does not assume that the previous session died */
-      ioc->write("PING\n");
-    
-      Glib::ustring response_file = Glib::build_filename(get_config_dir(), "PONG");
-      if (Glib::file_test(response_file, Glib::FILE_TEST_EXISTS))
-      {
-        g_remove(response_file.c_str());
         
-        if (argc > 1)
+      if (argc > 1)
+      {
+        for (int i = 1; i < argc; i++)
         {
-          for (int i = 1; i < argc; i++)
+          Glib::ustring file = argv[i];
+          if (file.substr(0, 1) == "-" || file.substr(0, 2) == "--")
           {
-            Glib::ustring file = argv[i];
-            if (file.substr(0, 1) == "-" || file.substr(0, 2) == "--")
-            {
-              clean();
-              throw Glib::OptionError(Glib::OptionError::UNKNOWN_OPTION, 
-                                      "Unknown flag: \n"
-                                      "Usage:\n  linkage [TORRENTS...]");
-            }
-            /* Check for relative paths */
-            if (file.substr(0, 1) != "/")
-              file.insert(0, Glib::ustring("/") + g_getenv("PWD"));
-
-            /* Pass file(s) to running instance */
-            if (ioc->write(file + "\n") != Glib::IO_STATUS_NORMAL) 
-            {
-              clean();
-              throw Glib::FileError(Glib::FileError::FAILED, "error writing fifo");	
-            }
+            throw Glib::OptionError(Glib::OptionError::UNKNOWN_OPTION, 
+                                    "Unknown flag: \n"
+                                    "Usage:\n  linkage [TORRENTS...]");
           }
-          clean();
-          throw Glib::IOChannelError(Glib::IOChannelError::FAILED, "file(s) passed to running instance");
+          /* Check for relative paths */
+          if (file.substr(0, 1) != "/")
+            file.insert(0,g_getenv("PWD") +  Glib::ustring("/"));
+
+          /* Pass file(s) to running instance */
+          if (ioc->write(file + "\n") != Glib::IO_STATUS_NORMAL) 
+          {
+            throw Glib::FileError(Glib::FileError::FAILED, "error writing fifo");	
+          }
         }
+        throw Glib::IOChannelError(Glib::IOChannelError::FAILED, "file(s) passed to running instance");
       }
       else  /* Assume that previous session died */
       {
@@ -83,15 +71,28 @@ IOManager::IOManager(int argc, char *argv[])
         
         if (dialog.run() == Gtk::RESPONSE_NO)
         {
-          clean();
           throw Glib::IOChannelError(Glib::IOChannelError::FAILED, "quitting");
+        }
+        else
+        {
+          ioc->close();
+          Glib::ustring fifo = Glib::build_filename(get_config_dir(), "fifo");
+          if (g_unlink(fifo.c_str()) != 0)
+            throw Glib::FileError(Glib::FileError::FAILED, "error removing fifo");
+          fd = create_fifo();
+          if (fd != -1)
+          {
+            ioc = Glib::IOChannel::create_from_fd(fd);
+            Glib::signal_io().connect(sigc::mem_fun(this, &IOManager::on_io_input), ioc, Glib::IO_IN);
+          }
+          else
+            throw Glib::IOChannelError(Glib::IOChannelError::IO_ERROR, "invalid file descriptor");
         }
       }
     }
   }
   else  /* fd is invalid so we bail */
   {
-    clean();
     throw Glib::IOChannelError(Glib::IOChannelError::IO_ERROR, "invalid file descriptor");
   }
 }

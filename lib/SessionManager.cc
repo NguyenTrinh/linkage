@@ -242,6 +242,7 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
   }
   
   torrent_info info = torrent_info(e);
+  /* Check if torrent is up an running, if so return */
   if (TorrentManager::instance()->get_handle(info.info_hash()).is_valid())
     return INVALID_HASH;
     

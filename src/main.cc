@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   {
     sm = SettingsManager::instance();
   }
-  catch (std::exception& e)
+  catch (Glib::Error& e)
   {
     std::cerr << e.what() << std::endl;
     return 1;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   {
     ioman = new IOManager(argc, argv);
   }
-  catch (std::exception& e)
+  catch (Glib::Error& e)
   {
     std::cerr << e.what() << std::endl;
     return 1;
@@ -62,5 +62,6 @@ int main(int argc, char *argv[])
   delete ioman;
   
   sm->goodnight();
+  
   return 0;
 }
