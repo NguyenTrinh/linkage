@@ -36,8 +36,28 @@ IOManager::IOManager(int argc, char *argv[])
     ioc = Glib::IOChannel::create_from_fd(fd);
     
     if ((ioc->get_flags() & Glib::IO_FLAG_IS_WRITEABLE) == 0)
+    {
       /* IOChannel is read-only, which means we fire up a new instance */
       Glib::signal_io().connect(sigc::mem_fun(this, &IOManager::on_io_input), ioc, Glib::IO_IN);
+      
+      for (int i = 1; i < argc; i++)
+      {
+        Glib::ustring file = argv[i];
+        if (file.substr(0, 1) == "-" || file.substr(0, 2) == "--")
+        {
+          throw Glib::OptionError(Glib::OptionError::UNKNOWN_OPTION, 
+                                  "Unknown flag: \n"
+                                  "Usage:\n  linkage [TORRENTS...]");
+        }
+        /* Check for relative paths */
+        if (file.substr(0, 1) != "/")
+          file.insert(0,g_getenv("PWD") +  Glib::ustring("/"));
+
+        /* Pass file(s) to running instance */
+        UI::instance()->add_torrent(file);
+      }
+      
+    }
     else
     {
         
@@ -106,8 +126,8 @@ void IOManager::clean()
 {
   Glib::ustring fifo = Glib::build_filename(get_config_dir(), "fifo");
   
-  /* Only remove a writeable fifo so we don't remove a running session's fifo */
-  if ((ioc->get_flags() & Glib::IO_FLAG_IS_WRITEABLE) != 0)
+  /* Only remove a read-only fifo so we don't remove a running session's fifo */
+  if ((ioc->get_flags() & Glib::IO_FLAG_IS_WRITEABLE) == 0)
     if (g_unlink(fifo.c_str()) != 0)
       throw Glib::FileError(Glib::FileError::FAILED, "error removing fifo");
   
