@@ -16,29 +16,48 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef IOMANAGER_HH
-#define IOMANAGER_HH
+#ifndef REF_COUNTER_HH
+#define REF_COUNTER_HH
 
-#include <glibmm/iochannel.h>
-
-/* A mini class handling the fifo */
-
-class IOManager
+template<class T> class RefCounter
 {
-  int fd;
-  Glib::RefPtr<Glib::IOChannel> ioc;
-  
-  int create_fifo();
-
-  bool on_io_input(Glib::IOCondition condition);
-  
-  void clean();
-  
-  sigc::signal<void, const Glib::ustring&> signal_io_in_;
+private:
+	int references;
+	T* m_object;
+	
+	void try_clean()
+	{
+		static bool deleteing = false;
+		if (m_object != NULL && !references && !deleteing) 
+		{
+			deleteing = true;
+			delete m_object;
+			deleteing = false;
+		}
+	};
 public:
-  sigc::signal<void, const Glib::ustring&>  signal_io_in();
-  IOManager(int argc, char *argv[]);
-  ~IOManager();
+	void reference() 
+	{ 
+		references++; 
+	};
+	
+	void unreference() 
+	{ 
+		references--; 
+		try_clean();
+	};
+	
+	RefCounter(T* object) 
+	{
+		m_object = object; 
+		references = 1; 
+	};
+	
+	virtual ~RefCounter() 
+	{ 
+		/* FIXME: This is useless? */
+		try_clean();
+	};
 };
 
-#endif  /*  IOMANAGER_HH  */
+#endif /* REF_COUNTER_HH */
