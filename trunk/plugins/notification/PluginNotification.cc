@@ -66,7 +66,7 @@ void NotifyPlugin::on_load()
 {
 }
 
-bool NotifyPlugin::update(Torrent* torrent)
+bool NotifyPlugin::update(Torrent& torrent)
 {
   return false;
 }
@@ -74,7 +74,7 @@ bool NotifyPlugin::update(Torrent* torrent)
 bool NotifyPlugin::on_notify(const Glib::ustring& title,
                           const Glib::ustring& message,
                           NotifyType type,
-                          Torrent* torrent)
+                          Torrent& torrent)
 {
   //FIXME: add NotifyType support
   return notify_send(title.c_str(), message.c_str());

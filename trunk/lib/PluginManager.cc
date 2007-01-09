@@ -17,15 +17,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 #include "linkage/PluginManager.hh"
-#include "linkage/SettingsManager.hh"
-#include "linkage/SessionManager.hh"
+#include "linkage/Engine.hh"
 
 PluginInfo::PluginInfo(const Glib::ustring& name, const Glib::ustring& description, const Glib::ustring& file, bool loaded)
 {
-  name_ = name;
-  description_ = description;
-  file_ = file;
-  loaded_ = loaded;
+  m_name = name;
+  m_description = description;
+  m_file = file;
+  m_loaded = loaded;
 }
 
 PluginInfo::~PluginInfo()
@@ -34,90 +33,59 @@ PluginInfo::~PluginInfo()
 
 const Glib::ustring& PluginInfo::get_name()
 {
-  return name_;
+  return m_name;
 }
 
 const Glib::ustring& PluginInfo::get_description()
 {
-  return description_;
+  return m_description;
 }
 
 const Glib::ustring& PluginInfo::get_file()
 {
-  return file_;
+  return m_file;
 }
 
 bool PluginInfo::get_loaded()
 {
-  return loaded_;
+  return m_loaded;
 }
 
-PluginManager* PluginManager::smInstance = NULL;
-
-PluginManager* PluginManager::instance()
+Glib::RefPtr<PluginManager> PluginManager::create()
 {
-  static bool running = false;
-  if (smInstance == NULL && running == false)
-  {
-    running = true;
-    smInstance = new PluginManager();
-    running = false;
-  }
-  return smInstance;
-}
-                                                 
-void PluginManager::goodnight()
-{
-  if (smInstance != NULL)
-  {
-    delete smInstance;
-  }
+	return Glib::RefPtr<PluginManager>(new PluginManager());
 }
 
-PluginManager::PluginManager()
+PluginManager::PluginManager() : RefCounter<PluginManager>::RefCounter(this)
 {
   /* TODO: load plugins from SettinsManger */
-  SettingsManager::instance()->signal_update_settings().connect(sigc::mem_fun(this, &PluginManager::on_settings));
+  Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &PluginManager::on_settings));
   
   on_settings();
 }
 
 PluginManager::~PluginManager()
 {
+	std::cout << "PM destructor\n";
   /* TODO: save plugins to SettinsManger */
 }
 
 sigc::signal<void, Plugin*> PluginManager::signal_plugin_load()
 {
-  return signal_plugin_load_;
+  return m_signal_plugin_load;
 }
 
 sigc::signal<void, Plugin*> PluginManager::signal_plugin_unload()
 {
-  return signal_plugin_unload_;
+  return m_signal_plugin_unload;
 }
 
 sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> PluginManager::signal_add_widget()
 {
-  return signal_add_widget_;
-}
-
-sigc::signal<void, const Glib::ustring&> PluginManager::signal_add_torrent()
-{
-  return signal_add_torrent_;
-}
-
-sigc::signal<bool> PluginManager::signal_ui_toggle_visible()
-{
-  return signal_ui_toggle_visible_;
-}
-
-sigc::signal<void> PluginManager::signal_quit()
-{
-  return signal_quit_;
+  return m_signal_add_widget;
 }
   
-PluginList PluginManager::get_plugins()
+const PluginList& PluginManager::get_plugins()
 {
   return loaded_plugins;
 }
@@ -182,12 +150,9 @@ void PluginManager::load_plugin(const Glib::ustring& file)
         module.make_resident();
         loaded_plugins.push_back(plugin);
         plugin->on_load();
-        signal_plugin_load_.emit(plugin);
+        m_signal_plugin_load.emit(plugin);
         plugin->signal_unloading().connect(sigc::mem_fun(this, &PluginManager::on_plugin_unloading));
         plugin->signal_add_widget().connect(sigc::mem_fun(this, &PluginManager::on_add_widget));
-        plugin->signal_add_torrent().connect(sigc::mem_fun(this, &PluginManager::on_add_torrent));
-        plugin->signal_ui_toggle_visible().connect(sigc::mem_fun(this, &PluginManager::on_ui_toggle_visible));
-        plugin->signal_quit().connect(sigc::mem_fun(this, &PluginManager::on_quit));
       }
     }
   }
@@ -195,7 +160,7 @@ void PluginManager::load_plugin(const Glib::ustring& file)
 
 void PluginManager::unload_plugin(Plugin* plugin)
 {
-  signal_plugin_unload_.emit(plugin);
+  m_signal_plugin_unload.emit(plugin);
   
   for (PluginList::iterator iter = loaded_plugins.begin(); 
           iter != loaded_plugins.end(); ++iter)
@@ -229,29 +194,15 @@ bool PluginManager::is_loaded(const Glib::ustring& name)
 
 void PluginManager::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent)
 {
-  signal_add_widget_.emit(plugin, widget, parent);
-}
-
-void PluginManager::on_add_torrent(Glib::ustring file)
-{
-  signal_add_torrent_.emit(file);
-}
-
-bool PluginManager::on_ui_toggle_visible()
-{
-  bool ret = signal_ui_toggle_visible_.emit();
-  return ret;
-}
-
-void PluginManager::on_quit()
-{
-  signal_quit_.emit();
+  m_signal_add_widget.emit(plugin, widget, parent);
 }
 
 void PluginManager::on_settings()
 {
-  std::list<Glib::ustring> plugins = SettingsManager::instance()->get<UStringArray>("UI", "Plugins");
-  
+	std::list<Glib::ustring> plugins;
+
+ 	plugins = Engine::instance()->get_settings_manager()->get_string_list("UI", "Plugins");
+
   /* Load all new */
   for (std::list<Glib::ustring>::iterator iter = plugins.begin();
         iter != plugins.end(); ++iter)

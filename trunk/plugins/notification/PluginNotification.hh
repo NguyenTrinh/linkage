@@ -33,15 +33,18 @@ class NotifyPlugin : public Plugin
 public:
   Glib::ustring get_name();
   Glib::ustring get_description();
-
+	
+	PluginParent get_parent() { return Plugin::PARENT_NONE; };
+  Gtk::Widget* get_widget() { return NULL; };
+  
   void on_load();
   
-  bool update(Torrent* torrent);
+  bool update(Torrent& torrent);
   
   bool on_notify(const Glib::ustring& title,
                 const Glib::ustring& message,
                 NotifyType type,
-                Torrent* torrent);
+                Torrent& torrent);
 
   NotifyPlugin();
   ~NotifyPlugin();

@@ -38,24 +38,19 @@ public:
   
   sigc::signal<void, Plugin*, Gtk::Widget*, PluginParent> signal_add_widget();
   
-protected:  
-  Glib::ustring name_, description_;
-  int version_;
+private:  
+  sigc::signal<bool, Plugin*> m_signal_unloading;
   
-  sigc::signal<bool, Plugin*> signal_unloading_;
-  
-  sigc::signal<void, Glib::ustring> signal_add_torrent_;
-  sigc::signal<bool> signal_ui_toggle_visible_;
-  sigc::signal<void> signal_quit_;
-  
-  sigc::signal<void, Plugin*, Gtk::Widget*, PluginParent> signal_add_widget_;
+  sigc::signal<void, Plugin*, Gtk::Widget*, PluginParent> m_signal_add_widget;
 
-private:
+protected:
+	Glib::ustring m_name, m_description;
+  int m_version;
   void add_widget(Gtk::Widget* widget, PluginParent parent);
-  bool ui_toggle_visible();
-  void add_torrent(const Glib::ustring& file);
   
 public:
+	/* FIXME: Does everything need to be pure virtual? */
+	
   /*Returns the name of the plugin that will be displayed in the UI*/
   virtual Glib::ustring get_name();
   /*Returns a description of the plugin that will be displayed in the settings UI*/
@@ -63,25 +58,29 @@ public:
   /*Returns the version of the plugin that will be displayed in the settings UI*/
   virtual int get_version();
   
+  //FIXME: thing below has to be pure virtual
+  
   /*This is called immedeately after the plugin is loaded, 
     put initialization stuff here not in the constructor*/
-  virtual void on_load();
+  virtual void on_load() = 0;
   
   /*Returns the parent if plugin has a widget to pack in to main win*/
   // FIXME: Do a signal_add_widget() instead, in case the plugin wants more then one widget
-  virtual PluginParent get_parent();
-  virtual Gtk::Widget* get_widget();
+  virtual PluginParent get_parent() = 0;
+  virtual Gtk::Widget* get_widget() = 0;
   
   /*Returns true if widget was updated, this is called every n second,
     where n is Settings::update_interval, if the widget is visible*/
-  virtual bool update(Torrent* torrent);
+  virtual bool update(Torrent& torrent) = 0;
   
+  /* FIXME: on_notify should be removed, connect to individual signals from 
+  					AlertManager instead and remove all plugin crap from UI */
   /*Returns true if the notifications was displayed, if false the notification
     will be displayed using the standard method*/
   virtual bool on_notify(const Glib::ustring& title,
                          const Glib::ustring& message,
                          NotifyType type,
-                         Torrent* torrent);
+                         Torrent& torrent) = 0;
                          
   Plugin();
   Plugin(const Glib::ustring& name, const Glib::ustring& description, int version);
@@ -93,7 +92,7 @@ public:
 extern "C" {
 #endif
 
-/* This is the plugin function each plugin overrides for the main app to
+/* This is the plugin function each plugin implements for the main app to
    create an instance of the plugin child class. */
 extern Plugin* CreatePlugin();
 

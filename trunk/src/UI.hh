@@ -121,9 +121,6 @@ class UI : public Gtk::Window
   
   enum { PAGE_INFO, PAGE_STATUS, PAGE_PEERS, PAGE_FILES };
   
-  friend class FileList;
-  friend class IOManager;
-  
 protected:
   void on_spin_down();
   void on_spin_up();
@@ -145,11 +142,11 @@ protected:
   
   void on_torrent_list_selection_changed();
   
-  void on_torrent_added(Torrent* torrent);
+  void on_torrent_added(Torrent& torrent);
 
   bool on_timeout();
 
-  void update(Torrent* torrent);
+  void update(Torrent& torrent);
   
   virtual bool on_delete_event(GdkEventAny*);
   
@@ -162,7 +159,7 @@ protected:
   void save_state();
   void reset_views();
   
-  void build_tracker_menu(Torrent* torrent);
+  void build_tracker_menu(Torrent& torrent);
   void on_popup_tracker_selected(const Glib::ustring& tracker, int tier);
   
   void add_torrent(const Glib::ustring& file);
@@ -175,17 +172,15 @@ protected:
   void notify(const Glib::ustring& title, 
               const Glib::ustring& msg,
               NotifyType type,
-              Torrent* torrent = 0);
+              Torrent torrent = Torrent());
   
   void on_plugin_load(Plugin* plugin);
   void on_plugin_unload(Plugin* plugin);
   void on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent);
   
-  bool on_toggle_visible();
+  void on_toggle_visible();
   
   void on_settings();
-  
-  static UI* smInstance;
   
   void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
   void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
@@ -202,10 +197,7 @@ protected:
   void on_hash_failed(const sha1_hash& hash, const Glib::ustring& msg, int piece);
   void on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
   
-public: 
-  static UI* instance();
-  static void goodnight();
-  
+public:
   UI();
   ~UI();
 };

@@ -21,105 +21,88 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "libtorrent/alert_types.hpp"
 
 #include "linkage/AlertManager.hh"
-#include "linkage/SettingsManager.hh"
-#include "linkage/SessionManager.hh"
+#include "linkage/Engine.hh"
 
-AlertManager* AlertManager::smInstance = NULL;
-
-AlertManager* AlertManager::instance()
+Glib::RefPtr<AlertManager> AlertManager::create()
 {
-  static bool running = false;
-  if (smInstance == NULL && running == false)
-  {
-    running = true;
-    smInstance = new AlertManager();
-    running = false;
-  }
-  return smInstance;
+	return Glib::RefPtr<AlertManager>(new AlertManager());
 }
 
-void AlertManager::goodnight()
+AlertManager::AlertManager() : RefCounter<AlertManager>::RefCounter(this)
 {
-  if (smInstance != NULL)
-  {
-    delete smInstance;
-  }
-}
-
-AlertManager::AlertManager()
-{
-  int interval = SettingsManager::instance()->get<int>("UI", "Interval")*1000;
+	int interval = Engine::instance()->get_settings_manager()->get_int("UI", "Interval")*1000;
   Glib::signal_timeout().connect(sigc::mem_fun(this, &AlertManager::check_alerts), interval);
 }
 
 AlertManager::~AlertManager()
 {
+	std::cout << "AM destructor\n";
 }
 
 sigc::signal<void, const Glib::ustring&> 
 AlertManager::signal_listen_failed()
 {
-  return signal_listen_failed_;
+  return m_signal_listen_failed;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> 
 AlertManager::signal_tracker_failed()
 {
-  return signal_tracker_failed_;
+  return m_signal_tracker_failed;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_tracker_reply()
 {
-  return signal_tracker_reply_;
+  return m_signal_tracker_reply;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_tracker_warning()
 {
-  return signal_tracker_warning_;
+  return m_signal_tracker_warning;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_tracker_announce()
 {
-  return signal_tracker_announce_;
+  return m_signal_tracker_announce;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_torrent_finished()
 {
-  return signal_torrent_finished_;
+  return m_signal_torrent_finished;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_file_error()
 {
-  return signal_file_error_;
+  return m_signal_file_error;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&> AlertManager::signal_fastresume_rejected()
 {
-  return signal_fastresume_rejected_;
+  return m_signal_fastresume_rejected;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> 
 AlertManager::signal_hash_failed()
 {
-  return signal_hash_failed_;
+  return m_signal_hash_failed;
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&> 
 AlertManager::signal_peer_ban()
 {
-  return signal_peer_ban_;
+  return m_signal_peer_ban;
 }
 
   
 bool AlertManager::check_alerts()
 {
   std::auto_ptr<alert> a;
-  a = SessionManager::instance()->pop_alert();
+  a = Engine::instance()->get_session_manager()->pop_alert();
   while (a.get())
   {
     #ifdef DEBUG
@@ -127,45 +110,45 @@ bool AlertManager::check_alerts()
     #endif
     if (listen_failed_alert* p = dynamic_cast<listen_failed_alert*>(a.get()))
     {
-      signal_listen_failed_.emit(p->msg());
+      m_signal_listen_failed.emit(p->msg());
     }
     else if (tracker_alert* p = dynamic_cast<tracker_alert*>(a.get()))
     {
-      signal_tracker_failed_.emit(p->handle.info_hash(), p->msg(), p->status_code, p->times_in_row);
+      m_signal_tracker_failed.emit(p->handle.info_hash(), p->msg(), p->status_code, p->times_in_row);
     }
     else if (tracker_reply_alert* p = dynamic_cast<tracker_reply_alert*>(a.get()))
     {
-      signal_tracker_reply_.emit(p->handle.info_hash(), p->msg());
+      m_signal_tracker_reply.emit(p->handle.info_hash(), p->msg());
     }
     else if (tracker_warning_alert* p = dynamic_cast<tracker_warning_alert*>(a.get()))
     {
-      signal_tracker_warning_.emit(p->handle.info_hash(), p->msg());
+      m_signal_tracker_warning.emit(p->handle.info_hash(), p->msg());
     }
     else if (tracker_announce_alert* p = dynamic_cast<tracker_announce_alert*>(a.get()))
     {
-      signal_tracker_announce_.emit(p->handle.info_hash(), p->msg());
+      m_signal_tracker_announce.emit(p->handle.info_hash(), p->msg());
     }
     else if (torrent_finished_alert* p = dynamic_cast<torrent_finished_alert*>(a.get()))
     {
-      signal_torrent_finished_.emit(p->handle.info_hash(), p->msg());
+      m_signal_torrent_finished.emit(p->handle.info_hash(), p->msg());
     }
     else if (file_error_alert* p = dynamic_cast<file_error_alert*>(a.get()))
     {
-      signal_file_error_.emit(p->handle.info_hash(), p->msg());
+      m_signal_file_error.emit(p->handle.info_hash(), p->msg());
     }
     else if (fastresume_rejected_alert* p = dynamic_cast<fastresume_rejected_alert*>(a.get()))
     {
-      signal_fastresume_rejected_.emit(p->handle.info_hash(), p->msg());
+      m_signal_fastresume_rejected.emit(p->handle.info_hash(), p->msg());
     }
     else if (hash_failed_alert* p = dynamic_cast<hash_failed_alert*>(a.get()))
     {
-      signal_hash_failed_.emit(p->handle.info_hash(), p->msg(), p->piece_index);
+      m_signal_hash_failed.emit(p->handle.info_hash(), p->msg(), p->piece_index);
     }
     else if (peer_ban_alert* p = dynamic_cast<peer_ban_alert*>(a.get()))
     {
-      signal_peer_ban_.emit(p->handle.info_hash(), p->msg(), p->ip.address().to_string());
+      m_signal_peer_ban.emit(p->handle.info_hash(), p->msg(), p->ip.address().to_string());
     }
-    a = SessionManager::instance()->pop_alert();
+    a = Engine::instance()->get_session_manager()->pop_alert();
   }
   return true;
 }

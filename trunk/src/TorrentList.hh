@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/treestore.h>
 
 #include "linkage/Torrent.hh"
+#include "GroupFilter.hh"
 
 class TorrentList : public Gtk::TreeView
 {
@@ -62,6 +63,8 @@ class TorrentList : public Gtk::TreeView
   
   Glib::RefPtr<Gtk::TreeStore> model;
   
+  std::list<GroupFilter*> filters;
+  
   Gtk::TreeIter get_iter(const Glib::ustring& group);
   Gtk::TreeIter get_iter(const sha1_hash& hash);
   
@@ -82,7 +85,7 @@ public:
   HashList get_selected_list();
 
   void update_groups();
-  void update_row(Torrent* torrent);
+  void update_row(Torrent& torrent);
   
   Glib::SignalProxy0<void> signal_changed();
 

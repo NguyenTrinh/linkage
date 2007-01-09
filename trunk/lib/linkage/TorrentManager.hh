@@ -22,53 +22,56 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <map>
 
 #include "linkage/Torrent.hh"
+#include "linkage/RefCounter.hh"
+#include "linkage/SessionManager.hh"
 
 typedef std::map<sha1_hash, Torrent*> TorrentMap;
 typedef TorrentMap::iterator TorrentIter;
 
-class TorrentManager
+class TorrentManager : public RefCounter<TorrentManager>
 {
-  TorrentMap torrents;
-  static TorrentManager* smInstance;
+  TorrentMap m_torrents;
   
-  void on_torrent_position_changed(const sha1_hash& hash, Torrent::Direction direction);
-  void on_torrent_group_changed(const sha1_hash& hash, const Glib::ustring& group);
-  void on_torrent_response_changed(const sha1_hash& hash, const Glib::ustring& response);
+  sigc::signal<void, const sha1_hash&, int> m_signal_position_changed;
+  sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_group_changed;
+  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, int> m_signal_added;
+  sigc::signal<void, const sha1_hash&> m_signal_removed;
   
-  sigc::signal<void, const sha1_hash&, int> signal_position_changed_;
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_group_changed_;
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_response_changed_;
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, int> signal_added_;
-  sigc::signal<void, const sha1_hash&> signal_removed_;
+  void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply);
   
-  friend class Torrent;
+  TorrentManager();
+  
+  /* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */
+  Glib::RefPtr<SessionManager> m_settings_manager;
   
 public:
   sigc::signal<void, const sha1_hash&, int> signal_position_changed();
   sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_group_changed();
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_response_changed();
   sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, int> signal_added();
   sigc::signal<void, const sha1_hash&> signal_removed();
   
-  static TorrentManager* instance();
-  static void goodnight();
+  void set_torrent_position(const sha1_hash& hash, Torrent::Direction direction);
   
   void check_queue(); /* FIXME: Should be protected, not public? */
   
   bool exists(const sha1_hash& hash);
   bool exists(const Glib::ustring& hash_str);
   
-  void add_torrent(torrent_handle handle);
-  void add_torrent(torrent_info info);
+  void add_torrent(const torrent_handle& handle, const entry& e);
+  void add_torrent(const entry& e);
   void remove_torrent(const sha1_hash& hash);
   
+  //FIXME: Should be removed, or at least friends only.
   torrent_handle get_handle(const sha1_hash& hash);
-  Torrent* get_torrent(const sha1_hash& hash);
-  Torrent* get_torrent(int position);
+  
+  Torrent get_torrent(const sha1_hash& hash);
+  Torrent get_torrent(int position);
   
   int get_torrents_count();
   
-  TorrentManager();
+  void save_fastresume(const sha1_hash& hash, const entry& e);
+  
+  static Glib::RefPtr<TorrentManager> create();
   ~TorrentManager();
 };
 

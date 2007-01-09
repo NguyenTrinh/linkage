@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 #include "IOManager.hh"
-#include "UI.hh"
 #include "linkage/Utils.hh"
+#include "linkage/Engine.hh"
 
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
@@ -54,7 +54,7 @@ IOManager::IOManager(int argc, char *argv[])
           file.insert(0,g_getenv("PWD") +  Glib::ustring("/"));
 
         /* Pass file(s) to running instance */
-        UI::instance()->add_torrent(file);
+        signal_io_in_.emit(file);
       }
       
     }
@@ -140,7 +140,7 @@ int IOManager::create_fifo()
   fd = -1;
   Glib::ustring fifo = Glib::build_filename(get_config_dir(), "fifo");
 
-  if (!Glib::file_test(fifo, Glib::FILE_TEST_EXISTS)) 
+  if (!Engine::is_running()) 
   {
     if (mkfifo(fifo.c_str(), 0644) != 0) 
       throw Glib::FileError(Glib::FileError::FAILED, "error creating fifo");
@@ -149,7 +149,7 @@ int IOManager::create_fifo()
     if (fd == -1)
       throw Glib::FileError(Glib::FileError::FAILED, "error opening fifo");
   }
-  else /* fifo exists, another instance is running */
+  else /* another instance is running */
   {
     fd = g_open(fifo.c_str(), O_RDWR);
     if (fd == -1)
@@ -170,9 +170,13 @@ bool IOManager::on_io_input(Glib::IOCondition condition)
     /* Get rid of trailing '\n' */
     file.erase(file.size()-1, 1);
 
-    /* Pass to UI instead of SessionManager because we might need to ask for a save path */
-    UI::instance()->add_torrent(file);
+    signal_io_in_.emit(file);
   }
   
   return true;
+}
+
+sigc::signal<void, const Glib::ustring&>  signal_io_in()
+{
+  return signal_io_in_;
 }

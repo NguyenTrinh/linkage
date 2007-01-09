@@ -21,8 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <sigc++/signal.h>
 #include <glibmm/ustring.h>
 #include <gtkmm_extra/keyfile.h>
-#include <iostream>
-
+#include "linkage/RefCounter.hh"
 
 typedef Glib::ArrayHandle<Glib::ustring> UStringArray;
 typedef Glib::ArrayHandle<int> IntArray;
@@ -30,31 +29,14 @@ typedef Glib::ArrayHandle<bool> BoolArray;
 
 enum { NUM_DEFAULT_GROUPS = 4 };
 
-class SettingsManager 
+class SettingsManager : public RefCounter<SettingsManager>
 {
-public:
-  static SettingsManager* instance();
-  static void goodnight();
-
-  template <class T> T get(const Glib::ustring& group, const Glib::ustring& key)
-	{
-    /* TODO nullpointer is a horrible hack */
-		T* nullpointer = 0;
-		try
-		{
-			return get(group, key, nullpointer);
-		}
-		catch (Glib::Error& error)
-		{
-      std::cerr << error.what() << std::endl;
-    }
-  }
-  
-  Glib::ustring get(const Glib::ustring& group, const Glib::ustring& key, Glib::ustring* nullpointer) const;
-  int get(const Glib::ustring& group, const Glib::ustring& key, int* nullpointer) const;
-  bool get(const Glib::ustring& group, const Glib::ustring& key, bool* nullpointer) const;
-  UStringArray get(const Glib::ustring& group, const Glib::ustring& key, UStringArray* nullpointer) const;
-  IntArray get(const Glib::ustring& group, const Glib::ustring& key, IntArray* nullpointer) const;
+public: 
+  Glib::ustring get_string(const Glib::ustring& group, const Glib::ustring& key) const;
+  int get_int(const Glib::ustring& group, const Glib::ustring& key) const;
+  bool get_bool(const Glib::ustring& group, const Glib::ustring& key) const;
+  UStringArray get_string_list(const Glib::ustring& group, const Glib::ustring& key) const;
+  IntArray get_int_list(const Glib::ustring& group, const Glib::ustring& key) const;
   
   void set(const Glib::ustring& group, const Glib::ustring& key, const Glib::ustring& value);
   void set(const Glib::ustring& group, const Glib::ustring& key, int value);
@@ -71,19 +53,19 @@ public:
   
   sigc::signal<void> signal_update_settings();
   
-  //FIXME: Should not be public
-  sigc::signal<void> signal_update_settings_;
+  void update();
   
-protected:
-  
-  Glib::KeyFile keyfile;
-
-  static SettingsManager* smInstance;
-
-  SettingsManager();
+  static Glib::RefPtr<SettingsManager> create();
   ~SettingsManager();
   
+protected:
+  Glib::KeyFile* keyfile;
+  
+  sigc::signal<void> m_signal_update_settings;
+  
   static Glib::ustring defaults;
+  
+  SettingsManager();
 };
 
 #endif /* SETTINGSMANAGER_HH */

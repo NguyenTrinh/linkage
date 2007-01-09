@@ -18,8 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include <gtkmm/main.h>
 
-#include "linkage/SettingsManager.hh"
-#include "IOManager.hh"
+#include "linkage/Engine.hh"
 #include "UI.hh"
 
 #include <iostream>
@@ -27,41 +26,47 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 int main(int argc, char *argv[])
 {
   Gtk::Main kit(&argc, &argv);
-  
-  SettingsManager *sm;
-  try
+
+  if (!Engine::is_primary())
   {
-    sm = SettingsManager::instance();
+    for (int i = 1; i < argc; i++)
+    {
+      Glib::ustring file = argv[i];
+      if (file.substr(0, 1) == "-" || file.substr(0, 2) == "--")
+      {
+        throw Glib::OptionError(Glib::OptionError::UNKNOWN_OPTION, 
+                                "Unknown flag: \n"
+                                "Usage:\n  linkage [TORRENTS...]");
+      }
+      /* Check for relative paths */
+      if (file.substr(0, 1) != "/")
+        file.insert(0,g_getenv("PWD") +  Glib::ustring("/"));
+
+      /* Pass file(s) to running instance */
+      Engine::instance()->get_dbus_manager()->send("Open", file);
+      Engine::instance()->get_dbus_manager()->send("ToggleVisible");
+    }
+    
+    if (argc > 1)
+    {
+      std::cout << argc - 1 << " file(s) passed to running instance.\n";
+      return 0;
+    }
+    else
+    {
+      std::cerr << "Another process is already running. Quitting...\n";
+      Engine::instance()->get_dbus_manager()->send("ToggleVisible");
+      return 1;
+    }
   }
-  catch (Glib::Error& e)
+  else
   {
-    std::cerr << e.what() << std::endl;
-    return 1;
+    UI *ui = new UI();
+    ui->show();
+    Gtk::Main::run();
+
+    delete ui;
   }
-  
-  IOManager* ioman;
-  try
-  {
-    ioman = new IOManager(argc, argv);
-  }
-  catch (Glib::Error& e)
-  {
-    std::cerr << e.what() << std::endl;
-    return 1;
-  }
-  
-  UI *ui = UI::instance();
-  ui->show();
-  Gtk::Main::run();
-  
-  ui->goodnight();
-  PluginManager::instance()->goodnight();
-  TorrentManager::instance()->goodnight();
-  SessionManager::instance()->goodnight();
-  
-  delete ioman;
-  
-  sm->goodnight();
   
   return 0;
 }

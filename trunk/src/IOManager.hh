@@ -34,7 +34,9 @@ class IOManager
   
   void clean();
   
+  sigc::signal<void, const Glib::ustring&> signal_io_in_;
 public:
+  sigc::signal<void, const Glib::ustring&>  signal_io_in();
   IOManager(int argc, char *argv[]);
   ~IOManager();
 };

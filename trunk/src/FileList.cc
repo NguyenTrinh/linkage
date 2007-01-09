@@ -24,8 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "FileList.hh"
 #include "CellRendererPieceMap.hh"
 #include "linkage/Utils.hh"
-#include "linkage/TorrentManager.hh"
-#include "UI.hh"
+#include "linkage/Engine.hh"
 
 FileList::FileList()
 {
@@ -42,13 +41,19 @@ FileList::FileList()
   /* FIXME: Get colors from SettingsManager */
   Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
   
-  Gdk::Color light, mid, dark = Gdk::Color("blue");
-  mid.set_red(32767);
-  mid.set_green(32767);
-  mid.set_blue(65535);
-  light.set_red(52428);
-  light.set_green(52428);
-  light.set_blue(65535);
+  std::vector<int> rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorDark");
+  Gdk::Color light, mid, dark;
+  dark.set_red(rgb[0]);
+  dark.set_green(rgb[1]);
+  dark.set_blue(rgb[2]);
+  rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorMid");
+  mid.set_red(rgb[0]);
+  mid.set_green(rgb[1]);
+  mid.set_blue(rgb[2]);
+  rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorLight");
+  light.set_red(rgb[0]);
+  light.set_green(rgb[1]);
+  light.set_blue(rgb[2]);
   
   colormap->alloc_color(dark);
   colormap->alloc_color(mid);
@@ -91,12 +96,9 @@ void FileList::on_filter_toggled(const Glib::ustring& path)
   Gtk::TreeRow row = *(model->get_iter(path));
   row[columns.filter] = !row[columns.filter];
   
-  HashList list = UI::instance()->torrent_list->get_selected_list();
-  
-  if (list.size() == 1)
+  if (current_torrent.is_valid())
   {
-    Torrent* torrent = TorrentManager::instance()->get_torrent(*list.begin());
-    torrent_info info = torrent->get_handle().get_torrent_info();
+    torrent_info info = current_torrent.get_info();
     
     std::vector<bool> filter(info.num_files(), false);
     
@@ -112,7 +114,7 @@ void FileList::on_filter_toggled(const Glib::ustring& path)
             filter[i] = true;
       }
     }
-    torrent->set_filter(filter);
+    current_torrent.set_filter(filter);
   }
 }
 
@@ -126,17 +128,17 @@ void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, c
    It's probably a bug in *PieceMap, best show here though.
    
    This method hogs cpu =/ */
-void FileList::update(Torrent* torrent)
+void FileList::update(Torrent& torrent)
 {
-  torrent_handle handle = torrent->get_handle();
-  torrent_info info = handle.get_torrent_info();
-  torrent_status status = handle.status();
+	current_torrent = torrent;
+	
+  torrent_handle handle = torrent.get_handle();
+  torrent_info info = torrent.get_info();
+  torrent_status status = torrent.get_status();
   std::vector<bool> pieces = *status.pieces;
-  std::vector<partial_piece_info> queue;
-  handle.get_download_queue(queue);
-  std::vector<float> fp;
-  handle.file_progress(fp);
-  std::vector<bool> filter = torrent->get_filter();
+  std::vector<partial_piece_info> queue = torrent.get_download_queue();
+  std::vector<float> fp = torrent.get_file_progress();
+  std::vector<bool> filter = torrent.get_filter();
   
   int byte_pos = 0;
   int piece_index = 0;
@@ -157,7 +159,7 @@ void FileList::update(Torrent* torrent)
   clear();
   
   Gtk::CellRendererToggle* cell = dynamic_cast<Gtk::CellRendererToggle*>(get_column(0)->get_first_cell_renderer());
-  cell->property_activatable() = !handle.is_seed();
+  cell->property_activatable() = !(torrent.get_state() & Torrent::SEEDING);
   
   for (int i = 0; i < info.num_files(); i++)
   {

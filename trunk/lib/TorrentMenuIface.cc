@@ -20,16 +20,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 TorrentMenuPlugin::TorrentMenuPlugin()
 {
-  name_ = "Generic menu plugin";
-  description_ = "Generic menu description";
-  version_ = 0;
+  m_name = "Generic menu plugin";
+  m_description = "Generic menu description";
+  m_version = 0;
 }
 
 TorrentMenuPlugin::TorrentMenuPlugin(const Glib::ustring& name, const Glib::ustring& description, int version)
 {
-  name_ = name;
-  description_ = description;
-  version_ = version;
+  m_name = name;
+  m_description = description;
+  m_version = version;
 }
 
 TorrentMenuPlugin::~TorrentMenuPlugin()

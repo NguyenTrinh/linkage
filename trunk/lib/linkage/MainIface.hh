@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 class MainPlugin : public Plugin
 {
   /* Title of the NoteBook page */
-  Glib::ustring title_;
+  Glib::ustring m_title;
   
 public:
   virtual Plugin::PluginParent get_parent();

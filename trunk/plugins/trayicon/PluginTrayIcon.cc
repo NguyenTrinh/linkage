@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <iostream>
 #include "PluginTrayIcon.hh"
+#include "linkage/Engine.hh"
 
 #include <gtkmm/menuitem.h>
 #include <gtkmm/imagemenuitem.h>
@@ -65,18 +66,21 @@ void TrayPlugin::on_load()
   
   popup_menu = new Gtk::Menu();
   Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Start torrents"));
+  item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_start));
   popup_menu->append(*item);
   item = Gtk::manage(new Gtk::MenuItem("Stop torrents"));
+  item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_stop));
   popup_menu->append(*item);
   Gtk::SeparatorMenuItem* separator = Gtk::manage(new Gtk::SeparatorMenuItem());
   popup_menu->append(*separator);
   Gtk::ImageMenuItem* imageitem = Gtk::manage(new Gtk::ImageMenuItem(Gtk::Stock::QUIT));
+  imageitem->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_quit));
   popup_menu->append(*imageitem);
   
   popup_menu->show_all_children();
 }
 
-bool TrayPlugin::update(Torrent* torrent)
+bool TrayPlugin::update(Torrent& torrent)
 {
   return false;
 }
@@ -84,7 +88,7 @@ bool TrayPlugin::update(Torrent* torrent)
 bool TrayPlugin::on_notify(const Glib::ustring& title,
                           const Glib::ustring& message,
                           NotifyType type,
-                          Torrent* torrent)
+                          Torrent& torrent)
 {
   return false;
 }
@@ -93,12 +97,27 @@ bool TrayPlugin::on_button_released(GdkEventButton* e)
 {
   if (e->button == 1)
   {
-    signal_ui_toggle_visible_.emit();
+    Engine::instance()->get_dbus_manager()->send("ToggleVisible");
   }
   else if (e->button == 3)
   {
     popup_menu->popup(e->button, e->time);
   }
+}
+
+void TrayPlugin::on_quit()
+{
+	Engine::instance()->get_dbus_manager()->send("Quit");
+}
+
+void TrayPlugin::on_torrents_stop()
+{
+	/* FIXME: Poll TorrentManager */
+}
+
+void TrayPlugin::on_torrents_start()
+{
+	/* FIXME: Poll TorrentManager */
 }
 
 Plugin * CreatePlugin()
