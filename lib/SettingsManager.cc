@@ -100,7 +100,6 @@ SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(thi
 
 SettingsManager::~SettingsManager()
 {
-	std::cout << "SSM destructor\n";
   Glib::ustring file = Glib::build_filename(get_config_dir(), "config");
   try
   {

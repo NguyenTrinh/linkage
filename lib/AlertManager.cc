@@ -36,7 +36,6 @@ AlertManager::AlertManager() : RefCounter<AlertManager>::RefCounter(this)
 
 AlertManager::~AlertManager()
 {
-	std::cout << "AM destructor\n";
 }
 
 sigc::signal<void, const Glib::ustring&> 

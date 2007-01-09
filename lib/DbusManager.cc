@@ -52,7 +52,6 @@ DbusManager::DbusManager() : RefCounter<DbusManager>::RefCounter(this)
 
 DbusManager::~DbusManager()
 {
-	std::cout << "DM destructor\n";
 }
 
 void DbusManager::send(const Glib::ustring& interface, const Glib::ustring& msg)

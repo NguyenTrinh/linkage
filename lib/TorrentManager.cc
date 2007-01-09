@@ -38,7 +38,6 @@ TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 
 TorrentManager::~TorrentManager()
 {
-	std::cout << "TM destructor\n";
   for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
   {
     sha1_hash hash = iter->first;
@@ -61,7 +60,6 @@ TorrentManager::~TorrentManager()
 void TorrentManager::save_fastresume(const sha1_hash& hash, const entry& e)
 { 
   Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash) + ".resume");
-  std::cout << file << std::endl;
   std::ofstream out(file.c_str(), std::ios_base::binary);
   out.unsetf(std::ios_base::skipws);
   bencode(std::ostream_iterator<char>(out), e);
