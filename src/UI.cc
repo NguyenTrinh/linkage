@@ -69,9 +69,11 @@ Glib::ustring ui_info = "<ui>"
 
 
 UI::UI()
-{  
+{
   settings_win = new SettingsWin(this);
   torrent_win = new TorrentCreator(this);
+  
+  set_title("Linkage");
   
   menu_trackers = manage(new Gtk::Menu());
 
