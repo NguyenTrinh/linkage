@@ -16,6 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "libtorrent/hasher.hpp"
+#include "libtorrent/bencode.hpp"
+
 #include "linkage/Utils.hh"
 
 Glib::ustring suffix_value(float value)
@@ -98,7 +101,8 @@ Glib::ustring format_time(int seconds)
     tc << std::setw(2) << std::setfill('0') << minutes << ":";
     tc << std::setw(2) << std::setfill('0') << seconds;
     return tc.str();
-  }else
+  }
+  else
   {
     Glib::ustring day_str = "days";
     if (days == 1)
@@ -108,6 +112,16 @@ Glib::ustring format_time(int seconds)
     tc << std::setw(2) << std::setfill('0') << seconds;
     return tc.str();
   }
+}
+
+sha1_hash info_hash(const std::string& chars)
+{
+	sha1_hash hash;
+  
+  for (int i = 0; i < hash.size && (hash.size == chars.size()); i++)
+  	hash[i] = chars[i];
+  
+  return hash;
 }
 
 /* http://lists.alioth.debian.org/pipermail/pkg-gnome-maintainers/2005-June/014881.html */
@@ -130,7 +144,7 @@ std::list<Glib::ustring> get_interfaces()
   return list;
 }
 
-//http://www.linuxquestions.org/questions/showthread.php?t=425637
+/* http://www.linuxquestions.org/questions/showthread.php?t=425637 */
 int get_ip(const char *iface, ip_address ip)
 {
   struct ifreq		*ifr;
@@ -159,4 +173,9 @@ int get_ip(const char *iface, ip_address ip)
 Glib::ustring get_config_dir()
 {
   return Glib::build_filename(g_get_user_config_dir(), "linkage");
+}
+
+Glib::ustring get_data_dir()
+{
+  return Glib::build_filename(get_config_dir(), "data");
 }

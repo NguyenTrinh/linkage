@@ -17,118 +17,107 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 #include "linkage/SessionManager.hh"
-#include "linkage/TorrentManager.hh"
+#include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
 #include <glib/gstdio.h>
+#include <glibmm/fileutils.h>
 
-SessionManager* SessionManager::smInstance = NULL;
-
-SessionManager* SessionManager::instance()
+Glib::RefPtr<SessionManager> SessionManager::create()
 {
-  static bool running = false;
-  if (smInstance == NULL && running == false)
-  {
-    running = true;
-    smInstance = new SessionManager();
-    running = false;
-  }
-  return smInstance;
+	return Glib::RefPtr<SessionManager>(new SessionManager());
 }
 
-void SessionManager::goodnight()
-{
-  if (smInstance != NULL)
-  {
-    delete smInstance;
-  }
-}
-
-SessionManager::SessionManager()
+SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this)
 {
   boost::filesystem::path::default_name_check(boost::filesystem::native);
   
   set_severity_level(alert::debug);
   
-  SettingsManager::instance()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
+  Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
   
   on_settings(); //Apply settings on startup
 }
 
 SessionManager::~SessionManager()
 {
+	std::cout << "SM destructor\n";
   /* FIXME: Save Session settings and clean? */
 }
 
 sigc::signal<void> SessionManager::signal_update_queue()
 {
-  return signal_update_queue_;
+  return m_signal_update_queue;
 }
 
 sigc::signal<void> SessionManager::signal_session_resumed()
 {
-  return signal_session_resumed_;
+  return m_signal_session_resumed;
 }
 
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&> 
 SessionManager::signal_invalid_bencoding()
 {
-  return signal_invalid_bencoding_;
+  return m_signal_invalid_bencoding;
 }
 
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&> 
 SessionManager::signal_missing_file()
 {
-  return signal_missing_file_;
+  return m_signal_missing_file;
 }
 
 sigc::signal<void, const Glib::ustring&, const sha1_hash&> 
 SessionManager::signal_duplicate_torrent()
 {
-  return signal_duplicate_torrent_;
+  return m_signal_duplicate_torrent;
 }
   
 void SessionManager::resume_session()
 {
-  std::vector<Glib::ustring> hash_strs = SettingsManager::instance()->get_groups();
-  for (int i = NUM_DEFAULT_GROUPS; i < hash_strs.size(); i++)
+  Glib::Dir dir(get_data_dir());
+  for (Glib::DirIterator iter = dir.begin(); iter != dir.end(); ++iter)
   {
-    sha1_hash hash = resume_torrent(hash_strs[i]);
+    Glib::ustring hash_str = *iter;
+    if (hash_str.find(".resume", hash_str.size()-7) == Glib::ustring::npos)
+      continue;
+      
+    resume_torrent(hash_str.substr(0, hash_str.size()-7));
   }
-  signal_session_resumed_.emit();
+  m_signal_session_resumed.emit();
 }
 
 void SessionManager::on_settings()
 {
-  SettingsManager* settings = SettingsManager::instance();
-  
-  Glib::ustring iface = settings->get<Glib::ustring>("Network", "Interface");
+  Glib::RefPtr<SettingsManager> settings = Engine::instance()->get_settings_manager();
+
+  Glib::ustring iface = settings->get_string("Network", "Interface");
   ip_address ip;
   get_ip(iface.c_str(), ip);
   
   if (iface.size())
-    listen_on(std::make_pair(settings->get<int>("Network", "MinPort"),
-                             settings->get<int>("Network", "MaxPort")), ip);
+    listen_on(std::make_pair(settings->get_int("Network", "MinPort"),
+                             settings->get_int("Network", "MaxPort")), ip);
   else
-    listen_on(std::make_pair(settings->get<int>("Network", "MinPort"),
-                             settings->get<int>("Network", "MaxPort")));
+    listen_on(std::make_pair(settings->get_int("Network", "MinPort"),
+                             settings->get_int("Network", "MaxPort")));
     
-  int up_rate = settings->get<int>("Network", "MaxUpRate")*1024;
+  int up_rate = settings->get_int("Network", "MaxUpRate")*1024;
   if (up_rate < 1)
     up_rate = -1;
   set_upload_rate_limit(up_rate);
   
-  int down_rate = settings->get<int>("Network", "MaxDownRate")*1024;
+  int down_rate = settings->get_int("Network", "MaxDownRate")*1024;
   if (down_rate < 1)
     down_rate = -1;
   set_download_rate_limit(down_rate);
   
-  int max_uploads = settings->get<int>("Network", "MaxUploads");
+  int max_uploads = settings->get_int("Network", "MaxUploads");
   if (max_uploads == 0)
     max_uploads = -1;      
   set_max_uploads(max_uploads);
   
-  int max_connections = settings->get<int>("Network", "MaxConnections");
+  int max_connections = settings->get_int("Network", "MaxConnections");
   if (max_connections == 0)
     max_connections = -1;
   set_max_connections(max_connections);
@@ -136,15 +125,15 @@ void SessionManager::on_settings()
   session_settings sset;
   fingerprint id("LK", 0, 19, 0, 0);
   sset.user_agent = id.to_string();
-  sset.tracker_completion_timeout = settings->get<int>("Network", "TrackerTimeout");
-  sset.tracker_receive_timeout = settings->get<int>("Network", "TrackerTimeout");
-  sset.stop_tracker_timeout = settings->get<int>("Network", "TrackerTimeout");
-  if (settings->get<bool>("Network", "UseProxy"))
+  sset.tracker_completion_timeout = settings->get_int("Network", "TrackerTimeout");
+  sset.tracker_receive_timeout = settings->get_int("Network", "TrackerTimeout");
+  sset.stop_tracker_timeout = settings->get_int("Network", "TrackerTimeout");
+  if (settings->get_bool("Network", "UseProxy"))
   {
-    sset.proxy_port = settings->get<int>("Network", "ProxyPort");
-    sset.proxy_ip = settings->get<Glib::ustring>("Network", "ProxyPort");
-    sset.proxy_login = settings->get<Glib::ustring>("Network", "ProxyLogin");
-    sset.proxy_password = settings->get<Glib::ustring>("Network", "ProxyPass");
+    sset.proxy_port = settings->get_int("Network", "ProxyPort");
+    sset.proxy_ip = settings->get_string("Network", "ProxyPort");
+    sset.proxy_login = settings->get_string("Network", "ProxyLogin");
+    sset.proxy_password = settings->get_string("Network", "ProxyPass");
   }
   set_settings(sset);
 }
@@ -168,41 +157,34 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
   }
   catch (std::exception& e)
   {
-    signal_invalid_bencoding_.emit("Invalid bencoding in " + file, file);
+    m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
     return INVALID_HASH;
   }
   
   torrent_info info(e);
   sha1_hash hash = info.info_hash();
   
-  if (!TorrentManager::instance()->exists(hash))
+  if (!Engine::instance()->get_torrent_manager()->exists(hash))
   {
     torrent_handle handle = add_torrent(info, save_path.c_str(), entry(), 
-                              !SettingsManager::instance()->get<bool>("Files", "Allocate"));
-    TorrentManager::instance()->add_torrent(handle);
-    SettingsManager::instance()->set(str(hash), "Path", save_path);
+      !Engine::instance()->get_settings_manager()->get_bool("Files", "Allocate"));
+    entry::dictionary_type de;
+    de["path"] = save_path;
+    entry::list_type filter;
+    filter.push_back(info.num_files());
+    de["filter"] = filter;
+    de["name"] = info.name();
+    /* Must use std::string beacuse Glib::ustring is UTF-8 */
+    de["info-hash"] = std::string((char*)info.info_hash().begin(), (char*)info.info_hash().end());;
+    
+    Engine::instance()->get_torrent_manager()->add_torrent(handle, de);
   }
   else
   {
-    signal_duplicate_torrent_.emit("Torrent already exists in session as " + 
-      TorrentManager::instance()->get_torrent(hash)->get_name(), hash);
+    m_signal_duplicate_torrent.emit("Torrent already exists in session as " + 
+      Engine::instance()->get_torrent_manager()->get_torrent(hash).get_name(), hash);
     return INVALID_HASH;
   }
-  
-  //FIXME: clean this up...
-  Glib::ustring hash_str = str(info.info_hash());
-  SettingsManager* sm = SettingsManager::instance();
-  sm->set(hash_str, "Stopped", false);
-  sm->set(hash_str, "Path", save_path);
-  sm->set(hash_str, "Down", 0);
-  sm->set(hash_str, "Up", 0);
-  sm->set(hash_str, "Time", 0);
-  sm->set(hash_str, "DownLimit", 0);
-  sm->set(hash_str, "UpLimit", 0);
-  std::list<int> filter;
-  filter.push_back(info.num_files());
-  sm->set(hash_str, "Filter", IntArray(filter));
-  sm->set(hash_str, "Group", sm->get<Glib::ustring>("Files", "DefGroup"));
   
   //Save metadata to data_dir/hash
   Glib::ustring metafile = Glib::build_filename(get_data_dir(), str(hash));
@@ -211,7 +193,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
   out.write(&buff[0], buff.size());
   out.close();
 
-  signal_update_queue_.emit();
+  m_signal_update_queue.emit();
   
   return hash;
 }
@@ -237,13 +219,13 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
   }
   catch (std::exception& e)
   {
-    signal_invalid_bencoding_.emit("Invalid bencoding in " + file, file);
+    m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
     return INVALID_HASH;
   }
   
   torrent_info info = torrent_info(e);
   /* Check if torrent is up an running, if so return */
-  if (TorrentManager::instance()->get_handle(info.info_hash()).is_valid())
+  if (Engine::instance()->get_torrent_manager()->get_handle(info.info_hash()).is_valid())
     return INVALID_HASH;
     
   file = file + ".resume";
@@ -255,40 +237,28 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
   }
   catch (std::exception& e)
   {
-    signal_invalid_bencoding_.emit("Invalid bencoding in " + file, file);
+    /* If this happens we need to handle it better below */
+    m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
   }
   
-  bool allocate = SettingsManager::instance()->get<bool>("Files", "Allocate");
-  Glib::ustring save_path = SettingsManager::instance()->get<Glib::ustring>(hash_str, "Path");
+  bool allocate = Engine::instance()->get_settings_manager()->get_bool("Files", "Allocate");
+  Glib::ustring save_path = er.dict()["path"].string();
+  er.dict()["name"] = info.name();
   
-  if (TorrentManager::instance()->exists(hash_str)) //Torrent was resumed from stopped state
+  if (Engine::instance()->get_torrent_manager()->exists(hash_str)) //Torrent was resumed from stopped state
   {
-    /*//Only look for missing files if we're on full allocation. Doesn't fastresume cover this?
-    if (allocate)
-    {
-      Glib::ustring file;
-      if (!files_available(save_path, file, info.begin_files(), info.end_files()))
-        signal_missing_file_.emit("File not found " + file, file);
-    }*/
-    SettingsManager::instance()->set(hash_str, "Stopped", false);
     torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-    TorrentManager::instance()->add_torrent(handle);
-    signal_update_queue_.emit();
+    Engine::instance()->get_torrent_manager()->add_torrent(handle, er.dict());
+    m_signal_update_queue.emit();
   }
   else //Torrent was resumed from previous session
   {
-    TorrentManager::instance()->add_torrent(info);
-    if (!SettingsManager::instance()->get<bool>(str(info.info_hash()), "Stopped"))
+    Engine::instance()->get_torrent_manager()->add_torrent(er.dict());
+    if (er.dict()["running"].integer())
     {
-      /*if (allocate)
-      {
-        Glib::ustring file;
-        if (!files_available(save_path, file, info.begin_files(), info.end_files()))
-          signal_missing_file_.emit("File not found " + file, file);
-      }*/
       torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-      TorrentManager::instance()->add_torrent(handle);
-      signal_update_queue_.emit();
+      Engine::instance()->get_torrent_manager()->add_torrent(handle, er.dict());
+      m_signal_update_queue.emit();
     }
   }
   return info.info_hash();
@@ -296,74 +266,37 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 
 void SessionManager::stop_torrent(const sha1_hash& hash)
 {
-  if (TorrentManager::instance()->exists(hash))
+  if (Engine::instance()->get_torrent_manager()->exists(hash))
   {
-    SettingsManager* sm = SettingsManager::instance();
-    
     Glib::ustring hash_str = str(hash);
-    Torrent* torrent = TorrentManager::instance()->get_torrent(hash);
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
     
-    if (!torrent->get_handle().is_valid())
+    if (!torrent.is_running())
       return;
-      
-    int down = sm->get<int>(hash_str, "Down");
-    int up = sm->get<int>(hash_str, "Up");
+         
+    torrent.stop();
+		entry e = torrent.get_resume_entry();
+		
+    Engine::instance()->get_torrent_manager()->save_fastresume(hash, e);
     
-    torrent->get_handle().pause();
-    torrent->set_stop_time();
-    torrent_status status = torrent->get_handle().status();
+    remove_torrent(torrent.get_handle());
     
-    std::list<int> filtered_files;
-    std::vector<bool> filter = torrent->get_filter();
-    filtered_files.push_back(filter.size());
-    for (int i = 0; i < filter.size(); i++)
-      if (filter[i])
-        filtered_files.push_back(i);
-    
-    sm->set(hash_str, "Stopped", true);
-    sm->set(hash_str, "Down", int(down + status.total_download)); /* Hmm do we loose bytes here if files are big? */
-    sm->set(hash_str, "Up", int(up + status.total_upload));
-    sm->set(hash_str, "Time", torrent->get_time_active());
-    sm->set(hash_str, "DownLimit", torrent->get_down_limit());
-    sm->set(hash_str, "UpLimit", torrent->get_up_limit());
-    sm->set(hash_str, "Filter", IntArray(filtered_files));
-    sm->set(hash_str, "Group", torrent->get_group());
-
-    save_fastresume(hash);
-    remove_torrent(torrent->get_handle());
-    
-    signal_update_queue_.emit();
+    m_signal_update_queue.emit();
   }
 }
 
 void SessionManager::erase_torrent(const sha1_hash& hash)
 {
-  torrent_handle handle = TorrentManager::instance()->get_handle(hash);
+  torrent_handle handle = Engine::instance()->get_torrent_manager()->get_handle(hash);
   
   if (handle.is_valid())
     remove_torrent(handle);
   
   Glib::ustring hash_str = str(hash);
-  TorrentManager::instance()->remove_torrent(hash);
-  SettingsManager::instance()->remove_group(hash_str);
+  Engine::instance()->get_torrent_manager()->remove_torrent(hash);
+  Engine::instance()->get_settings_manager()->remove_group(hash_str);
   
   g_remove(Glib::build_filename(get_data_dir(), hash_str).c_str());
+  g_remove(Glib::build_filename(get_data_dir(), hash_str + ".resume").c_str());
 }
-
-Glib::ustring SessionManager::get_data_dir()
-{
-  return Glib::build_filename(get_config_dir(), "data");
-}
-
-void SessionManager::save_fastresume(const sha1_hash& hash)
-{
-  entry er = TorrentManager::instance()->get_handle(hash).write_resume_data();
-  Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash) + ".resume");
-  
-  std::ofstream out(file.c_str(), std::ios_base::binary);
-  out.unsetf(std::ios_base::skipws);
-  bencode(std::ostream_iterator<char>(out), er);
-  out.close();
-}
-
 

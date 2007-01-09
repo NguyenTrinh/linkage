@@ -27,13 +27,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/entry.h>
 #include <gtkmm/treemodel.h>
 #include <gtkmm/liststore.h>
+#include <gtkmm/treeview.h>
+
+#include "GroupFilter.hh"
 
 class SettingsWin : public Gtk::Window
 {
-  class ModelColumns : public Gtk::TreeModelColumnRecord
+  class PluginModelColumns : public Gtk::TreeModelColumnRecord
   {
   public:
-    ModelColumns()
+    PluginModelColumns()
       { 
         add(load);
         add(name);
@@ -44,8 +47,29 @@ class SettingsWin : public Gtk::Window
     Gtk::TreeModelColumn<Glib::ustring> description;
   };
   
-  ModelColumns columns;
+  class GroupsModelColumns : public Gtk::TreeModelColumnRecord
+  {
+  public:
+    GroupsModelColumns()
+      { 
+        add(name);
+        add(seeds);
+        add(eval);
+        add(tag);
+        add(filter);
+      }
+    Gtk::TreeModelColumn<Glib::ustring> name;
+    Gtk::TreeModelColumn<bool> seeds;
+    Gtk::TreeModelColumn<int> eval;
+    Gtk::TreeModelColumn<int> tag;
+    Gtk::TreeModelColumn<Glib::ustring> filter;
+  };
+  
+  PluginModelColumns plugin_columns;
+  GroupsModelColumns groups_columns;
+  
   Glib::RefPtr<Gtk::ListStore> model_plugins;
+  Glib::RefPtr<Gtk::ListStore> model_groups;
   
   Gtk::SpinButton* update_interval;
   /* Gtk::CheckButton *tray_icon, *min_to_tray, *close_to_tray; */
@@ -61,6 +85,10 @@ class SettingsWin : public Gtk::Window
   Gtk::FileChooserButton *button_default_path, *button_move_finished;
   Gtk::Entry *proxy_ip, *proxy_user, *proxy_pass;
   
+  Gtk::TreeView* treeview_groups;
+  Gtk::ComboBoxText *group_eval, *group_tag;
+  Gtk::Entry *group_filter;
+  
   void on_plugin_toggled(const Glib::ustring& path);
 
   void list_interfaces();
@@ -75,6 +103,14 @@ class SettingsWin : public Gtk::Window
   void on_max_port_changed();
   
   void on_proxy_toggled();
+  
+  void on_group_add();
+  void on_group_remove();
+  
+  void on_group_selection_changed();
+  
+  void on_group_name_edited(const Glib::ustring& path, const Glib::ustring& str);
+  void on_group_seeds_toggled(const Glib::ustring& path);
   
 public:
   SettingsWin(Gtk::Window *parent);

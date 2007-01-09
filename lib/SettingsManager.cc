@@ -15,15 +15,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
+#include <iostream>
 #include <glibmm/iochannel.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
 
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
-
-SettingsManager* SettingsManager::smInstance = NULL;
 
 Glib::ustring SettingsManager::defaults = "[Network]\n"
                                           "MinPort=6881\n"
@@ -64,35 +62,20 @@ Glib::ustring SettingsManager::defaults = "[Network]\n"
                                           "[Groups]\n"
                                           "Downloads=0\n"
                                           "Seeds=0\n";
-                                          
-SettingsManager* SettingsManager::instance()
-{
-  static bool running = false;
-  if (smInstance == NULL && running == false)
-  {
-    running = true;
-    smInstance = new SettingsManager();
-    running = false;
-  }
-  return smInstance;
-}
-                                                 
-void SettingsManager::goodnight()
-{
-  if (smInstance != NULL)
-  {
-    delete smInstance;
-  }
-}
 
-SettingsManager::SettingsManager()
+Glib::RefPtr<SettingsManager> SettingsManager::create()
+{
+	return Glib::RefPtr<SettingsManager>(new SettingsManager());
+}
+                                          
+SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(this)
 {
   Glib::ustring file = Glib::build_filename(get_config_dir(), "config");
   Glib::ustring data_dir = Glib::build_filename(get_config_dir(), "data");
 
   /* Create data dir if it doesn't exists, bail if we can't */
   if(g_mkdir_with_parents(data_dir.c_str(), 0755) == -1)
-    throw Glib::FileError(Glib::FileError::FAILED, "Could not  create directories: " + data_dir);
+    std::cerr << "Could not  create directories: " << data_dir << std::endl;
       
   /* Dump default config if file doens't exists, bail if we can't  */
   if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
@@ -103,104 +86,112 @@ SettingsManager::SettingsManager()
       out->write(defaults);
       out->close();
     }
-    catch(Glib::Error e)
+    catch(Glib::Error& e)
     {
-      throw Glib::FileError(Glib::FileError::FAILED, "Could not save keyfile: " + e.what());
+      std::cerr << "Could not save keyfile: " << e.what()  << std::endl;
     }
   }
   
   /* Read keyfile, bail if we can't */
-  if (!keyfile.load_from_file(file))
-    throw Glib::FileError(Glib::FileError::FAILED, "Could not read keyfile");
+  keyfile = new Glib::KeyFile();
+  if (!keyfile->load_from_file(file))
+    std::cerr << "Could not read keyfile"  << std::endl;
 }
 
 SettingsManager::~SettingsManager()
 {
+	std::cout << "SSM destructor\n";
   Glib::ustring file = Glib::build_filename(get_config_dir(), "config");
   try
   {
     Glib::RefPtr<Glib::IOChannel> out = Glib::IOChannel::create_from_file(file, "w");
-    out->write(keyfile.to_data());
+    out->write(keyfile->to_data());
     out->close();
   }
-  catch(Glib::Error e)
+  catch(Glib::Error& e)
   {
-    throw Glib::FileError(Glib::FileError::FAILED, "Could not save keyfile: " + e.what());
+    std::cerr << "Could not save keyfile: " << e.what() << std::endl;
   }
+  delete keyfile;
 }
 
 sigc::signal<void> SettingsManager::signal_update_settings()
 {
-  return signal_update_settings_;
+  return m_signal_update_settings;
 }
 
-Glib::ustring SettingsManager::get(const Glib::ustring& group, const Glib::ustring& key, Glib::ustring* nullpointer) const
+Glib::ustring SettingsManager::get_string(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile.get_string(group, key);
+	return keyfile->get_string(group, key);
 }
 
-int SettingsManager::get(const Glib::ustring& group, const Glib::ustring& key, int* nullpointer) const
+int SettingsManager::get_int(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile.get_integer(group, key);
+	return keyfile->get_integer(group, key);
 }
 
-bool SettingsManager::get(const Glib::ustring& group, const Glib::ustring& key, bool* nullpointer) const
+bool SettingsManager::get_bool(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile.get_boolean(group, key);
+	return keyfile->get_boolean(group, key);
 }
 
-UStringArray SettingsManager::get(const Glib::ustring& group, const Glib::ustring& key, UStringArray* nullpointer) const
+UStringArray SettingsManager::get_string_list(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile.get_string_list(group, key);
+	return keyfile->get_string_list(group, key);
 }
 
-IntArray SettingsManager::get(const Glib::ustring& group, const Glib::ustring& key, IntArray* nullpointer) const
+IntArray SettingsManager::get_int_list(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile.get_integer_list(group, key);
+	return keyfile->get_integer_list(group, key);
 }
 
 UStringArray SettingsManager::get_groups() const
 {
-  return keyfile.get_groups();
+  return keyfile->get_groups();
 }
 
 UStringArray SettingsManager::get_keys(const Glib::ustring& group) const
 {
-  return keyfile.get_keys(group);
+  return keyfile->get_keys(group);
 }
 
 bool SettingsManager::has_group(const Glib::ustring& group) const
 {
-  return keyfile.has_group(group);
+  return keyfile->has_group(group);
 }
     
 void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, const Glib::ustring& value)
 {
-  keyfile.set_string(group, key, value);
+  keyfile->set_string(group, key, value);
 }
 
 void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, int value)
 {
-  keyfile.set_integer(group, key, value);
+  keyfile->set_integer(group, key, value);
 }
 
 void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, bool value)
 {
-  keyfile.set_boolean(group, key, value);
+  keyfile->set_boolean(group, key, value);
 }
 
 void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, UStringArray values)
 {
-  keyfile.set_string_list(group, key, values);
+  keyfile->set_string_list(group, key, values);
 }
 
 void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, IntArray values)
 {
-  keyfile.set_integer_list(group, key, values);
+  keyfile->set_integer_list(group, key, values);
 }
 
 void SettingsManager::remove_group(const Glib::ustring& group)
 {
-  keyfile.remove_group(group);
+  keyfile->remove_group(group);
+}
+
+void SettingsManager::update()
+{
+  m_signal_update_settings.emit();
 }
 

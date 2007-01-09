@@ -22,9 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/cellrendererprogress.h>
 
 #include "TorrentList.hh"
-#include "linkage/TorrentManager.hh"
-#include "linkage/SettingsManager.hh"
-#include "linkage/SessionManager.hh"
+#include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
@@ -77,28 +75,30 @@ TorrentList::TorrentList()
     column->set_resizable(true);
   }
   
-  SettingsManager* sm = SettingsManager::instance();
+  Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
   std::list<Glib::ustring> groups = sm->get_keys("Groups");
   for (std::list<Glib::ustring>::iterator iter = groups.begin(); iter != groups.end(); ++iter)
   {
-    Gtk::TreePath path = model->get_path(add_group(*iter));
+    add_group(*iter);
   }
   
-  Gtk::SortType sort_order = Gtk::SortType(sm->get<int>("UI", "SortOrder"));
-  model->set_sort_column_id(sm->get<int>("UI", "SortColumn"), sort_order);
+  Gtk::SortType sort_order = Gtk::SortType(sm->get_int("UI", "SortOrder"));
+  model->set_sort_column_id(sm->get_int("UI", "SortColumn"), sort_order);
   
-  TorrentManager* tm = TorrentManager::instance();
+  Glib::RefPtr<TorrentManager> tm = Engine::instance()->get_torrent_manager();
   tm->signal_position_changed().connect(sigc::mem_fun(*this, &TorrentList::on_position_changed));
   tm->signal_group_changed().connect(sigc::mem_fun(*this, &TorrentList::on_group_changed));
   tm->signal_added().connect(sigc::mem_fun(*this, &TorrentList::on_added));
   tm->signal_removed().connect(sigc::mem_fun(*this, &TorrentList::on_removed));
   
-  SessionManager::instance()->signal_session_resumed().connect(sigc::mem_fun(*this, &TorrentList::on_session_resumed));
+  Engine::instance()->get_session_manager()->signal_session_resumed().connect(sigc::mem_fun(*this, &TorrentList::on_session_resumed)); // FIXME: This is a ugly hack =(
+  
+  //FIXME: Get stored GroupFilters from SettingsManager
 }
 
 TorrentList::~TorrentList()
 {
-  SettingsManager* sm = SettingsManager::instance();
+  Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
 
   int column;
   Gtk::SortType order;
@@ -128,6 +128,13 @@ TorrentList::~TorrentList()
     name = name.substr(3, name.size()-7);
     sm->set("Groups", name, row_expanded(path));
   }
+  
+  for (std::list<GroupFilter*>::iterator iter = filters.begin();
+        iter != filters.end(); ++iter)
+  {
+    delete *iter;
+  }
+        
 }
 
 Glib::SignalProxy0<void> TorrentList::signal_changed()
@@ -137,19 +144,20 @@ Glib::SignalProxy0<void> TorrentList::signal_changed()
 
 void TorrentList::on_session_resumed()
 {
-	SettingsManager* sm = SettingsManager::instance();
+	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
 	Gtk::TreeNodeChildren children = model->children();
   for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
   {
     Gtk::TreePath path = model->get_path(iter);
     Gtk::TreeRow row = *iter;
     Glib::ustring name = row[columns.name];
+    /* Strip <i> tag from name */
     name = name.substr(3, name.size()-7);
-    if (sm->get<bool>("Groups", name))
+    if (sm->get_bool("Groups", name))
 	    expand_row(path, false);
   }
   
-  Glib::ustring selected_hash = sm->get<Glib::ustring>("UI", "Selected");
+  Glib::ustring selected_hash = sm->get_string("UI", "Selected");
   Gtk::TreeIter iter;
   
   Gtk::TreeNodeChildren parents = model->children();
@@ -189,23 +197,45 @@ void TorrentList::on_group_changed(const sha1_hash& hash, const Glib::ustring& g
   {
     bool selected = is_selected(hash); //FIXME: Doesn't honour a multiple selection
     
-    Gtk::TreeRow group_row = *get_iter(group);
-    model->erase(iter);
+    Gtk::TreeRow row = *iter;
+    Gtk::TreeRow group_row = *(row.parent()); //Get the current group
     
-    Gtk::TreeRow new_row = *(model->append(group_row.children()));
-    new_row[columns.hash] = hash;
-    if (selected)
-      get_selection()->select(new_row);
+    if ("<i>" + group + "</i>" != group_row[columns.name]) //Make sure current and target group differs
+    {
+      group_row = *get_iter(group); //Get the target group
+      
+      model->erase(iter);
+      
+      Gtk::TreeRow new_row = *(model->append(group_row.children()));
+      new_row[columns.hash] = hash;
+      if (selected)
+        get_selection()->select(new_row);
+    }
   }
 }
 
 void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, const Glib::ustring& group, int position)
 {
+  Glib::ustring filter_group = group;
+  Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+  for (std::list<GroupFilter*>::iterator iter = filters.begin();
+        iter != filters.end(); ++iter)
+  {
+    GroupFilter* filter = *iter;
+    if (filter->eval(torrent.get_info()))
+    {
+      filter_group = filter->get_name();
+      break;
+    }
+  }
+  
   Gtk::TreeRow group_row = *get_iter(group);
   Gtk::TreeRow new_row = *(model->append(group_row.children()));
   new_row[columns.hash] = hash;
   new_row[columns.name] = name;
   new_row[columns.number] = position;
+  
+  torrent.set_group(filter_group);
 }
 
 void TorrentList::on_removed(const sha1_hash& hash)
@@ -274,7 +304,7 @@ HashList TorrentList::get_selected_list()
         iter != path_list.end(); ++iter)
   {
     Gtk::TreeRow row = *(model->get_iter(*iter));
-    if (row.parent()) //Don't add selected groups
+    if (row.parent()) //Only add torrents, not groups
     {
       for (std::list<Gtk::TreeRow>::iterator liter = ordered_list.begin();
             liter != ordered_list.end(); ++liter)
@@ -353,7 +383,7 @@ Gtk::TreeIter TorrentList::add_group(const Glib::ustring& name)
   return iter;
 }
 
-void TorrentList::update_row(Torrent* torrent)
+void TorrentList::update_row(Torrent& torrent)
 {
   std::vector<Glib::ustring> states;
   states.push_back("Queued");
@@ -365,19 +395,15 @@ void TorrentList::update_row(Torrent* torrent)
   states.push_back("Seeding");
   states.push_back("Allocating");
 
-  int previous_down = SettingsManager::instance()->get<int>(str(torrent->get_hash()), "Down");
-  int previous_up = SettingsManager::instance()->get<int>(str(torrent->get_hash()), "Up");
       
-  Gtk::TreeRow row = *get_iter(torrent->get_hash());
-  
-  row[columns.number] = torrent->get_position();
-  row[columns.name] = torrent->get_name();
-
-  if (!torrent->get_handle().is_valid()) //Torrent is stopped
+  Gtk::TreeRow row = *get_iter(torrent.get_hash());
+  row[columns.number] = torrent.get_position();
+  row[columns.name] = torrent.get_name();
+  if (!torrent.is_running()) //Torrent is stopped
   {
     row[columns.state] = "Stopped";
-    row[columns.down] = previous_down;
-    row[columns.up] = previous_up;
+    row[columns.down] = torrent.get_total_downloaded();
+    row[columns.up] = torrent.get_total_uploaded();
     row[columns.down_rate] = 0;
     row[columns.up_rate] = 0;
     row[columns.seeds] = 0;
@@ -386,22 +412,23 @@ void TorrentList::update_row(Torrent* torrent)
     row[columns.eta] = "";
     return;
   }
+
+  torrent_status status = torrent.get_handle().status();
+  int up = torrent.get_total_uploaded();
+  int down = torrent.get_total_downloaded();
   
-  torrent_status status = torrent->get_handle().status();
-  int up = status.total_payload_upload + previous_up;
-  int down = status.total_payload_download + previous_down;
-  
-  if (torrent->get_handle().is_seed()) // || status.state == torrent_status::finished)
+  if (torrent.get_handle().is_seed()) // || status.state == torrent_status::finished)
   {
     
     int size = status.total_wanted_done - up;
     if (down)
     {
-      double ratio = up/down;
+      double ratio = (double)up/down;
       if (ratio > 1)
         ratio = 1;
+
       row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate);
-      row[columns.progress] = double(ratio*100);
+      row[columns.progress] = ratio*100;
     }
     else
     {
@@ -415,10 +442,11 @@ void TorrentList::update_row(Torrent* torrent)
     row[columns.eta] = str(double(status.progress*100), 2) + " % " + get_eta(status.total_wanted-status.total_wanted_done, status.download_payload_rate);
   }
 
-  if (!torrent->get_handle().is_paused())
+  if (!torrent.get_handle().is_paused())
     row[columns.state] =  states[status.state];
   else
     row[columns.state] =  "Queued";
+
   row[columns.down] = down;
   row[columns.up] = up;
   row[columns.down_rate] = (int)status.download_payload_rate;

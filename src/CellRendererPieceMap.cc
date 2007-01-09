@@ -127,10 +127,10 @@ void CellRendererPieceMap::get_size_vfunc(Gtk::Widget&,
                                           int* x_offset, int* y_offset,
                                           int* width,    int* height) const
 {
-  const unsigned int xpad = property_xpad();
-  const unsigned int ypad = property_ypad();
-  const unsigned int xalign = property_xalign();
-  const unsigned int yalign = property_yalign();
+  const int xpad = property_xpad();
+  const int ypad = property_ypad();
+  const int xalign = property_xalign();
+  const int yalign = property_yalign();
 
   int w = 0, h = 0;
   if (cell_area)
@@ -170,8 +170,8 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
                                         const Gdk::Rectangle&,
                                         Gtk::CellRendererState flags)
 {
-  const unsigned int cell_xpad = property_xpad();
-  const unsigned int cell_ypad = property_ypad();
+  const int cell_xpad = property_xpad();
+  const int cell_ypad = property_ypad();
   
   int x_offset = 0, y_offset = 0, width = 0, height = 0;
   get_size(widget, cell_area, x_offset, y_offset, width, height);

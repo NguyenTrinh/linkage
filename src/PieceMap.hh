@@ -28,13 +28,13 @@ struct Part
   int last;
   int fac;
   
-  Part(int first_, int last_, int fac_);
+  Part(int fi, int la, int fa);
 };
 
 class PieceMap : public Gtk::DrawingArea
 {
-  std::vector<bool> map_;
-  Gdk::Color dark_, mid_, light_;
+  std::vector<bool> m_map;
+  Gdk::Color m_dark, m_mid, m_light;
 
   std::list<Part> draw_more_pieces();
   std::list<Part> draw_more_pixels(); //FIXME: Broken again, dark not shown on more_pixels?

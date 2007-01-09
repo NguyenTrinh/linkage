@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define MAJOR 0;
 #define MINOR 19;
 
-#define INVALID_HASH 0
-
 #include <fstream>
 #include <iterator>
 #include <exception>
@@ -35,28 +33,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "libtorrent/fingerprint.hpp"
 
 #include "linkage/SettingsManager.hh"
-#include "linkage/TorrentManager.hh"
 #include "linkage/Torrent.hh"
 #include "linkage/Utils.hh"
+#include "linkage/RefCounter.hh"
 
 using namespace libtorrent;
 
-class SessionManager : public session
+class SessionManager : public session, public RefCounter<SessionManager>
 {
   void on_settings();
-  static SessionManager* smInstance;
   
-  sigc::signal<void> signal_update_queue_;
-  sigc::signal<void> signal_session_resumed_;
+  sigc::signal<void> m_signal_update_queue;
+  sigc::signal<void> m_signal_session_resumed;
   
-  sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_invalid_bencoding_;
-  sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_missing_file_;
-  sigc::signal<void, const Glib::ustring&, const sha1_hash&> signal_duplicate_torrent_;
+  sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
+  sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
+  sigc::signal<void, const Glib::ustring&, const sha1_hash&> m_signal_duplicate_torrent;
   
-  Glib::ustring get_data_dir();
-  void save_fastresume(const sha1_hash& hash);
-  
-  friend class TorrentManager;
+  SessionManager();
   
 public:
   sigc::signal<void> signal_update_queue();
@@ -72,11 +66,8 @@ public:
   void resume_session();
   void stop_torrent(const sha1_hash& hash);
   void erase_torrent(const sha1_hash& hash);
-  
-  static SessionManager* instance();
-  static void goodnight();
 
-  SessionManager();
+  static Glib::RefPtr<SessionManager> create();
   virtual ~SessionManager();
 };
 #endif

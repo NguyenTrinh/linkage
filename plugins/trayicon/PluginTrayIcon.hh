@@ -41,19 +41,25 @@ class TrayPlugin : public Plugin
   Gtk::Menu* popup_menu;
   
   bool on_button_released(GdkEventButton* e);
+  void on_quit();
+  void on_torrents_stop();
+  void on_torrents_start();
   
 public:
   Glib::ustring get_name();
   Glib::ustring get_description();
-
+	
+	PluginParent get_parent() { return Plugin::PARENT_NONE; };
+  Gtk::Widget* get_widget() { return NULL; };
+  
   void on_load();
   
-  bool update(Torrent* torrent);
+  bool update(Torrent& torrent);
   
   bool on_notify(const Glib::ustring& title,
-                const Glib::ustring& message,
-                NotifyType type,
-                Torrent* torrent);
+                         const Glib::ustring& message,
+                         NotifyType type,
+                         Torrent& torrent);
   
   TrayPlugin();
   ~TrayPlugin();

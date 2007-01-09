@@ -60,7 +60,7 @@ class PeerList : public Gtk::TreeView
   
 public:
   void clear();
-  void update(Torrent *torrent);
+  void update(Torrent& torrent);
   
   PeerList();
   virtual ~PeerList();

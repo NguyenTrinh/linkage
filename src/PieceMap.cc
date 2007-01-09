@@ -27,21 +27,21 @@ PieceMap::PieceMap(Gdk::Color& dark, Gdk::Color& mid, Gdk::Color& light)
 {
   /*Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
   
-  dark_ = Gdk::Color("blue");
-  mid_.set_red(32767);
-  mid_.set_green(32767);
-  mid_.set_blue(65535);
-  light_.set_red(52428);
-  light_.set_green(52428);
-  light_.set_blue(65535);
+  m_dark = Gdk::Color("blue");
+  m_mid.set_red(32767);
+  m_mid.set_green(32767);
+  m_mid.set_blue(65535);
+  m_light.set_red(52428);
+  m_light.set_green(52428);
+  m_light.set_blue(65535);
   
-  colormap->alloc_color(dark_);
-  colormap->alloc_color(mid_);
-  colormap->alloc_color(light_);*/
+  colormap->alloc_color(m_dark);
+  colormap->alloc_color(m_mid);
+  colormap->alloc_color(m_light);*/
   
-  dark_ = dark;
-  mid_ = mid;
-  light_ = light;
+  m_dark = dark;
+  m_mid = mid;
+  m_light = light;
 }
 
 void PieceMap::on_realize()
@@ -53,8 +53,8 @@ void PieceMap::on_realize()
 
 bool PieceMap::on_expose_event(GdkEventExpose*)
 {
-  if (!map_.size())
-    map_.push_back(false);
+  if (!m_map.size())
+    m_map.push_back(false);
     
   draw();
   
@@ -68,13 +68,13 @@ PieceMap::~PieceMap()
 std::list<Part> PieceMap::draw_more_pixels()
 {
   std::list<Part> parts;
-  int count = map_.size();
+  int count = m_map.size();
   int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
   int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
   
   for (int i = 0; i < count; i++)
   {
-    if (!map_[i])
+    if (!m_map[i])
       continue;
       
     if (parts.empty())
@@ -94,7 +94,7 @@ std::list<Part> PieceMap::draw_more_pixels()
 std::list<Part> PieceMap::draw_more_pieces()
 {
   std::list<Part> parts;
-  int count = map_.size();
+  int count = m_map.size();
   int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
   int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
   double pieces_per_part = (double)count/width;
@@ -105,7 +105,7 @@ std::list<Part> PieceMap::draw_more_pieces()
     int start = (int)(i*pieces_per_part);
     int end = (int)((i+1)*pieces_per_part+0.5);
     for (int j = start; j < end; j++)
-      if (map_[j])
+      if (m_map[j])
         completed++;
         
     if (!completed)
@@ -129,7 +129,7 @@ std::list<Part> PieceMap::draw_more_pieces()
 
 void PieceMap::set_map(const std::vector<bool>& map)
 {
-  map_.assign(map.begin(), map.end());
+  m_map.assign(map.begin(), map.end());
   
   draw();
 }
@@ -150,12 +150,12 @@ void PieceMap::draw()
   
   std::list<Part> parts;
   double scale = 1.0;
-  if (map_.size() >= w - (get_style()->get_xthickness() * 2))
+  if (m_map.size() >= w - (get_style()->get_xthickness() * 2))
     parts = draw_more_pieces();
   else
   {
     parts = draw_more_pixels();
-    scale = (double)(w - (get_style()->get_xthickness() * 2))/map_.size();
+    scale = (double)(w - (get_style()->get_xthickness() * 2))/m_map.size();
   }
     
   Glib::RefPtr<Gdk::GC> gc = Gdk::GC::create(get_window());
@@ -169,17 +169,17 @@ void PieceMap::draw()
 		int x = int(scale*pa.first) + get_style()->get_xthickness();
 
     if (fac >= 100)  
-      gc->set_foreground(dark_);
+      gc->set_foreground(m_dark);
     else if (fac >= 50)
-      gc->set_foreground(mid_);
+      gc->set_foreground(m_mid);
     else
-      gc->set_foreground(light_);
+      gc->set_foreground(m_light);
       
     get_window()->draw_rectangle(gc, true, x, get_style()->get_ythickness(), rw, rh);
   }
 }
 
-Part::Part(int first_, int last_, int fac_) : 
-  first(first_), last(last_), fac(fac_)
+Part::Part(int fi, int la, int fa) : 
+  first(fi), last(la), fac(fa)
 {
 }

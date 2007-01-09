@@ -24,12 +24,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/button.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrenderertoggle.h>
-#include <gtkmm/treeview.h>
 
 #include "SettingsWin.hh"
-#include "linkage/SettingsManager.hh"
+#include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
-#include "linkage/PluginManager.hh"
 
 SettingsWin::SettingsWin(Gtk::Window *parent)
 {
@@ -219,15 +217,15 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   
   notebook->append_page(*table, "Files & Folders");
   
-  model_plugins = Gtk::ListStore::create(columns);
+  model_plugins = Gtk::ListStore::create(plugin_columns);
   Gtk::TreeView* treeview_plugins = manage(new Gtk::TreeView());
   treeview_plugins->set_model(model_plugins);
   Gtk::CellRendererToggle* trender = new Gtk::CellRendererToggle();
   trender->signal_toggled().connect(sigc::mem_fun(*this, &SettingsWin::on_plugin_toggled));
   int cols_count = treeview_plugins->append_column("Load", *manage(trender));
   treeview_plugins->get_column(0)->add_attribute(*trender, "active", cols_count - 1);
-  treeview_plugins->append_column("Name", columns.name);
-  treeview_plugins->append_column("Description", columns.description);
+  treeview_plugins->append_column("Name", plugin_columns.name);
+  treeview_plugins->append_column("Description", plugin_columns.description);
   for(int i = 0; i < 3; i++)
   {
     Gtk::TreeView::Column* column = treeview_plugins->get_column(i);
@@ -236,6 +234,65 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   }
   
   notebook->append_page(*treeview_plugins, "Plugins");
+  
+  Gtk::VBox* groups_box = manage(new Gtk::VBox());
+  
+  model_groups = Gtk::ListStore::create(groups_columns);
+  treeview_groups = manage(new Gtk::TreeView());
+  treeview_groups->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_group_selection_changed));
+  treeview_groups->set_model(model_groups);
+  treeview_groups->append_column("Name", groups_columns.name);
+  treeview_groups->append_column("Seeds only", groups_columns.seeds);
+  for(int i = 0; i < 2; i++)
+  {
+    Gtk::TreeView::Column* column = treeview_groups->get_column(i);
+    
+    Gtk::CellRenderer* cell = column->get_first_cell_renderer();
+    if (Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell))
+    {
+      cell_text->property_editable() = true;
+      cell_text->signal_edited().connect(sigc::mem_fun(*this, &SettingsWin::on_group_name_edited));
+    }
+    else if (Gtk::CellRendererToggle* cell_toggle = dynamic_cast<Gtk::CellRendererToggle*>(cell))
+    {
+      cell_toggle->property_activatable() = true;
+      cell_toggle->signal_toggled().connect(sigc::mem_fun(*this, &SettingsWin::on_group_seeds_toggled));
+    }  
+    
+    column->set_sort_column_id(i);
+    column->set_resizable(true);
+  }
+  Gtk::HBox* groups_hbox = manage(new Gtk::HBox());
+  groups_hbox->pack_start(*treeview_groups, true, true);
+  Gtk::Button* group_add = manage(new Gtk::Button(Gtk::Stock::ADD));
+  group_add->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_add));
+  Gtk::Button* group_remove = manage(new Gtk::Button(Gtk::Stock::REMOVE));
+  group_remove->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_remove));
+  Gtk::VBox* groups_vbox = manage(new Gtk::VBox());
+  groups_vbox->pack_start(*group_add, false, false);
+  groups_vbox->pack_start(*group_remove, false, false);
+  groups_hbox->pack_start(*groups_vbox, false, false);  
+  
+  groups_box->pack_start(*groups_hbox, true, true);  
+  
+  groups_hbox = manage(new Gtk::HBox());
+  group_tag = manage(new Gtk::ComboBoxText());
+  group_tag->append_text("Tracker");
+  group_tag->append_text("Name");
+  group_tag->append_text("Comment");
+  group_eval = manage(new Gtk::ComboBoxText());
+  group_eval->append_text("Equals");
+  group_eval->append_text("Contains");
+  group_eval->append_text("Starts with");
+  group_eval->append_text("Ends with");
+  group_filter = manage(new Gtk::Entry());
+  groups_hbox->pack_start(*group_tag, false, false); 
+  groups_hbox->pack_start(*group_eval, false, false); 
+  groups_hbox->pack_start(*group_filter, true, true); 
+  
+  groups_box->pack_start(*groups_hbox, false, false);
+  
+  notebook->append_page(*groups_box, "Groups");
   
   add(*main_box);
   
@@ -264,6 +321,62 @@ void SettingsWin::on_button_close()
   hide();
 }
 
+void SettingsWin::on_group_add()
+{
+  Gtk::TreeIter iter = model_groups->append();
+  Gtk::TreeRow row = *iter;
+  row[groups_columns.name] = "New group";
+  row[groups_columns.eval] = 0;
+  row[groups_columns.tag] = 0;
+  row[groups_columns.filter] = "";
+  treeview_groups->get_selection()->select(iter);
+}
+
+void SettingsWin::on_group_remove()
+{
+  Gtk::TreeIter iter = treeview_groups->get_selection()->get_selected();
+  model_groups->erase(iter);
+}
+
+void SettingsWin::on_group_selection_changed()
+{
+  static Gtk::TreeIter old_iter;
+
+  if (old_iter && treeview_groups->get_selection()->get_selected())
+  {
+    int eval = group_eval->get_active_row_number();
+    int tag = group_tag->get_active_row_number();
+    Glib::ustring filter = group_filter->get_text();
+    Gtk::TreeRow row = *old_iter;
+    row[groups_columns.eval] = eval;
+    row[groups_columns.tag] = tag;
+    row[groups_columns.filter] = filter;
+  }
+  
+  old_iter = treeview_groups->get_selection()->get_selected();
+
+  if (old_iter)
+  {
+    Gtk::TreeRow row = *old_iter;
+    group_eval->set_active(row[groups_columns.eval]);
+    group_tag->set_active(row[groups_columns.tag]);
+    group_filter->set_text(row[groups_columns.filter]);
+  }
+  
+}
+
+void SettingsWin::on_group_name_edited(const Glib::ustring& path, const Glib::ustring& str)
+{
+  Gtk::TreeRow row = *model_groups->get_iter(path);
+  row[groups_columns.name] = str;
+}
+
+void SettingsWin::on_group_seeds_toggled(const Glib::ustring& path)
+{
+  Gtk::TreeRow row = *model_groups->get_iter(path);
+  row[groups_columns.seeds] = !row[groups_columns.seeds];
+}
+
 void SettingsWin::on_proxy_toggled()
 {
   if (use_proxy->get_active())
@@ -285,12 +398,12 @@ void SettingsWin::on_max_port_changed()
 void SettingsWin::on_plugin_toggled(const Glib::ustring& path)
 {
   Gtk::TreeRow row = *(model_plugins->get_iter(path));
-  row[columns.load] = !row[columns.load];
+  row[plugin_columns.load] = !row[plugin_columns.load];
 }
   
 void SettingsWin::on_hide()
 {
-  SettingsManager* sm = SettingsManager::instance();
+  Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
   
   /* Network */
   if (interfaces->get_active_row_number() <= 0)
@@ -330,8 +443,8 @@ void SettingsWin::on_hide()
   for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
   {
     Gtk::TreeRow row = *iter;
-    if (row[columns.load])
-      plugins.push_back(row[columns.name]);
+    if (row[plugin_columns.load])
+      plugins.push_back(row[plugin_columns.name]);
   }
   sm->set("UI", "Plugins", UStringArray(plugins));
   /* Files */
@@ -343,38 +456,38 @@ void SettingsWin::on_hide()
   
   Gtk::Window::on_hide();
   
-  SettingsManager::instance()->signal_update_settings_.emit();
+  Engine::instance()->get_settings_manager()->update();
 }
 
 void SettingsWin::on_show()
 {
-  SettingsManager* sm = SettingsManager::instance();
+  Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
 
   /* Network */
-  Glib::ustring interface = sm->get<Glib::ustring>("Network", "Interface");
-  min_port->set_value((double)sm->get<int>("Network", "MinPort"));
-  max_port->set_value((double)sm->get<int>("Network", "MaxPort"));
-  up_rate->set_value((double)sm->get<int>("Network", "MaxUpRate"));
-  down_rate->set_value((double)sm->get<int>("Network", "MaxDownRate"));
-  max_uploads->set_value((double)sm->get<int>("Network", "MaxUploads"));
-  max_connections->set_value((double)sm->get<int>("Network", "MaxConnections"));
-  max_active->set_value((double)sm->get<int>("Network", "MaxActive"));
-  tracker_timeout->set_value((double)sm->get<int>("Network", "TrackerTimeout"));
-  use_proxy->set_active(sm->get<bool>("Network", "UseProxy"));
-  proxy_ip->set_text(sm->get<Glib::ustring>("Network", "ProxyIP"));
-  proxy_port->set_value((double)sm->get<int>("Network", "ProxyPort"));
-  proxy_user->set_text(sm->get<Glib::ustring>("Network", "ProxyLogin"));
-  proxy_pass->set_text(sm->get<Glib::ustring>("Network", "ProxyPass"));
+  Glib::ustring interface = sm->get_string("Network", "Interface");
+  min_port->set_value((double)sm->get_int("Network", "MinPort"));
+  max_port->set_value((double)sm->get_int("Network", "MaxPort"));
+  up_rate->set_value((double)sm->get_int("Network", "MaxUpRate"));
+  down_rate->set_value((double)sm->get_int("Network", "MaxDownRate"));
+  max_uploads->set_value((double)sm->get_int("Network", "MaxUploads"));
+  max_connections->set_value((double)sm->get_int("Network", "MaxConnections"));
+  max_active->set_value((double)sm->get_int("Network", "MaxActive"));
+  tracker_timeout->set_value((double)sm->get_int("Network", "TrackerTimeout"));
+  use_proxy->set_active(sm->get_bool("Network", "UseProxy"));
+  proxy_ip->set_text(sm->get_string("Network", "ProxyIP"));
+  proxy_port->set_value((double)sm->get_int("Network", "ProxyPort"));
+  proxy_user->set_text(sm->get_string("Network", "ProxyLogin"));
+  proxy_pass->set_text(sm->get_string("Network", "ProxyPass"));
   /* UI */
-  update_interval->set_value((double)sm->get<int>("UI", "Interval"));
-  auto_expand->set_active(sm->get<bool>("UI", "AutoExpand"));
-  std::list<Glib::ustring> plugins = sm->get<UStringArray>("UI", "Plugins");
+  update_interval->set_value((double)sm->get_int("UI", "Interval"));
+  auto_expand->set_active(sm->get_bool("UI", "AutoExpand"));
+  std::list<Glib::ustring> plugins = sm->get_string_list("UI", "Plugins");
   /* Files */
-  default_path->set_active(sm->get<bool>("Files", "UseDefPath"));
-  button_default_path->set_filename(sm->get<Glib::ustring>("Files", "DefPath"));
-  move_finished->set_active(sm->get<bool>("Files", "MoveFinished"));
-  button_move_finished->set_filename(sm->get<Glib::ustring>("Files", "FinishedPath"));
-  allocate->set_active(sm->get<bool>("Files", "Allocate"));
+  default_path->set_active(sm->get_bool("Files", "UseDefPath"));
+  button_default_path->set_filename(sm->get_string("Files", "DefPath"));
+  move_finished->set_active(sm->get_bool("Files", "MoveFinished"));
+  button_move_finished->set_filename(sm->get_string("Files", "FinishedPath"));
+  allocate->set_active(sm->get_bool("Files", "Allocate"));
 
   if (interface != "")
     interfaces->set_active_text(interface);
@@ -388,16 +501,16 @@ void SettingsWin::on_show()
 
   if (!model_plugins->children().size())
   {
-    std::list<PluginInfo> plugins = PluginManager::instance()->list_plugins();
+    std::list<PluginInfo> plugins = Engine::instance()->get_plugin_manager()->list_plugins();
     
     for (std::list<PluginInfo>::iterator iter = plugins.begin();
          iter != plugins.end(); ++iter)
     {
       PluginInfo info = *iter;
       Gtk::TreeRow row = *(model_plugins->append());
-      row[columns.name] = info.get_name();
-      row[columns.description] = info.get_description();
-      row[columns.load] = info.get_loaded();
+      row[plugin_columns.name] = info.get_name();
+      row[plugin_columns.description] = info.get_description();
+      row[plugin_columns.load] = info.get_loaded();
     }
   }
     
@@ -411,13 +524,13 @@ void SettingsWin::on_show()
          tree_iter != children.end(); ++tree_iter)
     {
       row = *tree_iter;
-      if (row[columns.name] == *iter)
+      if (row[plugin_columns.name] == *iter)
       {
         active = true;
         break;
       }
     }
-    row[columns.load] = active;
+    row[plugin_columns.load] = active;
   }
   Gtk::Window::on_show();
 }

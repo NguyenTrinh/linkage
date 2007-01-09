@@ -36,9 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/paned.h>
 
 #include "UI.hh"
-#include "linkage/AlertManager.hh"
-
-UI* UI::smInstance = NULL;
+#include "linkage/Engine.hh"
 
 Glib::ustring ui_info = "<ui>"
                         "  <menubar name='MenuBar'>"
@@ -70,28 +68,8 @@ Glib::ustring ui_info = "<ui>"
                         "</ui>";
 
 
-UI* UI::instance()
-{
-  static bool running = false;
-  if (smInstance == NULL && running == false)
-  {
-    running = true;
-    smInstance = new UI();
-    running = false;
-  }
-  return smInstance;
-}
-
-void UI::goodnight()
-{
-  if (smInstance != NULL)
-  {
-    delete smInstance;
-  }
-}
-
 UI::UI()
-{
+{  
   settings_win = new SettingsWin(this);
   torrent_win = new TorrentCreator(this);
   
@@ -253,13 +231,19 @@ UI::UI()
   /* FIXME: Get colors from SettingsManager */
   Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
   
-  Gdk::Color light, mid, dark = Gdk::Color("blue");
-  mid.set_red(32767);
-  mid.set_green(32767);
-  mid.set_blue(65535);
-  light.set_red(52428);
-  light.set_green(52428);
-  light.set_blue(65535);
+  std::vector<int> rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorDark");
+  Gdk::Color light, mid, dark;
+  dark.set_red(rgb[0]);
+  dark.set_green(rgb[1]);
+  dark.set_blue(rgb[2]);
+  rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorMid");
+  mid.set_red(rgb[0]);
+  mid.set_green(rgb[1]);
+  mid.set_blue(rgb[2]);
+  rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorLight");
+  light.set_red(rgb[0]);
+  light.set_green(rgb[1]);
+  light.set_blue(rgb[2]);
   
   colormap->alloc_color(dark);
   colormap->alloc_color(mid);
@@ -389,51 +373,52 @@ UI::UI()
   file_chooser = new OpenDialog(this);
   path_chooser = new SaveDialog(this);
   
-  SessionManager::instance()->resume_session();
+  Engine::instance()->get_session_manager()->resume_session();
   
-  SettingsManager* sm = SettingsManager::instance();
+  Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
   
-  resize(sm->get<int>("UI", "WinWidth"), sm->get<int>("UI", "WinHeight"));
+  resize(sm->get_int("UI", "WinWidth"), sm->get_int("UI", "WinHeight"));
 
-  notebook_details->set_current_page(sm->get<int>("UI", "Page"));
-  expander_details->set_sensitive(sm->get<bool>("UI", "Expanded"));
-  expander_details->set_expanded(sm->get<bool>("UI", "Expanded"));  
+  notebook_details->set_current_page(sm->get_int("UI", "Page"));
+  expander_details->set_sensitive(sm->get_bool("UI", "Expanded"));
+  expander_details->set_expanded(sm->get_bool("UI", "Expanded"));  
   
-  int max_up = sm->get<int>("Network", "MaxUpRate");
+  int max_up = sm->get_int("Network", "MaxUpRate");
   if (max_up == 0)
     max_up = 1000;
   spinbutton_up->set_range(0, max_up);
-  int max_down = sm->get<int>("Network", "MaxDownRate");
+  int max_down = sm->get_int("Network", "MaxDownRate");
   if (max_down == 0)
     max_down = 1000;
   spinbutton_down->set_range(0, max_down);
   
   
-  SettingsManager::instance()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
+  Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
   
-  PluginManager::instance()->signal_plugin_load().connect(sigc::mem_fun(this, &UI::on_plugin_load));
-  PluginManager::instance()->signal_plugin_unload().connect(sigc::mem_fun(this, &UI::on_plugin_unload));
-  PluginManager::instance()->signal_add_widget().connect(sigc::mem_fun(this, &UI::on_add_widget));
-  PluginManager::instance()->signal_ui_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
-  PluginManager::instance()->signal_add_torrent().connect(sigc::mem_fun(this, &UI::add_torrent));
-  PluginManager::instance()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
+  Engine::instance()->get_plugin_manager()->signal_plugin_load().connect(sigc::mem_fun(this, &UI::on_plugin_load));
+  Engine::instance()->get_plugin_manager()->signal_plugin_unload().connect(sigc::mem_fun(this, &UI::on_plugin_unload));
+  Engine::instance()->get_plugin_manager()->signal_add_widget().connect(sigc::mem_fun(this, &UI::on_add_widget));
   
-  SessionManager::instance()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &UI::on_invalid_bencoding));
-  SessionManager::instance()->signal_missing_file().connect(sigc::mem_fun(this, &UI::on_missing_file));
-  SessionManager::instance()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &UI::on_duplicate_torrent));
+  Engine::instance()->get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &UI::on_invalid_bencoding));
+  Engine::instance()->get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &UI::on_missing_file));
+  Engine::instance()->get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &UI::on_duplicate_torrent));
   
-  AlertManager::instance()->signal_listen_failed().connect(sigc::mem_fun(this, &UI::on_listen_failed));
-  AlertManager::instance()->signal_tracker_failed().connect(sigc::mem_fun(this, &UI::on_tracker_failed));
-  AlertManager::instance()->signal_tracker_reply().connect(sigc::mem_fun(this, &UI::on_tracker_reply));
-  AlertManager::instance()->signal_tracker_warning().connect(sigc::mem_fun(this, &UI::on_tracker_warning));
-  AlertManager::instance()->signal_tracker_announce().connect(sigc::mem_fun(this, &UI::on_tracker_announce));
-  AlertManager::instance()->signal_torrent_finished().connect(sigc::mem_fun(this, &UI::on_torrent_finished));
-  AlertManager::instance()->signal_file_error().connect(sigc::mem_fun(this, &UI::on_file_error));
-  AlertManager::instance()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &UI::on_fastresume_rejected));
-  AlertManager::instance()->signal_hash_failed().connect(sigc::mem_fun(this, &UI::on_hash_failed));
-  AlertManager::instance()->signal_peer_ban().connect(sigc::mem_fun(this, &UI::on_peer_ban));
+  Engine::instance()->get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &UI::on_listen_failed));
+  Engine::instance()->get_alert_manager()->signal_tracker_failed().connect(sigc::mem_fun(this, &UI::on_tracker_failed));
+  Engine::instance()->get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(this, &UI::on_tracker_reply));
+  Engine::instance()->get_alert_manager()->signal_tracker_warning().connect(sigc::mem_fun(this, &UI::on_tracker_warning));
+  Engine::instance()->get_alert_manager()->signal_tracker_announce().connect(sigc::mem_fun(this, &UI::on_tracker_announce));
+  Engine::instance()->get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &UI::on_torrent_finished));
+  Engine::instance()->get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &UI::on_file_error));
+  Engine::instance()->get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &UI::on_fastresume_rejected));
+  Engine::instance()->get_alert_manager()->signal_hash_failed().connect(sigc::mem_fun(this, &UI::on_hash_failed));
+  Engine::instance()->get_alert_manager()->signal_peer_ban().connect(sigc::mem_fun(this, &UI::on_peer_ban));
   
-  Glib::signal_timeout().connect(sigc::mem_fun(this, &UI::on_timeout), sm->get<int>("UI", "Interval")*1000);
+  Engine::instance()->get_dbus_manager()->signal_open().connect(sigc::mem_fun(this, &UI::add_torrent));
+  Engine::instance()->get_dbus_manager()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
+  Engine::instance()->get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
+  
+  Glib::signal_timeout().connect(sigc::mem_fun(this, &UI::on_timeout), sm->get_int("UI", "Interval")*1000);
 }
 
 UI::~UI()
@@ -451,7 +436,7 @@ UI::~UI()
 
 void UI::save_state()
 {
-  SettingsManager* sm = SettingsManager::instance();
+  Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
   
   int w, h;
   get_size(w, h);
@@ -501,11 +486,11 @@ void UI::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent
 void UI::notify(const Glib::ustring& title, 
                 const Glib::ustring& msg,
                 NotifyType type,
-                Torrent* torrent)
+                Torrent torrent)
 {
   /* FIXME: Move to PluginManager? 
      FIXME: Rewrite a more general messaging system */
-  PluginList plugins = PluginManager::instance()->get_plugins();
+  PluginList plugins = Engine::instance()->get_plugin_manager()->get_plugins();
   for (PluginList::iterator iter = plugins.begin(); 
        iter != plugins.end(); ++iter)
   {
@@ -514,50 +499,45 @@ void UI::notify(const Glib::ustring& title,
       return;
   }
   
-  /* Fallback to MessageDialog if no plugin handled the notification
-	Gtk::MessageDialog dialog(*this, title, false);
-  dialog.set_message(msg);
-  dialog.run(); */
+  /* Fallback to statusbar if no plugin handled the notification */
   statusbar->push(msg);
 }
 
 bool UI::on_timeout()
 {
-  int count = TorrentManager::instance()->get_torrents_count();
+  int count = Engine::instance()->get_torrent_manager()->get_torrents_count();
   for (int position = 1; position <= count; position++)
   {
-    Torrent* torrent = TorrentManager::instance()->get_torrent(position);
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(position);
     update(torrent);
   }
   
   torrent_list->update_groups();
   
-  //AlertManager::instance()->check_alerts();
-  
   return true;
 }
 
-void UI::update(Torrent* torrent)
+void UI::update(Torrent& torrent)
 {
-  if (!torrent)
+  if (!torrent.is_valid())
     return;
     
   torrent_info info;
   torrent_status stats;
   
-  sha1_hash hash = torrent->get_hash();
+  sha1_hash hash = torrent.get_hash();
    
-  if (torrent->get_handle().is_valid())
+  if (torrent.is_running())
   {
-    info = torrent->get_handle().get_torrent_info();
-    stats = torrent->get_handle().status();
+    info = torrent.get_info();
+    stats = torrent.get_status();
   }
   
   torrent_list->update_row(torrent);
   
   if (torrent_list->is_selected(hash))
   {
-    PluginList plugins = PluginManager::instance()->get_plugins();
+    PluginList plugins = Engine::instance()->get_plugin_manager()->get_plugins();
     for (PluginList::iterator iter = plugins.begin(); 
          iter != plugins.end(); ++iter)
     {
@@ -571,18 +551,15 @@ void UI::update(Torrent* torrent)
     }
   }
   
-  if (torrent_list->is_selected(hash) && !torrent->get_handle().is_valid())
+  if (torrent_list->is_selected(hash) && !torrent.is_running())
     button_tracker->set_label(""); //Get rid of "Updating..." on event=stopped
   
-  int previous_down = SettingsManager::instance()->get<int>(str(torrent->get_hash()), "Down");
-  int previous_up = SettingsManager::instance()->get<int>(str(torrent->get_hash()), "Up");
-  
-  if (torrent_list->is_selected(hash) && expander_details->get_expanded() && torrent->get_handle().is_valid())
+  if (torrent_list->is_selected(hash) && expander_details->get_expanded() && torrent.is_running())
   {
     switch (notebook_details->get_current_page())
     {
       case PAGE_INFO:
-        label_save_path->set_text(Glib::build_filename(torrent->get_handle().save_path().string(), info.name()));
+        label_save_path->set_text(Glib::build_filename(torrent.get_save_path(), info.name()));
         label_creator->set_text(info.creator());
         label_comment->set_text(info.comment());
         label_size->set_text(suffix_value((int)info.total_size()));
@@ -593,18 +570,18 @@ void UI::update(Torrent* torrent)
         if (stats.current_tracker != "")
           button_tracker->set_label(stats.current_tracker);
         label_next_announce->set_text(to_simple_string(stats.next_announce));
-        label_response->set_text(torrent->get_tracker_response());
+        label_response->set_text(torrent.get_tracker_reply());
         break;
       case PAGE_STATUS:
-        label_down->set_text(suffix_value((int)stats.total_payload_download + previous_down));
+        label_down->set_text(suffix_value(torrent.get_total_downloaded()));
         label_down_rate->set_text(suffix_value((int)stats.download_payload_rate) + "/s");
-        label_up->set_text(suffix_value((int)stats.total_payload_upload + previous_up));
+        label_up->set_text(suffix_value(torrent.get_total_uploaded()));
         label_up_rate->set_text(suffix_value((int)stats.upload_payload_rate) + "/s");
-        label_time_elapsed->set_text(format_time(torrent->get_time_active()));
+        label_time_elapsed->set_text(format_time(torrent.get_time_active()));
         label_time_eta->set_text(get_eta(stats.total_wanted-stats.total_wanted_done, stats.download_payload_rate));
         double ratio, up, down;
-        up = (double)(stats.total_payload_upload + previous_up);
-        down = (double)(stats.total_payload_download + previous_down);
+        up = (double)torrent.get_total_uploaded();
+        down = (double)torrent.get_total_downloaded();
         if (down != 0)
           ratio = up/down;
         else
@@ -659,11 +636,11 @@ void UI::reset_views()
   button_tracker->set_label("");
 }
 
-void UI::build_tracker_menu(Torrent* torrent)
+void UI::build_tracker_menu(Torrent& torrent)
 {
   menu_trackers->items().clear();
 
-  std::vector<announce_entry> trackers = torrent->get_handle().get_torrent_info().trackers();
+  std::vector<announce_entry> trackers = torrent.get_handle().get_torrent_info().trackers();
   
   for (int i = 0; i < trackers.size(); i++)
   {
@@ -679,7 +656,7 @@ void UI::build_tracker_menu(Torrent* torrent)
 void UI::add_torrent(const Glib::ustring& file)
 {
   Glib::ustring save_path;
-  if (!SettingsManager::instance()->get<bool>("Files", "UseDefPath"))
+  if (!Engine::instance()->get_settings_manager()->get_bool("Files", "UseDefPath"))
     if (path_chooser->run() == Gtk::RESPONSE_OK)
     {  
       save_path = path_chooser->get_filename();
@@ -691,12 +668,13 @@ void UI::add_torrent(const Glib::ustring& file)
       return;
     }
   else
-    save_path = SettingsManager::instance()->get<Glib::ustring>("Files", "DefPath");
+    save_path = Engine::instance()->get_settings_manager()->get_string("Files", "DefPath");
   
   if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
   {
-    sha1_hash hash = SessionManager::instance()->open_torrent(file, save_path);
-    update(TorrentManager::instance()->get_torrent(hash));
+    sha1_hash hash = Engine::instance()->get_session_manager()->open_torrent(file, save_path);
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    update(torrent);
   }
 }
 
@@ -762,8 +740,8 @@ void UI::on_spin_down()
   HashList list = torrent_list->get_selected_list();
   if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
   {
-    Torrent* torrent = TorrentManager::instance()->get_torrent(*list.begin());
-    torrent->set_down_limit((int)spinbutton_down->get_value());
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+    torrent.set_down_limit((int)spinbutton_down->get_value());
   }
 }
 
@@ -772,18 +750,18 @@ void UI::on_spin_up()
   HashList list = torrent_list->get_selected_list();
   if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
   {
-    Torrent* torrent = TorrentManager::instance()->get_torrent(*list.begin());
-    torrent->set_up_limit((int)spinbutton_up->get_value());
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+    torrent.set_up_limit((int)spinbutton_up->get_value());
   }
 }
 
 void UI::on_settings()
 { 
-  int max_up = SettingsManager::instance()->get<int>("Network", "MaxUpRate");
+  int max_up = Engine::instance()->get_settings_manager()->get_int("Network", "MaxUpRate");
   if (max_up == 0)
     max_up = 1000;
   spinbutton_up->set_range(0, max_up);
-  int max_down = SettingsManager::instance()->get<int>("Network", "MaxDownRate");
+  int max_down = Engine::instance()->get_settings_manager()->get_int("Network", "MaxDownRate");
   if (max_down == 0)
     max_down = 1000;
   spinbutton_down->set_range(0, max_down);
@@ -808,7 +786,7 @@ void UI::on_remove()
   for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
   {
     sha1_hash hash = *iter;
-    SessionManager::instance()->erase_torrent(hash);
+    Engine::instance()->get_session_manager()->erase_torrent(hash);
   }
   
   if (list.size())
@@ -827,10 +805,10 @@ void UI::on_start()
   for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
   {
     sha1_hash hash = *iter;
-    if (!TorrentManager::instance()->get_handle(hash).is_valid())
+    if (!Engine::instance()->get_torrent_manager()->get_handle(hash).is_valid())
     {
       button_tracker->set_sensitive(true); /* FIXME: Should this even be here? */
-      SessionManager::instance()->resume_torrent(hash);
+      Engine::instance()->get_session_manager()->resume_torrent(hash);
     }
   }
   
@@ -845,7 +823,7 @@ void UI::on_stop()
   for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
   {
     sha1_hash hash = *iter;
-    SessionManager::instance()->stop_torrent(hash);
+    Engine::instance()->get_session_manager()->stop_torrent(hash);
   }
   
   if (list.size())
@@ -862,10 +840,10 @@ void UI::on_up()
   for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
   {
     sha1_hash hash = *iter;
-    Torrent* torrent = TorrentManager::instance()->get_torrent(hash);
-    int position = torrent->get_position();
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    int position = torrent.get_position();
     if (position > 1)
-      torrent->set_position(position - 1);
+      torrent.set_position(position - 1);
   }
 }
 
@@ -876,10 +854,10 @@ void UI::on_down()
   for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
   {
     sha1_hash hash = *iter;
-    Torrent* torrent = TorrentManager::instance()->get_torrent(hash);
-    int position = torrent->get_position();
-    if (position < TorrentManager::instance()->get_torrents_count())
-      torrent->set_position(position + 1);
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    int position = torrent.get_position();
+    if (position < Engine::instance()->get_torrent_manager()->get_torrents_count())
+      torrent.set_position(position + 1);
   }
 }
 
@@ -899,10 +877,9 @@ void UI::on_quit()
   }
 }
 
-bool UI::on_toggle_visible()
+void UI::on_toggle_visible()
 {
   is_visible() ? hide() : show();
-  return is_visible();
 }
 
 void UI::on_details_expanded()
@@ -911,7 +888,10 @@ void UI::on_details_expanded()
   {
     HashList list = torrent_list->get_selected_list();
     if (list.size() == 1) /* FIXME: This shouldn't be needed */
-      update(TorrentManager::instance()->get_torrent(*list.begin()));
+    {
+    	Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+      update(torrent);
+    }
   }
   else
   {
@@ -930,21 +910,22 @@ void UI::on_torrent_list_selection_changed()
     
     if (!expander_details->is_sensitive())
       expander_details->set_sensitive(true);
-    if (SettingsManager::instance()->get<bool>("UI", "AutoExpand"))
+    if (Engine::instance()->get_settings_manager()->get_bool("UI", "AutoExpand"))
       expander_details->set_expanded(true);
     
-    TorrentManager* tm = TorrentManager::instance();
-    spinbutton_down->set_value((double)tm->get_torrent(hash)->get_down_limit());
-    spinbutton_up->set_value((double)tm->get_torrent(hash)->get_up_limit());
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    spinbutton_down->set_value((double)torrent.get_down_limit());
+    spinbutton_up->set_value((double)torrent.get_up_limit());
 
-    if (!tm->get_handle(hash).is_valid())
+    if (!torrent.is_valid())
     {
       button_tracker->set_sensitive(false);
       reset_views();
     }
     else
       button_tracker->set_sensitive(true);
-    update(tm->get_torrent(hash));
+    
+    update(torrent);
   }
   else /* Multiple torrents selected */
   {
@@ -959,16 +940,17 @@ bool UI::on_tracker_update(GdkEventButton* e)
   if (list.size() == 1)
   {
     sha1_hash hash = *list.begin();
+    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
     if (e->button == 1)
     {
-      TorrentManager::instance()->get_handle(hash).force_reannounce();
+      torrent.get_handle().force_reannounce();
       /* TODO: add timeout to prevent hammering 
-      if (TorrentManager::instance()->get_handle(hash).force_reannounce())
+      if (Engine::instance()->get_torrent_manager()->get_handle(hash).force_reannounce())
         button_tracker->set_label("Forcing update..."); */
     }
     else if (e->button == 3)
     {
-      build_tracker_menu(TorrentManager::instance()->get_torrent(hash));
+      build_tracker_menu(torrent);
       menu_trackers->popup(e->button, e->time);
     }
   }
@@ -982,7 +964,7 @@ void UI::on_popup_tracker_selected(const Glib::ustring& tracker, int tier)
   if (list.size() == 1)
   {
     sha1_hash hash = *list.begin();
-    torrent_handle handle = TorrentManager::instance()->get_handle(hash);
+    torrent_handle handle = Engine::instance()->get_torrent_manager()->get_handle(hash);
     std::vector<announce_entry> trackers = handle.get_torrent_info().trackers();
     std::vector<announce_entry> new_trackers;
     for (int i = 0; i < trackers.size(); i++)
@@ -1024,7 +1006,10 @@ void UI::on_switch_page(GtkNotebookPage*, int page_num)
 {
   HashList list = torrent_list->get_selected_list();
   if (list.size() == 1)
-    update(TorrentManager::instance()->get_torrent(*list.begin()));
+  {
+  	Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+    update(torrent);
+  }
 }
 
 void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context, 
@@ -1137,13 +1122,13 @@ void UI::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
 
 void UI::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 {
-  Torrent* torrent = TorrentManager::instance()->get_torrent(hash);
-  if (torrent)
+  Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+  if (torrent.is_valid())
   {
-    if (torrent->get_group() != "Seeds")
+    if (torrent.get_group() != "Seeds")
     {
       notify("Torrent finished", msg, NOTIFY_INFO);
-      torrent->set_group("Seeds");
+      torrent.set_group("Seeds");
     }
   }
 }

@@ -22,13 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <list>
 
 #include "linkage/Plugin.hh"
+#include "linkage/RefCounter.hh"
 
 typedef std::list<Plugin*> PluginList;
 
 class PluginInfo
 {
-  Glib::ustring name_, description_, file_;
-  bool loaded_;
+  Glib::ustring m_name, m_description, m_file;
+  bool m_loaded;
   
 public:
   const Glib::ustring& get_name();
@@ -40,10 +41,8 @@ public:
   ~PluginInfo();
 };
 
-class PluginManager
-{
-  static PluginManager* smInstance;
-  
+class PluginManager : public RefCounter<PluginManager>
+{ 
   PluginList loaded_plugins;
   
   void load_plugin(const Glib::ustring& file);
@@ -53,8 +52,8 @@ class PluginManager
   
   Glib::ustring get_module(const Glib::ustring& name);
   
-  sigc::signal<void, Plugin*> signal_plugin_load_;
-  sigc::signal<void, Plugin*> signal_plugin_unload_;
+  sigc::signal<void, Plugin*> m_signal_plugin_load;
+  sigc::signal<void, Plugin*> m_signal_plugin_unload;
   
   bool on_plugin_unloading(Plugin* plugin);
   
@@ -65,16 +64,12 @@ class PluginManager
   
   void on_settings();
   
-  sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> signal_add_widget_;
-  sigc::signal<void, const Glib::ustring&> signal_add_torrent_;
-  sigc::signal<bool> signal_ui_toggle_visible_;
-  sigc::signal<void> signal_quit_;
+  sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> m_signal_add_widget;
+  
+  PluginManager();
   
 public:
-  static PluginManager* instance();
-  static void goodnight();
-
-  PluginList get_plugins();
+  const PluginList& get_plugins();
   
   sigc::signal<void, Plugin*> signal_plugin_load();
   sigc::signal<void, Plugin*> signal_plugin_unload();
@@ -82,11 +77,8 @@ public:
   std::list<PluginInfo> list_plugins();
   
   sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> signal_add_widget();
-  sigc::signal<void, const Glib::ustring&> signal_add_torrent();
-  sigc::signal<bool> signal_ui_toggle_visible();
-  sigc::signal<void> signal_quit();
   
-  PluginManager();
+	static Glib::RefPtr<PluginManager> create();
   ~PluginManager();
 };
   

@@ -20,20 +20,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 MainPlugin::MainPlugin()
 {
-  name_ = "Generic main plugin";
-  description_ = "Generic main description";
-  version_ = 0;
+  m_name = "Generic main plugin";
+  m_description = "Generic main description";
+  m_version = 0;
   
-  title_ = name_;
+  m_title = m_name;
 }
 
 MainPlugin::MainPlugin(const Glib::ustring& name, const Glib::ustring& description, int version, const Glib::ustring& title)
 {
-  name_ = name;
-  description_ = description;
-  version_ = version;
+  m_name = name;
+  m_description = description;
+  m_version = version;
   
-  title_ = title;
+  m_title = title;
 }
 
 MainPlugin::~MainPlugin()
@@ -42,7 +42,7 @@ MainPlugin::~MainPlugin()
 
 const Glib::ustring MainPlugin::get_title()
 {
-  return title_;
+  return m_title;
 }
 
 Plugin::PluginParent MainPlugin::get_parent()

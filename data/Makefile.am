@@ -7,3 +7,4 @@ desktop_DATA = linkage.desktop
 
 pixmapdir = $(prefix)/share/pixmaps
 pixmap_DATA = linkage.png
+

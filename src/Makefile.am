@@ -2,11 +2,10 @@ bin_PROGRAMS = linkage
 
 flagdir = \"$(prefix)/share/linkage/flags\"
 
-AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(LIBCURL_CFLAGS) -DFLAG_DIR="$(flagdir)"
+AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS)  $(LIBCURL_CFLAGS) $(DBUSGLIB_CFLAGS) -DFLAG_DIR="$(flagdir)"
 
 linkage_SOURCES = CellRendererPieceMap.hh \
                   FileList.hh \
-                  IOManager.hh \
                   PeerList.hh \
                   PieceMap.hh \
                   SettingsWin.hh \
@@ -15,14 +14,15 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   UI.hh \
                   CellRendererPieceMap.cc \
                   FileList.cc \
-                  IOManager.cc \
                   PeerList.cc \
                   PieceMap.cc \
                   SettingsWin.cc \
                   TorrentCreator.cc \
                   TorrentList.cc \
                   UI.cc \
+                  GroupFilter.cc \
+                  GroupFilter.hh \
                   main.cc
 
                   
-linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(LIBCURL_LIBS) -L../lib -llinkage-1
+linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(LIBCURL_LIBS) $(DBUSGLIB_LIBS) -L../lib -llinkage-1

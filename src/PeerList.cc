@@ -81,10 +81,10 @@ void PeerList::clear()
   model->clear();
 }
 
-void PeerList::update(Torrent* torrent)
+void PeerList::update(Torrent& torrent)
 {
   std::vector<peer_info> peers;
-  torrent->get_handle().get_peer_info(peers);
+  torrent.get_handle().get_peer_info(peers);
   
   Glib::ustring sel_addr;
   bool select = false;

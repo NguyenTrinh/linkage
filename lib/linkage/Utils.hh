@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <glibmm/miscutils.h>
 
 #include "libtorrent/peer_id.hpp"
+#include "libtorrent/entry.hpp"
 
 typedef char ip_address[15+1];
 
@@ -52,10 +53,14 @@ Glib::ustring str(const sha1_hash& hash);
 Glib::ustring get_eta(int size, float rate);
 Glib::ustring format_time(int seconds);
 
+/* Can _not_ use ustring for this! */
+sha1_hash info_hash(const std::string& chars);
+
 std::list<Glib::ustring> get_interfaces();
 
 int get_ip(const char *iface, ip_address ip);
 
 Glib::ustring get_config_dir();
+Glib::ustring get_data_dir();
 
 #endif /* UTILS_HH */

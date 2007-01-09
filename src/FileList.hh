@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 
-#include "linkage/Torrent.hh"
+#include "GroupFilter.hh"
 
 class FileList : public Gtk::TreeView
 {
@@ -50,9 +50,12 @@ class FileList : public Gtk::TreeView
   void on_filter_toggled(const Glib::ustring& path);
   
   void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<int>& column);
+  
+  Torrent current_torrent;
+  
 public:
   void clear();
-  void update(Torrent* torrent);
+  void update(Torrent& torrent);
   
   FileList();
   virtual ~FileList();
