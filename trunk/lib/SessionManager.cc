@@ -41,7 +41,6 @@ SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this)
 
 SessionManager::~SessionManager()
 {
-	std::cout << "SM destructor\n";
   /* FIXME: Save Session settings and clean? */
 }
 

@@ -66,7 +66,6 @@ PluginManager::PluginManager() : RefCounter<PluginManager>::RefCounter(this)
 
 PluginManager::~PluginManager()
 {
-	std::cout << "PM destructor\n";
   /* TODO: save plugins to SettinsManger */
 }
 
