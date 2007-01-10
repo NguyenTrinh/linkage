@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/scrollbar.h>
 #include <gtkmm/box.h>
 #include <gtkmm/paned.h>
+#include <gtkmm/alignment.h>
 
 #include "UI.hh"
 #include "linkage/Engine.hh"
@@ -155,7 +156,7 @@ UI::UI()
   expander_details->add(*notebook_details);
   
   Gtk::Frame* frame_info = manage(new Gtk::Frame());
-  Gtk::Label* label_info = manage(new Gtk::Label());
+  Gtk::Label* label_info = manage(new AlignedLabel());
   label_info->set_use_markup(true);
   label_info->set_markup("<b>General</b>");
   frame_info->set_label_widget(*label_info);
@@ -163,20 +164,15 @@ UI::UI()
   Gtk::Table* table_info = manage(new Gtk::Table(5, 5));
   table_info->set_spacings(10);
   table_info->set_border_width(5);
-  Gtk::Label* label = manage(new Gtk::Label("Active tracker:"));
-  label->set_alignment(0.0, 0.5);
+  Gtk::Label* label = manage(new AlignedLabel("Active tracker:"));
   table_info->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Next announce:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Next announce:"));
   table_info->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Response:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Response:"));
   table_info->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Saving as:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Saving as:"));
   table_info->attach(*label, 0, 1, 3, 4, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Comment:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Comment:"));
   table_info->attach(*label, 0, 1, 4, 5, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
   button_tracker = manage(new Gtk::Button());
   button_tracker->set_relief(Gtk::RELIEF_NONE);
@@ -185,38 +181,33 @@ UI::UI()
   button_tracker->signal_enter().connect(sigc::mem_fun(this, &UI::on_tracker_enter));
   button_tracker->signal_leave().connect(sigc::mem_fun(this, &UI::on_tracker_leave));
   table_info->attach(*button_tracker, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_next_announce = manage(new Gtk::Label());
+  label_next_announce = manage(new AlignedLabel());
   table_info->attach(*label_next_announce, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_response = manage(new Gtk::Label());
+  label_response = manage(new AlignedLabel());
   table_info->attach(*label_response, 1, 2, 2, 3, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_save_path = manage(new Gtk::Label());
+  label_save_path = manage(new AlignedLabel());
   table_info->attach(*label_save_path, 1, 2, 3, 4, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_comment = manage(new Gtk::Label());
+  label_comment = manage(new AlignedLabel());
   table_info->attach(*label_comment, 1, 2, 4, 5, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Total size:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Total size:"));
   table_info->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Files:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Files:"));
   table_info->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Pieces:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Pieces:"));
   table_info->attach(*label, 2, 3, 2, 3, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Piece size:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Piece size:"));
   table_info->attach(*label, 2, 3, 3, 4, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Creator:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Creator:"));
   table_info->attach(*label, 2, 3, 4, 5, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_size = manage(new Gtk::Label());
+  label_size = manage(new AlignedLabel());
   table_info->attach(*label_size, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_files = manage(new Gtk::Label());
+  label_files = manage(new AlignedLabel());
   table_info->attach(*label_files, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_pieces = manage(new Gtk::Label());
+  label_pieces = manage(new AlignedLabel());
   table_info->attach(*label_pieces, 3, 4, 2, 3, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_piece_size = manage(new Gtk::Label());
+  label_piece_size = manage(new AlignedLabel());
   table_info->attach(*label_piece_size, 3, 4, 3, 4, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_creator = manage(new Gtk::Label());
+  label_creator = manage(new AlignedLabel());
   table_info->attach(*label_creator, 3, 4, 4, 5, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 
   frame_info->add(*table_info);
@@ -225,7 +216,7 @@ UI::UI()
   Gtk::VBox* status_box = manage(new Gtk::VBox());
   
   Gtk::Frame* frame_pieces = manage(new Gtk::Frame());
-  Gtk::Label* label_pieces_frame = manage(new Gtk::Label());
+  Gtk::Label* label_pieces_frame = manage(new AlignedLabel());
   label_pieces_frame->set_use_markup(true);
   label_pieces_frame->set_markup("<b>Pieces</b>");
   frame_pieces->set_label_widget(*label_pieces_frame);
@@ -252,7 +243,7 @@ UI::UI()
   colormap->alloc_color(light);
   
   piecemap = new PieceMap(dark, mid, light);
-  label_progress = manage(new Gtk::Label());
+  label_progress = manage(new AlignedLabel());
   Gtk::HBox* box = manage(new Gtk::HBox());
   box->set_spacing(10);
   box->set_border_width(5);
@@ -263,7 +254,7 @@ UI::UI()
   status_box->pack_start(*frame_pieces, false, false, 0);
   
   Gtk::Frame* frame_transfer = manage(new Gtk::Frame());
-  Gtk::Label* label_transfer = manage(new Gtk::Label());
+  Gtk::Label* label_transfer = manage(new AlignedLabel());
   label_transfer->set_use_markup(true);
   label_transfer->set_markup("<b>Transfer</b>");
   frame_transfer->set_label_widget(*label_transfer);
@@ -271,83 +262,65 @@ UI::UI()
   Gtk::Table* table_transfer = manage(new Gtk::Table(4, 6));
   table_transfer->set_spacings(10);
   table_transfer->set_border_width(5);
-  label = manage(new Gtk::Label("Downloaded:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Downloaded:"));
   table_transfer->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Uploaded:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Uploaded:"));
   table_transfer->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Time elapsed:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Time elapsed:"));
   table_transfer->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Seeds:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Seeds:"));
   table_transfer->attach(*label, 0, 1, 3, 4, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_down = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_down = manage(new AlignedLabel());
   table_transfer->attach(*label_down, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_up = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_up = manage(new AlignedLabel());
   table_transfer->attach(*label_up, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_time_elapsed = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_time_elapsed = manage(new AlignedLabel());
   table_transfer->attach(*label_time_elapsed, 1, 2, 2, 3, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_seeds = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_seeds = manage(new AlignedLabel());
   table_transfer->attach(*label_seeds, 1, 2, 3, 4, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Download rate:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Download rate:"));
   table_transfer->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Upload rate:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Upload rate:"));
   table_transfer->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Time remaining:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Time remaining:"));
   table_transfer->attach(*label, 2, 3, 2, 3, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Peers:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Peers:"));
   table_transfer->attach(*label, 2, 3, 3, 4, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_down_rate = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_down_rate = manage(new AlignedLabel());
   table_transfer->attach(*label_down_rate, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_up_rate = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_up_rate = manage(new AlignedLabel());
   table_transfer->attach(*label_up_rate, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_time_eta = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_time_eta = manage(new AlignedLabel());
   table_transfer->attach(*label_time_eta, 3, 4, 2, 3, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_peers = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_peers = manage(new AlignedLabel());
   table_transfer->attach(*label_peers, 3, 4, 3, 4, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Download limit:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Download limit:"));
   table_transfer->attach(*label, 4, 5, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Upload limit:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Upload limit:"));
   table_transfer->attach(*label, 4, 5, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Share ratio:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Share ratio:"));
   table_transfer->attach(*label, 4, 5, 2, 3, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label = manage(new Gtk::Label("Wasted:"));
-  label->set_alignment(0.0, 0.5);
+  label = manage(new AlignedLabel("Wasted:"));
   table_transfer->attach(*label, 4, 5, 3, 4, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
   Gtk::Adjustment *adj_down = new Gtk::Adjustment(0.0, 0.0, 1000.0);
   spinbutton_down = manage(new Gtk::SpinButton(*adj_down));
   spinbutton_down->set_numeric(true);
   spinbutton_down->set_update_policy(Gtk::UPDATE_IF_VALID);
   spinbutton_down->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_down));
-  table_transfer->attach(*spinbutton_down, 5, 6, 0, 1, Gtk::SHRINK, Gtk::EXPAND|Gtk::FILL);
+  Gtk::Alignment* align_spins = manage(new Gtk::Alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER, 0.0, 1.0));
+  align_spins->add(*spinbutton_down);
+  table_transfer->attach(*align_spins, 5, 6, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
   Gtk::Adjustment *adj_up = new Gtk::Adjustment(0.0, 0.0, 1000.0);
   spinbutton_up = manage(new Gtk::SpinButton(*adj_up));
   spinbutton_up->set_numeric(true);
   spinbutton_up->set_update_policy(Gtk::UPDATE_IF_VALID);
   spinbutton_up->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_up));
-  table_transfer->attach(*spinbutton_up, 5, 6, 1, 2, Gtk::SHRINK, Gtk::EXPAND|Gtk::FILL);
-  label_ratio = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  align_spins = manage(new Gtk::Alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER, 0.0, 1.0));
+  align_spins->add(*spinbutton_up);
+  table_transfer->attach(*align_spins, 5, 6, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+  label_ratio = manage(new AlignedLabel());
   table_transfer->attach(*label_ratio, 5, 6, 2, 3, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-  label_wasted = manage(new Gtk::Label());
-  label->set_alignment(0.0, 0.5);
+  label_wasted = manage(new AlignedLabel());
   table_transfer->attach(*label_wasted, 5, 6, 3, 4, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
   
   frame_transfer->add(*table_transfer);
@@ -714,7 +687,6 @@ SaveDialog::SaveDialog(Gtk::Window *parent)
 SaveDialog::~SaveDialog()
 {
 }
-
 
 /* CALLBACKS */
 

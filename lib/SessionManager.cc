@@ -291,11 +291,11 @@ void SessionManager::erase_torrent(const sha1_hash& hash)
   if (handle.is_valid())
     remove_torrent(handle);
   
-  Glib::ustring hash_str = str(hash);
-  Engine::instance()->get_torrent_manager()->remove_torrent(hash);
-  Engine::instance()->get_settings_manager()->remove_group(hash_str);
   
-  g_remove(Glib::build_filename(get_data_dir(), hash_str).c_str());
-  g_remove(Glib::build_filename(get_data_dir(), hash_str + ".resume").c_str());
+  Engine::instance()->get_torrent_manager()->remove_torrent(hash);
+  
+  Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash));
+  g_remove(file.c_str());
+  g_remove((file + ".resume").c_str());
 }
 

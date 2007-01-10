@@ -19,12 +19,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/stock.h>
 #include <gtkmm/box.h>
 #include <gtkmm/notebook.h>
-#include <gtkmm/label.h>
 #include <gtkmm/table.h>
 #include <gtkmm/button.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrenderertoggle.h>
 
+#include "AlignedLabel.hh"
 #include "SettingsWin.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
@@ -51,8 +51,7 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   Gtk::Table* table = manage(new Gtk::Table(2, 2));
   table->set_spacings(10);
   table->set_border_width(5);
-  Gtk::Label* label = manage(new Gtk::Label("UI update interval:"));
-  label->set_alignment(0, 0.5);
+  AlignedLabel* label = manage(new AlignedLabel("UI update interval:"));
   table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
   auto_expand = manage(new Gtk::CheckButton("Auto expand details"));
   table->attach(*auto_expand, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
@@ -73,29 +72,21 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   table = manage(new Gtk::Table(8, 3));
   table->set_spacings(10);
   table->set_border_width(5);
-  label = manage(new Gtk::Label("Listen on interface:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Listen on interface:"));
   table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-  label = manage(new Gtk::Label("Port range:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Port range:"));
   table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-  label = manage(new Gtk::Label("Max. global upload rate:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Max. global upload rate:"));
   table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-  label = manage(new Gtk::Label("Max. global download rate:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Max. global download rate:"));
   table->attach(*label, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK);
-  label = manage(new Gtk::Label("Max. connections / torrent:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Max. connections / torrent:"));
   table->attach(*label, 0, 1, 4, 5, Gtk::FILL, Gtk::SHRINK);
-  label = manage(new Gtk::Label("Max. uploads / torrent:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Max. uploads / torrent:"));
   table->attach(*label, 0, 1, 5, 6, Gtk::FILL, Gtk::SHRINK);
-  label = manage(new Gtk::Label("Max. active downloads:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Max. active downloads:"));
   table->attach(*label, 0, 1, 6, 7, Gtk::FILL, Gtk::SHRINK);
-  label = manage(new Gtk::Label("Tracker timeout:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Tracker timeout:"));
   table->attach(*label, 0, 1, 7, 8, Gtk::FILL, Gtk::SHRINK);
   use_proxy = manage(new Gtk::CheckButton("Use proxy"));
   use_proxy->signal_toggled().connect(sigc::mem_fun(*this, &SettingsWin::on_proxy_toggled));
@@ -104,14 +95,11 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   Gtk::Table* table_proxy = manage(new Gtk::Table(3, 3));
   table_proxy->set_spacings(10);
   table_proxy->set_border_width(5);
-  label = manage(new Gtk::Label("Proxy ip - port:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Proxy ip - port:"));
   table_proxy->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK, 10);
-  label = manage(new Gtk::Label("Proxy username:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Proxy username:"));
   table_proxy->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK, 10);
-  label = manage(new Gtk::Label("Proxy password:"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("Proxy password:"));
   table_proxy->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK, 10);
   
   interfaces = manage(new Gtk::ComboBoxText());
@@ -176,11 +164,9 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   max_port->set_numeric(true);
   max_port->set_update_policy(Gtk::UPDATE_IF_VALID);
   table->attach(*max_port, 2, 3, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
-  label = manage(new Gtk::Label("kB/s"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("kB/s"));
   table->attach(*label, 2, 3, 2, 3, Gtk::SHRINK, Gtk::SHRINK);
-  label = manage(new Gtk::Label("kB/s"));
-  label->set_alignment(0, 0.5);
+  label = manage(new AlignedLabel("kB/s"));
   table->attach(*label, 2, 3, 3, 4, Gtk::SHRINK, Gtk::SHRINK);
   
   adj = manage(new Gtk::Adjustment(8080.0, 0.0, 65535.0));
