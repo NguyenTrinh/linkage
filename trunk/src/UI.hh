@@ -30,11 +30,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/button.h>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/expander.h>
-#include <gtkmm/label.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/messagedialog.h>
 #include <gdkmm/cursor.h>
 
+#include "AlignedLabel.hh"
 #include "PieceMap.hh"
 #include "linkage/SessionManager.hh"
 #include "TorrentList.hh"
@@ -75,27 +75,27 @@ class UI : public Gtk::Window
   Gtk::Button* button_up;
   Gtk::Button* button_down;
   
-  Gtk::Label* label_down;
-  Gtk::Label* label_down_rate;
-  Gtk::Label* label_up;
-  Gtk::Label* label_up_rate;
-  Gtk::Label* label_time_elapsed;
-  Gtk::Label* label_time_eta;
-  Gtk::Label* label_ratio;
-  Gtk::Label* label_seeds;
-  Gtk::Label* label_peers;
-  Gtk::Label* label_wasted;
+  AlignedLabel* label_down;
+  AlignedLabel* label_down_rate;
+  AlignedLabel* label_up;
+  AlignedLabel* label_up_rate;
+  AlignedLabel* label_time_elapsed;
+  AlignedLabel* label_time_eta;
+  AlignedLabel* label_ratio;
+  AlignedLabel* label_seeds;
+  AlignedLabel* label_peers;
+  AlignedLabel* label_wasted;
   Gtk::Button* button_tracker; //TOD: Gtkmm 2.10 has Gtk::LinkButton
-  Gtk::Label* label_save_path;
-  Gtk::Label* label_creator;
-  Gtk::Label* label_comment;
-  Gtk::Label* label_size;
-  Gtk::Label* label_pieces;
-  Gtk::Label* label_piece_size;
-  Gtk::Label* label_next_announce;
-  Gtk::Label* label_files;
-  Gtk::Label* label_response;
-  Gtk::Label* label_progress;
+  AlignedLabel* label_save_path;
+  AlignedLabel* label_creator;
+  AlignedLabel* label_comment;
+  AlignedLabel* label_size;
+  AlignedLabel* label_pieces;
+  AlignedLabel* label_piece_size;
+  AlignedLabel* label_next_announce;
+  AlignedLabel* label_files;
+  AlignedLabel* label_response;
+  AlignedLabel* label_progress;
   
   Gtk::Menu* menu_trackers;
   

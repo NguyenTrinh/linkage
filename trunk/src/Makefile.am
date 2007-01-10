@@ -22,6 +22,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   UI.cc \
                   GroupFilter.cc \
                   GroupFilter.hh \
+                  AlignedLabel.hh \
+                  AlignedLabel.cc \
                   main.cc
 
                   
