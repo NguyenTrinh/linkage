@@ -31,8 +31,10 @@ GroupFilter::~GroupFilter()
 {
 }
 
-bool GroupFilter::eval(const torrent_info& info)
+bool GroupFilter::eval(const Torrent& torrent)
 {
+	torrent_info info = torrent.get_info();
+	
   switch (m_eval)
   {
     case EVAL_EQUALS:

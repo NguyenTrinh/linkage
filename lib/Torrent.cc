@@ -224,7 +224,7 @@ const Glib::ustring Torrent::get_state_string(State state)
     return "Allocating";
 }
 
-const torrent_info Torrent::get_info()
+const torrent_info Torrent::get_info() const
 {
   return m_handle.get_torrent_info();
 }

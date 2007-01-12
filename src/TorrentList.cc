@@ -222,7 +222,7 @@ void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, con
         iter != filters.end(); ++iter)
   {
     GroupFilter* filter = *iter;
-    if (filter->eval(torrent.get_info()))
+    if (filter->eval(torrent))
     {
       filter_group = filter->get_name();
       break;
