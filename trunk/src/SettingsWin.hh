@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/filechooserbutton.h>
 #include <gtkmm/comboboxtext.h>
+#include <gtkmm/comboboxentrytext.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/treemodel.h>
 #include <gtkmm/liststore.h>
@@ -47,29 +48,41 @@ class SettingsWin : public Gtk::Window
     Gtk::TreeModelColumn<Glib::ustring> description;
   };
   
-  class GroupsModelColumns : public Gtk::TreeModelColumnRecord
+  class GroupFilterRow : public Gtk::HBox
   {
+  	Gtk::Entry *m_name;
+  	Gtk::ComboBoxText *m_eval, *m_tag;
+  	Gtk::ComboBoxEntryText *m_filter;
+  	
+  	void on_tag_changed();
+  	
   public:
-    GroupsModelColumns()
-      { 
-        add(name);
-        add(seeds);
-        add(eval);
-        add(tag);
-        add(filter);
-      }
-    Gtk::TreeModelColumn<Glib::ustring> name;
-    Gtk::TreeModelColumn<bool> seeds;
-    Gtk::TreeModelColumn<int> eval;
-    Gtk::TreeModelColumn<int> tag;
-    Gtk::TreeModelColumn<Glib::ustring> filter;
+  	GroupFilter get_filter() const;
+  	
+    GroupFilterRow();
+    GroupFilterRow(const Glib::ustring& filter,
+				  				 GroupFilter::TagType tag,
+				  				 GroupFilter::EvalType eval,
+				  				 const Glib::ustring& name);
+    ~GroupFilterRow();
+  };
+  
+  class GroupFilterView : public Gtk::VBox
+  {
+  	std::list<GroupFilterRow*> m_children;
+  	
+  public:
+  	void append(GroupFilterRow* row);
+  	void remove(GroupFilterRow* row);
+  	const std::list<GroupFilterRow*>& children();
+  	
+  	GroupFilterView();
+  	~GroupFilterView();
   };
   
   PluginModelColumns plugin_columns;
-  GroupsModelColumns groups_columns;
   
   Glib::RefPtr<Gtk::ListStore> model_plugins;
-  Glib::RefPtr<Gtk::ListStore> model_groups;
   
   Gtk::SpinButton* update_interval;
   /* Gtk::CheckButton *tray_icon, *min_to_tray, *close_to_tray; */
@@ -85,9 +98,7 @@ class SettingsWin : public Gtk::Window
   Gtk::FileChooserButton *button_default_path, *button_move_finished;
   Gtk::Entry *proxy_ip, *proxy_user, *proxy_pass;
   
-  Gtk::TreeView* treeview_groups;
-  Gtk::ComboBoxText *group_eval, *group_tag;
-  Gtk::Entry *group_filter;
+  GroupFilterView* groups_view;
   
   void on_plugin_toggled(const Glib::ustring& path);
 
@@ -106,11 +117,6 @@ class SettingsWin : public Gtk::Window
   
   void on_group_add();
   void on_group_remove();
-  
-  void on_group_selection_changed();
-  
-  void on_group_name_edited(const Glib::ustring& path, const Glib::ustring& str);
-  void on_group_seeds_toggled(const Glib::ustring& path);
   
 public:
   SettingsWin(Gtk::Window *parent);

@@ -28,10 +28,11 @@ class GroupFilter
 public:
   /* FIXME: Add EVAL_LESS and EVAL_GREATER? */
   enum EvalType { EVAL_EQUALS, EVAL_CONTAINS, EVAL_STARTS, EVAL_ENDS };
-  /* FIXME: Add more tag, like size, num_files etc.. */
-  enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT };
+  /* FIXME: Add more tags, like size, num_files etc.. */
+  /* FIXME: Add more tags for dynamic filters, like % completed, share ratio etc.. */
+  enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
 
-  bool eval(const torrent_info& info);
+  bool eval(const Torrent& torrent);
 
   const Glib::ustring& get_name();  
   

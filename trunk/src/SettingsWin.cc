@@ -29,7 +29,115 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
-SettingsWin::SettingsWin(Gtk::Window *parent)
+SettingsWin::GroupFilterRow::GroupFilterRow()
+{
+	m_name = new Gtk::Entry();
+	m_eval = new Gtk::ComboBoxText();
+	m_tag = new Gtk::ComboBoxText();
+	m_tag->signal_changed().connect(sigc::mem_fun(this, &SettingsWin::GroupFilterRow::on_tag_changed));
+	m_filter = new Gtk::ComboBoxEntryText();
+	
+	add(*m_name);
+	add(*m_tag);
+	add(*m_eval);
+	add(*m_filter);
+}
+
+SettingsWin::GroupFilterRow::GroupFilterRow(const Glib::ustring& name,
+																					 GroupFilter::TagType tag,
+																					 GroupFilter::EvalType eval, 
+																					 const Glib::ustring& filter)
+{
+	m_name = new Gtk::Entry();
+	m_name->set_text(name);
+	m_eval = new Gtk::ComboBoxText();
+	m_eval->set_active(eval);
+	m_tag = new Gtk::ComboBoxText();
+	m_tag->set_active(tag);
+	m_tag->signal_changed().connect(sigc::mem_fun(this, &SettingsWin::GroupFilterRow::on_tag_changed));
+	m_filter = new Gtk::ComboBoxEntryText();
+	m_filter->get_entry()->set_text(filter);
+	
+	add(*m_name);
+	add(*m_tag);
+	add(*m_eval);
+	add(*m_filter);
+}
+
+SettingsWin::GroupFilterRow::~GroupFilterRow()
+{
+	delete *m_name;
+	delete *m_tag;
+	delete *m_eval;
+	delete *m_filter;
+}
+
+void SettingsWin::GroupFilterRow::on_tag_changed()
+{
+	if (m_tag->get_active_row_number() == GroupFilter::TAG_STATE)
+		m_filter->get_entry()->set_editable(false);
+	else
+		m_filter->get_entry()->set_editable(true);
+}
+  			
+GroupFilter SettingsWin::GroupFilterRow::get_filter() const
+{
+	return GroupFilter(m_filter->get_active_text(),
+										 (GroupFilter::TagType)m_tag->get_active_row_number(),
+										 (GroupFilter::EvalType)m_eval->get_active_row_number(),
+										 m_name->get_text());
+}
+
+  
+SettingsWin::GroupFilterView::GroupFilterView()
+{
+}
+
+SettingsWin::GroupFilterView::~GroupFilterView()
+{
+	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+				iter != m_children.end(); ++iter)
+	{
+		delete *iter;
+	}
+}
+
+void SettingsWin::GroupFilterView::append(GroupFilterRow* row)
+{
+	bool unique = true;
+	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+				iter != m_children.end(); ++iter)
+	{
+		unique = (row->get_filter().get_name() != (*iter)->get_filter().get_name());
+	}
+	
+	if (unique)
+	{
+		m_children.push_back(row);
+		pack_start(*row, false, false);
+		show_all_children();
+	}
+}
+
+void SettingsWin::GroupFilterView::remove(GroupFilterRow* row)
+{
+	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+				iter != m_children.end(); ++iter)
+	{
+		if (row->get_filter().get_name() == (*iter)->get_filter().get_name())
+		{
+			remove(*iter);
+			break;
+		}
+	}
+}
+
+const std::list<SettingsWin::GroupFilterRow*>& SettingsWin::GroupFilterView::children()
+{
+	return m_children;
+}
+  
+SettingsWin::SettingsWin(Gtk::Window* parent)
 {
   set_title("Prefrences");
   set_transient_for(*parent);
@@ -55,12 +163,6 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
   auto_expand = manage(new Gtk::CheckButton("Auto expand details"));
   table->attach(*auto_expand, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-  /*tray_icon = manage(new Gtk::CheckButton("Enable tray icon"));
-  table->attach(*tray_icon, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-  min_to_tray = manage(new Gtk::CheckButton("Minimize to tray"));
-  table->attach(*min_to_tray, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK, 10);
-  close_to_tray = manage(new Gtk::CheckButton("Close to tray"));
-  table->attach(*close_to_tray, 0, 1, 4, 5, Gtk::FILL, Gtk::SHRINK, 10);*/
   Gtk::Adjustment *adj = manage(new Gtk::Adjustment(1.0, 1.0, 60.0));
   update_interval = manage(new Gtk::SpinButton(*adj));
   update_interval->set_numeric(true);
@@ -221,35 +323,9 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   
   notebook->append_page(*treeview_plugins, "Plugins");
   
-  Gtk::VBox* groups_box = manage(new Gtk::VBox());
-  
-  model_groups = Gtk::ListStore::create(groups_columns);
-  treeview_groups = manage(new Gtk::TreeView());
-  treeview_groups->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_group_selection_changed));
-  treeview_groups->set_model(model_groups);
-  treeview_groups->append_column("Name", groups_columns.name);
-  treeview_groups->append_column("Seeds only", groups_columns.seeds);
-  for(int i = 0; i < 2; i++)
-  {
-    Gtk::TreeView::Column* column = treeview_groups->get_column(i);
-    
-    Gtk::CellRenderer* cell = column->get_first_cell_renderer();
-    if (Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell))
-    {
-      cell_text->property_editable() = true;
-      cell_text->signal_edited().connect(sigc::mem_fun(*this, &SettingsWin::on_group_name_edited));
-    }
-    else if (Gtk::CellRendererToggle* cell_toggle = dynamic_cast<Gtk::CellRendererToggle*>(cell))
-    {
-      cell_toggle->property_activatable() = true;
-      cell_toggle->signal_toggled().connect(sigc::mem_fun(*this, &SettingsWin::on_group_seeds_toggled));
-    }  
-    
-    column->set_sort_column_id(i);
-    column->set_resizable(true);
-  }
-  Gtk::HBox* groups_hbox = manage(new Gtk::HBox());
-  groups_hbox->pack_start(*treeview_groups, true, true);
+  Gtk::HBox* groups_box = manage(new Gtk::HBox());
+  groups_view = manage(new GroupFilterView());
+  groups_box->pack_start(*groups_view, true, true);
   Gtk::Button* group_add = manage(new Gtk::Button(Gtk::Stock::ADD));
   group_add->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_add));
   Gtk::Button* group_remove = manage(new Gtk::Button(Gtk::Stock::REMOVE));
@@ -257,26 +333,7 @@ SettingsWin::SettingsWin(Gtk::Window *parent)
   Gtk::VBox* groups_vbox = manage(new Gtk::VBox());
   groups_vbox->pack_start(*group_add, false, false);
   groups_vbox->pack_start(*group_remove, false, false);
-  groups_hbox->pack_start(*groups_vbox, false, false);  
-  
-  groups_box->pack_start(*groups_hbox, true, true);  
-  
-  groups_hbox = manage(new Gtk::HBox());
-  group_tag = manage(new Gtk::ComboBoxText());
-  group_tag->append_text("Tracker");
-  group_tag->append_text("Name");
-  group_tag->append_text("Comment");
-  group_eval = manage(new Gtk::ComboBoxText());
-  group_eval->append_text("Equals");
-  group_eval->append_text("Contains");
-  group_eval->append_text("Starts with");
-  group_eval->append_text("Ends with");
-  group_filter = manage(new Gtk::Entry());
-  groups_hbox->pack_start(*group_tag, false, false); 
-  groups_hbox->pack_start(*group_eval, false, false); 
-  groups_hbox->pack_start(*group_filter, true, true); 
-  
-  groups_box->pack_start(*groups_hbox, false, false);
+  groups_box->pack_start(*groups_vbox);
   
   notebook->append_page(*groups_box, "Groups");
   
@@ -309,58 +366,12 @@ void SettingsWin::on_button_close()
 
 void SettingsWin::on_group_add()
 {
-  Gtk::TreeIter iter = model_groups->append();
-  Gtk::TreeRow row = *iter;
-  row[groups_columns.name] = "New group";
-  row[groups_columns.eval] = 0;
-  row[groups_columns.tag] = 0;
-  row[groups_columns.filter] = "";
-  treeview_groups->get_selection()->select(iter);
+	Glib::ustring number = str(groups_view->get_children().size());
+  groups_view->append(new GroupFilterRow("Group " + number, GroupFilter::TAG_TRACKER, GroupFilter::EVAL_EQUALS, "Filter"));
 }
 
 void SettingsWin::on_group_remove()
 {
-  Gtk::TreeIter iter = treeview_groups->get_selection()->get_selected();
-  model_groups->erase(iter);
-}
-
-void SettingsWin::on_group_selection_changed()
-{
-  static Gtk::TreeIter old_iter;
-
-  if (old_iter && treeview_groups->get_selection()->get_selected())
-  {
-    int eval = group_eval->get_active_row_number();
-    int tag = group_tag->get_active_row_number();
-    Glib::ustring filter = group_filter->get_text();
-    Gtk::TreeRow row = *old_iter;
-    row[groups_columns.eval] = eval;
-    row[groups_columns.tag] = tag;
-    row[groups_columns.filter] = filter;
-  }
-  
-  old_iter = treeview_groups->get_selection()->get_selected();
-
-  if (old_iter)
-  {
-    Gtk::TreeRow row = *old_iter;
-    group_eval->set_active(row[groups_columns.eval]);
-    group_tag->set_active(row[groups_columns.tag]);
-    group_filter->set_text(row[groups_columns.filter]);
-  }
-  
-}
-
-void SettingsWin::on_group_name_edited(const Glib::ustring& path, const Glib::ustring& str)
-{
-  Gtk::TreeRow row = *model_groups->get_iter(path);
-  row[groups_columns.name] = str;
-}
-
-void SettingsWin::on_group_seeds_toggled(const Glib::ustring& path)
-{
-  Gtk::TreeRow row = *model_groups->get_iter(path);
-  row[groups_columns.seeds] = !row[groups_columns.seeds];
 }
 
 void SettingsWin::on_proxy_toggled()
