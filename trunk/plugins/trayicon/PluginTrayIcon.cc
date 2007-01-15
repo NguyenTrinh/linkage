@@ -80,19 +80,6 @@ void TrayPlugin::on_load()
   popup_menu->show_all_children();
 }
 
-bool TrayPlugin::update(Torrent& torrent)
-{
-  return false;
-}
-
-bool TrayPlugin::on_notify(const Glib::ustring& title,
-                          const Glib::ustring& message,
-                          NotifyType type,
-                          Torrent& torrent)
-{
-  return false;
-}
-
 bool TrayPlugin::on_button_released(GdkEventButton* e)
 {
   if (e->button == 1)

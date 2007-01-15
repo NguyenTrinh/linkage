@@ -35,6 +35,7 @@ Plugin::Plugin(const Glib::ustring& name, const Glib::ustring& description, int 
 
 Plugin::~Plugin()
 {
+	m_signal_unloading.emit(this);
 }
 
 sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> Plugin::signal_add_widget()
@@ -47,7 +48,7 @@ void Plugin::add_widget(Gtk::Widget* widget, Plugin::PluginParent parent)
   m_signal_add_widget.emit(this, widget, parent);
 }
 
-sigc::signal<bool, Plugin*> Plugin::signal_unloading()
+sigc::signal<void, Plugin*> Plugin::signal_unloading()
 {
   return m_signal_unloading;
 }

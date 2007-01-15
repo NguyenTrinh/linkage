@@ -67,7 +67,7 @@ class UI : public Gtk::Window
   Glib::RefPtr<Gtk::UIManager> manager;
   
   Gtk::Statusbar* statusbar;
-  
+
   Gtk::Button* button_add;
   Gtk::Button* button_remove;
   Gtk::Button* button_start;
@@ -170,9 +170,7 @@ protected:
                        guint time);
                        
   void notify(const Glib::ustring& title, 
-              const Glib::ustring& msg,
-              NotifyType type,
-              Torrent torrent = Torrent());
+              const Glib::ustring& msg);
   
   void on_plugin_load(Plugin* plugin);
   void on_plugin_unload(Plugin* plugin);

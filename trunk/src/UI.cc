@@ -459,20 +459,18 @@ void UI::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent
 }
 
 void UI::notify(const Glib::ustring& title, 
-                const Glib::ustring& msg,
-                NotifyType type,
-                Torrent torrent)
+                const Glib::ustring& msg)
 {
   /* FIXME: Move to PluginManager? 
      FIXME: Rewrite a more general messaging system */
-  PluginList plugins = Engine::instance()->get_plugin_manager()->get_plugins();
+  /*PluginList plugins = Engine::instance()->get_plugin_manager()->get_plugins();
   for (PluginList::iterator iter = plugins.begin(); 
        iter != plugins.end(); ++iter)
   {
     Plugin* plugin = *iter;
     if (plugin->on_notify(title, msg, type, torrent))
       return;
-  }
+  }*/
   
   /* Fallback to statusbar if no plugin handled the notification */
   statusbar->push(msg);
@@ -509,22 +507,6 @@ void UI::update(Torrent& torrent)
   }
   
   torrent_list->update_row(torrent);
-  
-  if (torrent_list->is_selected(hash))
-  {
-    PluginList plugins = Engine::instance()->get_plugin_manager()->get_plugins();
-    for (PluginList::iterator iter = plugins.begin(); 
-         iter != plugins.end(); ++iter)
-    {
-      Plugin::PluginParent parent = (*iter)->get_parent();
-      if (parent != Plugin::PARENT_NONE)
-      {
-        Gtk::Widget* widget = (*iter)->get_widget();
-        if (widget->is_visible())
-          (*iter)->update(torrent);
-      }
-    }
-  }
   
   if (torrent_list->is_selected(hash) && !torrent.is_running())
     button_tracker->set_label(""); //Get rid of "Updating..." on event=stopped
@@ -1056,42 +1038,42 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 
 void UI::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)
 {
-  notify("Invalid bencoding", msg, NOTIFY_ERROR);
+  notify("Invalid bencoding", msg);
 }
 
 void UI::on_missing_file(const Glib::ustring& msg, const Glib::ustring& file)
 {
-  notify("Missing file", msg, NOTIFY_ERROR);
+  notify("Missing file", msg);
 }
 
 void UI::on_duplicate_torrent(const Glib::ustring& msg, const sha1_hash& hash)
 {
-  notify("Duplicate torrent", msg, NOTIFY_ERROR);
+  notify("Duplicate torrent", msg);
 }
 
 void UI::on_listen_failed(const Glib::ustring& msg)
 {
-  notify("Listen failed", msg, NOTIFY_ERROR);
+  notify("Listen failed", msg);
 }
 
 void UI::on_tracker_failed(const sha1_hash& hash, const Glib::ustring& msg, int code, int times)
 {
-  notify("Tracker failed", msg, NOTIFY_WARNING);
+  notify("Tracker failed", msg);
 }
 
 void UI::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& msg)
 {
-  notify("Tracker response", msg, NOTIFY_INFO);
+  notify("Tracker response", msg);
 }
 
 void UI::on_tracker_warning(const sha1_hash& hash, const Glib::ustring& msg)
 {
-  notify("Tracker warning", msg, NOTIFY_WARNING);
+  notify("Tracker warning", msg);
 }
 
 void UI::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
 {
-  notify("Tracker announce", msg, NOTIFY_INFO);
+  notify("Tracker announce", msg);
 }
 
 void UI::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
@@ -1101,7 +1083,7 @@ void UI::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
   {
     if (torrent.get_group() != "Seeds")
     {
-      notify("Torrent finished", msg, NOTIFY_INFO);
+      notify("Torrent finished", msg);
       torrent.set_group("Seeds");
     }
   }
@@ -1109,20 +1091,20 @@ void UI::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 
 void UI::on_file_error(const sha1_hash& hash, const Glib::ustring& msg)
 {
-  notify("File error", msg, NOTIFY_ERROR);
+  notify("File error", msg);
 }
 
 void UI::on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg)
 {
-  notify("Fastresume failed", msg, NOTIFY_WARNING);
+  notify("Fastresume failed", msg);
 }
 
 void UI::on_hash_failed(const sha1_hash& hash, const Glib::ustring& msg, int piece)
 {
-  notify("Hash failed", msg, NOTIFY_INFO);
+  notify("Hash failed", msg);
 }
 
 void UI::on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip)
 {
-  notify("Peer banned", msg, NOTIFY_INFO);
+  notify("Peer banned", msg);
 }

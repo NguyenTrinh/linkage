@@ -55,13 +55,10 @@ class PluginManager : public RefCounter<PluginManager>
   sigc::signal<void, Plugin*> m_signal_plugin_load;
   sigc::signal<void, Plugin*> m_signal_plugin_unload;
   
-  bool on_plugin_unloading(Plugin* plugin);
+  void on_plugin_unloading(Plugin* plugin);
   
   void on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent);
-  void on_add_torrent(Glib::ustring file);
-  bool on_ui_toggle_visible();
-  void on_quit();
-  
+
   void on_settings();
   
   sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> m_signal_add_widget;

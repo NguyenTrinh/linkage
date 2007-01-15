@@ -30,6 +30,27 @@ int notify_send(const char *summary, const char *body);
 
 class NotifyPlugin : public Plugin
 {
+	enum NotifyType { NOTIFY_INFO, NOTIFY_WARNING, NOTIFY_ERROR };
+
+  bool notify(const Glib::ustring& title,
+              const Glib::ustring& message,
+              NotifyType type);
+  
+  void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
+  void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
+  void on_duplicate_torrent(const Glib::ustring& msg, const sha1_hash& hash);
+
+  void on_listen_failed(const Glib::ustring& msg);
+  void on_tracker_failed(const sha1_hash& hash, const Glib::ustring& msg, int code, int times);
+  void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& msg);
+  void on_tracker_warning(const sha1_hash& hash, const Glib::ustring& msg);
+  void on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg);
+  void on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg);
+  void on_file_error(const sha1_hash& hash, const Glib::ustring& msg);
+  void on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg);
+  void on_hash_failed(const sha1_hash& hash, const Glib::ustring& msg, int piece);
+  void on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
+  
 public:
   Glib::ustring get_name();
   Glib::ustring get_description();
@@ -38,13 +59,6 @@ public:
   Gtk::Widget* get_widget() { return NULL; };
   
   void on_load();
-  
-  bool update(Torrent& torrent);
-  
-  bool on_notify(const Glib::ustring& title,
-                const Glib::ustring& message,
-                NotifyType type,
-                Torrent& torrent);
 
   NotifyPlugin();
   ~NotifyPlugin();
