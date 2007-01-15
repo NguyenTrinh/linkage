@@ -54,13 +54,6 @@ public:
   
   void on_load();
   
-  bool update(Torrent& torrent);
-  
-  bool on_notify(const Glib::ustring& title,
-                         const Glib::ustring& message,
-                         NotifyType type,
-                         Torrent& torrent);
-  
   TrayPlugin();
   ~TrayPlugin();
 };

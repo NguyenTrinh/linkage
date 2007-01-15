@@ -66,10 +66,10 @@ SettingsWin::GroupFilterRow::GroupFilterRow(const Glib::ustring& name,
 
 SettingsWin::GroupFilterRow::~GroupFilterRow()
 {
-	delete *m_name;
-	delete *m_tag;
-	delete *m_eval;
-	delete *m_filter;
+	delete m_name;
+	delete m_tag;
+	delete m_eval;
+	delete m_filter;
 }
 
 void SettingsWin::GroupFilterRow::on_tag_changed()

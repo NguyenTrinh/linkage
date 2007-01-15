@@ -3,9 +3,10 @@
 * Write popup menu for torrents in torrent list
 * Revamp plugins
 * Mathusalem plugin? http://tw.apinc.org/weblog/2006/08/13#mathusalem-gets-useful
-* Save torrent related stuff in .resume file
+* Save torrent related stuff in .resume file * Done
 * More abstraction in Torrent class, let it handle more through torrent_handle to allow better controll of states and queue
 * Progressbar (treeview) shows negative time when seeding
-* Replace IOManager with DbusManager
+* Replace IOManager with DbusManager * Done
 * Support for DHT
 * Update TorrentCreator (private flag, DHT, other new stuff)
+* Remove plugin updateing stuff from UI, plugins should use signals/timeouts and poll Engine::get_*_manager() instead * Done

@@ -59,7 +59,8 @@ Glib::RefPtr<PluginManager> PluginManager::create()
 PluginManager::PluginManager() : RefCounter<PluginManager>::RefCounter(this)
 {
   /* TODO: load plugins from SettinsManger */
-  Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &PluginManager::on_settings));
+  Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+  sm->signal_update_settings().connect(sigc::mem_fun(this, &PluginManager::on_settings));
   
   on_settings();
 }
@@ -174,9 +175,12 @@ void PluginManager::unload_plugin(Plugin* plugin)
   delete plugin;
 }
 
-bool PluginManager::on_plugin_unloading(Plugin* plugin)
+/* This method is used to catch plugins that remove themselfs/crash/whatever */
+void PluginManager::on_plugin_unloading(Plugin* plugin)
 {
-  return !is_loaded(plugin->get_name());
+	m_signal_plugin_unload.emit(plugin);
+	
+  loaded_plugins.remove(plugin);
 }
 
 bool PluginManager::is_loaded(const Glib::ustring& name)
