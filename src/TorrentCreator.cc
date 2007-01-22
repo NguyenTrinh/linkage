@@ -155,7 +155,7 @@ void TorrentCreator::on_button_save()
   Glib::ustring comment = entry_comment->get_text();
   Glib::ustring content = button_files->get_filename();
   
-  int piece_size = std::atoi(combo_size->get_active_text().c_str())*1024;
+  unsigned int piece_size = std::atoi(combo_size->get_active_text().c_str())*1024;
   
   if (tracker == "" || content == "")
   {
@@ -188,10 +188,10 @@ void TorrentCreator::on_button_save()
     button_save->set_sensitive(false);
 
 		storage st(info, root.c_str());
-		int num = info.num_pieces();
+		unsigned int num = info.num_pieces();
 		std::vector<char> buf(piece_size);
 		
-		for (int i = 0; i < num; ++i)
+		for (unsigned int i = 0; i < num; ++i)
 		{
 		  double progress = (double)i/num;
 			progress_hashing->set_fraction(progress);

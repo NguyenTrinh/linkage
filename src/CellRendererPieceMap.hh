@@ -32,11 +32,11 @@ class CellRendererPieceMap : public Gtk::CellRenderer
   Glib::Property<std::list<bool> > property_map_;
 protected:
   std::list<Part> draw_more_pieces(const std::list<bool>& map,
-                                       int width,
-                                       int height);
+                                       unsigned int width,
+                                       unsigned int height);
   std::list<Part> draw_more_pixels(const std::list<bool>& map,
-                                       int width,
-                                       int height);
+                                       unsigned int width,
+                                       unsigned int height);
   
   virtual void render_vfunc(const Glib::RefPtr<Gdk::Drawable>& window,
                             Gtk::Widget& widget,

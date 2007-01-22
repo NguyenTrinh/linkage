@@ -28,7 +28,7 @@ private:
 	void try_clean()
 	{
 		static bool deleteing = false;
-		if (m_object != NULL && !references && !deleteing) 
+		if (m_object != NULL && references <= 0 && !deleteing) 
 		{
 			deleteing = true;
 			delete m_object;

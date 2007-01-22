@@ -58,93 +58,93 @@ Torrent::~Torrent()
 {
 }
 
-const torrent_handle& Torrent::get_handle()
+const torrent_handle& Torrent::get_handle() const
 {
   /* This should maybe be removed completly or only available for friends */
   return m_handle;
 }
 
-const Glib::ustring& Torrent::get_name()
+const Glib::ustring& Torrent::get_name() const
 {
   return m_name;
 }
 
-const Glib::ustring& Torrent::get_group()
+const Glib::ustring& Torrent::get_group() const
 {
   return m_group;
 }
 
-const Glib::ustring& Torrent::get_save_path()
+const Glib::ustring& Torrent::get_save_path() const
 {
   return m_save_path;
 }
 
-const Glib::ustring& Torrent::get_tracker_reply()
+const Glib::ustring& Torrent::get_tracker_reply() const
 {
   return m_tracker_reply;
 }
 
-const int Torrent::get_position()
+const unsigned int Torrent::get_position() const
 {
   return m_position;
 }
 
-const int Torrent::get_time_active()
+const unsigned int Torrent::get_time_active() const
 {
-  int total_time = m_resume.time;
+  unsigned int total_time = m_resume.time;
   if (m_handle.is_valid())
   {
     Glib::TimeVal diff;
     g_get_current_time(&diff);
     diff -= m_time_val;
-    total_time += (int)diff.as_double();
+    total_time += (unsigned int)diff.as_double();
   }
   return total_time;
 }
 
-const std::vector<bool>& Torrent::get_filter()
+const std::vector<bool>& Torrent::get_filter() const
 {
   return m_filter;
 }
 
-const int Torrent::get_up_limit()
+const int Torrent::get_up_limit() const
 {
   return m_up_limit;
 }
 
-const int Torrent::get_down_limit()
+const int Torrent::get_down_limit() const
 {
   return m_down_limit;
 }
 
-const sha1_hash& Torrent::get_hash()
+const sha1_hash& Torrent::get_hash() const
 {
   return m_hash;
 }
 
-const int Torrent::get_total_downloaded()
+const unsigned int Torrent::get_total_downloaded() const
 {
-	int total = m_resume.downloaded;
+	unsigned int total = m_resume.downloaded;
 	if (m_handle.is_valid())
 		total += m_handle.status().total_download;
 	return total;
 }
 
-const int Torrent::get_total_uploaded()
+const unsigned int Torrent::get_total_uploaded() const
 {
-	int total = m_resume.downloaded;
+	unsigned int total = m_resume.downloaded;
 	if (m_handle.is_valid())
 		total += m_handle.status().total_upload;
 	return total;
 }
 
-const Torrent::State Torrent::get_state()
+const Torrent::State Torrent::get_state() const
 {
   if (!m_is_queued)
   {
     if (m_handle.is_valid())
     {
-      int state = m_handle.status().state;
+      unsigned int state = m_handle.status().state;
       switch (state)
       {
         case torrent_status::queued_for_checking:
@@ -170,13 +170,13 @@ const Torrent::State Torrent::get_state()
     return QUEUED;
 }
 
-const Glib::ustring Torrent::get_state_string()
+const Glib::ustring Torrent::get_state_string() const
 {
   if (!m_is_queued)
   {
     if (m_handle.is_valid())
     {
-      int state = m_handle.status().state;
+      unsigned int state = m_handle.status().state;
       switch (state)
       {
         case torrent_status::queued_for_checking:
@@ -202,7 +202,7 @@ const Glib::ustring Torrent::get_state_string()
     return "Queued";
 }
 
-const Glib::ustring Torrent::get_state_string(State state)
+const Glib::ustring Torrent::get_state_string(State state) const
 {
   if (state & QUEUED)
     return "Queued";
@@ -229,7 +229,7 @@ const torrent_info Torrent::get_info() const
   return m_handle.get_torrent_info();
 }
 
-const torrent_status Torrent::get_status()
+const torrent_status Torrent::get_status() const
 {
   if (m_handle.is_valid())
     return m_handle.status();
@@ -237,7 +237,7 @@ const torrent_status Torrent::get_status()
     return torrent_status();
 }
 
-const std::vector<partial_piece_info> Torrent::get_download_queue()
+const std::vector<partial_piece_info> Torrent::get_download_queue() const
 {
   std::vector<partial_piece_info> queue;
   if (m_handle.is_valid())
@@ -271,7 +271,7 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply)
   m_tracker_reply = reply;
 }
 
-void Torrent::set_position(int position)
+void Torrent::set_position(unsigned int position)
 {
   Direction direction = (position < m_position) ? DIR_UP : DIR_DOWN;
   m_position = position;
@@ -288,17 +288,17 @@ void Torrent::set_filter(std::vector<bool>& filter)
     m_handle.filter_files(m_filter);
 }
 
-void Torrent::filter_file(const Glib::ustring& name)
+void Torrent::filter_file(const Glib::ustring& name, bool filter)
 {
   torrent_info info = m_handle.get_torrent_info();
   
   /* Get the file index to i */
-  int i = 0;
+  unsigned int i = 0;
   for (i = 0; i < info.num_files(); i++)
     if (name == info.file_at(i).path.string())
       break;
 
-  m_filter[i] = true;
+  m_filter[i] = filter;
   
   set_filter(m_filter);
 }
@@ -320,6 +320,8 @@ void Torrent::set_down_limit(int limit)
 void Torrent::start()
 {
   m_time_val.assign_current_time();
+  
+  set_filter(m_filter);
 }
 
 void Torrent::stop()
@@ -391,7 +393,7 @@ const entry Torrent::get_resume_entry(bool running)
   resume_entry["upload-limit"] = m_up_limit;
   entry::list_type el;
   el.push_back(m_handle.get_torrent_info().num_files());
-  for (int i = 0; i < m_filter.size(); i++)
+  for (unsigned int i = 0; i < m_filter.size(); i++)
     if (m_filter[i])
       el.push_back(i);
   resume_entry["filter"] = el;

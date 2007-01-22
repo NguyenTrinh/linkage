@@ -34,15 +34,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/messagedialog.h>
 #include <gdkmm/cursor.h>
 
+#include "linkage/Torrent.hh"
+#include "linkage/WeakPtr.hh"
+#include "linkage/Plugin.hh"
+
 #include "AlignedLabel.hh"
 #include "PieceMap.hh"
-#include "linkage/SessionManager.hh"
 #include "TorrentList.hh"
 #include "PeerList.hh"
 #include "FileList.hh"
 #include "SettingsWin.hh"
 #include "TorrentCreator.hh"
-#include "linkage/PluginManager.hh"
 
 class OpenDialog : public Gtk::FileChooserDialog
 {
@@ -141,12 +143,10 @@ protected:
   void on_details_expanded();
   
   void on_torrent_list_selection_changed();
-  
-  void on_torrent_added(Torrent& torrent);
 
   bool on_timeout();
 
-  void update(Torrent& torrent);
+  void update(const WeakPtr<Torrent>& torrent);
   
   virtual bool on_delete_event(GdkEventAny*);
   
@@ -159,7 +159,7 @@ protected:
   void save_state();
   void reset_views();
   
-  void build_tracker_menu(Torrent& torrent);
+  void build_tracker_menu(const WeakPtr<Torrent>& torrent);
   void on_popup_tracker_selected(const Glib::ustring& tracker, int tier);
   
   void add_torrent(const Glib::ustring& file);

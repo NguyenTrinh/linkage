@@ -46,6 +46,7 @@ using namespace libtorrent;
 Glib::ustring suffix_value(float value);
 Glib::ustring suffix_value(double value);
 Glib::ustring suffix_value(int value);
+Glib::ustring suffix_value(unsigned int value);
 
 Glib::ustring str(int value);
 Glib::ustring str(double value, int precision);

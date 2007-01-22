@@ -56,14 +56,14 @@ CellRendererPieceMap::~CellRendererPieceMap()
 
 std::list<Part> 
 CellRendererPieceMap::draw_more_pixels(const std::list<bool>& map,
-                                       int width, 
-                                       int height)
+                                       unsigned int width, 
+                                       unsigned int height)
 {
   std::list<Part> parts;
   std::vector<bool> vmap(map.begin(), map.end());
-  int count = vmap.size();
+  unsigned int count = vmap.size();
   
-  for (int i = 0; i < count; i++)
+  for (unsigned int i = 0; i < count; i++)
   {
     if (!vmap[i])
       continue;
@@ -73,7 +73,7 @@ CellRendererPieceMap::draw_more_pixels(const std::list<bool>& map,
     else
     {
       Part & l = parts.back();
-      if (l.last == int(i - 1))
+      if (l.last == (unsigned int)(i - 1))
         l.last = i;
       else
         parts.push_back(Part(i, i, 100));
@@ -85,34 +85,34 @@ CellRendererPieceMap::draw_more_pixels(const std::list<bool>& map,
 
 std::list<Part> 
 CellRendererPieceMap::draw_more_pieces(const std::list<bool>& map,
-                                       int width, 
-                                       int height)
+                                       unsigned int width, 
+                                       unsigned int height)
 {
   std::list<Part> parts;
   std::vector<bool> vmap(map.begin(), map.end());
-  int count = vmap.size();
+  unsigned int count = vmap.size();
   double pieces_per_part = (double)count/width;
   
-  for (int i = 0; i < width; i++)
+  for (unsigned int i = 0; i < width; i++)
   {
-    int completed = 0;
-    int start = (int)(i*pieces_per_part);
-    int end = (int)((i+1)*pieces_per_part+0.5);
-    for (int j = start; j < end; j++)
+    unsigned int completed = 0;
+    unsigned int start = (unsigned int)(i*pieces_per_part);
+    unsigned int end = (unsigned int)((i+1)*pieces_per_part+0.5);
+    for (unsigned int j = start; j < end; j++)
       if (vmap[j])
         completed++;
         
     if (!completed)
       continue;
       
-    int fac = int(100*((double)completed / (end - start)) + 0.5);
+    unsigned int fac = (unsigned int)(100*((double)completed / (end - start)) + 0.5);
 
     if (parts.empty())
       parts.push_back(Part(i, i, fac));
     else
     {
       Part & l = parts.back();
-      if (l.last == int(i - 1) && l.fac == fac)
+      if (l.last == (unsigned int)(i - 1) && l.fac == fac)
         l.last = i;
       else
         parts.push_back(Part(i, i, fac));
@@ -132,7 +132,7 @@ void CellRendererPieceMap::get_size_vfunc(Gtk::Widget&,
   const int xalign = property_xalign();
   const int yalign = property_yalign();
 
-  int w = 0, h = 0;
+  unsigned int w = 0, h = 0;
   if (cell_area)
   {
     w = cell_area->get_width();
@@ -151,13 +151,13 @@ void CellRendererPieceMap::get_size_vfunc(Gtk::Widget&,
   {
     if(x_offset)
     {
-      *x_offset = int(xalign * (cell_area->get_width() - calc_width));
+      *x_offset = (int)(xalign * (cell_area->get_width() - calc_width));
       *x_offset = std::max(0, *x_offset);
     }
 
     if(y_offset)
     {
-      *y_offset = int(yalign * (cell_area->get_height() - calc_height));
+      *y_offset = (int)(yalign * (cell_area->get_height() - calc_height));
       *y_offset = std::max(0, *y_offset);
     }
   }
@@ -191,7 +191,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
                        cell_area.get_y() + y_offset + cell_ypad,
                        width - 1, height - 1);
           
-  int bar_x = 0, bar_y = 0, bar_width = 0, bar_height = 0;
+  unsigned int bar_x = 0, bar_y = 0, bar_width = 0, bar_height = 0;
   bar_x = cell_area.get_x() + x_offset + cell_xpad + widget.get_style()->get_xthickness();
   bar_y = cell_area.get_y() + y_offset + cell_ypad + widget.get_style()->get_ythickness();
   bar_width = width - 1 - (widget.get_style()->get_xthickness() * 2);
@@ -199,7 +199,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
   
   double scale = 1.0;
   std::list<Part> parts;
-  int num = property_map_.get_value().size();
+  unsigned int num = property_map_.get_value().size();
   if (num >= bar_width)
     parts = draw_more_pieces(property_map_.get_value(), bar_width, bar_height);
   else
@@ -214,9 +214,9 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
   for (std::list<Part>::iterator i = parts.begin();i != parts.end(); ++i)
   {
     Part & pa = *i;
-    int fac = pa.fac;
-    int rw = int(scale*(pa.last - pa.first + 1));
-    int x = int(scale*pa.first) + bar_x;
+    unsigned int fac = pa.fac;
+    unsigned int rw = (unsigned int)(scale*(pa.last - pa.first + 1));
+    unsigned int x = (unsigned int)(scale*pa.first) + bar_x;
 
     if (fac >= 100)  
       gc->set_foreground(dark_);

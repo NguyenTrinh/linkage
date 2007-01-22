@@ -48,7 +48,7 @@ public:
 	void send(const Glib::ustring& interface, const Glib::ustring& msg);
 	void send(const Glib::ustring& interface);
   
-  static void callback_handler(int action, const char* data);
+  static void callback_handler(unsigned int action, const char* data);
   
   static Glib::RefPtr<DbusManager> create();
   ~DbusManager();

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define GROUP_FILTER_HH
 
 #include "linkage/Torrent.hh"
+#include "linkage/WeakPtr.hh"
 
 using namespace libtorrent;
 
@@ -32,7 +33,7 @@ public:
   /* FIXME: Add more tags for dynamic filters, like % completed, share ratio etc.. */
   enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
 
-  bool eval(const Torrent& torrent);
+  bool eval(const WeakPtr<Torrent>& torrent);
 
   const Glib::ustring& get_name();  
   

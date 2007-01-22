@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "GroupFilter.hh"
 
+using namespace libtorrent;
+
 class FileList : public Gtk::TreeView
 {
   class ModelColumns : public Gtk::TreeModelColumnRecord
@@ -40,8 +42,8 @@ class FileList : public Gtk::TreeView
     Gtk::TreeModelColumn<bool> filter;
     Gtk::TreeModelColumn<Glib::ustring> name;
     Gtk::TreeModelColumn<std::list<bool> > map;
-    Gtk::TreeModelColumn<int> done;
-    Gtk::TreeModelColumn<int> size;
+    Gtk::TreeModelColumn<unsigned int> done;
+    Gtk::TreeModelColumn<unsigned int> size;
   };
   
   ModelColumns columns;
@@ -49,13 +51,13 @@ class FileList : public Gtk::TreeView
   
   void on_filter_toggled(const Glib::ustring& path);
   
-  void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<int>& column);
+  void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column);
   
-  Torrent current_torrent;
+  sha1_hash current_hash;
   
 public:
   void clear();
-  void update(Torrent& torrent);
+  void update(const WeakPtr<Torrent>& torrent);
   
   FileList();
   virtual ~FileList();

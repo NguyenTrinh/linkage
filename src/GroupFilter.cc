@@ -31,9 +31,9 @@ GroupFilter::~GroupFilter()
 {
 }
 
-bool GroupFilter::eval(const Torrent& torrent)
+bool GroupFilter::eval(const WeakPtr<Torrent>& torrent)
 {
-	torrent_info info = torrent.get_info();
+	torrent_info info = torrent->get_info();
 	
   switch (m_eval)
   {
@@ -41,7 +41,7 @@ bool GroupFilter::eval(const Torrent& torrent)
       switch (m_tag)
       {
         case TAG_TRACKER:
-          for (int i = 0; i < info.trackers().size(); i++)
+          for (unsigned int i = 0; i < info.trackers().size(); i++)
           {
             Glib::ustring tracker = info.trackers()[i].url;
             if (m_filter == tracker)
@@ -58,7 +58,7 @@ bool GroupFilter::eval(const Torrent& torrent)
       switch (m_tag)
       {
         case TAG_TRACKER:
-          for (int i = 0; i < info.trackers().size(); i++)
+          for (unsigned int i = 0; i < info.trackers().size(); i++)
           {
             Glib::ustring tracker = info.trackers()[i].url;
             if (tracker.find(m_filter, 0) != Glib::ustring::npos)
@@ -75,7 +75,7 @@ bool GroupFilter::eval(const Torrent& torrent)
       switch (m_tag)
       {
         case TAG_TRACKER:
-          for (int i = 0; i < info.trackers().size(); i++)
+          for (unsigned int i = 0; i < info.trackers().size(); i++)
           {
             Glib::ustring tracker = info.trackers()[i].url;
             if (tracker.substr(0, m_filter.size()) == m_filter)
@@ -92,7 +92,7 @@ bool GroupFilter::eval(const Torrent& torrent)
       switch (m_tag)
       {
         case TAG_TRACKER:
-          for (int i = 0; i < info.trackers().size(); i++)
+          for (unsigned int i = 0; i < info.trackers().size(); i++)
           {
             Glib::ustring tracker = info.trackers()[i].url;
             if (tracker.substr(tracker.size()-m_filter.size(), tracker.size()) == m_filter)

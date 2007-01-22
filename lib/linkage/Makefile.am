@@ -9,4 +9,5 @@ linkageinclude_HEADERS = AlertManager.hh \
                         TorrentManager.hh \
                         DbusManager.hh \
                         dbus-c.h \
-                        RefCounter.hh
+                        RefCounter.hh \
+                        WeakPtr.hh

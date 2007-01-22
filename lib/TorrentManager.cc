@@ -66,7 +66,7 @@ void TorrentManager::save_fastresume(const sha1_hash& hash, const entry& e)
   out.close();
 }
 
-sigc::signal<void, const sha1_hash&, int> TorrentManager::signal_position_changed()
+sigc::signal<void, const sha1_hash&, unsigned int> TorrentManager::signal_position_changed()
 {
   return m_signal_position_changed;
 }
@@ -76,7 +76,7 @@ sigc::signal<void, const sha1_hash&, const Glib::ustring&> TorrentManager::signa
   return m_signal_group_changed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, int> TorrentManager::signal_added()
+sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> TorrentManager::signal_added()
 {
   return m_signal_added;
 }
@@ -95,7 +95,7 @@ void TorrentManager::set_torrent_position(const sha1_hash& hash, Torrent::Direct
 {
   for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
   {
-    int position = iter->second->get_position();
+    unsigned int position = iter->second->get_position();
     if (position == m_torrents[hash]->get_position() && iter->first != hash)
     {
       if (direction == Torrent::DIR_UP)
@@ -180,27 +180,27 @@ torrent_handle TorrentManager::get_handle(const sha1_hash& hash)
   return handle;
 }
 
-Torrent TorrentManager::get_torrent(const sha1_hash& hash)
+WeakPtr<Torrent> TorrentManager::get_torrent(const sha1_hash& hash)
 {
   for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
   {
     if (iter->first == hash)
-      return *(iter->second);
+      return WeakPtr<Torrent>(iter->second);
   }
-  return Torrent();
+  return WeakPtr<Torrent>();
 }
 
-Torrent TorrentManager::get_torrent(int position)
+WeakPtr<Torrent> TorrentManager::get_torrent(unsigned int position)
 {
   for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
   {
     if (iter->second->get_position() == position)
-      return *(iter->second);
+      return WeakPtr<Torrent>(iter->second);
   }
-  return Torrent();
+  return WeakPtr<Torrent>();
 }
 
-int TorrentManager::get_torrents_count()
+unsigned int TorrentManager::get_torrents_count()
 {
   return m_torrents.size();
 }
@@ -208,8 +208,8 @@ int TorrentManager::get_torrents_count()
 void TorrentManager::check_queue()
 {
   std::vector<sha1_hash> order;
-  int num_active = 0;
-  int max_active = Engine::instance()->get_settings_manager()->get_int("Network", "MaxActive");
+  unsigned int num_active = 0;
+  unsigned int max_active = Engine::instance()->get_settings_manager()->get_int("Network", "MaxActive");
   //Sort m_torrents by position
   for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
   {
@@ -226,7 +226,7 @@ void TorrentManager::check_queue()
       order.push_back(torrent->get_hash());
     else
     {
-      int offset = 0;
+      unsigned int offset = 0;
       while (offset < order.size() && m_torrents[order[offset]]->get_position() < torrent->get_position())
         offset++;
       order.insert(order.begin() + offset, torrent->get_hash());
@@ -236,7 +236,7 @@ void TorrentManager::check_queue()
   if (num_active == max_active) //Make sure queue is correct
   {
     /* Loop backwards until we hit the first running torrent */
-    for (int i = order.size()-1; i > 0; i--)
+    for (unsigned int i = order.size()-1; i > 0; i--)
     {
       Torrent* torrent = m_torrents[order[i]];
       if (!torrent->is_running() || (torrent->get_state() & Torrent::SEEDING))
@@ -247,7 +247,7 @@ void TorrentManager::check_queue()
         /* Loop trough all m_torrents above the current one, if they are queued,
            unqueue all above and queue the current one */
         bool should_queue = false;
-        for (int j = i; j > 0; j--)
+        for (unsigned int j = i; j > 0; j--)
         {
           Torrent* torrent_above = m_torrents[order[i]];
           if (torrent_above->is_queued())
@@ -268,7 +268,7 @@ void TorrentManager::check_queue()
   
   if (num_active > max_active) //Stop everything from bottom until queue is ok
   {
-    int i = order.size() - 1;
+    unsigned int i = order.size() - 1;
     while (num_active != max_active && i > 0)
     {
       Torrent* torrent = m_torrents[order[i]];
@@ -286,7 +286,7 @@ void TorrentManager::check_queue()
   
   if (num_active < max_active) //Start everything paused until queue is maxed
   {
-    int i = 0;
+    unsigned int i = 0;
     while (num_active != max_active && i < order.size())
     {
       Torrent* torrent = m_torrents[order[i]];

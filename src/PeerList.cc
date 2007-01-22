@@ -53,14 +53,14 @@ PeerList::PeerList()
   append_column("Down rate", columns.down_rate);
   append_column("Up rate", columns.up_rate);
   Gtk::CellRendererProgress* prender = new Gtk::CellRendererProgress();
-  int col = append_column("Progress", *Gtk::manage(prender));
+  unsigned int col = append_column("Progress", *Gtk::manage(prender));
   #ifndef HAVE_LIBGEOIP /* FIXME: Not tested! */
     col -= 1;
   #endif
   get_column(5)->add_attribute(*prender, "value", col);
   append_column("Client", columns.client);
 
-  for(int i = 1; i < 7; i++)
+  for(unsigned int i = 1; i < 7; i++)
   {
     Gtk::TreeView::Column* column = get_column(i);
     #ifdef HAVE_LIBGEOIP
@@ -81,10 +81,10 @@ void PeerList::clear()
   model->clear();
 }
 
-void PeerList::update(Torrent& torrent)
+void PeerList::update(const WeakPtr<Torrent>& torrent)
 {
   std::vector<peer_info> peers;
-  torrent.get_handle().get_peer_info(peers);
+  torrent->get_handle().get_peer_info(peers);
   
   Glib::ustring sel_addr;
   bool select = false;
@@ -102,8 +102,11 @@ void PeerList::update(Torrent& torrent)
     GeoIP* gi = GeoIP_new(GEOIP_STANDARD);
   #endif
   
-  for (int i = 0; i < peers.size(); i++)
+  for (unsigned int i = 0; i < peers.size(); i++)
   {
+  	if (peers[i].flags & (peer_info::handshake | peer_info::connecting | peer_info::queued))
+  		continue;
+  	
     Gtk::TreeModel::Row row = *(model->append());
     
     #ifdef HAVE_LIBGEOIP
@@ -122,12 +125,12 @@ void PeerList::update(Torrent& torrent)
     #endif
     
     row[columns.address] = peers[i].ip.address().to_string() + ":" + str(peers[i].ip.port());
-    row[columns.down] = suffix_value((int)peers[i].total_download);
-    row[columns.up] = suffix_value((int)peers[i].total_upload);
+    row[columns.down] = suffix_value((unsigned int)peers[i].total_download);
+    row[columns.up] = suffix_value((unsigned int)peers[i].total_upload);
     row[columns.down_rate] = suffix_value(peers[i].payload_down_speed) + "/s";
     row[columns.up_rate] = suffix_value(peers[i].payload_up_speed) + "/s";
-    int completed = 0;
-    for (int j = 0; j < peers[i].pieces.size(); j++)
+    unsigned int completed = 0;
+    for (unsigned int j = 0; j < peers[i].pieces.size(); j++)
     {
       if (peers[i].pieces[j])
         completed++;
@@ -148,7 +151,7 @@ void PeerList::update(Torrent& torrent)
   
   if (select)
   {
-    for (int i = 0; i < model->children().size(); i++)
+    for (unsigned int i = 0; i < model->children().size(); i++)
     {
       Gtk::TreeModel::Row row = model->children()[i];
       if (row[columns.address] == sel_addr)

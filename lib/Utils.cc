@@ -31,6 +31,11 @@ Glib::ustring suffix_value(int value)
   return suffix_value((double)value);
 }
 
+Glib::ustring suffix_value(unsigned int value)
+{
+  return suffix_value((double)value);
+}
+
 Glib::ustring suffix_value(double value)
 {
   std::stringstream tc;

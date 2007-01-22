@@ -27,7 +27,7 @@ MainPlugin::MainPlugin()
   m_title = m_name;
 }
 
-MainPlugin::MainPlugin(const Glib::ustring& name, const Glib::ustring& description, int version, const Glib::ustring& title)
+MainPlugin::MainPlugin(const Glib::ustring& name, const Glib::ustring& description, unsigned int version, const Glib::ustring& title)
 {
   m_name = name;
   m_description = description;

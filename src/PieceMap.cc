@@ -68,11 +68,11 @@ PieceMap::~PieceMap()
 std::list<Part> PieceMap::draw_more_pixels()
 {
   std::list<Part> parts;
-  int count = m_map.size();
-  int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
-  int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
+  unsigned int count = m_map.size();
+  unsigned int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
+  unsigned int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
   
-  for (int i = 0; i < count; i++)
+  for (unsigned int i = 0; i < count; i++)
   {
     if (!m_map[i])
       continue;
@@ -82,7 +82,7 @@ std::list<Part> PieceMap::draw_more_pixels()
     else
     {
       Part & l = parts.back();
-      if (l.last == int(i - 1))
+      if (l.last == (unsigned int)(i - 1))
         l.last = i;
       else
         parts.push_back(Part(i, i, 100));
@@ -94,31 +94,31 @@ std::list<Part> PieceMap::draw_more_pixels()
 std::list<Part> PieceMap::draw_more_pieces()
 {
   std::list<Part> parts;
-  int count = m_map.size();
-  int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
-  int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
+  unsigned int count = m_map.size();
+  unsigned int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
+  unsigned int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
   double pieces_per_part = (double)count/width;
   
-  for (int i = 0; i < width; i++)
+  for (unsigned int i = 0; i < width; i++)
   {
-    int completed = 0;
-    int start = (int)(i*pieces_per_part);
-    int end = (int)((i+1)*pieces_per_part+0.5);
-    for (int j = start; j < end; j++)
+    unsigned int completed = 0;
+    unsigned int start = (unsigned int)(i*pieces_per_part);
+    unsigned int end = (unsigned int)((i+1)*pieces_per_part+0.5);
+    for (unsigned int j = start; j < end; j++)
       if (m_map[j])
         completed++;
         
     if (!completed)
       continue;
       
-    int fac = int(100*((double)completed / (end - start)) + 0.5);
+    unsigned int fac = (unsigned int)(100*((double)completed / (end - start)) + 0.5);
 
     if (parts.empty())
 			parts.push_back(Part(i, i, fac));
     else
     {
       Part & l = parts.back();
-      if (l.last == int(i - 1) && l.fac == fac)
+      if (l.last == (unsigned int)(i - 1) && l.fac == fac)
         l.last = i;
       else
         parts.push_back(Part(i, i, fac));
@@ -140,8 +140,8 @@ void PieceMap::draw()
   if (!is_drawable())
     return;
   
-  int w = get_allocation().get_width();
-  int h = get_allocation().get_height();
+  unsigned int w = get_allocation().get_width();
+  unsigned int h = get_allocation().get_height();
   Glib::RefPtr<Gdk::Window> paint_win = get_window();
   Gdk::Rectangle rect = Gdk::Rectangle(0, 0, w, h);
   Gtk::Widget* widget = dynamic_cast<Gtk::Widget*>(this);
@@ -160,13 +160,13 @@ void PieceMap::draw()
     
   Glib::RefPtr<Gdk::GC> gc = Gdk::GC::create(get_window());
   
-  int rh = h - (get_style()->get_ythickness() * 2);
+  unsigned int rh = h - (get_style()->get_ythickness() * 2);
   for (std::list<Part>::iterator i = parts.begin();i != parts.end();++i)
 	{
     Part & pa = *i;
-		int rw = int(scale*(pa.last - pa.first + 1));
-		int fac = pa.fac;
-		int x = int(scale*pa.first) + get_style()->get_xthickness();
+		unsigned int rw = (unsigned int)(scale*(pa.last - pa.first + 1));
+		unsigned int fac = pa.fac;
+		unsigned int x = (unsigned int)(scale*pa.first) + get_style()->get_xthickness();
 
     if (fac >= 100)  
       gc->set_foreground(m_dark);
@@ -179,7 +179,7 @@ void PieceMap::draw()
   }
 }
 
-Part::Part(int fi, int la, int fa) : 
+Part::Part(unsigned int fi, unsigned int la, unsigned int fa) : 
   first(fi), last(la), fac(fa)
 {
 }

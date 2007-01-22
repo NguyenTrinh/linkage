@@ -310,11 +310,11 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
   treeview_plugins->set_model(model_plugins);
   Gtk::CellRendererToggle* trender = new Gtk::CellRendererToggle();
   trender->signal_toggled().connect(sigc::mem_fun(*this, &SettingsWin::on_plugin_toggled));
-  int cols_count = treeview_plugins->append_column("Load", *manage(trender));
+  unsigned int cols_count = treeview_plugins->append_column("Load", *manage(trender));
   treeview_plugins->get_column(0)->add_attribute(*trender, "active", cols_count - 1);
   treeview_plugins->append_column("Name", plugin_columns.name);
   treeview_plugins->append_column("Description", plugin_columns.description);
-  for(int i = 0; i < 3; i++)
+  for(unsigned int i = 0; i < 3; i++)
   {
     Gtk::TreeView::Column* column = treeview_plugins->get_column(i);
     column->set_sort_column_id(i);
@@ -536,7 +536,7 @@ bool SettingsWin::is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
                                const Gtk::TreeModel::iterator& iter)
 {
   bool separator = false;
-  int selected = interfaces->get_active_row_number();
+  unsigned int selected = interfaces->get_active_row_number();
   interfaces->set_active(iter);
   if (interfaces->get_active_text() == "-")
     separator = true;
