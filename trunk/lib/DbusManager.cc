@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 /* FIXME: This is sooo ugly... */
 #include "linkage/Engine.hh"
 
-void DbusManager::callback_handler(int action, const char* data)
+void DbusManager::callback_handler(unsigned int action, const char* data)
 {
 	switch (action)
 	{

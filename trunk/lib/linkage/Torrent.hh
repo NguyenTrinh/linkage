@@ -51,41 +51,41 @@ public:
              };
   
   struct ResumeInfo {
-                      int time;
-                      int uploaded;
-                      int downloaded;
+                      unsigned int time;
+                      unsigned int uploaded;
+                      unsigned int downloaded;
                     };
 
-  const torrent_handle& get_handle();
-  const Glib::ustring& get_tracker_reply();
-  const Glib::ustring& get_name();
-  const Glib::ustring& get_group();
-  const Glib::ustring& get_save_path();
-  const int get_position();
-  const int get_time_active();
-  const std::vector<bool>& get_filter();
-  const int get_up_limit();
-  const int get_down_limit();
-  const sha1_hash& get_hash();
+  const torrent_handle& get_handle() const;
+  const Glib::ustring& get_tracker_reply() const;
+  const Glib::ustring& get_name() const;
+  const Glib::ustring& get_group() const;
+  const Glib::ustring& get_save_path() const;
+  const unsigned int get_position() const;
+  const unsigned int get_time_active() const;
+  const std::vector<bool>& get_filter() const;
+  const int get_up_limit() const;
+  const int get_down_limit() const;
+  const sha1_hash& get_hash() const;
   
-  const int get_total_downloaded();
-  const int get_total_uploaded();
+  const unsigned int get_total_downloaded() const;
+  const unsigned int get_total_uploaded() const;
   
-  const State get_state();
-  const Glib::ustring get_state_string();
-  const Glib::ustring get_state_string(State state);
+  const State get_state() const;
+  const Glib::ustring get_state_string() const;
+  const Glib::ustring get_state_string(State state) const;
   
   /* FIXME: Sort out what methods that should be const */
   const torrent_info get_info() const;
-  const torrent_status get_status();
-  const std::vector<partial_piece_info> get_download_queue();
+  const torrent_status get_status() const;
+  const std::vector<partial_piece_info> get_download_queue() const;
   const std::vector<float> get_file_progress();
   
   void set_tracker_reply(const Glib::ustring& reply);
   void set_group(const Glib::ustring& group);
-  void set_position(int position);
+  void set_position(unsigned int position);
   void set_filter(std::vector<bool>& filter);
-  void filter_file(const Glib::ustring& name);
+  void filter_file(const Glib::ustring& name, bool filter = true);
   void set_up_limit(int limit);
   void set_down_limit(int limit);
   
@@ -119,7 +119,7 @@ protected:
   
   bool m_is_queued;
   
-  int m_position;
+  unsigned int m_position;
   Glib::ustring m_name, m_group, m_save_path;
   ResumeInfo m_resume;
   int m_up_limit, m_down_limit;

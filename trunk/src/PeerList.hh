@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #endif /* HAVE_LIBGEOIP */
 
 #include "linkage/Torrent.hh"
+#include "linkage/WeakPtr.hh"
 
 class PeerList : public Gtk::TreeView
 {
@@ -60,7 +61,7 @@ class PeerList : public Gtk::TreeView
   
 public:
   void clear();
-  void update(Torrent& torrent);
+  void update(const WeakPtr<Torrent>& torrent);
   
   PeerList();
   virtual ~PeerList();

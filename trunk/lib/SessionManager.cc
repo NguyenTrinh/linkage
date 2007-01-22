@@ -181,7 +181,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
   else
   {
     m_signal_duplicate_torrent.emit("Torrent already exists in session as " + 
-      Engine::instance()->get_torrent_manager()->get_torrent(hash).get_name(), hash);
+      Engine::instance()->get_torrent_manager()->get_torrent(hash)->get_name(), hash);
     return INVALID_HASH;
   }
   
@@ -268,17 +268,17 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
   if (Engine::instance()->get_torrent_manager()->exists(hash))
   {
     Glib::ustring hash_str = str(hash);
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
     
-    if (!torrent.is_running())
+    if (!torrent->is_running())
       return;
          
-    torrent.stop();
-		entry e = torrent.get_resume_entry();
+    torrent->stop();
+		entry e = torrent->get_resume_entry();
 		
     Engine::instance()->get_torrent_manager()->save_fastresume(hash, e);
     
-    remove_torrent(torrent.get_handle());
+    remove_torrent(torrent->get_handle());
     
     m_signal_update_queue.emit();
   }

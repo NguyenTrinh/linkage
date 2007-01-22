@@ -34,14 +34,14 @@ FileList::FileList()
   
   Gtk::CellRendererToggle* trender = new Gtk::CellRendererToggle();
   trender->signal_toggled().connect(sigc::mem_fun(*this, &FileList::on_filter_toggled));
-  int cols_count = append_column("Filter", *Gtk::manage(trender));
+  unsigned int cols_count = append_column("Filter", *Gtk::manage(trender));
   get_column(0)->add_attribute(*trender, "active", cols_count - 1);
   append_column("Name", columns.name);
   
   /* FIXME: Get colors from SettingsManager */
   Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
   
-  std::vector<int> rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorDark");
+  std::vector<unsigned int> rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorDark");
   Gdk::Color light, mid, dark;
   dark.set_red(rgb[0]);
   dark.set_green(rgb[1]);
@@ -74,7 +74,7 @@ FileList::FileList()
   cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
   column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &FileList::format_data), columns.size));
 
-  for(int i = 0; i < 5; i++)
+  for(unsigned int i = 0; i < 5; i++)
   {
     Gtk::TreeView::Column* column = get_column(i);
     column->set_sort_column_id(i);
@@ -94,57 +94,42 @@ void FileList::clear()
 void FileList::on_filter_toggled(const Glib::ustring& path)
 {
   Gtk::TreeRow row = *(model->get_iter(path));
-  row[columns.filter] = !row[columns.filter];
+  WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(current_hash);
   
-  if (current_torrent.is_valid())
+  if (torrent->is_valid())
   {
-    torrent_info info = current_torrent.get_info();
-    
-    std::vector<bool> filter(info.num_files(), false);
-    
-    Gtk::TreeNodeChildren children = model->children();
-    for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
-    {
-      row = *iter;
-      if (row[columns.filter])
-      {
-        int i = 0;
-        for (i = 0; i < info.num_files(); i++)
-          if (row[columns.name] == info.file_at(i).path.string())
-            filter[i] = true;
-      }
-    }
-    current_torrent.set_filter(filter);
+  	row[columns.filter] = !row[columns.filter];
+  	torrent->filter_file(row[columns.name], row[columns.filter]);
   }
 }
 
-void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<int>& column)
+void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column)
 {
   Gtk::TreeRow row = *iter;
   dynamic_cast<Gtk::CellRendererText*>(cell)->property_text() = suffix_value(row[column]);
 }
 
 /* FIXME: this doens't correctly display the progress bar on some finished files (1 pixel row missing at the end)
-   It's probably a bug in *PieceMap, best show here though.
+   It's probably a bug in *PieceMap, best shown here though.
    
    This method hogs cpu =/ */
-void FileList::update(Torrent& torrent)
+void FileList::update(const WeakPtr<Torrent>& torrent)
 {
-	current_torrent = torrent;
+	current_hash = torrent->get_hash();
 	
-  torrent_handle handle = torrent.get_handle();
-  torrent_info info = torrent.get_info();
-  torrent_status status = torrent.get_status();
+  torrent_handle handle = torrent->get_handle();
+  torrent_info info = torrent->get_info();
+  torrent_status status = torrent->get_status();
   std::vector<bool> pieces = *status.pieces;
-  std::vector<partial_piece_info> queue = torrent.get_download_queue();
-  std::vector<float> fp = torrent.get_file_progress();
-  std::vector<bool> filter = torrent.get_filter();
-  
-  int byte_pos = 0;
-  int piece_index = 0;
-  int completed_bytes = 0;
-  int overlapped_bytes = 0;
-  int pos = 0;
+  std::vector<partial_piece_info> queue = torrent->get_download_queue();
+  std::vector<float> fp = torrent->get_file_progress();
+  std::vector<bool> filter = torrent->get_filter();
+
+  unsigned int byte_pos = 0;
+  unsigned int piece_index = 0;
+  unsigned int completed_bytes = 0;
+  unsigned int overlapped_bytes = 0;
+  unsigned int pos = 0;
   
   Glib::ustring sel_name;
   bool select = false;
@@ -159,17 +144,17 @@ void FileList::update(Torrent& torrent)
   clear();
   
   Gtk::CellRendererToggle* cell = dynamic_cast<Gtk::CellRendererToggle*>(get_column(0)->get_first_cell_renderer());
-  cell->property_activatable() = !(torrent.get_state() & Torrent::SEEDING);
+  cell->property_activatable() = !(torrent->get_state() & Torrent::SEEDING);
   
-  for (int i = 0; i < info.num_files(); i++)
+  for (unsigned int i = 0; i < info.num_files(); i++)
   {
     std::list<bool> map;
     
     file_entry file = info.file_at(i);
     peer_request file_info = info.map_file(i, 0, file.size);
     
-    int byte_pos_in_file = 0;
-    int piece_index = file_info.piece;
+    unsigned int byte_pos_in_file = 0;
+    unsigned int piece_index = file_info.piece;
     while (byte_pos_in_file < file.size)
     {
       if (pieces[piece_index])
@@ -181,7 +166,7 @@ void FileList::update(Torrent& torrent)
       piece_index++;
     }
     
-    int completed_bytes = int(fp[i] * file.size);
+    unsigned int completed_bytes = (unsigned int)(fp[i] * file.size);
     
     Gtk::TreeModel::Row row = *(model->append());
     row[columns.filter] = filter[i];
@@ -191,7 +176,7 @@ void FileList::update(Torrent& torrent)
     row[columns.size] = file.size;
   }
   if (select)
-    for (int i = 0; i < model->children().size(); i++)
+    for (unsigned int i = 0; i < model->children().size(); i++)
     {
       Gtk::TreeModel::Row row = model->children()[i];
       if (row[columns.name] == sel_name)

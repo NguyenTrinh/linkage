@@ -24,11 +24,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 struct Part
 {
-  int first;
-  int last;
-  int fac;
+  unsigned int first;
+  unsigned int last;
+  unsigned int fac;
   
-  Part(int fi, int la, int fa);
+  Part(unsigned int fi, unsigned int la, unsigned int fa);
 };
 
 class PieceMap : public Gtk::DrawingArea

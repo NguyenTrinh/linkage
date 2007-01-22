@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "linkage/dbus-c.h"
 
-DBusGConnection* init(int* p, void (*cb_func)(int, const char*))
+DBusGConnection* init(int* p, void (*cb_func)(unsigned int, const char*))
 {
   GError error;
 	DBusGConnection* connection;

@@ -26,7 +26,7 @@ Plugin::Plugin()
   m_version = 0;
 }
 
-Plugin::Plugin(const Glib::ustring& name, const Glib::ustring& description, int version)
+Plugin::Plugin(const Glib::ustring& name, const Glib::ustring& description, unsigned int version)
 {
   m_name = name;
   m_description = description;
@@ -63,7 +63,7 @@ Glib::ustring Plugin::get_description()
   return m_description;
 }
 
-int Plugin::get_version()
+unsigned int Plugin::get_version()
 {
   return m_version;
 }

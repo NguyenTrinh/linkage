@@ -38,7 +38,7 @@ TorrentList::TorrentList()
   append_column("#", columns.number);
   append_column("Name", columns.name);
   append_column("Status", columns.state);
-  int cols_count = append_column("Down", columns.down);
+  unsigned int cols_count = append_column("Down", columns.down);
   Gtk::TreeViewColumn* column = get_column(cols_count - 1);
   Gtk::CellRendererText* cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
   column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &TorrentList::format_data), columns.down, ""));
@@ -62,7 +62,7 @@ TorrentList::TorrentList()
   column->add_attribute(*prender, "value", cols_count);
   column->add_attribute(*prender, "text", cols_count + 1);
 
-  for(int i = 0; i < 10; i++)
+  for(unsigned int i = 0; i < 10; i++)
   {
     Gtk::TreeView::Column* column = get_column(i);
     column->set_sort_column_id(i + 1);
@@ -179,7 +179,7 @@ void TorrentList::on_session_resumed()
     get_selection()->select(iter);
 }
 
-void TorrentList::on_position_changed(const sha1_hash& hash, int position)
+void TorrentList::on_position_changed(const sha1_hash& hash, unsigned int position)
 {
   Gtk::TreeIter iter = get_iter(hash);
   
@@ -214,10 +214,10 @@ void TorrentList::on_group_changed(const sha1_hash& hash, const Glib::ustring& g
   }
 }
 
-void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, const Glib::ustring& group, int position)
+void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, const Glib::ustring& group, unsigned int position)
 {
   Glib::ustring filter_group = group;
-  Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+  WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
   for (std::list<GroupFilter*>::iterator iter = filters.begin();
         iter != filters.end(); ++iter)
   {
@@ -235,7 +235,7 @@ void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, con
   new_row[columns.name] = name;
   new_row[columns.number] = position;
   
-  torrent.set_group(filter_group);
+  torrent->set_group(filter_group);
 }
 
 void TorrentList::on_removed(const sha1_hash& hash)
@@ -333,7 +333,7 @@ void TorrentList::select(const Glib::ustring& path)
     get_selection()->select(iter);
 }
 
-void TorrentList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<int>& column, const Glib::ustring& suffix)
+void TorrentList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column, const Glib::ustring& suffix)
 {
   Gtk::TreeRow row = *iter;
   if (row.parent())
@@ -348,7 +348,7 @@ void TorrentList::update_groups()
   {
     Gtk::TreeRow group_row = *group_iter;
     
-    int peers = 0, seeds = 0;
+    unsigned int peers = 0, seeds = 0;
     double progress = 0;
     Gtk::TreeNodeChildren children = group_row.children();
     for (Gtk::TreeIter iter = children.begin();
@@ -383,7 +383,7 @@ Gtk::TreeIter TorrentList::add_group(const Glib::ustring& name)
   return iter;
 }
 
-void TorrentList::update_row(Torrent& torrent)
+void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 {
   std::vector<Glib::ustring> states;
   states.push_back("Queued");
@@ -396,14 +396,14 @@ void TorrentList::update_row(Torrent& torrent)
   states.push_back("Allocating");
 
       
-  Gtk::TreeRow row = *get_iter(torrent.get_hash());
-  row[columns.number] = torrent.get_position();
-  row[columns.name] = torrent.get_name();
-  if (!torrent.is_running()) //Torrent is stopped
+  Gtk::TreeRow row = *get_iter(torrent->get_hash());
+  row[columns.number] = torrent->get_position();
+  row[columns.name] = torrent->get_name();
+  if (!torrent->is_running()) //Torrent is stopped
   {
     row[columns.state] = "Stopped";
-    row[columns.down] = torrent.get_total_downloaded();
-    row[columns.up] = torrent.get_total_uploaded();
+    row[columns.down] = torrent->get_total_downloaded();
+    row[columns.up] = torrent->get_total_uploaded();
     row[columns.down_rate] = 0;
     row[columns.up_rate] = 0;
     row[columns.seeds] = 0;
@@ -413,14 +413,14 @@ void TorrentList::update_row(Torrent& torrent)
     return;
   }
 
-  torrent_status status = torrent.get_handle().status();
-  int up = torrent.get_total_uploaded();
-  int down = torrent.get_total_downloaded();
+  torrent_status status = torrent->get_handle().status();
+  unsigned int up = torrent->get_total_uploaded();
+  unsigned int down = torrent->get_total_downloaded();
   
-  if (torrent.get_handle().is_seed()) // || status.state == torrent_status::finished)
+  if (torrent->get_handle().is_seed()) // || status.state == torrent_status::finished)
   {
     
-    int size = status.total_wanted_done - up;
+    unsigned int size = status.total_wanted_done - up;
     if (down)
     {
       double ratio = (double)up/down;
@@ -442,15 +442,15 @@ void TorrentList::update_row(Torrent& torrent)
     row[columns.eta] = str(double(status.progress*100), 2) + " % " + get_eta(status.total_wanted-status.total_wanted_done, status.download_payload_rate);
   }
 
-  if (!torrent.get_handle().is_paused())
+  if (!torrent->get_handle().is_paused())
     row[columns.state] =  states[status.state];
   else
     row[columns.state] =  "Queued";
 
   row[columns.down] = down;
   row[columns.up] = up;
-  row[columns.down_rate] = (int)status.download_payload_rate;
-  row[columns.up_rate] = (int)status.upload_payload_rate;
+  row[columns.down_rate] = (unsigned int)status.download_payload_rate;
+  row[columns.up_rate] = (unsigned int)status.upload_payload_rate;
   row[columns.seeds] = status.num_seeds;
   row[columns.peers] = status.num_peers - status.num_seeds;
 }

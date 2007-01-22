@@ -481,7 +481,7 @@ bool UI::on_timeout()
   int count = Engine::instance()->get_torrent_manager()->get_torrents_count();
   for (int position = 1; position <= count; position++)
   {
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(position);
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(position);
     update(torrent);
   }
   
@@ -490,33 +490,33 @@ bool UI::on_timeout()
   return true;
 }
 
-void UI::update(Torrent& torrent)
+void UI::update(const WeakPtr<Torrent>& torrent)
 {
-  if (!torrent.is_valid())
+  if (!torrent->is_valid())
     return;
     
   torrent_info info;
   torrent_status stats;
   
-  sha1_hash hash = torrent.get_hash();
+  sha1_hash hash = torrent->get_hash();
    
-  if (torrent.is_running())
+  if (torrent->is_running())
   {
-    info = torrent.get_info();
-    stats = torrent.get_status();
+    info = torrent->get_info();
+    stats = torrent->get_status();
   }
   
   torrent_list->update_row(torrent);
   
-  if (torrent_list->is_selected(hash) && !torrent.is_running())
+  if (torrent_list->is_selected(hash) && !torrent->is_running())
     button_tracker->set_label(""); //Get rid of "Updating..." on event=stopped
   
-  if (torrent_list->is_selected(hash) && expander_details->get_expanded() && torrent.is_running())
+  if (torrent_list->is_selected(hash) && expander_details->get_expanded() && torrent->is_running())
   {
     switch (notebook_details->get_current_page())
     {
       case PAGE_INFO:
-        label_save_path->set_text(Glib::build_filename(torrent.get_save_path(), info.name()));
+        label_save_path->set_text(Glib::build_filename(torrent->get_save_path(), info.name()));
         label_creator->set_text(info.creator());
         label_comment->set_text(info.comment());
         label_size->set_text(suffix_value((int)info.total_size()));
@@ -527,18 +527,18 @@ void UI::update(Torrent& torrent)
         if (stats.current_tracker != "")
           button_tracker->set_label(stats.current_tracker);
         label_next_announce->set_text(to_simple_string(stats.next_announce));
-        label_response->set_text(torrent.get_tracker_reply());
+        label_response->set_text(torrent->get_tracker_reply());
         break;
       case PAGE_STATUS:
-        label_down->set_text(suffix_value(torrent.get_total_downloaded()));
+        label_down->set_text(suffix_value(torrent->get_total_downloaded()));
         label_down_rate->set_text(suffix_value((int)stats.download_payload_rate) + "/s");
-        label_up->set_text(suffix_value(torrent.get_total_uploaded()));
+        label_up->set_text(suffix_value(torrent->get_total_uploaded()));
         label_up_rate->set_text(suffix_value((int)stats.upload_payload_rate) + "/s");
-        label_time_elapsed->set_text(format_time(torrent.get_time_active()));
+        label_time_elapsed->set_text(format_time(torrent->get_time_active()));
         label_time_eta->set_text(get_eta(stats.total_wanted-stats.total_wanted_done, stats.download_payload_rate));
         double ratio, up, down;
-        up = (double)torrent.get_total_uploaded();
-        down = (double)torrent.get_total_downloaded();
+        up = (double)torrent->get_total_uploaded();
+        down = (double)torrent->get_total_downloaded();
         if (down != 0)
           ratio = up/down;
         else
@@ -593,11 +593,11 @@ void UI::reset_views()
   button_tracker->set_label("");
 }
 
-void UI::build_tracker_menu(Torrent& torrent)
+void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 {
   menu_trackers->items().clear();
 
-  std::vector<announce_entry> trackers = torrent.get_handle().get_torrent_info().trackers();
+  std::vector<announce_entry> trackers = torrent->get_handle().get_torrent_info().trackers();
   
   for (int i = 0; i < trackers.size(); i++)
   {
@@ -630,7 +630,7 @@ void UI::add_torrent(const Glib::ustring& file)
   if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
   {
     sha1_hash hash = Engine::instance()->get_session_manager()->open_torrent(file, save_path);
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
     update(torrent);
   }
 }
@@ -696,8 +696,8 @@ void UI::on_spin_down()
   HashList list = torrent_list->get_selected_list();
   if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
   {
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
-    torrent.set_down_limit((int)spinbutton_down->get_value());
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+    torrent->set_down_limit((int)spinbutton_down->get_value());
   }
 }
 
@@ -706,8 +706,8 @@ void UI::on_spin_up()
   HashList list = torrent_list->get_selected_list();
   if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
   {
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
-    torrent.set_up_limit((int)spinbutton_up->get_value());
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+    torrent->set_up_limit((int)spinbutton_up->get_value());
   }
 }
 
@@ -796,10 +796,10 @@ void UI::on_up()
   for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
   {
     sha1_hash hash = *iter;
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
-    int position = torrent.get_position();
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    int position = torrent->get_position();
     if (position > 1)
-      torrent.set_position(position - 1);
+      torrent->set_position(position - 1);
   }
 }
 
@@ -810,10 +810,10 @@ void UI::on_down()
   for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
   {
     sha1_hash hash = *iter;
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
-    int position = torrent.get_position();
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    int position = torrent->get_position();
     if (position < Engine::instance()->get_torrent_manager()->get_torrents_count())
-      torrent.set_position(position + 1);
+      torrent->set_position(position + 1);
   }
 }
 
@@ -845,7 +845,7 @@ void UI::on_details_expanded()
     HashList list = torrent_list->get_selected_list();
     if (list.size() == 1) /* FIXME: This shouldn't be needed */
     {
-    	Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+    	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
       update(torrent);
     }
   }
@@ -869,11 +869,11 @@ void UI::on_torrent_list_selection_changed()
     if (Engine::instance()->get_settings_manager()->get_bool("UI", "AutoExpand"))
       expander_details->set_expanded(true);
     
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
-    spinbutton_down->set_value((double)torrent.get_down_limit());
-    spinbutton_up->set_value((double)torrent.get_up_limit());
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    spinbutton_down->set_value((double)torrent->get_down_limit());
+    spinbutton_up->set_value((double)torrent->get_up_limit());
 
-    if (!torrent.is_valid())
+    if (!torrent->is_valid())
     {
       button_tracker->set_sensitive(false);
       reset_views();
@@ -896,10 +896,10 @@ bool UI::on_tracker_update(GdkEventButton* e)
   if (list.size() == 1)
   {
     sha1_hash hash = *list.begin();
-    Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+    WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
     if (e->button == 1)
     {
-      torrent.get_handle().force_reannounce();
+      torrent->get_handle().force_reannounce();
       /* TODO: add timeout to prevent hammering 
       if (Engine::instance()->get_torrent_manager()->get_handle(hash).force_reannounce())
         button_tracker->set_label("Forcing update..."); */
@@ -963,7 +963,7 @@ void UI::on_switch_page(GtkNotebookPage*, int page_num)
   HashList list = torrent_list->get_selected_list();
   if (list.size() == 1)
   {
-  	Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+  	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
     update(torrent);
   }
 }
@@ -1078,13 +1078,13 @@ void UI::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
 
 void UI::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 {
-  Torrent torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
-  if (torrent.is_valid())
+  WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+  if (torrent->is_valid())
   {
-    if (torrent.get_group() != "Seeds")
+    if (torrent->get_group() != "Seeds")
     {
       notify("Torrent finished", msg);
-      torrent.set_group("Seeds");
+      torrent->set_group("Seeds");
     }
   }
 }

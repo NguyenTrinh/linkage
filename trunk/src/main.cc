@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
     UI *ui = new UI();
     ui->show();
     Gtk::Main::run();
-
     delete ui;
   }
   

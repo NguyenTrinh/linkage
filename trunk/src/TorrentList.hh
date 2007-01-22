@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <gtkmm/treestore.h>
 
 #include "linkage/Torrent.hh"
+#include "linkage/WeakPtr.hh"
 #include "GroupFilter.hh"
 
 class TorrentList : public Gtk::TreeView
@@ -47,15 +48,15 @@ class TorrentList : public Gtk::TreeView
         add(eta);
       }
     Gtk::TreeModelColumn<sha1_hash> hash;
-    Gtk::TreeModelColumn<int> number;
+    Gtk::TreeModelColumn<unsigned int> number;
     Gtk::TreeModelColumn<Glib::ustring> name;
     Gtk::TreeModelColumn<Glib::ustring> state;
-    Gtk::TreeModelColumn<int> down;
-    Gtk::TreeModelColumn<int> up;
-    Gtk::TreeModelColumn<int> down_rate;
-    Gtk::TreeModelColumn<int> up_rate;
-    Gtk::TreeModelColumn<int> seeds;
-    Gtk::TreeModelColumn<int> peers;
+    Gtk::TreeModelColumn<unsigned int> down;
+    Gtk::TreeModelColumn<unsigned int> up;
+    Gtk::TreeModelColumn<unsigned int> down_rate;
+    Gtk::TreeModelColumn<unsigned int> up_rate;
+    Gtk::TreeModelColumn<unsigned int> seeds;
+    Gtk::TreeModelColumn<unsigned int> peers;
     Gtk::TreeModelColumn<double> progress;
     Gtk::TreeModelColumn<Glib::ustring> eta;
   }; 
@@ -71,21 +72,21 @@ class TorrentList : public Gtk::TreeView
   Gtk::TreeIter add_group(const Glib::ustring& name);
   void select(const Glib::ustring& path);
   
-  void on_position_changed(const sha1_hash& hash, int position);
+  void on_position_changed(const sha1_hash& hash, unsigned int position);
   void on_group_changed(const sha1_hash& hash, const Glib::ustring& group);
   
-  void on_added(const sha1_hash& hash, const Glib::ustring& name, const Glib::ustring& group, int position);
+  void on_added(const sha1_hash& hash, const Glib::ustring& name, const Glib::ustring& group, unsigned int position);
   void on_removed(const sha1_hash& hash);
   
   void on_session_resumed();
   
-  void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<int>& column, const Glib::ustring& suffix);
+  void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column, const Glib::ustring& suffix);
 public:
   bool is_selected(const sha1_hash& hash);
   HashList get_selected_list();
 
   void update_groups();
-  void update_row(Torrent& torrent);
+  void update_row(const WeakPtr<Torrent>& torrent);
   
   Glib::SignalProxy0<void> signal_changed();
 

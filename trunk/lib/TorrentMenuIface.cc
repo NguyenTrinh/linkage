@@ -25,7 +25,7 @@ TorrentMenuPlugin::TorrentMenuPlugin()
   m_version = 0;
 }
 
-TorrentMenuPlugin::TorrentMenuPlugin(const Glib::ustring& name, const Glib::ustring& description, int version)
+TorrentMenuPlugin::TorrentMenuPlugin(const Glib::ustring& name, const Glib::ustring& description, unsigned int version)
 {
   m_name = name;
   m_description = description;

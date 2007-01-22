@@ -48,7 +48,7 @@ public:
   /*Returns a description of the plugin that will be displayed in the settings UI*/
   virtual Glib::ustring get_description();
   /*Returns the version of the plugin that will be displayed in the settings UI*/
-  virtual int get_version();
+  virtual unsigned int get_version();
   
   //FIXME: thing below has to be pure virtual
   
@@ -62,7 +62,7 @@ public:
   virtual Gtk::Widget* get_widget() = 0;
                          
   Plugin();
-  Plugin(const Glib::ustring& name, const Glib::ustring& description, int version);
+  Plugin(const Glib::ustring& name, const Glib::ustring& description, unsigned int version);
   virtual ~Plugin();
 };
 

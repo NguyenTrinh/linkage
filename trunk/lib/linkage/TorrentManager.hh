@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "linkage/Torrent.hh"
 #include "linkage/RefCounter.hh"
+#include "linkage/WeakPtr.hh"
 #include "linkage/SessionManager.hh"
 
 typedef std::map<sha1_hash, Torrent*> TorrentMap;
@@ -32,9 +33,9 @@ class TorrentManager : public RefCounter<TorrentManager>
 {
   TorrentMap m_torrents;
   
-  sigc::signal<void, const sha1_hash&, int> m_signal_position_changed;
+  sigc::signal<void, const sha1_hash&, unsigned int> m_signal_position_changed;
   sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_group_changed;
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, int> m_signal_added;
+  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> m_signal_added;
   sigc::signal<void, const sha1_hash&> m_signal_removed;
   
   void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply);
@@ -45,9 +46,9 @@ class TorrentManager : public RefCounter<TorrentManager>
   Glib::RefPtr<SessionManager> m_settings_manager;
   
 public:
-  sigc::signal<void, const sha1_hash&, int> signal_position_changed();
+  sigc::signal<void, const sha1_hash&, unsigned int> signal_position_changed();
   sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_group_changed();
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, int> signal_added();
+  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> signal_added();
   sigc::signal<void, const sha1_hash&> signal_removed();
   
   void set_torrent_position(const sha1_hash& hash, Torrent::Direction direction);
@@ -64,10 +65,10 @@ public:
   //FIXME: Should be removed, or at least friends only.
   torrent_handle get_handle(const sha1_hash& hash);
   
-  Torrent get_torrent(const sha1_hash& hash);
-  Torrent get_torrent(int position);
+  WeakPtr<Torrent> get_torrent(const sha1_hash& hash);
+  WeakPtr<Torrent> get_torrent(unsigned int position);
   
-  int get_torrents_count();
+  unsigned int get_torrents_count();
   
   void save_fastresume(const sha1_hash& hash, const entry& e);
   
