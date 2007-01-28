@@ -336,8 +336,17 @@ void TorrentList::select(const Glib::ustring& path)
 void TorrentList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column, const Glib::ustring& suffix)
 {
   Gtk::TreeRow row = *iter;
-  if (row.parent())
-    dynamic_cast<Gtk::CellRendererText*>(cell)->property_text() = suffix_value(row[column]) + suffix;
+  Gtk::CellRendererText *cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
+  
+  if (!row.parent())
+  {
+  	if (row_expanded(model->get_path(iter)) || !(*iter).children().size())
+  		cell_text->property_text() = "";
+  	else
+  		cell_text->property_text() = suffix_value(row[column]) + suffix;
+  }
+  else
+    cell_text->property_text() = suffix_value(row[column]) + suffix;
 }
 
 void TorrentList::update_groups()
@@ -348,7 +357,7 @@ void TorrentList::update_groups()
   {
     Gtk::TreeRow group_row = *group_iter;
     
-    unsigned int peers = 0, seeds = 0;
+    unsigned int peers = 0, seeds = 0, up = 0, down = 0, up_rate = 0, down_rate = 0;
     double progress = 0;
     Gtk::TreeNodeChildren children = group_row.children();
     for (Gtk::TreeIter iter = children.begin();
@@ -357,12 +366,21 @@ void TorrentList::update_groups()
       Gtk::TreeRow row = *iter;
       peers += row[columns.peers];
       seeds += row[columns.seeds];
+      up += row[columns.up];
+      down += row[columns.down];
+      up_rate += row[columns.up_rate];
+      down_rate += row[columns.down_rate];
       progress += row[columns.progress];
     }
     group_row[columns.number] = children.size();
     group_row[columns.peers] = peers;
     group_row[columns.seeds] = seeds;
-    if (children.size())
+    group_row[columns.up] = up;
+    group_row[columns.down] = down;
+    group_row[columns.up_rate] = up_rate;
+    group_row[columns.down_rate] = down_rate;
+    
+    if (children.size() != 0)
     {
       group_row[columns.progress] = progress/children.size();
       group_row[columns.eta] = "Average " + str(progress/children.size(), 2) + " %";
@@ -384,26 +402,20 @@ Gtk::TreeIter TorrentList::add_group(const Glib::ustring& name)
 }
 
 void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
-{
-  std::vector<Glib::ustring> states;
-  states.push_back("Queued");
-  states.push_back("Checking");
-  states.push_back("Announcing");
-  states.push_back("Downloading metadata");
-  states.push_back("Downloading");
-  states.push_back("Finished");
-  states.push_back("Seeding");
-  states.push_back("Allocating");
-
-      
+{      
   Gtk::TreeRow row = *get_iter(torrent->get_hash());
   row[columns.number] = torrent->get_position();
   row[columns.name] = torrent->get_name();
-  if (!torrent->is_running()) //Torrent is stopped
+  row[columns.state] = torrent->get_state_string();
+  
+  unsigned int up = torrent->get_total_uploaded();
+  unsigned int down = torrent->get_total_downloaded();
+  
+  row[columns.down] = down;
+  row[columns.up] = up;
+  
+  if (!torrent->is_running())
   {
-    row[columns.state] = "Stopped";
-    row[columns.down] = torrent->get_total_downloaded();
-    row[columns.up] = torrent->get_total_uploaded();
     row[columns.down_rate] = 0;
     row[columns.up_rate] = 0;
     row[columns.seeds] = 0;
@@ -413,27 +425,33 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
     return;
   }
 
-  torrent_status status = torrent->get_handle().status();
-  unsigned int up = torrent->get_total_uploaded();
-  unsigned int down = torrent->get_total_downloaded();
+  torrent_status status = torrent->get_status();
   
-  if (torrent->get_handle().is_seed()) // || status.state == torrent_status::finished)
+  if (torrent->get_state() & Torrent::SEEDING)
   {
-    
     unsigned int size = status.total_wanted_done - up;
-    if (down)
+    if (down != 0)
     {
       double ratio = (double)up/down;
-      if (ratio > 1)
-        ratio = 1;
 
       row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate);
-      row[columns.progress] = ratio*100;
+      if (ratio < 1)
+      	row[columns.progress] = ratio*100;
+     	else
+     		row[columns.progress] = 100;
     }
     else
     {
-      row[columns.eta] = "0.000 " + get_eta(size, status.upload_payload_rate);
-      row[columns.progress] = 0;
+    	if (up != 0)
+    	{
+    		row[columns.eta] = "\u221E " + get_eta(size, status.upload_payload_rate);;
+    		row[columns.progress] = 100;
+    	}
+    	else
+    	{
+    		row[columns.eta] = "0.000 " + get_eta(size, status.upload_payload_rate);;
+    		row[columns.progress] = 0;
+    	}
     }
   }
   else
@@ -442,13 +460,6 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
     row[columns.eta] = str(double(status.progress*100), 2) + " % " + get_eta(status.total_wanted-status.total_wanted_done, status.download_payload_rate);
   }
 
-  if (!torrent->get_handle().is_paused())
-    row[columns.state] =  states[status.state];
-  else
-    row[columns.state] =  "Queued";
-
-  row[columns.down] = down;
-  row[columns.up] = up;
   row[columns.down_rate] = (unsigned int)status.download_payload_rate;
   row[columns.up_rate] = (unsigned int)status.upload_payload_rate;
   row[columns.seeds] = status.num_seeds;
