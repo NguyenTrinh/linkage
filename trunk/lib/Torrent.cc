@@ -338,18 +338,24 @@ void Torrent::stop()
 void Torrent::queue()
 {
   if (m_handle.is_valid())
+  {
     m_handle.pause();
+    m_is_queued = true;
+  }
 }
 
 void Torrent::unqueue()
 {
   if (m_handle.is_valid())
+  {
     m_handle.resume();
+    m_is_queued = false;
+  }
 }
 
 bool Torrent::is_queued()
 {
-  return m_handle.is_paused();
+  return m_is_queued;
 }
 
 bool Torrent::is_running()
