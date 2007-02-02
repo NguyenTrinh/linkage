@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2006  Christian Lundgren
+Copyright (C) 2006	Christian Lundgren
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -8,12 +8,12 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #ifndef TORRENTMANAGER_HH
@@ -31,49 +31,49 @@ typedef TorrentMap::iterator TorrentIter;
 
 class TorrentManager : public RefCounter<TorrentManager>
 {
-  TorrentMap m_torrents;
-  
-  sigc::signal<void, const sha1_hash&, unsigned int> m_signal_position_changed;
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_group_changed;
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> m_signal_added;
-  sigc::signal<void, const sha1_hash&> m_signal_removed;
-  
-  void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply);
-  
-  TorrentManager();
-  
-  /* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */
-  Glib::RefPtr<SessionManager> m_settings_manager;
-  
+	TorrentMap m_torrents;
+	
+	sigc::signal<void, const sha1_hash&, unsigned int> m_signal_position_changed;
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_group_changed;
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> m_signal_added;
+	sigc::signal<void, const sha1_hash&> m_signal_removed;
+	
+	void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply);
+	
+	TorrentManager();
+	
+	/* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */
+	Glib::RefPtr<SessionManager> m_settings_manager;
+	
 public:
-  sigc::signal<void, const sha1_hash&, unsigned int> signal_position_changed();
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_group_changed();
-  sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> signal_added();
-  sigc::signal<void, const sha1_hash&> signal_removed();
-  
-  void set_torrent_position(const sha1_hash& hash, Torrent::Direction direction);
-  
-  void check_queue(); /* FIXME: Should be protected, not public? */
-  
-  bool exists(const sha1_hash& hash);
-  bool exists(const Glib::ustring& hash_str);
-  
-  void add_torrent(const torrent_handle& handle, const entry& e);
-  void add_torrent(const entry& e);
-  void remove_torrent(const sha1_hash& hash);
-  
-  //FIXME: Should be removed, or at least friends only.
-  torrent_handle get_handle(const sha1_hash& hash);
-  
-  WeakPtr<Torrent> get_torrent(const sha1_hash& hash);
-  WeakPtr<Torrent> get_torrent(unsigned int position);
-  
-  unsigned int get_torrents_count();
-  
-  void save_fastresume(const sha1_hash& hash, const entry& e);
-  
-  static Glib::RefPtr<TorrentManager> create();
-  ~TorrentManager();
+	sigc::signal<void, const sha1_hash&, unsigned int> signal_position_changed();
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_group_changed();
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> signal_added();
+	sigc::signal<void, const sha1_hash&> signal_removed();
+	
+	void set_torrent_position(const sha1_hash& hash, Torrent::Direction direction);
+	
+	void check_queue(); /* FIXME: Should be protected, not public? */
+	
+	bool exists(const sha1_hash& hash);
+	bool exists(const Glib::ustring& hash_str);
+	
+	void add_torrent(const torrent_handle& handle, const entry& e);
+	void add_torrent(const entry& e);
+	void remove_torrent(const sha1_hash& hash);
+	
+	//FIXME: Should be removed, or at least friends only.
+	torrent_handle get_handle(const sha1_hash& hash);
+	
+	WeakPtr<Torrent> get_torrent(const sha1_hash& hash);
+	WeakPtr<Torrent> get_torrent(unsigned int position);
+	
+	unsigned int get_torrents_count();
+	
+	void save_fastresume(const sha1_hash& hash, const entry& e);
+	
+	static Glib::RefPtr<TorrentManager> create();
+	~TorrentManager();
 };
 
 #endif /* TORRENTMANAGER_HH */
