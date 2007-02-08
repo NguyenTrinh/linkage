@@ -82,9 +82,26 @@ class TorrentList : public Gtk::TreeView
 	
 	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column, const Glib::ustring& suffix);
 public:
+	enum Column 
+	{ 
+		COL_POSITION = 1,
+		COL_NAME,
+		COL_STATUS,
+		COL_DOWNLOADED,
+		COL_UPLOADED,
+		COL_DOWNRATE,
+		COL_UPRATE,
+		COL_SEEDS,
+		COL_PEERS,
+		COL_PROGRESS
+	};
+	
 	bool is_selected(const sha1_hash& hash);
 	HashList get_selected_list();
-
+	
+	void set_sort_column(Column col_id);
+	void set_sort_order(Gtk::SortType order);
+	
 	void update_groups();
 	void update_row(const WeakPtr<Torrent>& torrent);
 	

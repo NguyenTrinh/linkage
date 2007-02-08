@@ -46,7 +46,7 @@ public:
 							 FINISHED		 = 0x010,
 							 SEEDING			= 0x020,
 							 ALLOCATING	 = 0x040,
-							 STOPED			 = 0x080,
+							 STOPPED			 = 0x080,
 							 QUEUED			 = 0x100
 						 };
 	

@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/expander.h>
 #include <gtkmm/messagedialog.h>
 #include <gdkmm/cursor.h>
+#include <gtkmm/menutoolbutton.h>
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
@@ -67,6 +68,8 @@ class UI : public Gtk::Window
 {
 	Glib::RefPtr<Gtk::ActionGroup> action_group;
 	Glib::RefPtr<Gtk::UIManager> manager;
+	
+	Gtk::MenuToolButton* tb_sort;
 	
 	Gtk::Statusbar* statusbar;
 
@@ -122,7 +125,7 @@ class UI : public Gtk::Window
 	sigc::connection connection_switch_page;	/* This must be disconnected before UI is destroy to avoid segfault */
 	
 	enum { PAGE_INFO, PAGE_STATUS, PAGE_PEERS, PAGE_FILES };
-	
+										
 protected:
 	void on_spin_down();
 	void on_spin_up();
@@ -145,7 +148,10 @@ protected:
 	void on_torrent_list_selection_changed();
 
 	bool on_timeout();
-
+	
+	void on_sort_item_selected(TorrentList::Column col);
+	void on_sort();
+	
 	void update(const WeakPtr<Torrent>& torrent);
 	
 	virtual bool on_delete_event(GdkEventAny*);

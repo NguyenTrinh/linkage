@@ -326,6 +326,22 @@ HashList TorrentList::get_selected_list()
 	return list;
 }
 
+void TorrentList::set_sort_column(Column col_id)
+{
+	int current_col_id = 0;
+	Gtk::SortType current_order;
+	model->get_sort_column_id(current_col_id, current_order);
+	model->set_sort_column_id(col_id, current_order);
+}
+
+void TorrentList::set_sort_order(Gtk::SortType order)
+{
+	int current_col_id = 0;
+	Gtk::SortType current_order;
+	model->get_sort_column_id(current_col_id, current_order);
+	model->set_sort_column_id(current_col_id, order);
+}
+	
 void TorrentList::select(const Glib::ustring& path)
 {
 	Gtk::TreeIter iter = model->get_iter(path);
