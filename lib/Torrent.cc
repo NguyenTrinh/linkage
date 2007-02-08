@@ -164,7 +164,7 @@ const Torrent::State Torrent::get_state() const
 			}
 		}
 		else
-			return STOPED;
+			return STOPPED;
 	}
 	else
 		return QUEUED;
@@ -196,7 +196,7 @@ const Glib::ustring Torrent::get_state_string() const
 			}
 		}
 		else
-			return "Stoped";
+			return "Stopped";
 	}
 	else
 		return "Queued";
@@ -206,8 +206,8 @@ const Glib::ustring Torrent::get_state_string(State state) const
 {
 	if (state & QUEUED)
 		return "Queued";
-	else if (state & STOPED)
-		return "Stoped";
+	else if (state & STOPPED)
+		return "Stopped";
 	else if (state & CHECK_QUEUE)
 		return "Queued";
 	else if (state & CHECKING)

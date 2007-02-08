@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/accelgroup.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/toolbar.h>
+#include <gtkmm/separatortoolitem.h>
 #include <gtkmm/table.h>
 #include <gtkmm/frame.h>
 #include <gtkmm/scrolledwindow.h>
@@ -55,7 +56,7 @@ Glib::ustring ui_info = "<ui>"
 												"			<menuitem action='About'/>"
 												"		</menu>"
 												"	</menubar>"
-												"	<toolbar	name='ToolBar'>"
+												"	<toolbar name='ToolBar'>"
 												"		<toolitem action='Add'/>"
 												"		<toolitem action='Remove'/>"
 												"		<separator/>"
@@ -111,7 +112,7 @@ UI::UI()
 										sigc::mem_fun(this, &UI::on_up));
 	action_group->add(Gtk::Action::create("Down", Gtk::Stock::GO_DOWN, "Down", "Move down"),
 										sigc::mem_fun(this, &UI::on_down));
-	
+										
 	manager = Gtk::UIManager::create();
 	manager->insert_action_group(action_group);
 	add_accel_group(manager->get_accel_group());
@@ -123,7 +124,65 @@ UI::UI()
 	Gtk::Widget* menubar = manager->get_widget("/MenuBar");
 	main_vbox->pack_start(*menubar, false, false, 0);		
 
-	Gtk::Widget* toolbar = manager->get_widget("/ToolBar");
+	Gtk::Toolbar* toolbar = dynamic_cast<Gtk::Toolbar*>(manager->get_widget("/ToolBar"));
+	
+	switch (Engine::instance()->get_settings_manager()->get_int("UI", "SortOrder"))
+	{
+		case 1:
+			tb_sort = manage(new Gtk::MenuToolButton(Gtk::Stock::SORT_DESCENDING));
+			break;
+		case 0:
+		default:
+			tb_sort = manage(new Gtk::MenuToolButton(Gtk::Stock::SORT_ASCENDING));
+			break;
+	}
+	Gtk::Menu* tb_sort_menu = manage(new Gtk::Menu());
+	Gtk::MenuItem* item = manage(new Gtk::MenuItem("Position"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Name"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_NAME));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Status"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_STATUS));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Downloaded"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_DOWNLOADED));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Uploaded"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_UPLOADED));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Download rate"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_DOWNRATE));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Upload rate"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_UPRATE));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Seeds"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_SEEDS));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Peers"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_PEERS));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Progress"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_PROGRESS));
+	tb_sort_menu->append(*item);
+	tb_sort_menu->show_all_children();
+	tb_sort->set_menu(*tb_sort_menu);
+	tb_sort->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
+	toolbar->append(*manage(new Gtk::SeparatorToolItem()));
+	toolbar->append(*tb_sort);
+	
 	main_vbox->pack_start(*toolbar, false, false, 0);
 	
 	notebook_main = manage(new Gtk::Notebook());
@@ -605,6 +664,7 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 void UI::add_torrent(const Glib::ustring& file)
 {
 	Glib::ustring save_path;
+
 	if (!Engine::instance()->get_settings_manager()->get_bool("Files", "UseDefPath"))
 		if (path_chooser->run() == Gtk::RESPONSE_OK)
 		{	
@@ -630,11 +690,11 @@ void UI::add_torrent(const Glib::ustring& file)
 OpenDialog::OpenDialog(Gtk::Window *parent)
 : Gtk::FileChooserDialog(*parent, "Open torrent")
 {
-	torrent_filter = new Gtk::FileFilter;
+	torrent_filter = new Gtk::FileFilter();
 	torrent_filter->add_mime_type("application/x-bittorrent");
 	torrent_filter->set_name("BitTorrent files");
 	
-	no_filter = new Gtk::FileFilter;
+	no_filter = new Gtk::FileFilter();
 	no_filter->add_pattern("*");
 	no_filter->set_name("All files");
 	
@@ -648,6 +708,8 @@ OpenDialog::OpenDialog(Gtk::Window *parent)
 
 OpenDialog::~OpenDialog()
 {
+	delete torrent_filter;
+	delete no_filter;
 }
 
 SaveDialog::SaveDialog(Gtk::Window *parent)
@@ -809,6 +871,25 @@ void UI::on_down()
 	}
 }
 
+void UI::on_sort()
+{
+	if (tb_sort->get_stock_id() == "gtk-sort-ascending")
+	{
+			tb_sort->set_stock_id(Gtk::Stock::SORT_DESCENDING);
+			torrent_list->set_sort_order(Gtk::SORT_DESCENDING);
+	}
+	else if (tb_sort->get_stock_id() == "gtk-sort-descending")
+	{
+			tb_sort->set_stock_id(Gtk::Stock::SORT_ASCENDING);
+			torrent_list->set_sort_order(Gtk::SORT_ASCENDING);
+	}
+}
+
+void UI::on_sort_item_selected(TorrentList::Column col)
+{
+	torrent_list->set_sort_column(col);
+}
+
 bool UI::on_delete_event(GdkEventAny*)
 {
 	on_quit();
@@ -889,17 +970,19 @@ bool UI::on_tracker_update(GdkEventButton* e)
 	{
 		sha1_hash hash = *list.begin();
 		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
-		if (e->button == 1)
+		if (torrent->is_running())
 		{
-			torrent->get_handle().force_reannounce();
-			/* TODO: add timeout to prevent hammering 
-			if (Engine::instance()->get_torrent_manager()->get_handle(hash).force_reannounce())
-				button_tracker->set_label("Forcing update..."); */
-		}
-		else if (e->button == 3)
-		{
-			build_tracker_menu(torrent);
-			menu_trackers->popup(e->button, e->time);
+			switch (e->button)
+			{
+				case 1:
+					/* TODO: add timeout to prevent hammering */
+					torrent->get_handle().force_reannounce();
+					break;
+				case 3:
+					build_tracker_menu(torrent);
+					menu_trackers->popup(e->button, e->time);
+					break;
+			}
 		}
 	}
 	return true;
@@ -964,10 +1047,10 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 												 int x, int y,
 												 const Gtk::SelectionData& selection_data,
 												 guint info, guint time)
-{
-	Glib::ustring data = selection_data.get_data_as_string();
+{ 
+	std::string data = selection_data.get_data_as_string();
 	Glib::StringArrayHandle a = context->get_targets();
-	
+
 	bool is_file_uri = false;
 	for (Glib::StringArrayHandle::iterator ai = a.begin(); ai != a.end(); ++ai)
 		if (*ai == "text/uri-list")
@@ -975,26 +1058,27 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	
 	if (is_file_uri)
 	{
-		std::list<Glib::ustring> uri_list;
-		int pos = data.find("\n");
-		while (pos != Glib::ustring::npos)
+		std::list<std::string> uri_list;
+		int pos, offset = 0;
+		while ((pos = data.find("\n", offset)) != std::string::npos)
 		{
-			uri_list.push_back(data.substr(0, pos));
-			data.erase(0, pos+1);
-			pos = data.find("\n");
+			std::string s = data.substr(0, pos-1);
+			uri_list.push_back(s);
+			offset = pos+1;
 		}
-		for (std::list<Glib::ustring>::iterator li = uri_list.begin(); li != uri_list.end(); ++li)
+		for (std::list<std::string>::iterator li = uri_list.begin(); li != uri_list.end(); ++li)
 		{
-			Glib::ustring file = *li;
-			pos = data.find("file://");
-			if (pos != Glib::ustring::npos)
+			std::string file = *li;
+			std::cout << "loop: '" << *li << "'" << std::endl;
+			pos = file.find("file://");
+			if (pos != std::string::npos)
 				file.erase(0, 7); /* Get rid of leading file:// */
 			add_torrent(file);
 		}
 	}
 	else
 	{
-		/* TODO: Adda a progress bar */
+		/* TODO: Add a progress bar */
 		#ifdef HAVE_LIBCURL
 		CURL *curl;
 		CURLcode res;
