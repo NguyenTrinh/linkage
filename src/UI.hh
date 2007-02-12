@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <list>
 #include <map>
 
-#include <gtkmm/statusbar.h>
 #include <gtkmm/filefilter.h>
 #include <gtkmm/textview.h>
 #include <gtkmm/uimanager.h>
@@ -40,6 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "AlignedLabel.hh"
 #include "AlignedSpinButton.hh"
+#include "Statusbar.hh"
 #include "PieceMap.hh"
 #include "TorrentList.hh"
 #include "PeerList.hh"
@@ -71,7 +71,7 @@ class UI : public Gtk::Window
 	
 	Gtk::MenuToolButton* tb_sort;
 	
-	Gtk::Statusbar* statusbar;
+	Statusbar* statusbar;
 
 	Gtk::Button* button_add;
 	Gtk::Button* button_remove;

@@ -150,16 +150,16 @@ std::list<Glib::ustring> get_interfaces()
 }
 
 /* http://www.linuxquestions.org/questions/showthread.php?t=425637 */
-int get_ip(const char *iface, ip_address ip)
+bool get_ip(const char *iface, ip_address ip)
 {
-	struct ifreq		*ifr;
-	struct ifreq		ifrr;
-	struct sockaddr_in	sa;
-	struct sockaddr	ifaddr;
+	struct	ifreq				*ifr;
+	struct	ifreq				ifrr;
+	struct	sockaddr_in	sa;
+	struct	sockaddr		ifaddr;
 	int			sockfd;
 
 	if((sockfd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP))==-1)
-	 return 0;
+	 return false;
 
 	ifr = &ifrr;
 
@@ -168,11 +168,11 @@ int get_ip(const char *iface, ip_address ip)
 	strncpy(ifrr.ifr_name, iface, sizeof(ifrr.ifr_name));
 
 	if (ioctl(sockfd, SIOCGIFADDR, ifr) < 0)
-		return 0;
+		return false;
 		
 	ifaddr = ifrr.ifr_addr;
 	strncpy(ip,inet_ntoa(inaddrr(ifr_addr.sa_data)),sizeof(ip_address));
-	return 1;
+	return true;
 }
 
 Glib::ustring get_config_dir()

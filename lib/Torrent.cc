@@ -204,24 +204,37 @@ const Glib::ustring Torrent::get_state_string() const
 
 const Glib::ustring Torrent::get_state_string(State state) const
 {
-	if (state & QUEUED)
-		return "Queued";
-	else if (state & STOPPED)
-		return "Stopped";
-	else if (state & CHECK_QUEUE)
-		return "Queued";
-	else if (state & CHECKING)
-		return "Checking";
-	else if (state & ANNOUNCING)
-		return "Announcing";
-	else if (state & DOWNLOADING)
-		return "Downloading";
-	else if (state & FINISHED)
-		return "Finished";
-	else if (state & SEEDING)
-		return "Seeding";
-	else if (state & ALLOCATING)
-		return "Allocating";
+	switch (state)
+	{
+		case QUEUED:
+			return "Queued";
+			break;
+		case STOPPED:
+			return "Stopped";
+			break;
+		case CHECK_QUEUE:
+			return "Queued";
+			break;
+		case CHECKING:
+			return "Checking";
+			break;
+		case ANNOUNCING:
+			return "Announcing";
+			break;
+		case FINISHED:
+			return "Finished";
+			break;
+		case SEEDING:
+			return "Seeding";
+			break;
+		case ALLOCATING:
+			return "Allocating";
+			break;
+		case DOWNLOADING:
+		default:
+			return "Downloading";
+			break;
+	}
 }
 
 const torrent_info Torrent::get_info() const

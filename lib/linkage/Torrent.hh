@@ -39,15 +39,15 @@ class Torrent
 public:
 	enum Direction { DIR_UP, DIR_DOWN };
 	enum State { 
-							 CHECK_QUEUE	= 0x001,
-							 CHECKING		 = 0x002,
-							 ANNOUNCING	 = 0x004,
-							 DOWNLOADING	= 0x008,
-							 FINISHED		 = 0x010,
-							 SEEDING			= 0x020,
-							 ALLOCATING	 = 0x040,
-							 STOPPED			 = 0x080,
-							 QUEUED			 = 0x100
+							 CHECK_QUEUE,
+							 CHECKING,
+							 ANNOUNCING,
+							 DOWNLOADING,
+							 FINISHED,
+							 SEEDING,
+							 ALLOCATING,
+							 STOPPED,
+							 QUEUED
 						 };
 	
 	struct ResumeInfo {

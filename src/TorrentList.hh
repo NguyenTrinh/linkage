@@ -80,6 +80,8 @@ class TorrentList : public Gtk::TreeView
 	
 	void on_session_resumed();
 	
+	void on_size_allocate(Gtk::Allocation& allocation);
+	
 	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column, const Glib::ustring& suffix);
 public:
 	enum Column 
@@ -93,7 +95,8 @@ public:
 		COL_UPRATE,
 		COL_SEEDS,
 		COL_PEERS,
-		COL_PROGRESS
+		COL_PROGRESS,
+		COL_ETA
 	};
 	
 	bool is_selected(const sha1_hash& hash);

@@ -374,6 +374,8 @@ void SettingsWin::on_plugin_toggled(const Glib::ustring& path)
 	
 void SettingsWin::on_hide()
 {
+	Gtk::Window::on_hide();
+
 	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
 	
 	/* Network */
@@ -424,8 +426,6 @@ void SettingsWin::on_hide()
 	sm->set("Files", "MoveFinished", move_finished->get_active());
 	sm->set("Files", "FinishedPath", button_move_finished->get_filename());
 	sm->set("Files", "Allocate", allocate->get_active());
-	
-	Gtk::Window::on_hide();
 	
 	Engine::instance()->get_settings_manager()->update();
 }

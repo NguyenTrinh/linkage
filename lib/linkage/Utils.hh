@@ -59,7 +59,7 @@ sha1_hash info_hash(const std::string& chars);
 
 std::list<Glib::ustring> get_interfaces();
 
-int get_ip(const char *iface, ip_address ip);
+bool get_ip(const char *iface, ip_address ip);
 
 Glib::ustring get_config_dir();
 Glib::ustring get_data_dir();
