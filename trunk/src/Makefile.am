@@ -28,6 +28,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   AlignedSpinButton.cc \
                   Statusbar.hh \
                   Statusbar.cc \
+                  CellRendererProgressText.hh \
+                  CellRendererProgressText.cc \
                   main.cc
 
                   

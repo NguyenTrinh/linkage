@@ -82,7 +82,7 @@ class TorrentList : public Gtk::TreeView
 	
 	void on_size_allocate(Gtk::Allocation& allocation);
 	
-	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column, const Glib::ustring& suffix);
+	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 public:
 	enum Column 
 	{ 

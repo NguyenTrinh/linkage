@@ -19,8 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treepath.h>
 #include <gtkmm/treeselection.h>
 #include <gtkmm/cellrenderertext.h>
-#include <gtkmm/cellrendererprogress.h>
 
+#include "CellRendererProgressText.hh"
 #include "TorrentList.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
@@ -37,31 +37,15 @@ TorrentList::TorrentList()
 
 	append_column("#", columns.number);
 	append_column("Name", columns.name);
-	/*append_column("Status", columns.state);
-	unsigned int cols_count = append_column("Down", columns.down);
-	Gtk::TreeViewColumn* column = get_column(cols_count - 1);
-	Gtk::CellRendererText* cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &TorrentList::format_data), columns.down, ""));
-	cols_count = append_column("Up", columns.up);
-	column = get_column(cols_count - 1);
-	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &TorrentList::format_data), columns.up, ""));
-	cols_count = append_column("Down rate", columns.down_rate);
-	column = get_column(cols_count - 1);
-	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &TorrentList::format_data), columns.down_rate, "/s"));
-	cols_count = append_column("Up rate", columns.up_rate);
-	column = get_column(cols_count - 1);
-	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &TorrentList::format_data), columns.up_rate, "/s"));
-	append_column("Seeds", columns.seeds);
-	append_column("Peers", columns.peers);*/
-	Gtk::CellRendererProgress* render = new Gtk::CellRendererProgress();
+	CellRendererProgressText* render = new CellRendererProgressText();
 	append_column("Progress", *Gtk::manage(render));
 	Gtk::TreeViewColumn* column = get_column(2);
 	column->add_attribute(*render, "value", COL_PROGRESS);
 	column->add_attribute(*render, "text", COL_ETA);
-
+	column->add_attribute(*render, "text1", COL_DOWNRATE);
+	column->add_attribute(*render, "text2", COL_UPRATE);
+	column->set_cell_data_func(*render, sigc::mem_fun(this, &TorrentList::format_data));
+	
 	for(unsigned int i = 0; i < 3; i++)
 	{
 		Gtk::TreeView::Column* column = get_column(i);
@@ -357,20 +341,30 @@ void TorrentList::select(const Glib::ustring& path)
 		get_selection()->select(iter);
 }
 
-void TorrentList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column, const Glib::ustring& suffix)
+void TorrentList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
 {
 	Gtk::TreeRow row = *iter;
-	Gtk::CellRendererText *cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
+	CellRendererProgressText* cell_pt = dynamic_cast<CellRendererProgressText*>(cell);
 	
 	if (!row.parent())
 	{
-		if (row_expanded(model->get_path(iter)) || !(*iter).children().size())
-			cell_text->property_text() = "";
+		/* Don't set text for unexpanded parents */
+		if (row_expanded(model->get_path(iter)) || !row.children().size())
+		{
+			cell_pt->property_text1() = "";
+			cell_pt->property_text2() = "";
+		}
 		else
-			cell_text->property_text() = suffix_value(row[column]) + suffix;
+		{
+			cell_pt->property_text1() = suffix_value(row[columns.down_rate]) + "/s";
+			cell_pt->property_text2() = suffix_value(row[columns.up_rate]) + "/s";
+		}
 	}
 	else
-		cell_text->property_text() = suffix_value(row[column]) + suffix;
+	{
+		cell_pt->property_text1() = suffix_value(row[columns.down_rate]) + "/s";
+		cell_pt->property_text2() = suffix_value(row[columns.up_rate]) + "/s";
+	}
 }
 
 void TorrentList::update_groups()

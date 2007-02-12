@@ -40,17 +40,18 @@ FileList::FileList()
 
 	/* FIXME: Get colors from SettingsManager */
 	Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
-
-	std::vector<unsigned int> rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorDark");
+	
+	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	std::vector<unsigned int> rgb = sm->get_int_list("UI", "ColorDark");
 	Gdk::Color light, mid, dark;
 	dark.set_red(rgb[0]);
 	dark.set_green(rgb[1]);
 	dark.set_blue(rgb[2]);
-	rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorMid");
+	rgb = sm->get_int_list("UI", "ColorMid");
 	mid.set_red(rgb[0]);
 	mid.set_green(rgb[1]);
 	mid.set_blue(rgb[2]);
-	rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorLight");
+	rgb = sm->get_int_list("UI", "ColorLight");
 	light.set_red(rgb[0]);
 	light.set_green(rgb[1]);
 	light.set_blue(rgb[2]);
@@ -62,7 +63,8 @@ FileList::FileList()
 	CellRendererPieceMap *renderer = new CellRendererPieceMap(dark, mid, light);
 	Gtk::TreeViewColumn *column = new Gtk::TreeViewColumn("Progress", *Gtk::manage(renderer));
 	append_column(*Gtk::manage(column));
-
+	
+	/* Bookmark */
 	column->add_attribute(renderer->property_map(), columns.map);
 
 	cols_count = append_column("Done", columns.done);
