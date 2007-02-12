@@ -36,18 +36,18 @@ SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this)
 	
 	set_severity_level(alert::debug);
 	
+	//add_extension(&create_ut_pex_plugin);
+	
+	Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
+	
+	on_settings(); //Apply settings on startup
+	
 	#ifndef TORRENT_DISABLE_DHT
 		start_dht();
 		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881)); 
 		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
 	#endif
-	
-	//add_extension(&create_ut_pex_plugin);
-	
-	Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
-	
-	on_settings(); //Apply settings on startup
 }
 
 SessionManager::~SessionManager()
@@ -105,9 +105,11 @@ void SessionManager::on_settings()
 	ip_address ip;
 	get_ip(iface.c_str(), ip);
 	
-	if (iface.size())
+	if (get_ip(iface.c_str(), ip))
+	{
 		listen_on(std::make_pair(settings->get_int("Network", "MinPort"),
 														 settings->get_int("Network", "MaxPort")), ip);
+	}
 	else
 		listen_on(std::make_pair(settings->get_int("Network", "MinPort"),
 														 settings->get_int("Network", "MaxPort")));

@@ -388,7 +388,7 @@ UI::UI()
 	scrollwin->add(*file_list);
 	notebook_details->append_page(*scrollwin, "Files");
 	
-	statusbar = manage(new Gtk::Statusbar);
+	statusbar = manage(new Statusbar());
 	main_vbox->pack_start(*statusbar, false, false, 0);
 	
 	show_all_children();
@@ -521,6 +521,7 @@ void UI::notify(const Glib::ustring& title,
 	}*/
 	
 	/* Fallback to statusbar if no plugin handled the notification */
+	statusbar->pop();
 	statusbar->push(msg);
 }
 
@@ -532,6 +533,11 @@ bool UI::on_timeout()
 		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(position);
 		update(torrent);
 	}
+	
+	session_status status = Engine::instance()->get_session_manager()->status();
+	statusbar->set_connections_label(str(status.num_peers));
+	statusbar->set_download_label(suffix_value(status.payload_download_rate) + "/s");
+	statusbar->set_upload_label(suffix_value(status.payload_upload_rate) + "/s");
 	
 	torrent_list->update_groups();
 	
@@ -766,7 +772,7 @@ void UI::on_spin_up()
 }
 
 void UI::on_settings()
-{ 
+{
 	int max_up = Engine::instance()->get_settings_manager()->get_int("Network", "MaxUpRate");
 	if (max_up == 0)
 		max_up = 1000;

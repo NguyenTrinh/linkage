@@ -26,6 +26,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   AlignedLabel.cc \
                   AlignedSpinButton.hh \
                   AlignedSpinButton.cc \
+                  Statusbar.hh \
+                  Statusbar.cc \
                   main.cc
 
                   
