@@ -63,10 +63,9 @@ FileList::FileList()
 	CellRendererPieceMap *renderer = new CellRendererPieceMap(dark, mid, light);
 	Gtk::TreeViewColumn *column = new Gtk::TreeViewColumn("Progress", *Gtk::manage(renderer));
 	append_column(*Gtk::manage(column));
-	
-	/* Bookmark */
 	column->add_attribute(renderer->property_map(), columns.map);
-
+	model->set_sort_func(columns.map, sigc::mem_fun(this, &FileList::compare_piece_map));
+	
 	cols_count = append_column("Done", columns.done);
 	column = get_column(cols_count - 1);
 	Gtk::CellRendererText* cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
@@ -179,6 +178,9 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 		row[columns.done] = completed_bytes;
 		row[columns.size] = file.size;
 	}
+
+	set_model(model);
+
 	if (select)
 	{
 		for (unsigned int i = 0; i < model->children().size(); i++)
@@ -191,6 +193,22 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 			}
 		}
 	}
+}
+
+int FileList::compare_piece_map(const Gtk::TreeIter& a,
+																const Gtk::TreeIter& b)
+{
+	Gtk::TreeRow row_a, row_b;
+	row_a = *a;
+	row_b = *b;
 	
-	set_model(model);
+	double complete_a = (double)row_a[columns.done]/row_a[columns.size];
+	double complete_b = (double)row_b[columns.done]/row_b[columns.size];
+	
+	if (complete_a < complete_b)
+		return -1;
+	if (complete_a > complete_b)
+		return 1;
+	else
+		return 0;
 }

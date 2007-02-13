@@ -34,32 +34,37 @@ TorrentList::TorrentList()
 	set_model(model);
 
 	get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
-
-	append_column("#", columns.number);
+	
+	append_column("Torrents", columns.children);
+	Gtk::TreeViewColumn* column = get_column(COL_CHILDREN - 1);
+	column->set_cell_data_func(*column->get_first_cell_renderer(), sigc::mem_fun(this, &TorrentList::format_children));
+	append_column("#", columns.position);
+	column = get_column(COL_POSITION - 1);
+	column->set_cell_data_func(*column->get_first_cell_renderer(), sigc::mem_fun(this, &TorrentList::format_position));
 	append_column("Name", columns.name);
 	CellRendererProgressText* render = new CellRendererProgressText();
 	append_column("Progress", *Gtk::manage(render));
-	Gtk::TreeViewColumn* column = get_column(2);
+	column = get_column(COL_PROGRESS - 1);
 	column->add_attribute(*render, "value", COL_PROGRESS);
 	column->add_attribute(*render, "text", COL_ETA);
 	column->add_attribute(*render, "text1", COL_DOWNRATE);
 	column->add_attribute(*render, "text2", COL_UPRATE);
-	column->set_cell_data_func(*render, sigc::mem_fun(this, &TorrentList::format_data));
+	column->set_cell_data_func(*render, sigc::mem_fun(this, &TorrentList::format_rates));
 	
-	for(unsigned int i = 0; i < 3; i++)
+	for(unsigned int i = 0; i < 4; i++)
 	{
 		Gtk::TreeView::Column* column = get_column(i);
 		column->set_sort_column_id(i + 1);
-		if (i == 1)
+		if (i == (COL_NAME - 1))
 		{
-			std::vector<Gtk::CellRenderer*> renders = column->get_cell_renderers();
-			column->clear_attributes(*renders[0]);
-			column->add_attribute(*renders[0], "markup", 2);
+			Gtk::CellRenderer* name_render = column->get_first_cell_renderer();
+			column->clear_attributes(*name_render);
+			column->add_attribute(*name_render, "markup", COL_NAME);
 		}
 		column->set_resizable(true);
 	}
 	set_headers_visible(false);
-	set_expander_column(*get_column(1));
+	set_expander_column(*get_column(COL_POSITION - 1));
 	
 	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
 	std::list<Glib::ustring> groups = sm->get_keys("Groups");
@@ -167,7 +172,7 @@ void TorrentList::on_session_resumed()
 
 void TorrentList::on_size_allocate(Gtk::Allocation& allocation)
 {
-	get_column(1)->set_min_width(int(allocation.get_width()/1.5));
+	get_column(COL_NAME - 1)->set_min_width(int(allocation.get_width()/1.5));
 	Gtk::Widget::on_size_allocate(allocation);
 }
 
@@ -178,7 +183,7 @@ void TorrentList::on_position_changed(const sha1_hash& hash, unsigned int positi
 	if (iter)
 	{
 		Gtk::TreeRow row = *iter;
-		row[columns.number] = position;
+		row[columns.position] = position;
 	}
 }
 
@@ -225,7 +230,7 @@ void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, con
 	Gtk::TreeRow new_row = *(model->append(group_row.children()));
 	new_row[columns.hash] = hash;
 	new_row[columns.name] = name;
-	new_row[columns.number] = position;
+	new_row[columns.position] = position;
 	
 	torrent->set_group(filter_group);
 }
@@ -290,7 +295,7 @@ HashList TorrentList::get_selected_list()
 {
 	PathList path_list = get_selection()->get_selected_rows();
 	
-	//Sort the selected list by columns.number to ease moving
+	//Sort the selected list by columns.position to ease moving
 	std::list<Gtk::TreeRow> ordered_list;
 	for (PathList::iterator iter = path_list.begin();
 				iter != path_list.end(); ++iter)
@@ -301,7 +306,7 @@ HashList TorrentList::get_selected_list()
 			for (std::list<Gtk::TreeRow>::iterator liter = ordered_list.begin();
 						liter != ordered_list.end(); ++liter)
 			{
-				if (row[columns.number] < (*liter)[columns.number])
+				if (row[columns.position] < (*liter)[columns.position])
 					ordered_list.insert(liter, row);
 			}
 			ordered_list.push_back(row);
@@ -341,14 +346,14 @@ void TorrentList::select(const Glib::ustring& path)
 		get_selection()->select(iter);
 }
 
-void TorrentList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
+void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
 {
 	Gtk::TreeRow row = *iter;
 	CellRendererProgressText* cell_pt = dynamic_cast<CellRendererProgressText*>(cell);
 	
 	if (!row.parent())
 	{
-		/* Don't set text for unexpanded parents */
+		/* Don't set text for collapsed or empty parents */
 		if (row_expanded(model->get_path(iter)) || !row.children().size())
 		{
 			cell_pt->property_text1() = "";
@@ -365,6 +370,32 @@ void TorrentList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter
 		cell_pt->property_text1() = suffix_value(row[columns.down_rate]) + "/s";
 		cell_pt->property_text2() = suffix_value(row[columns.up_rate]) + "/s";
 	}
+}
+
+void TorrentList::format_children(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
+{
+	Gtk::TreeRow row = *iter;
+	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
+	
+	if (!row.parent())
+	{
+		cell_t->property_text() = str(row[columns.children]);
+	}
+	else
+		cell_t->property_text() = "";
+}
+
+void TorrentList::format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
+{
+	Gtk::TreeRow row = *iter;
+	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
+	
+	if (row.parent())
+	{
+		cell_t->property_text() = str(row[columns.position]);
+	}
+	else
+		cell_t->property_text() = "";
 }
 
 void TorrentList::update_groups()
@@ -390,7 +421,7 @@ void TorrentList::update_groups()
 			down_rate += row[columns.down_rate];
 			progress += row[columns.progress];
 		}
-		group_row[columns.number] = children.size();
+		group_row[columns.children] = children.size();
 		group_row[columns.peers] = peers;
 		group_row[columns.seeds] = seeds;
 		group_row[columns.up] = up;
@@ -422,7 +453,7 @@ Gtk::TreeIter TorrentList::add_group(const Glib::ustring& name)
 void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 {			
 	Gtk::TreeRow row = *get_iter(torrent->get_hash());
-	row[columns.number] = torrent->get_position();
+	row[columns.position] = torrent->get_position();
 	
 	Glib::ustring color;
 	switch (torrent->get_state())

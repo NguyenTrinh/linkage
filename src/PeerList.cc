@@ -150,7 +150,9 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	#ifdef HAVE_LIBGEOIP
 		GeoIP_delete(gi);
 	#endif
-
+	
+	set_model(model);
+	
 	if (select)
 	{
 		for (unsigned int i = 0; i < model->children().size(); i++)
@@ -163,6 +165,4 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 			}
 		}
 	}
-	
-	set_model(model);
 }
