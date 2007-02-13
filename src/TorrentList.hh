@@ -82,8 +82,6 @@ class TorrentList : public Gtk::TreeView
 	
 	void on_session_resumed();
 	
-	void on_size_allocate(Gtk::Allocation& allocation);
-	
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	void format_children(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	void format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);

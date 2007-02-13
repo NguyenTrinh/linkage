@@ -20,17 +20,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define TORRENTMANAGER_HH
 
 #include <map>
+#include <list>
 
 #include "linkage/Torrent.hh"
 #include "linkage/RefCounter.hh"
 #include "linkage/WeakPtr.hh"
 #include "linkage/SessionManager.hh"
 
-typedef std::map<sha1_hash, Torrent*> TorrentMap;
-typedef TorrentMap::iterator TorrentIter;
-
 class TorrentManager : public RefCounter<TorrentManager>
 {
+	typedef std::map<sha1_hash, Torrent*> TorrentMap;
+	typedef TorrentMap::iterator TorrentIter;
+	
 	TorrentMap m_torrents;
 	
 	sigc::signal<void, const sha1_hash&, unsigned int> m_signal_position_changed;
@@ -43,9 +44,11 @@ class TorrentManager : public RefCounter<TorrentManager>
 	TorrentManager();
 	
 	/* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */
-	Glib::RefPtr<SessionManager> m_settings_manager;
+	Glib::RefPtr<SessionManager> m_session_manager;
 	
 public:
+	typedef std::list<WeakPtr<Torrent> > TorrentList;
+	
 	sigc::signal<void, const sha1_hash&, unsigned int> signal_position_changed();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_group_changed();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> signal_added();
@@ -66,7 +69,7 @@ public:
 	torrent_handle get_handle(const sha1_hash& hash);
 	
 	WeakPtr<Torrent> get_torrent(const sha1_hash& hash);
-	WeakPtr<Torrent> get_torrent(unsigned int position);
+	TorrentList get_torrents();
 	
 	unsigned int get_torrents_count();
 	

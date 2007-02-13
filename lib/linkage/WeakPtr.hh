@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef WEAKPTR_HH
 #define WEAKPTR_HH
 
+#include <cassert>
+
 /* 
 		This is used to make handling with Torrent pointers a little bit safer,
 		since this wrapper class makes it harder to delete the underlying object.
@@ -42,6 +44,7 @@ template<class T> class WeakPtr
 public:
 	T* operator->() const
 	{
+		assert(m_object != NULL);
 		return m_object;
 	}
 	

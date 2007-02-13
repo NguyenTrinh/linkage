@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include "CellRendererProgressText.hh"
+#include <iostream>
 
 CellRendererProgressText::CellRendererProgressText() :
 	Glib::ObjectBase(typeid(CellRendererProgressText)),
@@ -43,7 +44,7 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 	
 	const int xpad = property_xpad();
 	const int ypad = property_ypad();
-
+	
 	int x_offset = 0, y_offset = 0, width = 0, height = 0;
 	get_size(widget, cell_area, x_offset, y_offset, width, height);
 
@@ -75,6 +76,7 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 	
 	if(width <= 0 || height <= 0)
 		return;
+
 	Gtk::StateType state;
 	if (flags & Gtk::CELL_RENDERER_SELECTED)
 		state = Gtk::STATE_SELECTED;
@@ -120,12 +122,19 @@ void CellRendererProgressText::get_size_vfunc(Gtk::Widget& widget,
 	}
 	const int calc_width = w - property_xpad() * 2;
 	const int calc_height = h - property_ypad() * 2;
-
+	
+	Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(widget.get_pango_context());
+	layout->set_markup("DL:UL:     " + m_prop_text1 + m_prop_text2);
+	int min_width, min_height;
+  layout->get_pixel_size(min_width, min_height);
+	min_width += 5 - property_xpad()*2;
+	min_height -= property_ypad() * 2;
+	
 	if (width)
-		*width = calc_width;
+		*width = std::max(calc_width, min_width);
 
 	if (height)
-		*height = calc_height;
+		*height = std::max(calc_height, min_height);
 
 	if (cell_area)
 	{

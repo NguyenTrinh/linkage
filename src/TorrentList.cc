@@ -60,6 +60,7 @@ TorrentList::TorrentList()
 			Gtk::CellRenderer* name_render = column->get_first_cell_renderer();
 			column->clear_attributes(*name_render);
 			column->add_attribute(*name_render, "markup", COL_NAME);
+			column->set_expand(true);
 		}
 		column->set_resizable(true);
 	}
@@ -73,6 +74,7 @@ TorrentList::TorrentList()
 		add_group(*iter);
 	}
 	
+	/* FIXME: Add option to trunkate names */
 	Gtk::SortType sort_order = Gtk::SortType(sm->get_int("UI", "SortOrder"));
 	model->set_sort_column_id(sm->get_int("UI", "SortColumn"), sort_order);
 	
@@ -168,12 +170,6 @@ void TorrentList::on_session_resumed()
 	
 	if (iter)
 		get_selection()->select(iter);
-}
-
-void TorrentList::on_size_allocate(Gtk::Allocation& allocation)
-{
-	get_column(COL_NAME - 1)->set_min_width(int(allocation.get_width()/1.5));
-	Gtk::Widget::on_size_allocate(allocation);
 }
 
 void TorrentList::on_position_changed(const sha1_hash& hash, unsigned int position)
@@ -407,6 +403,7 @@ void TorrentList::update_groups()
 		Gtk::TreeRow group_row = *group_iter;
 		
 		unsigned int peers = 0, seeds = 0, up = 0, down = 0, up_rate = 0, down_rate = 0;
+		unsigned int lowest_pos = -1;
 		double progress = 0;
 		Gtk::TreeNodeChildren children = group_row.children();
 		for (Gtk::TreeIter iter = children.begin();
@@ -420,6 +417,10 @@ void TorrentList::update_groups()
 			up_rate += row[columns.up_rate];
 			down_rate += row[columns.down_rate];
 			progress += row[columns.progress];
+			/* This is just a hack to make sorting on position work
+					column->set_sort_func() seems to mess up iterations */
+			if (row[columns.position] < lowest_pos || lowest_pos < 0)
+				lowest_pos = row[columns.position];
 		}
 		group_row[columns.children] = children.size();
 		group_row[columns.peers] = peers;
@@ -428,6 +429,7 @@ void TorrentList::update_groups()
 		group_row[columns.down] = down;
 		group_row[columns.up_rate] = up_rate;
 		group_row[columns.down_rate] = down_rate;
+		group_row[columns.position] = lowest_pos;
 		
 		if (children.size() != 0)
 		{
