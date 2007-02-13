@@ -29,9 +29,9 @@ Glib::RefPtr<TorrentManager> TorrentManager::create()
 
 TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 {
-	m_settings_manager = Engine::instance()->get_session_manager();
+	m_session_manager = Engine::instance()->get_session_manager();
 	
-	m_settings_manager->signal_update_queue().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
+	m_session_manager->signal_update_queue().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
 	
 	Engine::instance()->get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 }
@@ -50,7 +50,7 @@ TorrentManager::~TorrentManager()
 			torrent->stop();
 			entry e = torrent->get_resume_entry(true);
 			save_fastresume(hash, e);
-			m_settings_manager->remove_torrent(torrent->get_handle());
+			m_session_manager->remove_torrent(torrent->get_handle());
 		}
 		
 		delete torrent;
@@ -190,14 +190,13 @@ WeakPtr<Torrent> TorrentManager::get_torrent(const sha1_hash& hash)
 	return WeakPtr<Torrent>();
 }
 
-WeakPtr<Torrent> TorrentManager::get_torrent(unsigned int position)
+TorrentManager::TorrentList TorrentManager::get_torrents()
 {
+	TorrentList list;
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
-	{
-		if (iter->second->get_position() == position)
-			return WeakPtr<Torrent>(iter->second);
-	}
-	return WeakPtr<Torrent>();
+		list.push_back(WeakPtr<Torrent>(iter->second));
+
+	return list;
 }
 
 unsigned int TorrentManager::get_torrents_count()

@@ -531,11 +531,12 @@ void UI::notify(const Glib::ustring& title,
 
 bool UI::on_timeout()
 {
-	int count = Engine::instance()->get_torrent_manager()->get_torrents_count();
-	for (int position = 1; position <= count; position++)
+	TorrentManager::TorrentList torrents = Engine::instance()->get_torrent_manager()->get_torrents();
+	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
+				iter != torrents.end(); ++iter)
 	{
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(position);
-		update(torrent);
+		if (*iter)
+			update(*iter);
 	}
 	
 	session_status status = Engine::instance()->get_session_manager()->status();
