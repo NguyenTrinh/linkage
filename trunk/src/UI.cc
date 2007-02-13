@@ -137,7 +137,11 @@ UI::UI()
 			break;
 	}
 	Gtk::Menu* tb_sort_menu = manage(new Gtk::Menu());
-	Gtk::MenuItem* item = manage(new Gtk::MenuItem("Position"));
+	Gtk::MenuItem* item = manage(new Gtk::MenuItem("Group size"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+			this, &UI::on_sort_item_selected), TorrentList::COL_CHILDREN));
+	tb_sort_menu->append(*item);
+	item = manage(new Gtk::MenuItem("Position"));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
 			this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
 	tb_sort_menu->append(*item);

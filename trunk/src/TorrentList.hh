@@ -35,8 +35,10 @@ class TorrentList : public Gtk::TreeView
 	public:
 		ModelColumns()
 			{ add(hash);
-				add(number);
+				add(children);
+				add(position);
 				add(name);
+				add(progress);
 				add(state);
 				add(down);
 				add(up);
@@ -44,12 +46,13 @@ class TorrentList : public Gtk::TreeView
 				add(up_rate);
 				add(seeds);
 				add(peers);
-				add(progress);
 				add(eta);
 			}
 		Gtk::TreeModelColumn<sha1_hash> hash;
-		Gtk::TreeModelColumn<unsigned int> number;
+		Gtk::TreeModelColumn<unsigned int> children;
+		Gtk::TreeModelColumn<unsigned int> position;
 		Gtk::TreeModelColumn<Glib::ustring> name;
+		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> state;
 		Gtk::TreeModelColumn<unsigned int> down;
 		Gtk::TreeModelColumn<unsigned int> up;
@@ -57,7 +60,6 @@ class TorrentList : public Gtk::TreeView
 		Gtk::TreeModelColumn<unsigned int> up_rate;
 		Gtk::TreeModelColumn<unsigned int> seeds;
 		Gtk::TreeModelColumn<unsigned int> peers;
-		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> eta;
 	}; 
 	ModelColumns columns;
@@ -82,12 +84,18 @@ class TorrentList : public Gtk::TreeView
 	
 	void on_size_allocate(Gtk::Allocation& allocation);
 	
-	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
+	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
+	void format_children(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
+	void format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
+	
 public:
 	enum Column 
-	{ 
-		COL_POSITION = 1,
+	{
+		COL_HASH,
+		COL_CHILDREN,
+		COL_POSITION,
 		COL_NAME,
+		COL_PROGRESS,
 		COL_STATUS,
 		COL_DOWNLOADED,
 		COL_UPLOADED,
@@ -95,7 +103,6 @@ public:
 		COL_UPRATE,
 		COL_SEEDS,
 		COL_PEERS,
-		COL_PROGRESS,
 		COL_ETA
 	};
 	

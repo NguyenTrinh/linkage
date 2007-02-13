@@ -55,6 +55,8 @@ class FileList : public Gtk::TreeView
 	
 	sha1_hash current_hash;
 	
+	int compare_piece_map(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
+	
 public:
 	void clear();
 	void update(const WeakPtr<Torrent>& torrent);
