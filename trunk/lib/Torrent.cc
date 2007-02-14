@@ -320,14 +320,14 @@ void Torrent::set_up_limit(int limit)
 {
 	m_up_limit = limit;
 	if (m_handle.is_valid())
-		m_handle.set_upload_limit(m_up_limit);
+		m_handle.set_upload_limit(m_up_limit*1024);
 }
 
 void Torrent::set_down_limit(int limit)
 {
 	m_down_limit = limit;
 	if (m_handle.is_valid())
-		m_handle.set_download_limit(m_down_limit);
+		m_handle.set_download_limit(m_down_limit*1024);
 }
 
 void Torrent::start()
