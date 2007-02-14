@@ -146,7 +146,9 @@ protected:
 	void on_details_expanded();
 	
 	void on_torrent_list_selection_changed();
-
+	void on_torrent_list_double_clicked(const sha1_hash& hash);
+	void on_torrent_list_right_clicked(const sha1_hash& hash);
+	
 	bool on_timeout();
 	
 	void on_sort_item_selected(TorrentList::Column col);

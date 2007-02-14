@@ -190,11 +190,14 @@ UI::UI()
 	main_vbox->pack_start(*toolbar, false, false, 0);
 	
 	notebook_main = manage(new Gtk::Notebook());
+	notebook_main->set_show_tabs(false);
 	Gtk::ScrolledWindow* scrollwin = manage(new Gtk::ScrolledWindow());
 	scrollwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	torrent_list = new TorrentList();
 	torrent_list->signal_changed().connect(sigc::mem_fun(this, &UI::on_torrent_list_selection_changed));
-	
+	torrent_list->signal_double_click().connect(sigc::mem_fun(this, &UI::on_torrent_list_double_clicked));
+	torrent_list->signal_right_click().connect(sigc::mem_fun(this, &UI::on_torrent_list_right_clicked));
+
 	std::list<Gtk::TargetEntry> targets;
 	targets.push_back(Gtk::TargetEntry("STRING", Gtk::TargetFlags(0)));
 	targets.push_back(Gtk::TargetEntry("text/plain", Gtk::TargetFlags(0)));
@@ -407,6 +410,8 @@ UI::UI()
 	resize(sm->get_int("UI", "WinWidth"), sm->get_int("UI", "WinHeight"));
 
 	notebook_details->set_current_page(sm->get_int("UI", "Page"));
+	/* this makes expander insensitive even if we have a valid selection,
+			if we shutdown with expander not expanded */
 	expander_details->set_sensitive(sm->get_bool("UI", "Expanded"));
 	expander_details->set_expanded(sm->get_bool("UI", "Expanded"));	
 	
@@ -418,10 +423,9 @@ UI::UI()
 	if (max_down == 0)
 		max_down = 1000;
 	spinbutton_down->set_range(0, max_down);
-	
-	
+
 	Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
-	
+
 	Engine::instance()->get_plugin_manager()->signal_plugin_load().connect(sigc::mem_fun(this, &UI::on_plugin_load));
 	Engine::instance()->get_plugin_manager()->signal_plugin_unload().connect(sigc::mem_fun(this, &UI::on_plugin_unload));
 	Engine::instance()->get_plugin_manager()->signal_add_widget().connect(sigc::mem_fun(this, &UI::on_add_widget));
@@ -501,6 +505,7 @@ void UI::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent
 	{
 		case Plugin::PARENT_MAIN:
 			notebook_main->append_page(*widget, name);
+			notebook_main->set_show_tabs((notebook_main->get_n_pages() > 1));
 			widget->show();
 			break;
 		case Plugin::PARENT_DETAILS:
@@ -566,11 +571,10 @@ void UI::update(const WeakPtr<Torrent>& torrent)
 		info = torrent->get_info();
 		stats = torrent->get_status();
 	}
+	else if (torrent_list->is_selected(hash))
+		reset_views();
 	
 	torrent_list->update_row(torrent);
-	
-	if (torrent_list->is_selected(hash) && !torrent->is_running())
-		button_tracker->set_label(""); //Get rid of "Updating..." on event=stopped
 	
 	if (torrent_list->is_selected(hash) && expander_details->get_expanded() && torrent->is_running())
 	{
@@ -965,6 +969,9 @@ void UI::on_torrent_list_selection_changed()
 		else
 			button_tracker->set_sensitive(true);
 		
+		/* Easiest way to make sure the new selection doesn't display wrong tracker */
+		button_tracker->set_label("");
+
 		update(torrent);
 	}
 	else /* Multiple torrents selected */
@@ -972,6 +979,25 @@ void UI::on_torrent_list_selection_changed()
 		expander_details->set_expanded(false);
 		expander_details->set_sensitive(false); 
 	}
+}
+
+void UI::on_torrent_list_double_clicked(const sha1_hash& hash)
+{
+	if (expander_details->is_sensitive())
+	{
+		if (!expander_details->get_expanded())
+		{
+			if (Engine::instance()->get_torrent_manager()->exists(hash)) /* Unnecessary? */
+				expander_details->set_expanded(true);
+		}
+		else
+			expander_details->set_expanded(false);
+	}
+}
+
+void UI::on_torrent_list_right_clicked(const sha1_hash& hash)
+{
+	/* FIXME: add popup menu */
 }
 
 bool UI::on_tracker_update(GdkEventButton* e)

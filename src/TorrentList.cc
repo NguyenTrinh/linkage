@@ -394,6 +394,38 @@ void TorrentList::format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& 
 		cell_t->property_text() = "";
 }
 
+bool TorrentList::on_button_press_event(GdkEventButton *event)
+{
+	Gtk::TreeView::on_button_press_event(event);
+	
+	Gtk::TreePath path;
+	Gtk::TreeViewColumn* column;
+	int cell_x, cell_y;
+
+	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y))
+		return false;
+	
+	Gtk::TreeRow row = *model->get_iter(path);
+
+	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
+		m_signal_double_click.emit(row[columns.hash]);
+	else if (event->button == 3)
+		m_signal_right_click.emit(row[columns.hash]);
+		
+	return true;
+}
+
+sigc::signal<void, const sha1_hash&> TorrentList::signal_double_click()
+{
+	return m_signal_double_click;
+}
+
+sigc::signal<void, const sha1_hash&> TorrentList::signal_right_click()
+{
+	return m_signal_right_click;
+}
+
+
 void TorrentList::update_groups()
 {
 	Gtk::TreeNodeChildren parents = model->children();
@@ -453,7 +485,7 @@ Gtk::TreeIter TorrentList::add_group(const Glib::ustring& name)
 }
 
 void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
-{			
+{
 	Gtk::TreeRow row = *get_iter(torrent->get_hash());
 	row[columns.position] = torrent->get_position();
 	
@@ -545,7 +577,6 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 		ss << "Queued";
 
 	row[columns.name] = ss.str();
-		
 	row[columns.down_rate] = (unsigned int)status.download_payload_rate;
 	row[columns.up_rate] = (unsigned int)status.upload_payload_rate;
 	row[columns.seeds] = status.num_seeds;
