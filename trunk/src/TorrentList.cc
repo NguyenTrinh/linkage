@@ -570,11 +570,14 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 	ss << "<span foreground='" << color << "'><b>" << torrent->get_name() <<
 		"</b> (" << suffix_value((int)torrent->get_info().total_size()) << ")" <<
 		"</span>\n";
-	if (torrent->get_state() != Torrent::QUEUED)
+	Torrent::State state = torrent->get_state();
+	if (state != Torrent::QUEUED && state != Torrent::SEEDING)
 		ss << status.num_seeds << " connected seeds, " <<
 					status.num_peers - status.num_seeds << " peers";
-	else
+	else if (state == Torrent::QUEUED)
 		ss << "Queued";
+	 if (state == Torrent::SEEDING)
+		ss << status.num_peers - status.num_seeds << " connected peers";
 
 	row[columns.name] = ss.str();
 	row[columns.down_rate] = (unsigned int)status.download_payload_rate;
