@@ -86,6 +86,11 @@ class TorrentList : public Gtk::TreeView
 	void format_children(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	void format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	
+	bool on_button_press_event(GdkEventButton *event);
+
+	sigc::signal<void, const sha1_hash&> m_signal_double_click;
+	sigc::signal<void, const sha1_hash&> m_signal_right_click;
+	
 public:
 	enum Column 
 	{
@@ -114,6 +119,8 @@ public:
 	void update_row(const WeakPtr<Torrent>& torrent);
 	
 	Glib::SignalProxy0<void> signal_changed();
+	sigc::signal<void, const sha1_hash&> signal_double_click();
+	sigc::signal<void, const sha1_hash&> signal_right_click();
 
 	TorrentList();
 	virtual ~TorrentList();

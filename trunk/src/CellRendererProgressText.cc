@@ -80,8 +80,6 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 	Gtk::StateType state;
 	if (flags & Gtk::CELL_RENDERER_SELECTED)
 		state = Gtk::STATE_SELECTED;
-	else if (flags & Gtk::CELL_RENDERER_SORTED)
-		state = Gtk::STATE_ACTIVE;
 	else
 		state = Gtk::STATE_NORMAL;
 
