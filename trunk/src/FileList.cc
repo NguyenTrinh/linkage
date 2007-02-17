@@ -132,29 +132,27 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 	unsigned int overlapped_bytes = 0;
 	unsigned int pos = 0;
 
-	Glib::ustring sel_name;
-	bool select = false;
-	Gtk::TreeIter iter = get_selection()->get_selected();
-	if (iter)
+	Gtk::CellRendererToggle* cell = dynamic_cast<Gtk::CellRendererToggle*>(get_column(0)->get_first_cell_renderer());
+	cell->property_activatable() = (torrent->get_state() != Torrent::SEEDING);
+	
+	Gtk::TreeNodeChildren children = model->children();
+	if (!children.size())
 	{
-		Gtk::TreeModel::Row row = *iter;
-		sel_name = row[columns.name];
-		select = true;
+		for (int i = 0; i < info.num_files(); i++)
+		{
+			Gtk::TreeRow row = *(model->append());
+			row[columns.index] = i;
+		}
 	}
 	
-	set_model(Glib::RefPtr<Gtk::TreeModel>(NULL));
-	
-	clear();
-
-	Gtk::CellRendererToggle* cell = dynamic_cast<Gtk::CellRendererToggle*>(get_column(0)->get_first_cell_renderer());
-	cell->property_activatable() = !(torrent->get_state() & Torrent::SEEDING);
-
-	for (unsigned int i = 0; i < info.num_files(); i++)
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
+		Gtk::TreeRow row = *iter;
+		
 		std::list<bool> map;
 
-		file_entry file = info.file_at(i);
-		peer_request file_info = info.map_file(i, 0, file.size);
+		file_entry file = info.file_at(row[columns.index]);
+		peer_request file_info = info.map_file(row[columns.index], 0, file.size);
 
 		unsigned int byte_pos_in_file = 0;
 		unsigned int piece_index = file_info.piece;
@@ -169,29 +167,13 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 			piece_index++;
 		}
 
-		unsigned int completed_bytes = (unsigned int)(fp[i] * file.size);
+		unsigned int completed_bytes = (unsigned int)(fp[row[columns.index]] * file.size);
 
-		Gtk::TreeModel::Row row = *(model->append());
-		row[columns.filter] = filter[i];
+		row[columns.filter] = filter[row[columns.index]];
 		row[columns.name] = file.path.string();
 		row[columns.map] = map;
 		row[columns.done] = completed_bytes;
 		row[columns.size] = file.size;
-	}
-
-	set_model(model);
-
-	if (select)
-	{
-		for (unsigned int i = 0; i < model->children().size(); i++)
-		{
-			Gtk::TreeModel::Row row = model->children()[i];
-			if (row[columns.name] == sel_name)
-			{
-				get_selection()->select(row);
-				break;
-			}
-		}
 	}
 }
 
@@ -202,12 +184,19 @@ int FileList::compare_piece_map(const Gtk::TreeIter& a,
 	row_a = *a;
 	row_b = *b;
 	
+	if (!row_a[columns.size] && !row_a[columns.size])
+		return 0;
+	else if (row_a[columns.size])
+		return -1;
+	else
+		return 1;
+
 	double complete_a = (double)row_a[columns.done]/row_a[columns.size];
 	double complete_b = (double)row_b[columns.done]/row_b[columns.size];
 	
 	if (complete_a < complete_b)
 		return -1;
-	if (complete_a > complete_b)
+	else if (complete_a > complete_b)
 		return 1;
 	else
 		return 0;
