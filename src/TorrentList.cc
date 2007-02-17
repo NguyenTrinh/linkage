@@ -25,6 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
+#define TREE_COL_CHILDREN 0
+#define TREE_COL_EXPANDER 1
+#define TREE_COL_POSITION 2
+#define TREE_COL_NAME 3
+#define TREE_COL_PROGRESS 4
+
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 
 TorrentList::TorrentList()
@@ -35,27 +41,31 @@ TorrentList::TorrentList()
 
 	get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 	
-	append_column("Torrents", columns.children);
-	Gtk::TreeViewColumn* column = get_column(COL_CHILDREN - 1);
+	append_column("Children", columns.children);
+	Gtk::TreeViewColumn* column = get_column(TREE_COL_CHILDREN);
 	column->set_cell_data_func(*column->get_first_cell_renderer(), sigc::mem_fun(this, &TorrentList::format_children));
+	Gtk::CellRendererPixbuf* dummy_cell = manage(new Gtk::CellRendererPixbuf());
+	append_column("Expander", *dummy_cell);
+	get_column(TREE_COL_EXPANDER)->set_max_width(16);
 	append_column("#", columns.position);
-	column = get_column(COL_POSITION - 1);
+	column = get_column(TREE_COL_POSITION);
 	column->set_cell_data_func(*column->get_first_cell_renderer(), sigc::mem_fun(this, &TorrentList::format_position));
 	append_column("Name", columns.name);
 	CellRendererProgressText* render = new CellRendererProgressText();
 	append_column("Progress", *Gtk::manage(render));
-	column = get_column(COL_PROGRESS - 1);
+	column = get_column(TREE_COL_PROGRESS);
 	column->add_attribute(*render, "value", COL_PROGRESS);
 	column->add_attribute(*render, "text", COL_ETA);
 	column->add_attribute(*render, "text1", COL_DOWNRATE);
 	column->add_attribute(*render, "text2", COL_UPRATE);
+	column->add_attribute(*render, "hide", COL_IS_GROUP);
 	column->set_cell_data_func(*render, sigc::mem_fun(this, &TorrentList::format_rates));
 	
 	for(unsigned int i = 0; i < 4; i++)
 	{
 		Gtk::TreeView::Column* column = get_column(i);
-		column->set_sort_column_id(i + 1);
-		if (i == (COL_NAME - 1))
+		column->set_sort_column_id(i);
+		if (i == TREE_COL_NAME)
 		{
 			Gtk::CellRenderer* name_render = column->get_first_cell_renderer();
 			column->clear_attributes(*name_render);
@@ -65,7 +75,7 @@ TorrentList::TorrentList()
 		column->set_resizable(true);
 	}
 	set_headers_visible(false);
-	set_expander_column(*get_column(COL_POSITION - 1));
+	set_expander_column(*get_column(TREE_COL_EXPANDER));
 	
 	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
 	std::list<Glib::ustring> groups = sm->get_keys("Groups");
@@ -481,6 +491,7 @@ Gtk::TreeIter TorrentList::add_group(const Glib::ustring& name)
 	Gtk::TreeIter iter = model->append();
 	Gtk::TreeRow row = *iter;
 	row[columns.name] = "<i>" + name + "</i>";
+	row[columns.is_group] = true;
 	return iter;
 }
 
@@ -572,12 +583,21 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 		"</span>\n";
 	Torrent::State state = torrent->get_state();
 	if (state != Torrent::QUEUED && state != Torrent::SEEDING)
+	{
 		ss << status.num_seeds << " connected seeds, " <<
 					status.num_peers - status.num_seeds << " peers";
+		//row[columns.icon] = Gdk::Pixbuf::create_from_file("/home/lunke/Projekt/linkage/data/download.png", 32, 32);
+	}
 	else if (state == Torrent::QUEUED)
+	{
 		ss << "Queued";
-	 if (state == Torrent::SEEDING)
+		//row[columns.icon] = Gdk::Pixbuf::create_from_file("/home/lunke/Projekt/linkage/data/queued.png", 32, 32);
+	}
+	if (state == Torrent::SEEDING)
+	{
 		ss << status.num_peers - status.num_seeds << " connected peers";
+		//row[columns.icon] = Gdk::Pixbuf::create_from_file("/home/lunke/Projekt/linkage/data/seed.png", 32, 32);
+	}
 
 	row[columns.name] = ss.str();
 	row[columns.down_rate] = (unsigned int)status.download_payload_rate;

@@ -24,6 +24,7 @@ class CellRendererProgressText : public Gtk::CellRendererProgress
 {
 	Glib::Property<Glib::ustring> m_prop_text1;
 	Glib::Property<Glib::ustring> m_prop_text2;
+	Glib::Property<bool> m_prop_hide;
 	
 protected:
 	void render_vfunc(const Glib::RefPtr<Gdk::Drawable>& window,
@@ -41,6 +42,7 @@ protected:
 public:
 	Glib::PropertyProxy<Glib::ustring> property_text1();
 	Glib::PropertyProxy<Glib::ustring> property_text2();
+	Glib::PropertyProxy<bool> property_hide();
 	
 	CellRendererProgressText();
 	~CellRendererProgressText();

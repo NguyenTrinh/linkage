@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/treeview.h>
 #include <gtkmm/treestore.h>
+#include <gdkmm/pixbuf.h>
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
@@ -34,7 +35,7 @@ class TorrentList : public Gtk::TreeView
 	{
 	public:
 		ModelColumns()
-			{ add(hash);
+			{
 				add(children);
 				add(position);
 				add(name);
@@ -47,6 +48,8 @@ class TorrentList : public Gtk::TreeView
 				add(seeds);
 				add(peers);
 				add(eta);
+				add(is_group);
+				add(hash);
 			}
 		Gtk::TreeModelColumn<sha1_hash> hash;
 		Gtk::TreeModelColumn<unsigned int> children;
@@ -61,6 +64,7 @@ class TorrentList : public Gtk::TreeView
 		Gtk::TreeModelColumn<unsigned int> seeds;
 		Gtk::TreeModelColumn<unsigned int> peers;
 		Gtk::TreeModelColumn<Glib::ustring> eta;
+		Gtk::TreeModelColumn<bool> is_group;
 	}; 
 	ModelColumns columns;
 	
@@ -94,7 +98,6 @@ class TorrentList : public Gtk::TreeView
 public:
 	enum Column 
 	{
-		COL_HASH,
 		COL_CHILDREN,
 		COL_POSITION,
 		COL_NAME,
@@ -106,7 +109,9 @@ public:
 		COL_UPRATE,
 		COL_SEEDS,
 		COL_PEERS,
-		COL_ETA
+		COL_ETA,
+		COL_IS_GROUP,
+		COL_HASH
 	};
 	
 	bool is_selected(const sha1_hash& hash);
