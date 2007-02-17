@@ -23,7 +23,8 @@ CellRendererProgressText::CellRendererProgressText() :
 	Glib::ObjectBase(typeid(CellRendererProgressText)),
 	Gtk::CellRendererProgress(),
 	m_prop_text1(*this, "text1"),
-	m_prop_text2(*this, "text2")
+	m_prop_text2(*this, "text2"),
+	m_prop_hide(*this, "hide")
 {
 	property_xpad() = 0;
 	property_ypad() = 0;
@@ -40,8 +41,9 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 																				const Gdk::Rectangle& exp_area,
 																				Gtk::CellRendererState flags)
 {
-	static int min_size = -1;
-	
+	if (m_prop_hide)
+		return;
+
 	const int xpad = property_xpad();
 	const int ypad = property_ypad();
 	
@@ -55,20 +57,8 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 	bar_x = cell_area.get_x() + x_offset + xpad + widget.get_style()->get_xthickness();
 	bar_y = cell_area.get_y() + y_offset + ypad + widget.get_style()->get_ythickness();
 	bar_width = width - (widget.get_style()->get_xthickness() * 2);
-	bar_height = height - (widget.get_style()->get_ythickness() * 2);
-	
-	/* If our cell area spans two rows we should draw text as well
-		 instead of messing with DPI and 
-		 widget.get_pango_context()->get_font_description().get_size()
-		 we do an ugly hack with static min_size */
-	if (bar_height < min_size || min_size < 0)
-		min_size = bar_height;
-	
-	bool draw_text = (bar_height > min_size);
-	if (draw_text)
-	{
-		bar_height = min_size;
-	}
+	bar_height = (height - (widget.get_style()->get_ythickness() * 2))/2 + 2;
+	std::cout << bar_height << std::endl;
 	
 	Gdk::Rectangle bar_area(bar_x, bar_y, bar_width, bar_height);
 
@@ -158,4 +148,9 @@ Glib::PropertyProxy<Glib::ustring> CellRendererProgressText::property_text1()
 Glib::PropertyProxy<Glib::ustring> CellRendererProgressText::property_text2()
 {
 	return m_prop_text2.get_proxy();
+}
+
+Glib::PropertyProxy<bool> CellRendererProgressText::property_hide()
+{
+	return m_prop_hide.get_proxy();
 }

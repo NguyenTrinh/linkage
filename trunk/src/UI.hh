@@ -84,23 +84,18 @@ class UI : public Gtk::Window
 	AlignedLabel* label_down_rate;
 	AlignedLabel* label_up;
 	AlignedLabel* label_up_rate;
-	AlignedLabel* label_time_elapsed;
-	AlignedLabel* label_time_eta;
 	AlignedLabel* label_ratio;
-	AlignedLabel* label_seeds;
-	AlignedLabel* label_peers;
 	AlignedLabel* label_wasted;
-	Gtk::Button* button_tracker; //TOD: Gtkmm 2.10 has Gtk::LinkButton
+	Gtk::Button* button_tracker;
 	AlignedLabel* label_save_path;
 	AlignedLabel* label_creator;
 	AlignedLabel* label_comment;
 	AlignedLabel* label_size;
 	AlignedLabel* label_pieces;
-	AlignedLabel* label_piece_size;
 	AlignedLabel* label_next_announce;
 	AlignedLabel* label_files;
 	AlignedLabel* label_response;
-	AlignedLabel* label_progress;
+	AlignedLabel* label_date;
 	
 	Gtk::Menu* menu_trackers;
 	
@@ -124,7 +119,7 @@ class UI : public Gtk::Window
 	
 	sigc::connection connection_switch_page;	/* This must be disconnected before UI is destroy to avoid segfault */
 	
-	enum { PAGE_INFO, PAGE_STATUS, PAGE_PEERS, PAGE_FILES };
+	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
 										
 protected:
 	void on_spin_down();

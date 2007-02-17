@@ -95,9 +95,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		sel_addr = row[columns.address];
 		select = true;
 	}
-	
-	set_model(Glib::RefPtr<Gtk::TreeModel>(NULL));
-	
+
 	clear();
 
 	#ifdef HAVE_LIBGEOIP
@@ -151,13 +149,12 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		GeoIP_delete(gi);
 	#endif
 	
-	set_model(model);
-	
 	if (select)
 	{
-		for (unsigned int i = 0; i < model->children().size(); i++)
+		Gtk::TreeNodeChildren children = model->children();
+		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 		{
-			Gtk::TreeModel::Row row = model->children()[i];
+			Gtk::TreeRow row = *iter;
 			if (row[columns.address] == sel_addr)
 			{
 				get_selection()->select(row);
