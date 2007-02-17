@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include "CellRendererProgressText.hh"
-#include <iostream>
 
 CellRendererProgressText::CellRendererProgressText() :
 	Glib::ObjectBase(typeid(CellRendererProgressText)),
@@ -58,7 +57,6 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 	bar_y = cell_area.get_y() + y_offset + ypad + widget.get_style()->get_ythickness();
 	bar_width = width - (widget.get_style()->get_xthickness() * 2);
 	bar_height = (height - (widget.get_style()->get_ythickness() * 2))/2 + 2;
-	std::cout << bar_height << std::endl;
 	
 	Gdk::Rectangle bar_area(bar_x, bar_y, bar_width, bar_height);
 
