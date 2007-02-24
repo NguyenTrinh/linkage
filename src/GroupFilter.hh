@@ -35,11 +35,14 @@ public:
 
 	bool eval(const WeakPtr<Torrent>& torrent);
 
-	const Glib::ustring& get_name();	
-	
+	const Glib::ustring& get_name();
+	const Glib::ustring& get_filter();
+	const TagType get_tag();
+	const EvalType get_eval();
+
 	GroupFilter(const Glib::ustring& filter, TagType tag, EvalType eval, const Glib::ustring& name);
 	~GroupFilter();
-	
+
 protected:
 	Glib::ustring m_filter;
 	TagType m_tag;

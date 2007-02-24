@@ -32,13 +32,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "AlignedSpinButton.hh"
 #include "GroupFilter.hh"
 
+bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
+									const Gtk::TreeIter& iter);
+
 class SettingsWin : public Gtk::Window
 {
 	class PluginModelColumns : public Gtk::TreeModelColumnRecord
 	{
 	public:
 		PluginModelColumns()
-			{ 
+			{
 				add(load);
 				add(name);
 				add(description);
@@ -47,77 +50,82 @@ class SettingsWin : public Gtk::Window
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<Glib::ustring> description;
 	};
-	
+
 	class GroupFilterRow : public Gtk::HBox
 	{
 		Gtk::Entry *m_name;
 		Gtk::ComboBoxText *m_eval, *m_tag;
 		Gtk::ComboBoxEntryText *m_filter;
-		
+
 		void on_tag_changed();
-		
+		void init();
+
 	public:
-		GroupFilter get_filter() const;
-		
+		Glib::ustring get_filter();
+		int get_tag();
+		int get_eval();
+		Glib::ustring get_name();
+		bool has_focus();
+
 		GroupFilterRow();
 		GroupFilterRow(const Glib::ustring& filter,
-									 GroupFilter::TagType tag,
-									 GroupFilter::EvalType eval,
+									 int tag,
+									 int eval,
 									 const Glib::ustring& name);
 		~GroupFilterRow();
 	};
-	
+
 	class GroupFilterView : public Gtk::VBox
 	{
 		std::list<GroupFilterRow*> m_children;
-		
+
 	public:
 		void append(GroupFilterRow* row);
 		void remove(GroupFilterRow* row);
+		GroupFilterRow* get_row(const Glib::ustring& group);
 		const std::list<GroupFilterRow*>& children();
-		
+		GroupFilterRow* get_selected();
+
 		GroupFilterView();
 		~GroupFilterView();
 	};
-	
+
 	PluginModelColumns plugin_columns;
-	
+
 	Glib::RefPtr<Gtk::ListStore> model_plugins;
-	
+
 	AlignedSpinButton* update_interval;
 	/* Gtk::CheckButton *tray_icon, *min_to_tray, *close_to_tray; */
 	Gtk::CheckButton* auto_expand;
-	
+
 	Gtk::ComboBoxText* interfaces;
 	AlignedSpinButton *min_port, *max_port, *proxy_port;
 	AlignedSpinButton *up_rate, *down_rate;
 	AlignedSpinButton *max_connections, *max_uploads, *max_active;
 	AlignedSpinButton *tracker_timeout;
-	
+
 	Gtk::CheckButton *default_path, *move_finished, *allocate, *use_proxy;
 	Gtk::FileChooserButton *button_default_path, *button_move_finished;
 	Gtk::Entry *proxy_ip, *proxy_user, *proxy_pass;
-	
+
 	GroupFilterView* groups_view;
-	
+
 	void on_plugin_toggled(const Glib::ustring& path);
 
 	void list_interfaces();
-	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model, 
-										const Gtk::TreeModel::iterator& iter);
-	
-	virtual bool on_delete_event(GdkEventAny*);
+
+	bool on_delete_event(GdkEventAny*);
 	void on_button_close();
 	void on_hide();
 	void on_show();
 	void on_min_port_changed();
 	void on_max_port_changed();
-	
+
 	void on_proxy_toggled();
-	
+
 	void on_group_add();
 	void on_group_remove();
-	
+
 public:
 	SettingsWin(Gtk::Window *parent);
 	virtual ~SettingsWin();

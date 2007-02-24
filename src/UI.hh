@@ -68,9 +68,9 @@ class UI : public Gtk::Window
 {
 	Glib::RefPtr<Gtk::ActionGroup> action_group;
 	Glib::RefPtr<Gtk::UIManager> manager;
-	
+
 	Gtk::MenuToolButton* tb_sort;
-	
+
 	Statusbar* statusbar;
 
 	Gtk::Button* button_add;
@@ -79,7 +79,7 @@ class UI : public Gtk::Window
 	Gtk::Button* button_stop;
 	Gtk::Button* button_up;
 	Gtk::Button* button_down;
-	
+
 	AlignedLabel* label_down;
 	AlignedLabel* label_down_rate;
 	AlignedLabel* label_up;
@@ -87,7 +87,7 @@ class UI : public Gtk::Window
 	AlignedLabel* label_ratio;
 	AlignedLabel* label_wasted;
 	Gtk::Button* button_tracker;
-	AlignedLabel* label_save_path;
+	AlignedLabel* label_path;
 	AlignedLabel* label_creator;
 	AlignedLabel* label_comment;
 	AlignedLabel* label_size;
@@ -95,101 +95,104 @@ class UI : public Gtk::Window
 	AlignedLabel* label_next_announce;
 	AlignedLabel* label_files;
 	AlignedLabel* label_response;
+	AlignedLabel* label_private;
 	AlignedLabel* label_date;
-	
+
 	Gtk::Menu* menu_trackers;
-	
+
 	Gtk::Expander* expander_details;
 	Gtk::Notebook* notebook_main;
 	Gtk::Notebook* notebook_details;
-	
+
 	AlignedSpinButton* spinbutton_down;
 	AlignedSpinButton* spinbutton_up;
-	
+
 	OpenDialog* file_chooser;
 	SaveDialog* path_chooser;
-	
+
 	PieceMap* piecemap;
 	TorrentList* torrent_list;
 	FileList* file_list;
 	PeerList* peer_list;
-	
+
 	SettingsWin* settings_win;
 	TorrentCreator* torrent_win;
-	
+
 	sigc::connection connection_switch_page;	/* This must be disconnected before UI is destroy to avoid segfault */
-	
+	sigc::connection connection_tick;
+
 	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
-										
-protected:
+
+	bool on_visibility_notify_event(GdkEventVisibility* event);
 	void on_spin_down();
 	void on_spin_up();
-	
+
 	void on_add();
 	void on_remove();
 	void on_start();
 	void on_stop();
 	void on_up();
 	void on_down();
-	
+
 	void on_new();
 	void on_info();
 	void on_prefs();
 	void on_about();
 	void on_quit();
-	
+
 	void on_details_expanded();
-	
+
 	void on_torrent_list_selection_changed();
 	void on_torrent_list_double_clicked(const sha1_hash& hash);
 	void on_torrent_list_right_clicked(const sha1_hash& hash);
-	
-	bool on_timeout();
-	
+
+	void on_tick();
+
 	void on_sort_item_selected(TorrentList::Column col);
 	void on_sort();
-	
-	void update(const WeakPtr<Torrent>& torrent);
-	
-	virtual bool on_delete_event(GdkEventAny*);
-	
+
+	void update(const WeakPtr<Torrent>& torrent, bool update_lists = false);
+	void update_statics(const WeakPtr<Torrent>& torrent);
+
+	bool on_delete_event(GdkEventAny*);
+
 	bool on_tracker_update(GdkEventButton* e);
 	void on_tracker_enter();
 	void on_tracker_leave();
-	
+
 	void on_switch_page(GtkNotebookPage* child, int page);
-	
+
 	void save_state();
 	void reset_views();
-	
+
 	void build_tracker_menu(const WeakPtr<Torrent>& torrent);
 	void on_popup_tracker_selected(const Glib::ustring& tracker, int tier);
-	
+
 	void add_torrent(const Glib::ustring& file);
-	void on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context, 
-											 int x, int y, 
-											 const Gtk::SelectionData& selection_data, 
-											 guint info, 
+	void on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
+											 int x, int y,
+											 const Gtk::SelectionData& selection_data,
+											 guint info,
 											 guint time);
-											 
-	void notify(const Glib::ustring& title, 
+
+	void notify(const Glib::ustring& title,
 							const Glib::ustring& msg);
-	
+
 	void on_plugin_load(Plugin* plugin);
 	void on_plugin_unload(Plugin* plugin);
 	void on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent);
-	
+
 	void on_toggle_visible();
-	
+
 	void on_settings();
-	
+
 	void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
 	void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
 	void on_duplicate_torrent(const Glib::ustring& msg, const sha1_hash& hash);
 
 	void on_listen_failed(const Glib::ustring& msg);
 	void on_tracker_failed(const sha1_hash& hash, const Glib::ustring& msg, int code, int times);
-	void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& msg);
+	void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& msg, int peers);
 	void on_tracker_warning(const sha1_hash& hash, const Glib::ustring& msg);
 	void on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg);
 	void on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg);
@@ -197,7 +200,7 @@ protected:
 	void on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg);
 	void on_hash_failed(const sha1_hash& hash, const Glib::ustring& msg, int piece);
 	void on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
-	
+
 public:
 	UI();
 	~UI();

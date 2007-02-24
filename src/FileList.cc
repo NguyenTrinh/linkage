@@ -97,7 +97,7 @@ void FileList::on_filter_toggled(const Glib::ustring& path)
 	Gtk::TreeRow row = *(model->get_iter(path));
 	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(current_hash);
 
-	if (torrent->is_valid())
+	if (torrent)
 	{
 		row[columns.filter] = !row[columns.filter];
 		torrent->filter_file(row[columns.name], row[columns.filter]);
@@ -107,13 +107,14 @@ void FileList::on_filter_toggled(const Glib::ustring& path)
 void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column)
 {
 	Gtk::TreeRow row = *iter;
-	dynamic_cast<Gtk::CellRendererText*>(cell)->property_text() = suffix_value(row[column]);
+	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
+	cell_text->property_text() = suffix_value(row[column]);
 }
 
-/* FIXME: this doens't correctly display the progress bar on some finished files (1 pixel row missing at the end)
-	 It's probably a bug in *PieceMap, best shown here though.
-
-	 This method hogs cpu =/ */
+/* 
+	FIXME: this doens't correctly display the progress bar on some finished files (1 pixel row missing at the end)
+	It's probably a bug in *PieceMap, best shown here though.
+*/
 void FileList::update(const WeakPtr<Torrent>& torrent)
 {
 	current_hash = torrent->get_hash();

@@ -31,49 +31,59 @@ PeerList::PeerList()
 
 	set_model(model);
 
+	Gtk::TreeViewColumn* column = Gtk::manage(new Gtk::TreeViewColumn("Address"));
+	column->set_sort_column_id(columns.address);
+	column->set_resizable(true);
 	#ifdef HAVE_LIBGEOIP
-		Gtk::TreeView::Column* pColumn = Gtk::manage(new Gtk::TreeView::Column("Address"));
-
-		pColumn->pack_start(columns.flag, false);
-		pColumn->pack_start(columns.address);
-
-		pColumn->set_sort_column_id(columns.address);
-		pColumn->set_resizable(true);
-
-		append_column(*pColumn);
+		column->pack_start(columns.flag, false);
+		column->pack_start(columns.address);
 	#else
-		append_column("Address", columns.address);
-		Gtk::TreeView::Column* pColumn = get_column(0);
-		pColumn->set_sort_column_id(0);
-		pColumn->set_resizable(true);
+		column->pack_start(columns.address);
 	#endif
+	append_column(*column);
 
-	append_column("Down", columns.down);
-	append_column("Up", columns.up);
-	append_column("Down rate", columns.down_rate);
-	append_column("Up rate", columns.up_rate);
+	int col = append_column("Down", columns.down);
+	column = get_column(col - 1);
+	Gtk::CellRendererText* cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.down, ""));
+	col = append_column("Up", columns.up);
+	column = get_column(col - 1);
+	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.up, ""));
+	col = append_column("Down rate", columns.down_rate);
+	column = get_column(col - 1);
+	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.down_rate, "/s"));
+	col = append_column("Up rate", columns.up_rate);
+	column = get_column(col - 1);
+	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.up_rate, "/s"));
+
 	Gtk::CellRendererProgress* prender = new Gtk::CellRendererProgress();
-	unsigned int col = append_column("Progress", *Gtk::manage(prender));
-	#ifndef HAVE_LIBGEOIP /* FIXME: Not tested! */
-		col -= 1;
-	#endif
-	get_column(5)->add_attribute(*prender, "value", col);
+	col = append_column("Progress", *Gtk::manage(prender));
+	get_column(col - 1)->add_attribute(*prender, "value", col);
 	append_column("Client", columns.client);
 
 	for(unsigned int i = 1; i < 7; i++)
 	{
-		Gtk::TreeView::Column* column = get_column(i);
-		#ifdef HAVE_LIBGEOIP
-			column->set_sort_column_id(i + 1);
-		#else
-			column->set_sort_column_id(i);
-		#endif
+		column = get_column(i);
+		column->set_sort_column_id(i + 1);
 		column->set_resizable(true);
 	}
 }
 
 PeerList::~PeerList()
 {
+}
+
+void PeerList::format_data(Gtk::CellRenderer* cell,
+									const Gtk::TreeIter& iter,
+									const Gtk::TreeModelColumn<unsigned int>& column,
+									const Glib::ustring& suffix)
+{
+	Gtk::TreeRow row = *iter;
+	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
+	cell_text->property_text() = suffix_value(row[column]) + suffix;
 }
 
 void PeerList::clear()
@@ -125,10 +135,10 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		#endif
 
 		row[columns.address] = peers[i].ip.address().to_string() + ":" + str(peers[i].ip.port());
-		row[columns.down] = suffix_value((unsigned int)peers[i].total_download);
-		row[columns.up] = suffix_value((unsigned int)peers[i].total_upload);
-		row[columns.down_rate] = suffix_value(peers[i].payload_down_speed) + "/s";
-		row[columns.up_rate] = suffix_value(peers[i].payload_up_speed) + "/s";
+		row[columns.down] = (unsigned int)peers[i].total_download;
+		row[columns.up] = (unsigned int)peers[i].total_upload;
+		row[columns.down_rate] = (unsigned int)peers[i].payload_down_speed;
+		row[columns.up_rate] = (unsigned int)peers[i].payload_up_speed;
 		unsigned int completed = 0;
 		for (unsigned int j = 0; j < peers[i].pieces.size(); j++)
 		{
@@ -148,7 +158,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	#ifdef HAVE_LIBGEOIP
 		GeoIP_delete(gi);
 	#endif
-	
+
 	if (select)
 	{
 		Gtk::TreeNodeChildren children = model->children();

@@ -30,10 +30,13 @@ Glib::RefPtr<TorrentManager> TorrentManager::create()
 TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 {
 	m_session_manager = Engine::instance()->get_session_manager();
-	
+
 	m_session_manager->signal_update_queue().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
 	
-	Engine::instance()->get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
+	Glib::RefPtr<AlertManager> am = Engine::instance()->get_alert_manager();
+	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
+	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
+	am->signal_tracker_failed().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_failed));
 }
 
 TorrentManager::~TorrentManager()
@@ -42,23 +45,20 @@ TorrentManager::~TorrentManager()
 	{
 		sha1_hash hash = iter->first;
 		Torrent* torrent = iter->second;
-		
+
 		Glib::ustring hash_str = str(hash);
-		
+
+		entry e = torrent->get_resume_entry(torrent->is_running());
+		save_fastresume(hash, e);
 		if (torrent->is_running())
-		{
-			torrent->stop();
-			entry e = torrent->get_resume_entry(true);
-			save_fastresume(hash, e);
 			m_session_manager->remove_torrent(torrent->get_handle());
-		}
-		
+
 		delete torrent;
 	}
 }
 
 void TorrentManager::save_fastresume(const sha1_hash& hash, const entry& e)
-{ 
+{
 	Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash) + ".resume");
 	std::ofstream out(file.c_str(), std::ios_base::binary);
 	out.unsetf(std::ios_base::skipws);
@@ -86,9 +86,34 @@ sigc::signal<void, const sha1_hash&> TorrentManager::signal_removed()
 	return m_signal_removed;
 }
 
-void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply)
+void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply, int peers)
 {
-	//m_torrents[hash]->set_tracker_reply(reply);
+	m_torrents[hash]->set_tracker_reply("OK, got " + str(peers) + " peers");
+}
+
+void TorrentManager::on_tracker_warning(const sha1_hash& hash, const Glib::ustring& reply)
+{
+	m_torrents[hash]->set_tracker_reply(reply);
+}
+
+void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustring& reply, int code, int times)
+{
+	Glib::ustring scode;
+	if (code == 200)
+	{
+		/* Get rid of tracker: "http://foo.bar" */
+		Glib::ustring tracker_msg = reply.substr(reply.find(" ", 9));
+		m_torrents[hash]->set_tracker_reply(tracker_msg);
+		return;
+	}
+	
+	if (code == -1)
+		scode = "connection refused";
+	else
+		scode = str(code);
+	
+	Glib::ustring msg = "Failed: " + scode + " (" + str(times) + " times in a row)";
+	m_torrents[hash]->set_tracker_reply(msg);
 }
 
 void TorrentManager::set_torrent_position(const sha1_hash& hash, Torrent::Direction direction)
@@ -102,7 +127,7 @@ void TorrentManager::set_torrent_position(const sha1_hash& hash, Torrent::Direct
 				iter->second->set_position(position + 1);
 			else if (direction == Torrent::DIR_DOWN)
 				iter->second->set_position(position - 1);
-		}	
+		}
 	}
 	m_signal_position_changed.emit(hash, m_torrents[hash]->get_position());
 }
@@ -127,33 +152,30 @@ void TorrentManager::add_torrent(const torrent_handle& handle, const entry& e)
 	if (m_torrents.find(handle.info_hash()) == m_torrents.end())
 		add_torrent(e);
 	m_torrents[handle.info_hash()]->set_handle(handle);
-	m_torrents[handle.info_hash()]->start();
 }
 
 void TorrentManager::add_torrent(const entry& e)
 {
 	entry::dictionary_type ed(e.dict());
-	if (!e.find_key("time"))
-		ed["time"] = 0;
-	
+
 	if (!e.find_key("group"))
 		ed["group"] = Engine::instance()->get_settings_manager()->get_string("Files", "DefGroup");
-	
+
 	if (!e.find_key("upload-limit"))
 		ed["upload-limit"] = 0;
-		
+
 	if (!e.find_key("download-limit"))
 		ed["download-limit"] = 0;
-		
+
 	if (!e.find_key("downloaded"))
 		ed["downloaded"] = 0;
-	
+
 	if (!e.find_key("uploaded"))
 		ed["uploaded"] = 0;
-	
+
 	if (!e.find_key("position"))
 		ed["position"] = m_torrents.size() + 1;
-	
+
 	Torrent* torrent = new Torrent(ed, false);
 
 	sha1_hash hash = info_hash(ed["info-hash"].string());
@@ -164,8 +186,17 @@ void TorrentManager::add_torrent(const entry& e)
 
 void TorrentManager::remove_torrent(const sha1_hash& hash)
 {
+	int pos = m_torrents[hash]->get_position();
 	delete m_torrents[hash];
 	m_torrents.erase(hash);
+
+	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
+	{
+		Torrent* torrent = iter->second;
+		if (torrent->get_position() > pos)
+			torrent->set_position(torrent->get_position() - 1);
+	}
+
 	m_signal_removed.emit(hash);
 }
 
@@ -220,7 +251,7 @@ void TorrentManager::check_queue()
 		}
 		else
 			continue;
-			
+
 		if (order.empty())
 			order.push_back(torrent->get_hash());
 		else
@@ -231,7 +262,7 @@ void TorrentManager::check_queue()
 			order.insert(order.begin() + offset, torrent->get_hash());
 		}
 	}
-	
+
 	if (num_active == max_active) //Make sure queue is correct
 	{
 		/* Loop backwards until we hit the first running torrent */
@@ -250,7 +281,7 @@ void TorrentManager::check_queue()
 				{
 					Torrent* torrent_above = m_torrents[order[i]];
 					if (torrent_above->is_queued())
-					{	
+					{
 						should_queue = true;
 						torrent_above->unqueue();
 						num_active++;
@@ -264,7 +295,7 @@ void TorrentManager::check_queue()
 			}
 		}
 	}
-	
+
 	if (num_active > max_active) //Stop everything from bottom until queue is ok
 	{
 		unsigned int i = order.size() - 1;
@@ -273,16 +304,16 @@ void TorrentManager::check_queue()
 			Torrent* torrent = m_torrents[order[i]];
 			if (torrent->get_state() & Torrent::SEEDING)
 				continue;
-				
+
 			if (torrent->is_running() && !torrent->is_queued())
-			{	
+			{
 				torrent->queue();
 				num_active--;
 			}
 			i--;
 		}
 	}
-	
+
 	if (num_active < max_active) //Start everything paused until queue is maxed
 	{
 		unsigned int i = 0;
@@ -290,11 +321,17 @@ void TorrentManager::check_queue()
 		{
 			Torrent* torrent = m_torrents[order[i]];
 			if (torrent->is_running() && torrent->is_queued())
-			{	
+			{
 				torrent->unqueue();
 				num_active++;
 			}
 			i++;
 		}
 	}
+
+	if (!num_active)
+		Engine::instance()->stop_tick();
+	else if (!Engine::instance()->is_ticking())
+		Engine::instance()->start_tick();
+
 }
