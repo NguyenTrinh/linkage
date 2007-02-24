@@ -37,21 +37,22 @@ class PeerList : public Gtk::TreeView
 	{
 	public:
 		ModelColumns()
-			{ add(flag);
-				add(address);
-				add(down);
-				add(up);
-				add(down_rate);
-				add(up_rate);
-				add(progress);
-				add(client);
-			}
+		{
+			add(flag);
+			add(address);
+			add(down);
+			add(up);
+			add(down_rate);
+			add(up_rate);
+			add(progress);
+			add(client);
+		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > flag;
 		Gtk::TreeModelColumn<Glib::ustring> address;
-		Gtk::TreeModelColumn<Glib::ustring> down;
-		Gtk::TreeModelColumn<Glib::ustring> up;
-		Gtk::TreeModelColumn<Glib::ustring> down_rate;
-		Gtk::TreeModelColumn<Glib::ustring> up_rate;
+		Gtk::TreeModelColumn<unsigned int> down;
+		Gtk::TreeModelColumn<unsigned int> up;
+		Gtk::TreeModelColumn<unsigned int> down_rate;
+		Gtk::TreeModelColumn<unsigned int> up_rate;
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> client;
 	};
@@ -59,6 +60,10 @@ class PeerList : public Gtk::TreeView
 	ModelColumns columns;
 	Glib::RefPtr<Gtk::ListStore> model;
 	
+	void format_data(Gtk::CellRenderer* cell,
+									const Gtk::TreeIter& iter,
+									const Gtk::TreeModelColumn<unsigned int>& column,
+									const Glib::ustring& suffix);
 public:
 	void clear();
 	void update(const WeakPtr<Torrent>& torrent);

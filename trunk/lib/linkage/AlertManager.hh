@@ -20,8 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define ALERTMANAGER_HH
 
 #include <sigc++/signal.h>
-#include "libtorrent/peer_id.hpp"
+
 #include <glibmm/ustring.h>
+#include <glibmm/refptr.h>
+
+#include "libtorrent/peer_id.hpp"
 
 #include "linkage/RefCounter.hh"
 
@@ -31,7 +34,7 @@ class AlertManager : public RefCounter<AlertManager>
 {
 	sigc::signal<void, const Glib::ustring&> m_signal_listen_failed;
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> m_signal_tracker_failed;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_tracker_reply;
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> m_signal_tracker_reply;
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_tracker_warning;
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_tracker_announce;
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_torrent_finished;
@@ -40,14 +43,14 @@ class AlertManager : public RefCounter<AlertManager>
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> m_signal_hash_failed;
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&> m_signal_peer_ban;
 	
-	bool check_alerts();
-	
 	AlertManager();
 	
 public:
+	void check_alerts();
+
 	sigc::signal<void, const Glib::ustring&> signal_listen_failed();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> signal_tracker_failed();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_tracker_reply();
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> signal_tracker_reply();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_tracker_warning();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_tracker_announce();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_torrent_finished();

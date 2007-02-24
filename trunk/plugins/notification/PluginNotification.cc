@@ -27,7 +27,7 @@ int notify_send(const char *summary, const char *body)
 	static gchar *icon_str = NULL;
 	static glong expire_timeout = NOTIFY_EXPIRES_DEFAULT;
 	static NotifyUrgency urgency = NOTIFY_URGENCY_NORMAL;
-	
+
 	if (!notify_init("linkage"))
 		return 0;
 
@@ -35,13 +35,13 @@ int notify_send(const char *summary, const char *body)
 	notify_notification_set_category(notify, type);
 	notify_notification_set_urgency(notify, urgency);
 	notify_notification_set_timeout(notify, expire_timeout);
-	
+
 	notify_notification_show(notify, NULL);
-	
+
 	g_object_unref(G_OBJECT(notify));
 
 	notify_uninit();
-	
+
 	return 1;
 }
 
@@ -62,23 +62,17 @@ Glib::ustring NotifyPlugin::get_description()
 {
 	return "Displays notifications trough libnotify";
 }
-	
+
 void NotifyPlugin::on_load()
 {
 	Engine::instance()->get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &NotifyPlugin::on_invalid_bencoding));
 	Engine::instance()->get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &NotifyPlugin::on_missing_file));
 	Engine::instance()->get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &NotifyPlugin::on_duplicate_torrent));
-	
+
 	Engine::instance()->get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &NotifyPlugin::on_listen_failed));
-	Engine::instance()->get_alert_manager()->signal_tracker_failed().connect(sigc::mem_fun(this, &NotifyPlugin::on_tracker_failed));
-	Engine::instance()->get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(this, &NotifyPlugin::on_tracker_reply));
-	Engine::instance()->get_alert_manager()->signal_tracker_warning().connect(sigc::mem_fun(this, &NotifyPlugin::on_tracker_warning));
-	Engine::instance()->get_alert_manager()->signal_tracker_announce().connect(sigc::mem_fun(this, &NotifyPlugin::on_tracker_announce));
 	Engine::instance()->get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &NotifyPlugin::on_torrent_finished));
 	Engine::instance()->get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &NotifyPlugin::on_file_error));
 	Engine::instance()->get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &NotifyPlugin::on_fastresume_rejected));
-	Engine::instance()->get_alert_manager()->signal_hash_failed().connect(sigc::mem_fun(this, &NotifyPlugin::on_hash_failed));
-	Engine::instance()->get_alert_manager()->signal_peer_ban().connect(sigc::mem_fun(this, &NotifyPlugin::on_peer_ban));
 }
 
 bool NotifyPlugin::notify(const Glib::ustring& title,
@@ -114,29 +108,10 @@ void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
 	notify("Listen failed", msg, NOTIFY_ERROR);
 }
 
-void NotifyPlugin::on_tracker_failed(const sha1_hash& hash, const Glib::ustring& msg, int code, int times)
-{
-	notify("Tracker failed", msg, NOTIFY_WARNING);
-}
-
-void NotifyPlugin::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("Tracker response", msg, NOTIFY_INFO);
-}
-
-void NotifyPlugin::on_tracker_warning(const sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("Tracker warning", msg, NOTIFY_WARNING);
-}
-
-void NotifyPlugin::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("Tracker announce", msg, NOTIFY_INFO);
-}
-
 void NotifyPlugin::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 {
-	notify("Torrent finished", msg, NOTIFY_INFO);
+	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	notify("Torrent finished", torrent->get_name() + " is complete", NOTIFY_INFO);
 }
 
 void NotifyPlugin::on_file_error(const sha1_hash& hash, const Glib::ustring& msg)
@@ -148,15 +123,3 @@ void NotifyPlugin::on_fastresume_rejected(const sha1_hash& hash, const Glib::ust
 {
 	notify("Fastresume failed", msg, NOTIFY_WARNING);
 }
-
-void NotifyPlugin::on_hash_failed(const sha1_hash& hash, const Glib::ustring& msg, int piece)
-{
-	notify("Hash failed", msg, NOTIFY_INFO);
-}
-
-void NotifyPlugin::on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip)
-{
-	notify("Peer banned", msg, NOTIFY_INFO);
-}
-
-

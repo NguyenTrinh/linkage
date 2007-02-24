@@ -31,37 +31,47 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 SettingsWin::GroupFilterRow::GroupFilterRow()
 {
-	m_name = new Gtk::Entry();
-	m_eval = new Gtk::ComboBoxText();
-	m_tag = new Gtk::ComboBoxText();
-	m_tag->signal_changed().connect(sigc::mem_fun(this, &SettingsWin::GroupFilterRow::on_tag_changed));
-	m_filter = new Gtk::ComboBoxEntryText();
-	
-	add(*m_name);
-	add(*m_tag);
-	add(*m_eval);
-	add(*m_filter);
+	init();
 }
 
 SettingsWin::GroupFilterRow::GroupFilterRow(const Glib::ustring& name,
-																					 GroupFilter::TagType tag,
-																					 GroupFilter::EvalType eval, 
+																					 int tag,
+																					 int eval,
 																					 const Glib::ustring& filter)
 {
-	m_name = new Gtk::Entry();
+	init();
+
 	m_name->set_text(name);
-	m_eval = new Gtk::ComboBoxText();
 	m_eval->set_active(eval);
-	m_tag = new Gtk::ComboBoxText();
 	m_tag->set_active(tag);
-	m_tag->signal_changed().connect(sigc::mem_fun(this, &SettingsWin::GroupFilterRow::on_tag_changed));
-	m_filter = new Gtk::ComboBoxEntryText();
 	m_filter->get_entry()->set_text(filter);
-	
-	add(*m_name);
-	add(*m_tag);
-	add(*m_eval);
-	add(*m_filter);
+}
+
+void SettingsWin::GroupFilterRow::init()
+{
+	m_name = new Gtk::Entry();
+	m_eval = new Gtk::ComboBoxText();
+	m_eval->append_text("Equals");
+	m_eval->append_text("Contains");
+	m_eval->append_text("Starts with");
+	m_eval->append_text("Ends with");
+	m_tag = new Gtk::ComboBoxText();
+	m_tag->set_row_separator_func(sigc::ptr_fun(&is_separator));
+	m_tag->signal_changed().connect(sigc::mem_fun(this, &SettingsWin::GroupFilterRow::on_tag_changed));
+	m_tag->append_text("None");
+	m_tag->append_text("-");
+	m_tag->append_text("Tracker");
+	m_tag->append_text("Name");
+	m_tag->append_text("Comment");
+	m_tag->append_text("State");
+	m_filter = new Gtk::ComboBoxEntryText();
+
+	pack_start(*m_name, false, false);
+	pack_start(*m_tag, false, false);
+	pack_start(*m_eval, false, false);
+	pack_start(*m_filter, false, false);
+
+	show_all_children();
 }
 
 SettingsWin::GroupFilterRow::~GroupFilterRow()
@@ -74,21 +84,60 @@ SettingsWin::GroupFilterRow::~GroupFilterRow()
 
 void SettingsWin::GroupFilterRow::on_tag_changed()
 {
-	if (m_tag->get_active_row_number() == GroupFilter::TAG_STATE)
+	int tag = m_tag->get_active_row_number();
+	if ((tag - 2) == GroupFilter::TAG_STATE)
+	{
+		m_eval->set_sensitive(true);
+		m_filter->set_sensitive(true);
 		m_filter->get_entry()->set_editable(false);
+		m_filter->append_text("Queued");
+		m_filter->append_text("Checking");
+		m_filter->append_text("Announcing");
+		m_filter->append_text("Downloading");
+		m_filter->append_text("Finished");
+		m_filter->append_text("Seeding");
+		m_filter->append_text("Allocating");
+		m_filter->append_text("Stopped");
+	}
+	else if (tag == 0)
+	{
+		m_eval->set_sensitive(false);
+		m_filter->set_sensitive(false);
+	}
 	else
+	{
+		m_eval->set_sensitive(true);
+		m_filter->set_sensitive(true);
 		m_filter->get_entry()->set_editable(true);
-}
-				
-GroupFilter SettingsWin::GroupFilterRow::get_filter() const
-{
-	return GroupFilter(m_filter->get_active_text(),
-										 (GroupFilter::TagType)m_tag->get_active_row_number(),
-										 (GroupFilter::EvalType)m_eval->get_active_row_number(),
-										 m_name->get_text());
+		m_filter->clear_items();
+	}
 }
 
-	
+Glib::ustring SettingsWin::GroupFilterRow::get_filter()
+{
+	return m_filter->get_entry()->get_text();
+}
+
+int SettingsWin::GroupFilterRow::get_tag()
+{
+	return m_tag->get_active_row_number();
+}
+
+int SettingsWin::GroupFilterRow::get_eval()
+{
+	return m_eval->get_active_row_number();
+}
+
+Glib::ustring SettingsWin::GroupFilterRow::get_name()
+{
+	return m_name->get_text();
+}
+
+bool SettingsWin::GroupFilterRow::has_focus()
+{
+	return (m_filter->has_focus() || m_tag->has_focus() || m_eval->has_focus() || m_name->has_focus());
+}
+
 SettingsWin::GroupFilterView::GroupFilterView()
 {
 }
@@ -104,19 +153,9 @@ SettingsWin::GroupFilterView::~GroupFilterView()
 
 void SettingsWin::GroupFilterView::append(GroupFilterRow* row)
 {
-	bool unique = true;
-	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
-				iter != m_children.end(); ++iter)
-	{
-		unique = (row->get_filter().get_name() != (*iter)->get_filter().get_name());
-	}
-	
-	if (unique)
-	{
-		m_children.push_back(row);
-		pack_start(*row, false, false);
-		show_all_children();
-	}
+	m_children.push_back(row);
+	pack_start(*row, false, false);
+	show_all_children();
 }
 
 void SettingsWin::GroupFilterView::remove(GroupFilterRow* row)
@@ -124,38 +163,64 @@ void SettingsWin::GroupFilterView::remove(GroupFilterRow* row)
 	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
 				iter != m_children.end(); ++iter)
 	{
-		if (row->get_filter().get_name() == (*iter)->get_filter().get_name())
+		if (row->get_name() == (*iter)->get_name())
 		{
-			remove(*iter);
+			//remove(*iter);
+			m_children.erase(iter);
+			delete row;
 			break;
 		}
 	}
+}
+
+SettingsWin::GroupFilterRow* SettingsWin::GroupFilterView::get_row(const Glib::ustring& group)
+{
+	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+				iter != m_children.end(); ++iter)
+	{
+		if (group == (*iter)->get_name())
+		return *iter;
+	}
+
+	return 0;
+}
+
+SettingsWin::GroupFilterRow* SettingsWin::GroupFilterView::get_selected()
+{
+	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+				iter != m_children.end(); ++iter)
+	{
+		if ((*iter)->has_focus())
+			return *iter;
+	}
+
+	return 0;
 }
 
 const std::list<SettingsWin::GroupFilterRow*>& SettingsWin::GroupFilterView::children()
 {
 	return m_children;
 }
-	
+
 SettingsWin::SettingsWin(Gtk::Window* parent)
 {
 	set_title("Prefrences");
 	set_transient_for(*parent);
 	set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
 	set_skip_taskbar_hint(true);
-	
+
 	Gtk::VBox* main_box = manage(new Gtk::VBox());
 	main_box->set_spacing(5);
 	Gtk::Notebook* notebook = manage(new Gtk::Notebook());
 	notebook->set_border_width(5);
 	main_box->pack_start(*notebook, true, true);
-	
+
 	Gtk::HBox* hbox = manage(new Gtk::HBox());
 	Gtk::Button* button = manage(new Gtk::Button(Gtk::Stock::CLOSE));
 	button->signal_clicked().connect(sigc::mem_fun(this, &SettingsWin::on_button_close));
 	hbox->pack_end(*button, false, false);
 	main_box->pack_start(*hbox, false, false);
-	
+
 	Gtk::Table* table = manage(new Gtk::Table(2, 2));
 	table->set_spacings(10);
 	table->set_border_width(5);
@@ -165,9 +230,9 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	table->attach(*auto_expand, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
 	update_interval = manage(new AlignedSpinButton(1.0, 6.0));
 	table->attach(*update_interval, 1, 2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-	
+
 	notebook->append_page(*table, "General");
-	
+
 	table = manage(new Gtk::Table(8, 3));
 	table->set_spacings(10);
 	table->set_border_width(5);
@@ -200,9 +265,9 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	table_proxy->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK, 10);
 	label = manage(new AlignedLabel("Proxy password:"));
 	table_proxy->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK, 10);
-	
+
 	interfaces = manage(new Gtk::ComboBoxText());
-	interfaces->set_row_separator_func(sigc::mem_fun(this, &SettingsWin::is_separator));
+	interfaces->set_row_separator_func(sigc::ptr_fun(&is_separator));
 	interfaces->append_text("None specified");
 	interfaces->append_text("-");
 	std::list<Glib::ustring> if_list = get_interfaces();
@@ -211,7 +276,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	{
 		interfaces->append_text(*iter);
 	}
-	
+
 	table->attach(*interfaces, 1, 2, 0, 1, Gtk::FILL|Gtk::EXPAND, Gtk::SHRINK);
 	min_port = manage(new AlignedSpinButton(1024.0, 65534.0));
 	min_port->set_value(1024.0);
@@ -226,11 +291,11 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	table->attach(*max_uploads, 1, 2, 5, 6, Gtk::FILL|Gtk::EXPAND, Gtk::SHRINK);
 	max_active = manage(new AlignedSpinButton(0.0, 100.0));
 	table->attach(*max_active, 1, 2, 6, 7, Gtk::FILL|Gtk::EXPAND, Gtk::SHRINK);
-	
+
 	tracker_timeout = manage(new AlignedSpinButton(5.0, 60.0));
 	min_port->set_value(10.0);
 	table->attach(*tracker_timeout, 1, 2, 7, 8, Gtk::FILL|Gtk::EXPAND, Gtk::SHRINK);
-	
+
 	proxy_ip = manage(new Gtk::Entry());
 	table_proxy->attach(*proxy_ip, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
 	proxy_user = manage(new Gtk::Entry());
@@ -238,7 +303,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	proxy_pass = manage(new Gtk::Entry());
 	proxy_pass->property_visibility() = false;
 	table_proxy->attach(*proxy_pass, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	
+
 	max_port = manage(new AlignedSpinButton(1025.0, 65535.0));
 	max_port->set_value(1025.0);
 	table->attach(*max_port, 2, 3, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
@@ -246,16 +311,16 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	table->attach(*label, 2, 3, 2, 3, Gtk::SHRINK, Gtk::SHRINK);
 	label = manage(new AlignedLabel("kB/s"));
 	table->attach(*label, 2, 3, 3, 4, Gtk::SHRINK, Gtk::SHRINK);
-	
+
 	proxy_port = manage(new AlignedSpinButton(0.0, 65535.0));
 	proxy_port->set_value(8080.0);
 	table_proxy->attach(*proxy_port, 2, 3, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-	
+
 	Gtk::VBox* vbox = manage(new Gtk::VBox());
 	vbox->pack_start(*table);
 	vbox->pack_start(*table_proxy);
 	notebook->append_page(*vbox, "Network");
-	
+
 	table = manage(new Gtk::Table(2, 3));
 	table->set_spacings(10);
 	table->set_border_width(5);
@@ -273,12 +338,12 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	button_move_finished = manage(new Gtk::FileChooserButton("Select folder",
 																		Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER));
 	table->attach(*button_move_finished, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	
+
 	button_move_finished->set_sensitive(false);
 	move_finished->set_sensitive(false);
-	
+
 	notebook->append_page(*table, "Files & Folders");
-	
+
 	model_plugins = Gtk::ListStore::create(plugin_columns);
 	Gtk::TreeView* treeview_plugins = manage(new Gtk::TreeView());
 	treeview_plugins->set_model(model_plugins);
@@ -294,31 +359,29 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 		column->set_sort_column_id(i);
 		column->set_resizable(true);
 	}
-	
+
 	notebook->append_page(*treeview_plugins, "Plugins");
-	
+
 	Gtk::HBox* groups_box = manage(new Gtk::HBox());
 	groups_view = manage(new GroupFilterView());
 	groups_box->pack_start(*groups_view, true, true);
 	Gtk::Button* group_add = manage(new Gtk::Button(Gtk::Stock::ADD));
 	group_add->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_add));
 	Gtk::Button* group_remove = manage(new Gtk::Button(Gtk::Stock::REMOVE));
+	group_remove->unset_flags(Gtk::CAN_FOCUS);
 	group_remove->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_remove));
 	Gtk::VBox* groups_vbox = manage(new Gtk::VBox());
 	groups_vbox->pack_start(*group_add, false, false);
 	groups_vbox->pack_start(*group_remove, false, false);
 	groups_box->pack_start(*groups_vbox);
-	
+
 	notebook->append_page(*groups_box, "Groups");
-	
+
 	add(*main_box);
-	
+
 	min_port->signal_value_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_min_port_changed));
 	max_port->signal_value_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_max_port_changed));
-	
-	//signal_hide().connect(sigc::mem_fun(*this, &SettingsWin::on_hide));
-	//signal_show().connect(sigc::mem_fun(*this, &SettingsWin::on_show));
-	
+
 	show_all_children();
 }
 
@@ -329,7 +392,7 @@ SettingsWin::~SettingsWin()
 bool SettingsWin::on_delete_event(GdkEventAny*)
 {
 	hide();
-	
+
 	return true;
 }
 
@@ -341,11 +404,15 @@ void SettingsWin::on_button_close()
 void SettingsWin::on_group_add()
 {
 	Glib::ustring number = str(groups_view->get_children().size());
-	groups_view->append(new GroupFilterRow("Group " + number, GroupFilter::TAG_TRACKER, GroupFilter::EVAL_EQUALS, "Filter"));
+	GroupFilterRow* row = new GroupFilterRow("Group " + number, 0, 0, "");
+	groups_view->append(row);
 }
 
 void SettingsWin::on_group_remove()
 {
+	GroupFilterRow* row = groups_view->get_selected();
+	if (row)
+		groups_view->remove(row);
 }
 
 void SettingsWin::on_proxy_toggled()
@@ -371,13 +438,13 @@ void SettingsWin::on_plugin_toggled(const Glib::ustring& path)
 	Gtk::TreeRow row = *(model_plugins->get_iter(path));
 	row[plugin_columns.load] = !row[plugin_columns.load];
 }
-	
+
 void SettingsWin::on_hide()
 {
 	Gtk::Window::on_hide();
 
 	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
-	
+
 	/* Network */
 	if (interfaces->get_active_row_number() <= 0)
 		sm->set("Network", "Interface", Glib::ustring(""));
@@ -407,10 +474,6 @@ void SettingsWin::on_hide()
 	/* UI */
 	sm->set("UI", "Interval", (int)update_interval->get_value());
 	sm->set("UI", "AutoExpand", auto_expand->get_active());
-	/* Use libegg plugin instead until gtkmm 2.10 is common among distros
-	sm->set("UI", "TrayIcon", tray_icon->get_active());
-	sm->set("UI", "MinToTray", min_to_tray->get_active());
-	sm->set("UI", "CloseToTray", close_to_tray->get_active());*/
 	Gtk::TreeNodeChildren children = model_plugins->children();
 	std::list<Glib::ustring> plugins;
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
@@ -426,7 +489,26 @@ void SettingsWin::on_hide()
 	sm->set("Files", "MoveFinished", move_finished->get_active());
 	sm->set("Files", "FinishedPath", button_move_finished->get_filename());
 	sm->set("Files", "Allocate", allocate->get_active());
-	
+	/* Groups */
+	sm->remove_group("Groups");
+	sm->remove_group("Filters");
+	std::list<GroupFilterRow*> rows = groups_view->children();
+	for (std::list<GroupFilterRow*>::iterator iter = rows.begin();
+				iter != rows.end(); ++iter)
+	{
+		GroupFilterRow* row = *iter;
+		sm->set("Groups", row->get_name(), false);
+		if (row->get_tag() >= 2)
+		{
+			std::list<Glib::ustring> info;
+			info.push_back(row->get_filter());
+			info.push_back(str(row->get_eval()));
+			info.push_back(str(row->get_tag() - 2));
+
+			sm->set("Filters", row->get_name(), UStringArray(info));
+		}
+	}
+
 	Engine::instance()->get_settings_manager()->update();
 }
 
@@ -449,6 +531,15 @@ void SettingsWin::on_show()
 	proxy_port->set_value((double)sm->get_int("Network", "ProxyPort"));
 	proxy_user->set_text(sm->get_string("Network", "ProxyLogin"));
 	proxy_pass->set_text(sm->get_string("Network", "ProxyPass"));
+	if (interface != "")
+		interfaces->set_active_text(interface);
+	else
+		interfaces->set_active(0);
+
+	if (!use_proxy->get_active())
+		proxy_ip->get_parent()->hide();
+	else
+		proxy_ip->get_parent()->show();
 	/* UI */
 	update_interval->set_value((double)sm->get_int("UI", "Interval"));
 	auto_expand->set_active(sm->get_bool("UI", "AutoExpand"));
@@ -459,21 +550,11 @@ void SettingsWin::on_show()
 	move_finished->set_active(sm->get_bool("Files", "MoveFinished"));
 	button_move_finished->set_filename(sm->get_string("Files", "FinishedPath"));
 	allocate->set_active(sm->get_bool("Files", "Allocate"));
-
-	if (interface != "")
-		interfaces->set_active_text(interface);
-	else
-		interfaces->set_active(0);
-		
-	if (!use_proxy->get_active())
-		proxy_ip->get_parent()->hide();
-	else
-		proxy_ip->get_parent()->show();
-
+	/* Plugins */
 	if (!model_plugins->children().size())
 	{
 		std::list<PluginInfo> plugins = Engine::instance()->get_plugin_manager()->list_plugins();
-		
+
 		for (std::list<PluginInfo>::iterator iter = plugins.begin();
 				 iter != plugins.end(); ++iter)
 		{
@@ -484,7 +565,7 @@ void SettingsWin::on_show()
 			row[plugin_columns.load] = info.get_loaded();
 		}
 	}
-		
+
 	for (std::list<Glib::ustring>::iterator iter = plugins.begin();
 			 iter != plugins.end(); ++iter)
 	{
@@ -503,17 +584,51 @@ void SettingsWin::on_show()
 		}
 		row[plugin_columns.load] = active;
 	}
+	/* Groups */
+	if (!groups_view->children().size())
+	{
+		std::list<Glib::ustring> groups = sm->get_keys("Groups");
+		std::list<Glib::ustring> filters = sm->get_keys("Filters");
+		for (std::list<Glib::ustring>::iterator iter = filters.begin();
+					iter != filters.end(); ++iter)
+		{
+			std::vector<Glib::ustring> info = sm->get_string_list("Filters", *iter);
+
+			if (info.size() != 3)
+				continue;
+
+			Glib::ustring filter = info[0];
+			int eval = std::atoi(info[1].c_str());
+			int tag = std::atoi(info[2].c_str());
+			GroupFilterRow* row = new GroupFilterRow(*iter, tag + 2, eval, filter);
+			groups_view->append(row);
+
+			for (std::list<Glib::ustring>::iterator giter = groups.begin();
+						giter != groups.end(); ++giter)
+			{
+				if (*iter == *giter)
+				{
+					groups.erase(giter);
+					break;
+				}
+			}
+		}
+		for (std::list<Glib::ustring>::iterator iter = groups.begin();
+					iter != groups.end(); ++iter)
+		{
+			GroupFilterRow* row = new GroupFilterRow(*iter, 0, 0, "");
+			groups_view->append(row);
+		}
+	}
+
 	Gtk::Window::on_show();
 }
 
-bool SettingsWin::is_separator(const Glib::RefPtr<Gtk::TreeModel>& model, 
-															 const Gtk::TreeModel::iterator& iter)
+bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
+									 const Gtk::TreeIter& iter)
 {
-	bool separator = false;
-	unsigned int selected = interfaces->get_active_row_number();
-	interfaces->set_active(iter);
-	if (interfaces->get_active_text() == "-")
-		separator = true;
-	interfaces->set_active(selected);
-	return separator;
+	Gtk::TreeRow row = *iter;
+	Glib::ustring data;
+	row.get_value(0, data);
+	return (data == "-");
 }

@@ -61,6 +61,13 @@ Glib::ustring str(int value)
 	return tc.str();
 }
 
+Glib::ustring str(unsigned int value)
+{
+	std::stringstream tc;
+	tc << value;
+	return tc.str();
+}
+
 Glib::ustring str(double value, int precision)
 {
 	std::stringstream tc;
@@ -98,9 +105,9 @@ Glib::ustring format_time(int seconds)
 	div = std::div(hours, 24);
 	days = div.quot;
 	hours = div.rem;
-	
+
 	std::stringstream tc;
-	if (days==0) 
+	if (days==0)
 	{
 		tc << std::setw(2) << std::setfill('0') << hours << ":";
 		tc << std::setw(2) << std::setfill('0') << minutes << ":";
@@ -122,10 +129,10 @@ Glib::ustring format_time(int seconds)
 sha1_hash info_hash(const std::string& chars)
 {
 	sha1_hash hash;
-	
+
 	for (int i = 0; i < hash.size && (hash.size == chars.size()); i++)
 		hash[i] = chars[i];
-	
+
 	return hash;
 }
 
@@ -133,7 +140,7 @@ sha1_hash info_hash(const std::string& chars)
 std::list<Glib::ustring> get_interfaces()
 {
 	std::list<Glib::ustring> list;
-	
+
 	struct if_nameindex *ifs = if_nameindex();
 	if (ifs == NULL)
 		return list;
@@ -145,7 +152,7 @@ std::list<Glib::ustring> get_interfaces()
 			list.push_back(ifs[i].if_name);
 	}
 	if_freenameindex(ifs);
-	
+
 	return list;
 }
 
@@ -169,7 +176,7 @@ bool get_ip(const char *iface, ip_address ip)
 
 	if (ioctl(sockfd, SIOCGIFADDR, ifr) < 0)
 		return false;
-		
+
 	ifaddr = ifrr.ifr_addr;
 	strncpy(ip,inet_ntoa(inaddrr(ifr_addr.sa_data)),sizeof(ip_address));
 	return true;

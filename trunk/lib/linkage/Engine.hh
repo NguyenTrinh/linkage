@@ -37,6 +37,11 @@ class Engine : public RefCounter<Engine>
 	
 	static Glib::RefPtr<Engine> self;
 	
+	sigc::signal<void> m_signal_tick;
+	sigc::connection m_conn_tick;
+
+	bool on_timeout();
+	
 	Engine();
 	
 public:
@@ -47,6 +52,11 @@ public:
 	Glib::RefPtr<TorrentManager>	get_torrent_manager();
 	Glib::RefPtr<DbusManager>	get_dbus_manager();
 	
+	sigc::signal<void> signal_tick();
+	bool is_ticking();
+	void start_tick();
+	void stop_tick();
+
 	static bool is_primary();
 	static Glib::RefPtr<Engine> instance();
 	static void destroy();

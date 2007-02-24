@@ -16,8 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include <glibmm/main.h>
-
 #include "libtorrent/alert_types.hpp"
 
 #include "linkage/AlertManager.hh"
@@ -30,8 +28,7 @@ Glib::RefPtr<AlertManager> AlertManager::create()
 
 AlertManager::AlertManager() : RefCounter<AlertManager>::RefCounter(this)
 {
-	int interval = Engine::instance()->get_settings_manager()->get_int("UI", "Interval")*1000;
-	Glib::signal_timeout().connect(sigc::mem_fun(this, &AlertManager::check_alerts), interval);
+	//Engine::instance()->signal_tick().connect(sigc::mem_fun(this, &AlertManager::check_alerts));
 }
 
 AlertManager::~AlertManager()
@@ -50,7 +47,7 @@ AlertManager::signal_tracker_failed()
 	return m_signal_tracker_failed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> 
 AlertManager::signal_tracker_reply()
 {
 	return m_signal_tracker_reply;
@@ -98,18 +95,19 @@ AlertManager::signal_peer_ban()
 }
 
 	
-bool AlertManager::check_alerts()
+void AlertManager::check_alerts()
 {
 	std::auto_ptr<alert> a;
 	a = Engine::instance()->get_session_manager()->pop_alert();
 	while (a.get())
 	{
-		#ifdef DEBUG
-			std::cerr << "Alert: " << a->msg() << std::endl;
-		#endif
 		if (listen_failed_alert* p = dynamic_cast<listen_failed_alert*>(a.get()))
 		{
 			m_signal_listen_failed.emit(p->msg());
+		}
+		else if (tracker_warning_alert* p = dynamic_cast<tracker_warning_alert*>(a.get()))
+		{
+			m_signal_tracker_warning.emit(p->handle.info_hash(), p->msg());
 		}
 		else if (tracker_alert* p = dynamic_cast<tracker_alert*>(a.get()))
 		{
@@ -117,11 +115,7 @@ bool AlertManager::check_alerts()
 		}
 		else if (tracker_reply_alert* p = dynamic_cast<tracker_reply_alert*>(a.get()))
 		{
-			m_signal_tracker_reply.emit(p->handle.info_hash(), p->msg());
-		}
-		else if (tracker_warning_alert* p = dynamic_cast<tracker_warning_alert*>(a.get()))
-		{
-			m_signal_tracker_warning.emit(p->handle.info_hash(), p->msg());
+			m_signal_tracker_reply.emit(p->handle.info_hash(), p->msg(), 0 /* FIXME: for LT 0.12: p->num_peers*/);
 		}
 		else if (tracker_announce_alert* p = dynamic_cast<tracker_announce_alert*>(a.get()))
 		{
@@ -149,5 +143,4 @@ bool AlertManager::check_alerts()
 		}
 		a = Engine::instance()->get_session_manager()->pop_alert();
 	}
-	return true;
 }

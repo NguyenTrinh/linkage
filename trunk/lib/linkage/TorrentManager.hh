@@ -39,8 +39,10 @@ class TorrentManager : public RefCounter<TorrentManager>
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> m_signal_added;
 	sigc::signal<void, const sha1_hash&> m_signal_removed;
 	
-	void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply);
-	
+	void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply, int peers);
+	void on_tracker_warning(const sha1_hash& hash, const Glib::ustring& reply);
+	void on_tracker_failed(const sha1_hash& hash, const Glib::ustring& reply, int code, int times);
+
 	TorrentManager();
 	
 	/* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */

@@ -57,27 +57,28 @@ Glib::ustring SettingsManager::defaults = "[Network]\n"
 																					"DefPath=\n"
 																					"MoveFinished=0\n"
 																					"FinishedPath=\n"
-																					"Allocate=0\n"
+																					"Allocate=1\n"
 																					"DefGroup=Downloads\n"
 																					"[Groups]\n"
 																					"Downloads=0\n"
-																					"Seeds=0\n";
+																					"Seeds=0\n"
+																					"[Filters]\n"
+																					"Seeds=Seeding;0;3;\n";
 
 Glib::RefPtr<SettingsManager> SettingsManager::create()
 {
 	return Glib::RefPtr<SettingsManager>(new SettingsManager());
 }
-																					
+
 SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(this)
 {
 	Glib::ustring file = Glib::build_filename(get_config_dir(), "config");
-	Glib::ustring data_dir = Glib::build_filename(get_config_dir(), "data");
 
-	/* Create data dir if it doesn't exists, bail if we can't */
-	if(g_mkdir_with_parents(data_dir.c_str(), 0755) == -1)
-		std::cerr << "Could not	create directories: " << data_dir << std::endl;
-			
-	/* Dump default config if file doens't exists, bail if we can't	*/
+	/* Create data dir if it doesn't exists */
+	if(g_mkdir_with_parents(get_data_dir().c_str(), 0755) == -1)
+		g_warning(("Could not create directory: " + get_data_dir()).c_str());
+
+	/* Dump default config if file doens't exists */
 	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 	{
 		try
@@ -88,14 +89,13 @@ SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(thi
 		}
 		catch(Glib::Error& e)
 		{
-			std::cerr << "Could not save keyfile: " << e.what()	<< std::endl;
+			g_warning(("Could not save keyfile: " + e.what()).c_str());
 		}
 	}
-	
-	/* Read keyfile, bail if we can't */
+
 	keyfile = new Glib::KeyFile();
 	if (!keyfile->load_from_file(file))
-		std::cerr << "Could not read keyfile"	<< std::endl;
+		g_warning("Could not read keyfile.");
 }
 
 SettingsManager::~SettingsManager()
@@ -109,7 +109,7 @@ SettingsManager::~SettingsManager()
 	}
 	catch(Glib::Error& e)
 	{
-		std::cerr << "Could not save keyfile: " << e.what() << std::endl;
+		g_warning(("Could not save keyfile: " + e.what()).c_str());
 	}
 	delete keyfile;
 }
@@ -158,7 +158,7 @@ bool SettingsManager::has_group(const Glib::ustring& group) const
 {
 	return keyfile->has_group(group);
 }
-		
+
 void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, const Glib::ustring& value)
 {
 	keyfile->set_string(group, key, value);
@@ -193,4 +193,3 @@ void SettingsManager::update()
 {
 	m_signal_update_settings.emit();
 }
-

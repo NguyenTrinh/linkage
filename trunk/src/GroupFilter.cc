@@ -52,6 +52,8 @@ bool GroupFilter::eval(const WeakPtr<Torrent>& torrent)
 					return (m_filter == info.name());
 				case TAG_COMMENT:
 					return (m_filter == info.comment());
+				case TAG_STATE:
+					return (m_filter == torrent->get_state_string());
 			}
 			break;
 		case EVAL_CONTAINS:
@@ -69,6 +71,8 @@ bool GroupFilter::eval(const WeakPtr<Torrent>& torrent)
 					return (info.name().find(m_filter, 0) != Glib::ustring::npos);
 				case TAG_COMMENT:
 					return (info.comment().find(m_filter, 0) != Glib::ustring::npos);
+				case TAG_STATE:
+					return (torrent->get_state_string().find(m_filter, 0) != Glib::ustring::npos);
 			}
 			break;
 		case EVAL_STARTS:
@@ -86,6 +90,8 @@ bool GroupFilter::eval(const WeakPtr<Torrent>& torrent)
 					return (info.name().substr(0, m_filter.size()) == m_filter);
 				case TAG_COMMENT:
 					return (info.comment().substr(0, m_filter.size()) == m_filter);
+				case TAG_STATE:
+					return (torrent->get_state_string().substr(0, m_filter.size()) == m_filter);
 			}
 			break;
 		case EVAL_ENDS:
@@ -103,6 +109,9 @@ bool GroupFilter::eval(const WeakPtr<Torrent>& torrent)
 					return (info.name().substr(info.name().size()-m_filter.size(), info.name().size()) == m_filter);
 				case TAG_COMMENT:
 					return (info.comment().substr(info.comment().size()-m_filter.size(), info.comment().size()) == m_filter);
+				case TAG_STATE:
+					Glib::ustring state = torrent->get_state_string();
+					return (state.substr(state.size() - m_filter.size(), state.size()) == m_filter);
 			}
 			break;
 	}
@@ -111,4 +120,19 @@ bool GroupFilter::eval(const WeakPtr<Torrent>& torrent)
 const Glib::ustring& GroupFilter::get_name()
 {
 	return m_name;
+}
+
+const Glib::ustring& GroupFilter::get_filter()
+{
+	return m_filter;
+}
+
+const GroupFilter::TagType GroupFilter::get_tag()
+{
+	return m_tag;
+}
+
+const GroupFilter::EvalType GroupFilter::get_eval()
+{
+	return m_eval;
 }

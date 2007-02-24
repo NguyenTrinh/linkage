@@ -30,7 +30,9 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   Statusbar.cc \
                   CellRendererProgressText.hh \
                   CellRendererProgressText.cc \
+                  FilterManager.hh \
+                  FilterManager.cc \
                   main.cc
 
-                  
+
 linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(LIBCURL_LIBS) $(DBUSGLIB_LIBS) -L../lib -llinkage-1

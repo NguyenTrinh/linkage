@@ -31,7 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 using namespace libtorrent;
 
-
 typedef std::list<sha1_hash> HashList;
 
 class Torrent
@@ -49,20 +48,13 @@ public:
 							 STOPPED,
 							 QUEUED
 						 };
-	
-	struct ResumeInfo {
-											unsigned int time;
-											unsigned int uploaded;
-											unsigned int downloaded;
-										};
 
 	const torrent_handle& get_handle() const;
 	const Glib::ustring& get_tracker_reply() const;
 	const Glib::ustring& get_name() const;
 	const Glib::ustring& get_group() const;
-	const Glib::ustring& get_save_path() const;
+	const Glib::ustring& get_path() const;
 	const unsigned int get_position() const;
-	const unsigned int get_time_active() const;
 	const std::vector<bool>& get_filter() const;
 	const int get_up_limit() const;
 	const int get_down_limit() const;
@@ -75,12 +67,11 @@ public:
 	const Glib::ustring get_state_string() const;
 	const Glib::ustring get_state_string(State state) const;
 	
-	/* FIXME: Sort out what methods that should be const */
 	const torrent_info get_info() const;
 	const torrent_status get_status() const;
 	const std::vector<partial_piece_info> get_download_queue() const;
 	const std::vector<float> get_file_progress();
-	
+
 	void set_tracker_reply(const Glib::ustring& reply);
 	void set_group(const Glib::ustring& group);
 	void set_position(unsigned int position);
@@ -89,14 +80,10 @@ public:
 	void set_up_limit(int limit);
 	void set_down_limit(int limit);
 	
-	void start();
-	void stop();
-	
 	void queue();
 	void unqueue();
 	bool is_queued();
 	bool is_running();
-	bool is_valid();
 	
 	const entry get_resume_entry(bool running = false);
 	
@@ -104,10 +91,15 @@ public:
 	void set_handle(const torrent_handle& handle);
 	
 	Torrent(const entry& resume_data, bool queued = false);
-	Torrent();
 	~Torrent();
 
-protected: 
+private:
+	struct ResumeInfo {
+											//unsigned int time;
+											unsigned int uploaded;
+											unsigned int downloaded;
+										} m_resume;
+
 	torrent_handle m_handle;
 	sha1_hash m_hash;
 	
@@ -120,8 +112,7 @@ protected:
 	bool m_is_queued;
 	
 	unsigned int m_position;
-	Glib::ustring m_name, m_group, m_save_path;
-	ResumeInfo m_resume;
+	Glib::ustring m_name, m_group, m_path;
 	int m_up_limit, m_down_limit;
 };
 

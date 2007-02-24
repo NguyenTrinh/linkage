@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef UTILS_HH
 #define UTILS_HH
 
-#include <sys/ioctl.h> 
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -49,6 +49,7 @@ Glib::ustring suffix_value(int value);
 Glib::ustring suffix_value(unsigned int value);
 
 Glib::ustring str(int value);
+Glib::ustring str(unsigned int value);
 Glib::ustring str(double value, int precision);
 Glib::ustring str(const sha1_hash& hash);
 Glib::ustring get_eta(int size, float rate);
