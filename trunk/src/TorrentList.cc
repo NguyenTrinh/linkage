@@ -579,7 +579,7 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 	row[columns.down] = down;
 	row[columns.up] = up;
 
-	Glib::ustring name = escape_specials(torrent->get_name());
+	Glib::ustring name = Glib::Markup::escape_text(torrent->get_name());
 
 	if (!torrent->is_running())
 	{
