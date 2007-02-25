@@ -109,7 +109,9 @@ void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustrin
 	
 	if (code == -1)
 		scode = "connection refused";
-	else
+	else if (code == 0)
+		scode = "timed out"
+	else	
 		scode = str(code);
 	
 	Glib::ustring msg = "Failed: " + scode + " (" + str(times) + " times in a row)";
@@ -329,9 +331,9 @@ void TorrentManager::check_queue()
 		}
 	}
 
-	if (!num_active)
+	/*if (!num_active)
 		Engine::instance()->stop_tick();
 	else if (!Engine::instance()->is_ticking())
-		Engine::instance()->start_tick();
+		Engine::instance()->start_tick();*/
 
 }
