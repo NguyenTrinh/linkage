@@ -55,8 +55,6 @@ Glib::ustring str(const sha1_hash& hash);
 Glib::ustring get_eta(int size, float rate);
 Glib::ustring format_time(int seconds);
 
-Glib::ustring escape_specials(const Glib::ustring& s);
-
 /* Can _not_ use ustring for this! */
 sha1_hash info_hash(const std::string& chars);
 

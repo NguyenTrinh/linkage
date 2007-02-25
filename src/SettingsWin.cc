@@ -538,7 +538,7 @@ void SettingsWin::on_hide()
 				iter != rows.end(); ++iter)
 	{
 		GroupFilterRow* row = *iter;
-		Glib::ustring name = escape_specials(row->get_name());
+		Glib::ustring name = Glib::Markup::escape_text(row->get_name());
 		sm->set("Groups", name, false);
 		if (row->is_default())
 			sm->set("Files", "DefGroup", name);
