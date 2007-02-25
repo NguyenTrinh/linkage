@@ -21,20 +21,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/window.h>
 #include <gtkmm/checkbutton.h>
-#include <gtkmm/radiobutton.h>
 #include <gtkmm/filechooserbutton.h>
 #include <gtkmm/comboboxtext.h>
-#include <gtkmm/comboboxentrytext.h>
-#include <gtkmm/entry.h>
 #include <gtkmm/treemodel.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treeview.h>
 
 #include "AlignedSpinButton.hh"
-#include "GroupFilter.hh"
-
-bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
-									const Gtk::TreeIter& iter);
+#include "GroupFilterView.hh"
 
 class SettingsWin : public Gtk::Window
 {
@@ -52,58 +46,11 @@ class SettingsWin : public Gtk::Window
 		Gtk::TreeModelColumn<Glib::ustring> description;
 	};
 
-	class GroupFilterRow : public Gtk::HBox
-	{
-		Gtk::RadioButton* m_radio;
-		Gtk::Entry *m_name;
-		Gtk::ComboBoxText *m_eval, *m_tag;
-		Gtk::ComboBoxEntryText *m_filter;
-
-		void on_tag_changed();
-		void on_radio_changed();
-		void init();
-
-	public:
-		Glib::ustring get_filter();
-		int get_tag();
-		int get_eval();
-		Glib::ustring get_name();
-		bool is_default();
-		bool has_focus();
-		
-		void set_group(Gtk::RadioButtonGroup& group);
-		void set_default();
-
-		GroupFilterRow();
-		GroupFilterRow(const Glib::ustring& filter,
-										int tag,
-										int eval,
-										const Glib::ustring& name);
-		~GroupFilterRow();
-	};
-
-	class GroupFilterView : public Gtk::VBox
-	{
-		Gtk::RadioButtonGroup m_group;
-		std::list<GroupFilterRow*> m_children;
-
-	public:
-		void append(GroupFilterRow* row);
-		void remove(GroupFilterRow* row);
-		GroupFilterRow* get_row(const Glib::ustring& group);
-		const std::list<GroupFilterRow*>& children();
-		GroupFilterRow* get_selected();
-
-		GroupFilterView();
-		~GroupFilterView();
-	};
-
 	PluginModelColumns plugin_columns;
 
 	Glib::RefPtr<Gtk::ListStore> model_plugins;
 
 	AlignedSpinButton* update_interval;
-	/* Gtk::CheckButton *tray_icon, *min_to_tray, *close_to_tray; */
 	Gtk::CheckButton* auto_expand;
 
 	Gtk::ComboBoxText* interfaces;
@@ -135,6 +82,8 @@ class SettingsWin : public Gtk::Window
 	void on_group_add();
 	void on_group_remove();
 
+	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
+										const Gtk::TreeIter& iter);
 public:
 	SettingsWin(Gtk::Window *parent);
 	virtual ~SettingsWin();
