@@ -39,7 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 TorrentCreator::TorrentCreator(Gtk::Window *parent)
 {
-	set_title("Create torrent");
+	set_title("New");
 	set_transient_for(*parent);
 	set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
 	set_skip_taskbar_hint(true);
@@ -86,7 +86,7 @@ TorrentCreator::TorrentCreator(Gtk::Window *parent)
 	label = manage(new Gtk::Label("Piece size (kB):", 0.0, 0.5));
 	table->attach(*label, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK);
 	combo_size = manage(new Gtk::ComboBoxText());
-	//Do we need more? TODO: add user-defined option and auto detect
+	/* FIXME: add "auto detect" option */
 	combo_size->append_text("32");
 	combo_size->append_text("64");
 	combo_size->append_text("128");
@@ -100,7 +100,9 @@ TorrentCreator::TorrentCreator(Gtk::Window *parent)
 	table->attach(*button_files, 0, 2, 4, 5, Gtk::FILL, Gtk::SHRINK);
 	
 	check_seed = manage(new Gtk::CheckButton("Open for seeding"));
-	table->attach(*check_seed, 0, 2, 5, 6, Gtk::FILL, Gtk::SHRINK);
+	table->attach(*check_seed, 0, 1, 5, 6, Gtk::FILL, Gtk::SHRINK);
+	check_private = manage(new Gtk::CheckButton("Private tracker"));
+	table->attach(*check_private, 1, 2, 5, 6, Gtk::FILL, Gtk::SHRINK);
 	
 	progress_hashing = manage(new Gtk::ProgressBar());
 	table->attach(*progress_hashing, 0, 2, 6, 7, Gtk::FILL, Gtk::SHRINK);
@@ -154,10 +156,10 @@ void TorrentCreator::on_button_save()
 	Glib::ustring tracker = entry_tracker->get_text();
 	Glib::ustring comment = entry_comment->get_text();
 	Glib::ustring content = button_files->get_filename();
-	
+	bool priv = check_private->get_active();
 	unsigned int piece_size = std::atoi(combo_size->get_active_text().c_str())*1024;
 	
-	if (tracker == "" || content == "")
+	if (tracker.empty() || content.empty())
 	{
 		Gtk::MessageDialog dialog(*this, "Incomplete information");
 		dialog.set_secondary_text("You must specify the tracker url and a file/folder.");
@@ -171,11 +173,12 @@ void TorrentCreator::on_button_save()
 		content.erase(0, root.size()+1);
 		add_files(info, root, content);
 
-		info.set_creator("Linkage / 0.17");
+		info.set_creator("Linkage/0.1.1");
 		info.set_piece_size(piece_size);
 		info.add_tracker(tracker.c_str());
 		info.set_comment(comment.c_str());
-		
+		info.set_priv(priv);
+
 		progress_hashing->set_text("Hashing...");
 
 		entry_tracker->set_sensitive(false);
@@ -185,15 +188,15 @@ void TorrentCreator::on_button_save()
 		button_files->set_sensitive(false);
 		combo_size->set_sensitive(false);
 		check_seed->set_sensitive(false);
+		check_private->set_sensitive(false);
 		button_save->set_sensitive(false);
 
 		storage st(info, root.c_str());
-		unsigned int num = info.num_pieces();
 		std::vector<char> buf(piece_size);
 		
-		for (unsigned int i = 0; i < num; ++i)
+		for (unsigned int i = 0; i < info.num_pieces(); i++)
 		{
-			double progress = (double)i/num;
+			double progress = (double)i/info.num_pieces();
 			progress_hashing->set_fraction(progress);
 			while (Gtk::Main::events_pending())
 			 Gtk::Main::iteration(false);
@@ -203,11 +206,7 @@ void TorrentCreator::on_button_save()
 		}
 		
 		entry e = info.create_torrent();
-		/* TODO: add private flag option
-		e["private"] = true; 
-		
-		0.10 has set_priv()*/
-		
+
 		entry_tracker->set_sensitive(true);
 		entry_comment->set_sensitive(true);
 		radio_file->set_sensitive(true);
@@ -215,13 +214,14 @@ void TorrentCreator::on_button_save()
 		button_files->set_sensitive(true);
 		combo_size->set_sensitive(true);
 		check_seed->set_sensitive(true);
+		check_private->set_sensitive(true);
 		button_save->set_sensitive(true);
 		
 		save_dialog->set_current_name(content + ".torrent");
 		if (save_dialog->run() == Gtk::RESPONSE_OK)
 		{
 			Glib::ustring file = save_dialog->get_filename();
-			if (file != "")
+			if (!file.empty())
 			{
 				std::ofstream fout;
 				fout.open(file.c_str(), std::ios_base::binary);

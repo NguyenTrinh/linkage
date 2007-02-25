@@ -84,7 +84,7 @@ UI::UI()
 
 	action_group->add(Gtk::Action::create("New", Gtk::Stock::NEW, "_New", "Create a new torrent file"),
 										Gtk::AccelKey("<control>N"),
-										sigc::mem_fun(this, &TorrentCreator::show));
+										sigc::mem_fun(torrent_win, &TorrentCreator::show));
 	action_group->add(Gtk::Action::create("Open", Gtk::Stock::OPEN, "_Open", "Open a torrent file"),
 										Gtk::AccelKey("<control>O"),
 										sigc::mem_fun(this, &UI::on_add));
@@ -277,7 +277,7 @@ UI::UI()
 	button_tracker->signal_leave().connect(sigc::mem_fun(this, &UI::on_tracker_leave));
 	Gtk::HBox* tracker_box = manage(new Gtk::HBox());
 	tracker_box->pack_start(*button_tracker, false, false);
-	table_tracker->attach(*tracker_box, 1, 2, 0, 1, Gtk::SHRINK, Gtk::EXPAND|Gtk::FILL);
+	table_tracker->attach(*tracker_box, 1, 2, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	label_next_announce = manage(new AlignedLabel());
 	table_tracker->attach(*label_next_announce, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	label_response = manage(new AlignedLabel());
@@ -449,7 +449,6 @@ UI::UI()
 	Engine::instance()->get_dbus_manager()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
 	Engine::instance()->get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
 
-	//Glib::signal_timeout().connect(sigc::mem_fun(this, &UI::on_timeout), sm->get_int("UI", "Interval")*1000);
 	connection_tick = Engine::instance()->signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
 }
 
