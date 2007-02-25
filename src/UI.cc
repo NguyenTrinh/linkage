@@ -454,19 +454,6 @@ UI::UI()
 
 UI::~UI()
 {
-	/* This seems to cause a segfault if connected */
-	connection_switch_page.disconnect();
-
-	delete torrent_list;
-	delete piecemap;
-	delete peer_list;
-	delete file_list;
-	delete settings_win;
-	delete torrent_win;
-}
-
-void UI::save_state()
-{
 	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
 
 	int w, h;
@@ -476,6 +463,16 @@ void UI::save_state()
 	sm->set("UI", "WinHeight", h);
 	sm->set("UI", "Page", notebook_details->get_current_page());
 	sm->set("UI", "Expanded", expander_details->get_expanded());
+
+	/* This seems to cause a segfault if connected */
+	connection_switch_page.disconnect();
+
+	delete torrent_list;
+	delete piecemap;
+	delete peer_list;
+	delete file_list;
+	delete settings_win;
+	delete torrent_win;
 }
 
 void UI::on_plugin_load(Plugin* plugin)
@@ -904,11 +901,7 @@ bool UI::on_delete_event(GdkEventAny*)
 void UI::on_quit()
 {
 	if (torrent_win->get_finished())
-	{
-		save_state();
-		hide();
 		Gtk::Main::quit();
-	}
 }
 
 void UI::on_toggle_visible()

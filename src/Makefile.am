@@ -32,6 +32,10 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   CellRendererProgressText.cc \
                   FilterManager.hh \
                   FilterManager.cc \
+                  GroupFilterRow.hh \
+                  GroupFilterRow.cc \
+                  GroupFilterView.hh \
+                  GroupFilterView.cc \
                   main.cc
 
 

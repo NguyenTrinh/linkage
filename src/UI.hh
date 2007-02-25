@@ -162,7 +162,6 @@ class UI : public Gtk::Window
 
 	void on_switch_page(GtkNotebookPage* child, int page);
 
-	void save_state();
 	void reset_views();
 
 	void build_tracker_menu(const WeakPtr<Torrent>& torrent);

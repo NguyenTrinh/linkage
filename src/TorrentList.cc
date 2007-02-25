@@ -597,7 +597,7 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 
 	if (torrent->get_state() == Torrent::SEEDING)
 	{
-		unsigned int size = status.total_wanted_done - up;
+		int size = status.total_wanted_done - up;
 		if (down != 0)
 		{
 			double ratio = (double)up/down;
