@@ -16,9 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#ifdef HAVE_LIBCURL
 #include <curl/curl.h>
-#endif
 
 #include <glib/gstdio.h>
 
@@ -1090,7 +1088,6 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 		for (std::list<std::string>::iterator li = uri_list.begin(); li != uri_list.end(); ++li)
 		{
 			std::string file = *li;
-			std::cout << "loop: '" << *li << "'" << std::endl;
 			pos = file.find("file://");
 			if (pos != std::string::npos)
 				file.erase(0, 7); /* Get rid of leading file:// */
@@ -1099,8 +1096,9 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	}
 	else
 	{
-		/* TODO: Add a progress bar */
-		#ifdef HAVE_LIBCURL
+		/* TODO: Add a progress bar */	
+		notify("Downloading torrent", "downloading " + data);
+ 
 		CURL *curl;
 		CURLcode res;
 
@@ -1128,7 +1126,6 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 			else
 				std::cerr << err << std::endl;
 		}
-		#endif
 	}
 	context->drag_finish(false, false, time);
 }

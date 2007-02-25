@@ -573,13 +573,18 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 
 	unsigned int up = torrent->get_total_uploaded();
 	unsigned int down = torrent->get_total_downloaded();
-
+	
 	row[columns.down] = down;
 	row[columns.up] = up;
 
+	Glib::ustring name = torrent->get_name();
+	int p;
+	while ((p = name.find("&")) != Glib::ustring::npos && name.substr(p + 1, 4) != "amp;")
+		name = name.insert(p + 1, "amp;");
+
 	if (!torrent->is_running())
 	{
-		ss << "<span foreground='" << color << "'><b>" << torrent->get_name() << "</b></span>\nStopped";
+		ss << "<span foreground='" << color << "'><b>" << name << "</b></span>\nStopped";
 		row[columns.name] = ss.str();
 		row[columns.down_rate] = 0;
 		row[columns.up_rate] = 0;
@@ -624,26 +629,17 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 		row[columns.eta] = str(double(status.progress*100), 2) + " % " + get_eta(status.total_wanted-status.total_wanted_done, status.download_payload_rate);
 	}
 
-	ss << "<span foreground='" << color << "'><b>" << torrent->get_name() <<
+	ss << "<span foreground='" << color << "'><b>" << name <<
 		"</b> (" << suffix_value((int)torrent->get_info().total_size()) << ")" <<
 		"</span>\n";
 	Torrent::State state = torrent->get_state();
 	if (state != Torrent::QUEUED && state != Torrent::SEEDING)
-	{
 		ss << status.num_seeds << " connected seeds, " <<
 					status.num_peers - status.num_seeds << " peers";
-		//row[columns.icon] = Gdk::Pixbuf::create_from_file("/home/lunke/Projekt/linkage/data/download.png", 32, 32);
-	}
-	else if (state == Torrent::QUEUED)
-	{
+	else if (state == Torrent::QUEUED || state == Torrent::CHECK_QUEUE)
 		ss << "Queued";
-		//row[columns.icon] = Gdk::Pixbuf::create_from_file("/home/lunke/Projekt/linkage/data/queued.png", 32, 32);
-	}
 	if (state == Torrent::SEEDING)
-	{
 		ss << status.num_peers - status.num_seeds << " connected peers";
-		//row[columns.icon] = Gdk::Pixbuf::create_from_file("/home/lunke/Projekt/linkage/data/seed.png", 32, 32);
-	}
 
 	row[columns.name] = ss.str();
 	row[columns.down_rate] = (unsigned int)status.download_payload_rate;
