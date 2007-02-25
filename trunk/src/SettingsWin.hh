@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/window.h>
 #include <gtkmm/checkbutton.h>
+#include <gtkmm/radiobutton.h>
 #include <gtkmm/filechooserbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/comboboxentrytext.h>
@@ -53,11 +54,13 @@ class SettingsWin : public Gtk::Window
 
 	class GroupFilterRow : public Gtk::HBox
 	{
+		Gtk::RadioButton* m_radio;
 		Gtk::Entry *m_name;
 		Gtk::ComboBoxText *m_eval, *m_tag;
 		Gtk::ComboBoxEntryText *m_filter;
 
 		void on_tag_changed();
+		void on_radio_changed();
 		void init();
 
 	public:
@@ -65,18 +68,23 @@ class SettingsWin : public Gtk::Window
 		int get_tag();
 		int get_eval();
 		Glib::ustring get_name();
+		bool is_default();
 		bool has_focus();
+		
+		void set_group(Gtk::RadioButtonGroup& group);
+		void set_default();
 
 		GroupFilterRow();
 		GroupFilterRow(const Glib::ustring& filter,
-									 int tag,
-									 int eval,
-									 const Glib::ustring& name);
+										int tag,
+										int eval,
+										const Glib::ustring& name);
 		~GroupFilterRow();
 	};
 
 	class GroupFilterView : public Gtk::VBox
 	{
+		Gtk::RadioButtonGroup m_group;
 		std::list<GroupFilterRow*> m_children;
 
 	public:
@@ -108,6 +116,7 @@ class SettingsWin : public Gtk::Window
 	Gtk::FileChooserButton *button_default_path, *button_move_finished;
 	Gtk::Entry *proxy_ip, *proxy_user, *proxy_pass;
 
+	Gtk::Button *group_add, *group_remove;
 	GroupFilterView* groups_view;
 
 	void on_plugin_toggled(const Glib::ustring& path);
