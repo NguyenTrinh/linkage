@@ -671,6 +671,12 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 
 void UI::add_torrent(const Glib::ustring& file)
 {
+	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
+	{
+		Engine::instance()->get_session_manager()->signal_missing_file().emit("File not found, \"" + file + "\"", file);
+		return;
+	}
+	
 	Glib::ustring save_path;
 
 	if (!Engine::instance()->get_settings_manager()->get_bool("Files", "UseDefPath"))
@@ -687,12 +693,10 @@ void UI::add_torrent(const Glib::ustring& file)
 	else
 		save_path = Engine::instance()->get_settings_manager()->get_string("Files", "DefPath");
 
-	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-	{
-		sha1_hash hash = Engine::instance()->get_session_manager()->open_torrent(file, save_path);
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	sha1_hash hash = Engine::instance()->get_session_manager()->open_torrent(file, save_path);
+	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	if (torrent)
 		update(torrent, expander_details->get_expanded());
-	}
 }
 
 OpenDialog::OpenDialog(Gtk::Window *parent)

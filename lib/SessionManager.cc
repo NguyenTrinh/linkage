@@ -199,7 +199,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	{
 		m_signal_duplicate_torrent.emit("Torrent already exists in session as " +
 			Engine::instance()->get_torrent_manager()->get_torrent(hash)->get_name(), hash);
-		return INVALID_HASH;
+		return hash;
 	}
 
 	//Save metadata to data_dir/hash

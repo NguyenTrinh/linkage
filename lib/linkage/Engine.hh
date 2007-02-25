@@ -53,9 +53,9 @@ public:
 	Glib::RefPtr<DbusManager>	get_dbus_manager();
 	
 	sigc::signal<void> signal_tick();
-	bool is_ticking();
+	/*bool is_ticking();
 	void start_tick();
-	void stop_tick();
+	void stop_tick();*/
 
 	static bool is_primary();
 	static Glib::RefPtr<Engine> instance();
