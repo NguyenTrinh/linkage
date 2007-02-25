@@ -162,6 +162,9 @@ void TorrentList::on_settings()
 		std::list<Glib::ustring>::iterator giter;
 		for (giter = groups.begin(); giter != groups.end(); ++giter)
 		{
+			if (!get_iter(*giter))
+				add_group(*giter);
+
 			if (name == *giter)
 			{
 				do_remove = false;
@@ -170,7 +173,7 @@ void TorrentList::on_settings()
 		}
 		if (giter != groups.end())
 			groups.erase(giter);
- 
+ 		
 		if (do_remove)
 		{
 			/*
@@ -198,7 +201,7 @@ void TorrentList::on_settings()
 		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*iter);
 		torrent->set_group(Engine::instance()->get_settings_manager()->get_string("Files", "DefGroup"));
 	}
-
+	
 	for (std::list<Glib::ustring>::iterator iter = old_groups.begin();
 				iter != old_groups.end(); ++iter)
 	{
@@ -478,7 +481,6 @@ sigc::signal<void, const sha1_hash&> TorrentList::signal_right_click()
 	return m_signal_right_click;
 }
 
-
 void TorrentList::update_groups()
 {
 	Gtk::TreeNodeChildren parents = model->children();
@@ -577,10 +579,7 @@ void TorrentList::update_row(const WeakPtr<Torrent>& torrent)
 	row[columns.down] = down;
 	row[columns.up] = up;
 
-	Glib::ustring name = torrent->get_name();
-	int p;
-	while ((p = name.find("&")) != Glib::ustring::npos && name.substr(p + 1, 4) != "amp;")
-		name = name.insert(p + 1, "amp;");
+	Glib::ustring name = escape_specials(torrent->get_name());
 
 	if (!torrent->is_running())
 	{

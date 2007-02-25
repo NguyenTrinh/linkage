@@ -126,6 +126,19 @@ Glib::ustring format_time(int seconds)
 	}
 }
 
+Glib::ustring escape_specials(const Glib::ustring& s)
+{
+	/* FIXME: find out if there are anything else needed to be escaped */
+	Glib::ustring esc = s;
+	for (int i = 0; i < esc.size(); i++)
+	{
+		if (esc[i] == '&' && esc.substr(i + 1, 4) != "amp;")
+			esc = esc.insert(i + 1, "amp;");
+	}
+
+	return esc;
+}
+
 sha1_hash info_hash(const std::string& chars)
 {
 	sha1_hash hash;

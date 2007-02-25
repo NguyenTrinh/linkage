@@ -35,9 +35,9 @@ SettingsWin::GroupFilterRow::GroupFilterRow()
 }
 
 SettingsWin::GroupFilterRow::GroupFilterRow(const Glib::ustring& name,
-																					 int tag,
-																					 int eval,
-																					 const Glib::ustring& filter)
+																						int tag,
+																						int eval,
+																						const Glib::ustring& filter)
 {
 	init();
 
@@ -49,6 +49,8 @@ SettingsWin::GroupFilterRow::GroupFilterRow(const Glib::ustring& name,
 
 void SettingsWin::GroupFilterRow::init()
 {
+	m_radio = new Gtk::RadioButton();
+	m_radio->signal_toggled().connect(sigc::mem_fun(this, &SettingsWin::GroupFilterRow::on_radio_changed));
 	m_name = new Gtk::Entry();
 	m_eval = new Gtk::ComboBoxText();
 	m_eval->append_text("Equals");
@@ -66,6 +68,7 @@ void SettingsWin::GroupFilterRow::init()
 	m_tag->append_text("State");
 	m_filter = new Gtk::ComboBoxEntryText();
 
+	pack_start(*m_radio, false, false);
 	pack_start(*m_name, false, false);
 	pack_start(*m_tag, false, false);
 	pack_start(*m_eval, false, false);
@@ -76,6 +79,7 @@ void SettingsWin::GroupFilterRow::init()
 
 SettingsWin::GroupFilterRow::~GroupFilterRow()
 {
+	delete m_radio;
 	delete m_name;
 	delete m_tag;
 	delete m_eval;
@@ -113,6 +117,19 @@ void SettingsWin::GroupFilterRow::on_tag_changed()
 	}
 }
 
+void SettingsWin::GroupFilterRow::on_radio_changed()
+{
+	if (m_radio->get_active())
+	{
+		m_tag->set_active(0);
+		m_tag->set_sensitive(false);
+	}
+	else
+	{
+		m_tag->set_sensitive(true);
+	}
+}
+
 Glib::ustring SettingsWin::GroupFilterRow::get_filter()
 {
 	return m_filter->get_entry()->get_text();
@@ -135,8 +152,24 @@ Glib::ustring SettingsWin::GroupFilterRow::get_name()
 
 bool SettingsWin::GroupFilterRow::has_focus()
 {
-	return (m_filter->has_focus() || m_tag->has_focus() || m_eval->has_focus() || m_name->has_focus());
+	return (m_filter->has_focus() || m_tag->has_focus() || m_eval->has_focus() || m_name->has_focus() || m_radio->has_focus());
 }
+
+bool SettingsWin::GroupFilterRow::is_default()
+{
+	return m_radio->get_active();
+}
+
+void SettingsWin::GroupFilterRow::set_group(Gtk::RadioButtonGroup& group)
+{
+	m_radio->set_group(group);
+}
+
+void SettingsWin::GroupFilterRow::set_default()
+{
+	m_radio->set_active(true);
+}
+
 
 SettingsWin::GroupFilterView::GroupFilterView()
 {
@@ -149,11 +182,13 @@ SettingsWin::GroupFilterView::~GroupFilterView()
 	{
 		delete *iter;
 	}
+	m_children.clear();
 }
 
 void SettingsWin::GroupFilterView::append(GroupFilterRow* row)
 {
 	m_children.push_back(row);
+	row->set_group(m_group);
 	pack_start(*row, false, false);
 	show_all_children();
 }
@@ -165,9 +200,11 @@ void SettingsWin::GroupFilterView::remove(GroupFilterRow* row)
 	{
 		if (row->get_name() == (*iter)->get_name())
 		{
-			//remove(*iter);
+			bool was_default = (*iter)->is_default();
 			m_children.erase(iter);
 			delete row;
+			if (was_default)
+				(*m_children.begin())->set_default();
 			break;
 		}
 	}
@@ -179,7 +216,7 @@ SettingsWin::GroupFilterRow* SettingsWin::GroupFilterView::get_row(const Glib::u
 				iter != m_children.end(); ++iter)
 	{
 		if (group == (*iter)->get_name())
-		return *iter;
+			return *iter;
 	}
 
 	return 0;
@@ -349,7 +386,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	treeview_plugins->set_model(model_plugins);
 	Gtk::CellRendererToggle* trender = new Gtk::CellRendererToggle();
 	trender->signal_toggled().connect(sigc::mem_fun(*this, &SettingsWin::on_plugin_toggled));
-	unsigned int cols_count = treeview_plugins->append_column("Load", *manage(trender));
+	int cols_count = treeview_plugins->append_column("Load", *manage(trender));
 	treeview_plugins->get_column(0)->add_attribute(*trender, "active", cols_count - 1);
 	treeview_plugins->append_column("Name", plugin_columns.name);
 	treeview_plugins->append_column("Description", plugin_columns.description);
@@ -365,9 +402,9 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	Gtk::HBox* groups_box = manage(new Gtk::HBox());
 	groups_view = manage(new GroupFilterView());
 	groups_box->pack_start(*groups_view, true, true);
-	Gtk::Button* group_add = manage(new Gtk::Button(Gtk::Stock::ADD));
+	group_add = manage(new Gtk::Button(Gtk::Stock::ADD));
 	group_add->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_add));
-	Gtk::Button* group_remove = manage(new Gtk::Button(Gtk::Stock::REMOVE));
+	group_remove = manage(new Gtk::Button(Gtk::Stock::REMOVE));
 	group_remove->unset_flags(Gtk::CAN_FOCUS);
 	group_remove->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_remove));
 	Gtk::VBox* groups_vbox = manage(new Gtk::VBox());
@@ -406,6 +443,8 @@ void SettingsWin::on_group_add()
 	Glib::ustring number = str(groups_view->get_children().size());
 	GroupFilterRow* row = new GroupFilterRow("Group " + number, 0, 0, "");
 	groups_view->append(row);
+	if (groups_view->children().size() > 1)
+		group_remove->set_sensitive(true);
 }
 
 void SettingsWin::on_group_remove()
@@ -413,6 +452,8 @@ void SettingsWin::on_group_remove()
 	GroupFilterRow* row = groups_view->get_selected();
 	if (row)
 		groups_view->remove(row);
+	if (groups_view->children().size() == 1)
+		group_remove->set_sensitive(false);
 }
 
 void SettingsWin::on_proxy_toggled()
@@ -497,7 +538,10 @@ void SettingsWin::on_hide()
 				iter != rows.end(); ++iter)
 	{
 		GroupFilterRow* row = *iter;
-		sm->set("Groups", row->get_name(), false);
+		Glib::ustring name = escape_specials(row->get_name());
+		sm->set("Groups", name, false);
+		if (row->is_default())
+			sm->set("Files", "DefGroup", name);
 		if (row->get_tag() >= 2)
 		{
 			std::list<Glib::ustring> info;
@@ -505,7 +549,7 @@ void SettingsWin::on_hide()
 			info.push_back(str(row->get_eval()));
 			info.push_back(str(row->get_tag() - 2));
 
-			sm->set("Filters", row->get_name(), UStringArray(info));
+			sm->set("Filters", name, UStringArray(info));
 		}
 	}
 
@@ -619,6 +663,14 @@ void SettingsWin::on_show()
 			GroupFilterRow* row = new GroupFilterRow(*iter, 0, 0, "");
 			groups_view->append(row);
 		}
+		Glib::ustring def = sm->get_string("Files", "DefGroup");
+		GroupFilterRow* row = groups_view->get_row(def);
+		if (!row)
+		{
+			row = new GroupFilterRow(def, 0, 0, "");
+			groups_view->append(row);
+		}
+		row->set_default();
 	}
 
 	Gtk::Window::on_show();
