@@ -46,6 +46,7 @@ public:
 	bool has_focus();
 	
 	void set_group(Gtk::RadioButtonGroup& group);
+	Gtk::RadioButtonGroup get_group();
 	void set_default();
 
 	GroupFilterRow();

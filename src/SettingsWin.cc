@@ -241,7 +241,7 @@ void SettingsWin::on_group_remove()
 {
 	GroupFilterRow* row = groups_view->get_selected();
 	if (row)
-		groups_view->remove(row);
+		groups_view->erase(row);
 	if (groups_view->children().size() == 1)
 		group_remove->set_sensitive(false);
 }

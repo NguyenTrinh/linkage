@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include "GroupFilterView.hh"
-
+#include <iostream>
 GroupFilterView::GroupFilterView()
 {
 }
@@ -34,13 +34,19 @@ GroupFilterView::~GroupFilterView()
 
 void GroupFilterView::append(GroupFilterRow* row)
 {
+	if (!m_children.empty())
+	{
+		GroupFilterRow* first_row = *m_children.begin();
+		Gtk::RadioButtonGroup group = first_row->get_group();
+		row->set_group(group);
+	}
+
 	m_children.push_back(row);
-	row->set_group(m_group);
 	pack_start(*row, false, false);
 	show_all_children();
 }
 
-void GroupFilterView::remove(GroupFilterRow* row)
+void GroupFilterView::erase(GroupFilterRow* row)
 {
 	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
 				iter != m_children.end(); ++iter)
@@ -49,6 +55,7 @@ void GroupFilterView::remove(GroupFilterRow* row)
 		{
 			bool was_default = (*iter)->is_default();
 			m_children.erase(iter);
+			remove(*row);
 			delete row;
 			if (was_default)
 				(*m_children.begin())->set_default();
