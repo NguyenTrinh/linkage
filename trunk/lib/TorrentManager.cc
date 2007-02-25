@@ -110,7 +110,7 @@ void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustrin
 	if (code == -1)
 		scode = "connection refused";
 	else if (code == 0)
-		scode = "timed out"
+		scode = "timed out";
 	else	
 		scode = str(code);
 	
