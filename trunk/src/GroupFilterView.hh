@@ -28,12 +28,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class GroupFilterView : public Gtk::VBox
 {
-	Gtk::RadioButtonGroup m_group;
 	std::list<GroupFilterRow*> m_children;
 
 public:
 	void append(GroupFilterRow* row);
-	void remove(GroupFilterRow* row);
+	void erase(GroupFilterRow* row);
 	GroupFilterRow* get_row(const Glib::ustring& group);
 	const std::list<GroupFilterRow*>& children();
 	GroupFilterRow* get_selected();

@@ -155,6 +155,11 @@ void GroupFilterRow::set_group(Gtk::RadioButtonGroup& group)
 	m_radio->set_group(group);
 }
 
+Gtk::RadioButtonGroup GroupFilterRow::get_group()
+{
+	return m_radio->get_group();
+}
+
 void GroupFilterRow::set_default()
 {
 	m_radio->set_active(true);
