@@ -160,14 +160,17 @@ void TorrentList::on_settings()
 		
 		bool do_remove = true;
 		std::list<Glib::ustring>::iterator giter;
-		for (giter = groups.begin(); giter != groups.end() && do_remove; ++giter)
+		for (giter = groups.begin(); giter != groups.end(); ++giter)
 		{
 			if (name == *giter)
+			{
 				do_remove = false;
+				break;
+			}
 		}
 		if (giter != groups.end())
 			groups.erase(giter);
-		
+ 
 		if (do_remove)
 		{
 			/*
