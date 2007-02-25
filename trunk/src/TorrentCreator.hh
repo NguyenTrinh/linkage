@@ -45,7 +45,7 @@ class TorrentCreator : public Gtk::Window
 	Gtk::Entry *entry_tracker, *entry_comment;
 	Gtk::RadioButton *radio_file, *radio_folder;
 	Gtk::FileChooserButton *button_files;
-	Gtk::CheckButton *check_seed;
+	Gtk::CheckButton *check_seed, *check_private;
 	Gtk::ComboBoxText *combo_size;
 	Gtk::ProgressBar *progress_hashing;
 	
