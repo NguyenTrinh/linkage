@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/scrollbar.h>
 #include <gtkmm/box.h>
 #include <gtkmm/paned.h>
+#include <gtkmm/aboutdialog.h>
 
 #include "UI.hh"
 #include "linkage/Engine.hh"
@@ -222,6 +223,7 @@ UI::UI()
 	Gtk::VBox* general_box = manage(new Gtk::VBox());
 
 	Gtk::Frame* frame_pieces = manage(new Gtk::Frame());
+	frame_pieces->set_shadow_type(Gtk::SHADOW_NONE);
 	Gtk::Label* label = manage(new AlignedLabel());
 	label->set_use_markup(true);
 	label->set_markup("<b>Pieces</b>");
@@ -253,6 +255,7 @@ UI::UI()
 	general_box->pack_start(*frame_pieces, false, false, 0);
 
 	Gtk::Frame* frame_tracker = manage(new Gtk::Frame());
+	frame_tracker->set_shadow_type(Gtk::SHADOW_NONE);
 	label = manage(new AlignedLabel());
 	label->set_use_markup(true);
 	label->set_markup("<b>Tracker</b>");
@@ -289,6 +292,7 @@ UI::UI()
 	general_box->pack_start(*frame_tracker, false, false, 0);
 
 	Gtk::Frame* frame_origin = manage(new Gtk::Frame());
+	frame_origin->set_shadow_type(Gtk::SHADOW_NONE);
 	label = manage(new AlignedLabel());
 	label->set_use_markup(true);
 	label->set_markup("<b>Origin</b>");
@@ -369,22 +373,22 @@ UI::UI()
 	Gtk::Table* table_files = manage(new Gtk::Table(2, 6));
 	table_files->set_spacings(10);
 	table_files->set_border_width(5);
-	label = manage(new AlignedLabel("Saving as:"));
-	table_files->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
 	label = manage(new AlignedLabel("Files:"));
-	table_files->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
 	label = manage(new AlignedLabel("Total size:"));
-	table_files->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
 	label = manage(new AlignedLabel("Pieces:"));
-	table_files->attach(*label, 4, 5, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label_path = manage(new AlignedLabel());
-	table_files->attach(*label_path, 1, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label, 4, 5, 0, 1, Gtk::FILL, Gtk::SHRINK);
+	label = manage(new AlignedLabel("Saving as:"));
+	table_files->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
 	label_files = manage(new AlignedLabel());
-	table_files->attach(*label_files, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label_files, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 	label_size = manage(new AlignedLabel());
-	table_files->attach(*label_size, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label_size, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 	label_pieces = manage(new AlignedLabel());
-	table_files->attach(*label_pieces, 5, 6, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label_pieces, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	label_path = manage(new AlignedLabel());
+	table_files->attach(*label_path, 1, 6, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 
 	files_box->pack_start(*table_files, false, false, 0);
 
@@ -748,7 +752,18 @@ void UI::on_prefs()
 
 void UI::on_about()
 {
-	std::cout << "About" << std::endl;
+	Gtk::AboutDialog about;
+	std::list<Glib::ustring> people;
+	people.push_back("Christian Lundgren");
+	about.set_authors(people);
+	people.clear();
+	people.push_back("Ludvig Aleman");
+	about.set_artists(people);
+	people.clear();
+	about.set_comments("A BitTorrent client");
+	about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.png"));
+	about.set_version("0.1.1");
+	about.run();
 }
 
 void UI::on_spin_down()
@@ -775,11 +790,11 @@ void UI::on_settings()
 {
 	int max_up = Engine::instance()->get_settings_manager()->get_int("Network", "MaxUpRate");
 	if (max_up == 0)
-		max_up = 1000;
+		max_up = 10000;
 	spinbutton_up->set_range(0, max_up);
 	int max_down = Engine::instance()->get_settings_manager()->get_int("Network", "MaxDownRate");
 	if (max_down == 0)
-		max_down = 1000;
+		max_down = 10000;
 	spinbutton_down->set_range(0, max_down);
 }
 
@@ -805,7 +820,7 @@ void UI::on_remove()
 		Engine::instance()->get_session_manager()->erase_torrent(hash);
 	}
 
-	if (list.size())
+	if (!list.empty())
 	{
 		expander_details->set_expanded(false);
 		expander_details->set_sensitive(false);
@@ -823,6 +838,7 @@ void UI::on_start()
 		if (!torrent->is_running())
 		{
 			Engine::instance()->get_session_manager()->resume_torrent(hash);
+			button_tracker->set_sensitive(true);
 			update(torrent, (list.size() == 1));
 		}
 	}
@@ -838,7 +854,7 @@ void UI::on_stop()
 		Engine::instance()->get_session_manager()->stop_torrent(hash);
 	}
 
-	if (list.size())
+	if (!list.empty())
 	{
 		button_tracker->set_sensitive(false);
 		reset_views();
@@ -1116,7 +1132,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 			if (res == CURLE_OK)
 				add_torrent("/tmp/.linkage-tmp.torrent");
 			else
-				std::cerr << err << std::endl;
+				g_warning(err);
 		}
 	}
 	context->drag_finish(false, false, time);
