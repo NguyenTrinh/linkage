@@ -284,7 +284,7 @@ UI::UI()
 	label_next_announce = manage(new AlignedLabel());
 	table_tracker->attach(*label_next_announce, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	label_response = manage(new AlignedLabel());
-	label_response->set_ellipsize_mode(Pango::ELLIPSIZE_END);
+	label_response->set_ellipsize(Pango::ELLIPSIZE_END);
 	table_tracker->attach(*label_response, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	label_private = manage(new AlignedLabel());
 	table_tracker->attach(*label_private, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
@@ -313,7 +313,7 @@ UI::UI()
 	label_date = manage(new AlignedLabel());
 	table_origin->attach(*label_date, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	label_comment = manage(new AlignedLabel());
-	label_comment->set_ellipsize_mode(Pango::ELLIPSIZE_END);
+	label_comment->set_ellipsize(Pango::ELLIPSIZE_END);
 	table_origin->attach(*label_comment, 1, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 
 	frame_origin->add(*table_origin);
@@ -390,7 +390,7 @@ UI::UI()
 	label_pieces = manage(new AlignedLabel());
 	table_files->attach(*label_pieces, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 	label_path = manage(new AlignedLabel());
-	label_path->set_ellipsize_mode(Pango::ELLIPSIZE_END);
+	label_path->set_ellipsize(Pango::ELLIPSIZE_END);
 	table_files->attach(*label_path, 1, 6, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 
 	files_box->pack_start(*table_files, false, false, 0);
