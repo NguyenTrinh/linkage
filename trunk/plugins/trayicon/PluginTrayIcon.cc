@@ -46,9 +46,7 @@ Glib::ustring TrayPlugin::get_description()
 	
 void TrayPlugin::on_load()
 {
-	Glib::ustring icon = PIXMAP_DIR;
-	icon = icon + "/linkage.png";
-	Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(icon, 24, 24, true);
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.png", 24, 24, true);
 	image = new Gtk::Image(pixbuf);
 	
 	event_box = new Gtk::EventBox();;

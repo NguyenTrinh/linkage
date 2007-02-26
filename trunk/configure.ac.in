@@ -1,11 +1,17 @@
-AC_INIT(src/main.cc)
+m4_define(linkage_major_version, 0)
+m4_define(linkage_minor_version, 1)
+m4_define(linkage_micro_version, 1)
+m4_define(linkage_tag, svn)
+m4_define(linkage_tag_revision, r@REVISION@)
 
-PACKAGE=linkage
-VERSION=0.1.1
+m4_define(linkage_version, linkage_major_version().linkage_minor_version().linkage_micro_version()m4_ifdef(linkage_tag,,linkage_tag()-linkage_tag_revision()))
 
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+AC_INIT([linkage], [linkage_version()])
 
-sinclude([m4/geoip.m4])
+AC_CONFIG_SRCDIR(src/main.cc)
+AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
+
+builtin([include],[m4/geoip.m4])
 
 CHECK_GEOIP
 
@@ -29,7 +35,9 @@ PKG_CHECK_MODULES(DBUSGLIB, dbus-glib-1 >= 0.70)
 AC_SUBST(DBUSGLIB_CFLAGS)
 AC_SUBST(DBUSGLIB_LIBS)
 
+AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
+AC_PROG_INSTALL
 
 AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile  data/Makefile data/flags/Makefile)
