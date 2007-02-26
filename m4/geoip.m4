@@ -1,6 +1,6 @@
 #Modified CHECK_ZLIB script found here http://autoconf-archive.cryp.to/check_zlib.html
 #Copyright © 2004 Loic Dachary <loic@senga.org>
-#Copyright © 2006 Christian Lundgren <lunke@lunke.se>
+#Copyright © 2006 Christian Lundgren <zeflunk@gmail.com>
 
 #This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
