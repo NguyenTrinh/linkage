@@ -273,6 +273,9 @@ UI::UI()
 	label = manage(new AlignedLabel("Private:"));
 	table_tracker->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	button_tracker = manage(new Gtk::Button());
+	label_tracker = manage(new AlignedLabel());
+	label_tracker->set_use_markup(true);
+	button_tracker->add(*label_tracker);
 	button_tracker->set_relief(Gtk::RELIEF_NONE);
 	button_tracker->add_events(Gdk::BUTTON_RELEASE_MASK);
 	button_tracker->signal_button_release_event().connect(sigc::mem_fun(this, &UI::on_tracker_update), false);
@@ -581,12 +584,15 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 		int down = torrent->get_total_downloaded();
 		int up = torrent->get_total_uploaded();
 		double ratio = 0;
+		Glib::ustring tracker = stats.current_tracker;
 		switch (notebook_details->get_current_page())
 		{
 			case PAGE_GENERAL:
 				if (stats.pieces)
 					piecemap->set_map(*stats.pieces);
-				button_tracker->set_label(stats.current_tracker);
+				if (tracker.empty())
+					tracker = "<i>None</i>";
+				label_tracker->set_markup(tracker);
 				label_next_announce->set_text(to_simple_string(stats.next_announce));
 				label_response->set_text(torrent->get_tracker_reply());
 				break;
@@ -649,7 +655,7 @@ void UI::reset_views()
 	label_creator->set_text("");
 	label_date->set_text("");
 	label_private->set_text("");
-	button_tracker->set_label("");
+	label_tracker->set_markup("");
 }
 
 void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
