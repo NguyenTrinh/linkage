@@ -18,9 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef SESSIONMANAGER_H
 #define SESSIONMANAGER_H
 
-#define MAJOR 0;
-#define MINOR 19;
-
 #include <fstream>
 #include <iterator>
 #include <exception>
@@ -44,7 +41,6 @@ class SessionManager : public session, public RefCounter<SessionManager>
 	void on_settings();
 	
 	sigc::signal<void> m_signal_update_queue;
-	sigc::signal<void> m_signal_session_resumed;
 	
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
@@ -54,7 +50,6 @@ class SessionManager : public session, public RefCounter<SessionManager>
 	
 public:
 	sigc::signal<void> signal_update_queue();
-	sigc::signal<void> signal_session_resumed();
 	
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_invalid_bencoding();
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_missing_file();

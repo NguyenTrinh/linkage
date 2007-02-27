@@ -31,8 +31,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   Statusbar.cc \
                   CellRendererProgressText.hh \
                   CellRendererProgressText.cc \
-                  FilterManager.hh \
-                  FilterManager.cc \
+                  GroupList.hh \
+                  GroupList.cc \
                   GroupFilterRow.hh \
                   GroupFilterRow.cc \
                   GroupFilterView.hh \

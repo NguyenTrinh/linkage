@@ -42,6 +42,7 @@ Glib::ustring SettingsManager::defaults = "[Network]\n"
 																					"Interval=1\n"
 																					"WinHeight=-1\n"
 																					"WinWidth=-1\n"
+																					"GroupsWidth=-1\n"
 																					"Expanded=0\n"
 																					"AutoExpand=0\n"
 																					"Page=0\n"
@@ -60,9 +61,7 @@ Glib::ustring SettingsManager::defaults = "[Network]\n"
 																					"Allocate=1\n"
 																					"DefGroup=Downloads\n"
 																					"[Groups]\n"
-																					"Downloads=0\n"
-																					"Seeds=0\n"
-																					"[Filters]\n"
+																					"Downloads=;0;0\n"
 																					"Seeds=Seeding;0;3;\n";
 
 Glib::RefPtr<SettingsManager> SettingsManager::create()

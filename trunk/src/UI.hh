@@ -42,6 +42,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "Statusbar.hh"
 #include "PieceMap.hh"
 #include "TorrentList.hh"
+#include "GroupList.hh"
 #include "PeerList.hh"
 #include "FileList.hh"
 #include "SettingsWin.hh"
@@ -113,6 +114,7 @@ class UI : public Gtk::Window
 
 	PieceMap* piecemap;
 	TorrentList* torrent_list;
+	GroupList* group_list;
 	FileList* file_list;
 	PeerList* peer_list;
 

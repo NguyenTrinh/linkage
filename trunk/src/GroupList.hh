@@ -16,24 +16,43 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#ifndef FILTER_MANAGER_HH
-#define FILTER_MANAGER_HH
+#ifndef GROUP_LIST_HH
+#define GROUP_LIST_HH
+
+#include <map>
+
+#include <gtkmm/box.h>
+#include <gtkmm/radiobutton.h>
 
 #include "linkage/WeakPtr.hh"
 #include "linkage/Torrent.hh"
 
 #include "GroupFilter.hh"
 
-class FilterManager
+class GroupList : public Gtk::VBox
 {
-	std::list<GroupFilter*> m_filters;
+	typedef std::map<GroupFilter*, Gtk::RadioButton*> GroupMap;
+
+	Gtk::RadioButton* m_all;
+
+	GroupMap m_map;
+	
+	sigc::signal<void, const GroupFilter&> m_signal_filter_set;
+	sigc::signal<void> m_signal_filter_unset;
+
+	void on_all_toggled();
+	void on_group_toggled(GroupFilter* group);
+
 	void on_settings();
 
 public:
-	void check_filters(const WeakPtr<Torrent>& torrent);
+	sigc::signal<void, const GroupFilter&> signal_filter_set();
+	sigc::signal<void> signal_filter_unset();
 
-	FilterManager();
-	~FilterManager();
+	void update();
+
+	GroupList();
+	~GroupList();
 };
 
-#endif /* FILTER_MANAGER_HH */
+#endif /* GROUP_LIST_HH */

@@ -136,11 +136,7 @@ UI::UI()
 			break;
 	}
 	Gtk::Menu* tb_sort_menu = manage(new Gtk::Menu());
-	Gtk::MenuItem* item = manage(new Gtk::MenuItem("Group size"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_CHILDREN));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Position"));
+	Gtk::MenuItem* item = manage(new Gtk::MenuItem("Position"));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
 			this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
 	tb_sort_menu->append(*item);
@@ -205,10 +201,17 @@ UI::UI()
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received));
 
 	scrollwin->add(*torrent_list);
-	notebook_main->append_page(*scrollwin, "Torrents");
+	group_list = new GroupList();
+	torrent_list->set_filter_set_signal(group_list->signal_filter_set());
+	torrent_list->set_filter_unset_signal(group_list->signal_filter_unset());
+	Gtk::HPaned* hpan = manage(new Gtk::HPaned());
+	hpan->pack1(*group_list, true, true);
+	hpan->pack2(*scrollwin, true, true);
+
+	notebook_main->append_page(*hpan, "Torrents");
 	Gtk::VPaned* vpan = new Gtk::VPaned();
 	main_vbox->pack_start(*vpan, true, true, 0);
-	vpan->pack1(*notebook_main, true, false);
+	vpan->pack1(*notebook_main, true, true);
 
 	expander_details = manage(new Gtk::Expander("<b>Details</b>"));
 	expander_details->set_use_markup(true);
@@ -425,6 +428,8 @@ UI::UI()
 	expander_details->set_sensitive(sm->get_bool("UI", "Expanded"));
 	expander_details->set_expanded(sm->get_bool("UI", "Expanded"));
 
+	hpan->set_position(sm->get_int("UI", "GroupsWidth"));
+
 	int max_up = sm->get_int("Network", "MaxUpRate");
 	if (max_up == 0)
 		max_up = 1000;
@@ -473,7 +478,8 @@ UI::~UI()
 	sm->set("UI", "WinHeight", h);
 	sm->set("UI", "Page", notebook_details->get_current_page());
 	sm->set("UI", "Expanded", expander_details->get_expanded());
-
+	Gtk::HPaned* hpan = dynamic_cast<Gtk::HPaned*>(group_list->get_parent());
+	sm->set("UI", "GroupsWidth",hpan->get_position());
 	/* This seems to cause a segfault if connected */
 	connection_switch_page.disconnect();
 
@@ -535,12 +541,6 @@ void UI::on_tick()
 	static int tick;
 	tick = (tick + 1) % 3;
 
-	if (!is_visible())
-	{
-		connection_tick.block();
-		return;
-	}
-
 	TorrentManager::TorrentList torrents = Engine::instance()->get_torrent_manager()->get_torrents();
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
 				iter != torrents.end(); ++iter)
@@ -553,13 +553,13 @@ void UI::on_tick()
 	statusbar->set_connections_label(str(status.num_peers));
 	statusbar->set_download_label(suffix_value(status.payload_download_rate) + "/s");
 	statusbar->set_upload_label(suffix_value(status.payload_upload_rate) + "/s");
-
-	torrent_list->update_groups();
 }
 
 bool UI::on_visibility_notify_event(GdkEventVisibility* event)
 {
-	if (event->state != GDK_VISIBILITY_FULLY_OBSCURED)
+	if (event->state == GDK_VISIBILITY_FULLY_OBSCURED)
+		connection_tick.block();
+	else
 		connection_tick.unblock();
 
 	return false;
@@ -577,7 +577,8 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 	else if (selected)
 		reset_views();
 
-	torrent_list->update_row(torrent);
+	torrent_list->update(torrent);
+	group_list->update();
 
 	if (selected && expander_details->get_expanded() && torrent->is_running())
 	{
@@ -882,6 +883,7 @@ void UI::on_up()
 		int position = torrent->get_position();
 		if (position > 1)
 			torrent->set_position(position - 1);
+		update(torrent);
 	}
 }
 
@@ -896,6 +898,7 @@ void UI::on_down()
 		int position = torrent->get_position();
 		if (position < Engine::instance()->get_torrent_manager()->get_torrents_count())
 			torrent->set_position(position + 1);
+		update(torrent);
 	}
 }
 

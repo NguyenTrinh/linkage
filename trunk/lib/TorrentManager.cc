@@ -66,17 +66,7 @@ void TorrentManager::save_fastresume(const sha1_hash& hash, const entry& e)
 	out.close();
 }
 
-sigc::signal<void, const sha1_hash&, unsigned int> TorrentManager::signal_position_changed()
-{
-	return m_signal_position_changed;
-}
-
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> TorrentManager::signal_group_changed()
-{
-	return m_signal_group_changed;
-}
-
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> TorrentManager::signal_added()
+sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> TorrentManager::signal_added()
 {
 	return m_signal_added;
 }
@@ -131,7 +121,6 @@ void TorrentManager::set_torrent_position(const sha1_hash& hash, Torrent::Direct
 				iter->second->set_position(position - 1);
 		}
 	}
-	m_signal_position_changed.emit(hash, m_torrents[hash]->get_position());
 }
 
 bool TorrentManager::exists(const sha1_hash& hash)
@@ -183,7 +172,7 @@ void TorrentManager::add_torrent(const entry& e)
 	sha1_hash hash = info_hash(ed["info-hash"].string());
 	m_torrents[hash] = torrent;
 
-	m_signal_added.emit(hash, torrent->get_name(), torrent->get_group(), torrent->get_position());
+	m_signal_added.emit(hash, torrent->get_name(), torrent->get_position());
 }
 
 void TorrentManager::remove_torrent(const sha1_hash& hash)

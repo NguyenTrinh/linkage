@@ -31,7 +31,7 @@ GroupFilter::~GroupFilter()
 {
 }
 
-bool GroupFilter::eval(const WeakPtr<Torrent>& torrent)
+bool GroupFilter::eval(const WeakPtr<Torrent>& torrent) const
 {
 	torrent_info info = torrent->get_info();
 

@@ -33,10 +33,8 @@ class TorrentManager : public RefCounter<TorrentManager>
 	typedef TorrentMap::iterator TorrentIter;
 	
 	TorrentMap m_torrents;
-	
-	sigc::signal<void, const sha1_hash&, unsigned int> m_signal_position_changed;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_group_changed;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> m_signal_added;
+
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> m_signal_added;
 	sigc::signal<void, const sha1_hash&> m_signal_removed;
 	
 	void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply, int peers);
@@ -50,10 +48,8 @@ class TorrentManager : public RefCounter<TorrentManager>
 	
 public:
 	typedef std::list<WeakPtr<Torrent> > TorrentList;
-	
-	sigc::signal<void, const sha1_hash&, unsigned int> signal_position_changed();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_group_changed();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&, unsigned int> signal_added();
+
+	sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> signal_added();
 	sigc::signal<void, const sha1_hash&> signal_removed();
 	
 	void set_torrent_position(const sha1_hash& hash, Torrent::Direction direction);
