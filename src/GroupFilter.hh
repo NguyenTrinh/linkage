@@ -33,7 +33,7 @@ public:
 	/* FIXME: Add more tags for dynamic filters, like % completed, share ratio etc.. */
 	enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
 
-	bool eval(const WeakPtr<Torrent>& torrent);
+	bool eval(const WeakPtr<Torrent>& torrent) const;
 
 	const Glib::ustring& get_name();
 	const Glib::ustring& get_filter();

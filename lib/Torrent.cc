@@ -271,7 +271,6 @@ void Torrent::set_handle(const torrent_handle& handle)
 void Torrent::set_group(const Glib::ustring& group)
 {
 	m_group = group;
-	Engine::instance()->get_torrent_manager()->signal_group_changed().emit(m_hash, m_group);
 }
 
 void Torrent::set_tracker_reply(const Glib::ustring& reply)

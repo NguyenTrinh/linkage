@@ -21,9 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 CellRendererProgressText::CellRendererProgressText() :
 	Glib::ObjectBase(typeid(CellRendererProgressText)),
 	Gtk::CellRendererProgress(),
-	m_prop_text1(*this, "text1"),
-	m_prop_text2(*this, "text2"),
-	m_prop_hide(*this, "hide")
+	m_prop_text_left(*this, "text-left"),
+	m_prop_text_right(*this, "text-right")
 {
 	property_xpad() = 0;
 	property_ypad() = 0;
@@ -40,9 +39,6 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 																				const Gdk::Rectangle& exp_area,
 																				Gtk::CellRendererState flags)
 {
-	if (m_prop_hide)
-		return;
-
 	const int xpad = property_xpad();
 	const int ypad = property_ypad();
 	
@@ -77,20 +73,20 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 														bar_width - xpad,
 														height - bar_height - xpad);
 	Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(widget.get_pango_context());
-	layout->set_markup("DL: " + m_prop_text1);
+	layout->set_markup(m_prop_text_left);
 	widget.get_style()->paint_layout(gdkwin, state, true, text_area,
 																		widget,
-                        						"CellRendererProgressText_property_text1",
+                        						"CellRendererProgressText_property_text_left",
                         						text_area.get_x() + x_offset + xpad,
                         						text_area.get_y() + y_offset + ypad,
                         						layout);
-   layout->set_markup("UL: " + m_prop_text2);
-   int text2_width, text2_height;
-   layout->get_pixel_size(text2_width, text2_height);
+   layout->set_markup(m_prop_text_right);
+   int text_right_width, text_right_height;
+   layout->get_pixel_size(text_right_width, text_right_height);
    widget.get_style()->paint_layout(gdkwin, state, true, text_area,
 																		widget,
-                        						"CellRendererProgressText_property_text2",
-                        						text_area.get_x() + text_area.get_width() - xpad - text2_width,
+                        						"CellRendererProgressText_property_text_right",
+                        						text_area.get_x() + text_area.get_width() - xpad - text_right_width,
                         						text_area.get_y() + y_offset + ypad,
                         						layout);
 }
@@ -110,7 +106,8 @@ void CellRendererProgressText::get_size_vfunc(Gtk::Widget& widget,
 	const int calc_height = h - property_ypad() * 2;
 	
 	Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(widget.get_pango_context());
-	layout->set_markup("DL:UL:     " + m_prop_text1 + m_prop_text2);
+	/* Include whitespace so that we also get some spacing */
+	layout->set_markup(m_prop_text_left + "     " + m_prop_text_right);
 	int min_width, min_height;
   layout->get_pixel_size(min_width, min_height);
 	min_width += 5 - property_xpad()*2;
@@ -138,17 +135,12 @@ void CellRendererProgressText::get_size_vfunc(Gtk::Widget& widget,
 	}
 }
 
-Glib::PropertyProxy<Glib::ustring> CellRendererProgressText::property_text1()
+Glib::PropertyProxy<Glib::ustring> CellRendererProgressText::property_text_left()
 {
-	return m_prop_text1.get_proxy();
+	return m_prop_text_left.get_proxy();
 }
 
-Glib::PropertyProxy<Glib::ustring> CellRendererProgressText::property_text2()
+Glib::PropertyProxy<Glib::ustring> CellRendererProgressText::property_text_right()
 {
-	return m_prop_text2.get_proxy();
-}
-
-Glib::PropertyProxy<bool> CellRendererProgressText::property_hide()
-{
-	return m_prop_hide.get_proxy();
+	return m_prop_text_right.get_proxy();
 }

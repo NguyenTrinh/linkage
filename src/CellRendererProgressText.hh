@@ -22,9 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class CellRendererProgressText : public Gtk::CellRendererProgress
 {
-	Glib::Property<Glib::ustring> m_prop_text1;
-	Glib::Property<Glib::ustring> m_prop_text2;
-	Glib::Property<bool> m_prop_hide;
+	Glib::Property<Glib::ustring> m_prop_text_left;
+	Glib::Property<Glib::ustring> m_prop_text_right;
 	
 protected:
 	void render_vfunc(const Glib::RefPtr<Gdk::Drawable>& window,
@@ -40,9 +39,8 @@ protected:
 											int* width,		int* height) const;
 
 public:
-	Glib::PropertyProxy<Glib::ustring> property_text1();
-	Glib::PropertyProxy<Glib::ustring> property_text2();
-	Glib::PropertyProxy<bool> property_hide();
+	Glib::PropertyProxy<Glib::ustring> property_text_left();
+	Glib::PropertyProxy<Glib::ustring> property_text_right();
 	
 	CellRendererProgressText();
 	~CellRendererProgressText();

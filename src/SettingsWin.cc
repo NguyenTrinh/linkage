@@ -322,25 +322,21 @@ void SettingsWin::on_hide()
 	sm->set("Files", "Allocate", allocate->get_active());
 	/* Groups */
 	sm->remove_group("Groups");
-	sm->remove_group("Filters");
 	std::list<GroupFilterRow*> rows = groups_view->children();
 	for (std::list<GroupFilterRow*>::iterator iter = rows.begin();
 				iter != rows.end(); ++iter)
 	{
 		GroupFilterRow* row = *iter;
 		Glib::ustring name = Glib::Markup::escape_text(row->get_name());
-		sm->set("Groups", name, false);
 		if (row->is_default())
 			sm->set("Files", "DefGroup", name);
-		if (row->get_tag() >= 2)
-		{
-			std::list<Glib::ustring> info;
-			info.push_back(row->get_filter());
-			info.push_back(str(row->get_eval()));
-			info.push_back(str(row->get_tag() - 2));
 
-			sm->set("Filters", name, UStringArray(info));
-		}
+		std::list<Glib::ustring> info;
+		info.push_back(row->get_filter());
+		info.push_back(str(row->get_eval()));
+		info.push_back(str(row->get_tag() - 2*(row->get_tag() >= 2)));
+
+		sm->set("Groups", name, UStringArray(info));
 	}
 
 	Engine::instance()->get_settings_manager()->update();
@@ -422,11 +418,10 @@ void SettingsWin::on_show()
 	if (!groups_view->children().size())
 	{
 		std::list<Glib::ustring> groups = sm->get_keys("Groups");
-		std::list<Glib::ustring> filters = sm->get_keys("Filters");
-		for (std::list<Glib::ustring>::iterator iter = filters.begin();
-					iter != filters.end(); ++iter)
+		for (std::list<Glib::ustring>::iterator iter = groups.begin();
+					iter != groups.end(); ++iter)
 		{
-			std::vector<Glib::ustring> info = sm->get_string_list("Filters", *iter);
+			std::vector<Glib::ustring> info = sm->get_string_list("Groups", *iter);
 
 			if (info.size() != 3)
 				continue;
@@ -434,23 +429,7 @@ void SettingsWin::on_show()
 			Glib::ustring filter = info[0];
 			int eval = std::atoi(info[1].c_str());
 			int tag = std::atoi(info[2].c_str());
-			GroupFilterRow* row = new GroupFilterRow(*iter, tag + 2, eval, filter);
-			groups_view->append(row);
-
-			for (std::list<Glib::ustring>::iterator giter = groups.begin();
-						giter != groups.end(); ++giter)
-			{
-				if (*iter == *giter)
-				{
-					groups.erase(giter);
-					break;
-				}
-			}
-		}
-		for (std::list<Glib::ustring>::iterator iter = groups.begin();
-					iter != groups.end(); ++iter)
-		{
-			GroupFilterRow* row = new GroupFilterRow(*iter, 0, 0, "");
+			GroupFilterRow* row = new GroupFilterRow(*iter, tag + 2*(tag >= 2), eval, filter);
 			groups_view->append(row);
 		}
 		Glib::ustring def = sm->get_string("Files", "DefGroup");

@@ -60,11 +60,6 @@ sigc::signal<void> SessionManager::signal_update_queue()
 	return m_signal_update_queue;
 }
 
-sigc::signal<void> SessionManager::signal_session_resumed()
-{
-	return m_signal_session_resumed;
-}
-
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
 SessionManager::signal_invalid_bencoding()
 {
@@ -88,13 +83,10 @@ void SessionManager::resume_session()
 	Glib::Dir dir(get_data_dir());
 	for (Glib::DirIterator iter = dir.begin(); iter != dir.end(); ++iter)
 	{
-		Glib::ustring hash_str = *iter;
-		if (hash_str.find(".resume", hash_str.size()-7) == Glib::ustring::npos)
-			continue;
-
-		resume_torrent(hash_str.substr(0, hash_str.size()-7));
+		Glib::ustring file = Glib::build_filename(get_data_dir(), *iter + ".resume");
+		if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
+			resume_torrent(*iter);
 	}
-	m_signal_session_resumed.emit();
 }
 
 void SessionManager::on_settings()

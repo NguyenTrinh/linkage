@@ -22,12 +22,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <list>
 
 #include <gtkmm/treeview.h>
-#include <gtkmm/treestore.h>
-#include <gdkmm/pixbuf.h>
+#include <gtkmm/liststore.h>
+#include <gtkmm/treemodelfilter.h>
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
-#include "FilterManager.hh"
+
+#include "GroupFilter.hh"
 
 class TorrentList : public Gtk::TreeView
 {
@@ -36,7 +37,6 @@ class TorrentList : public Gtk::TreeView
 	public:
 		ModelColumns()
 			{
-				add(children);
 				add(position);
 				add(name);
 				add(progress);
@@ -48,11 +48,8 @@ class TorrentList : public Gtk::TreeView
 				add(seeds);
 				add(peers);
 				add(eta);
-				add(is_group);
 				add(hash);
 			}
-		Gtk::TreeModelColumn<sha1_hash> hash;
-		Gtk::TreeModelColumn<unsigned int> children;
 		Gtk::TreeModelColumn<int> position;
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<double> progress;
@@ -64,35 +61,29 @@ class TorrentList : public Gtk::TreeView
 		Gtk::TreeModelColumn<unsigned int> seeds;
 		Gtk::TreeModelColumn<unsigned int> peers;
 		Gtk::TreeModelColumn<Glib::ustring> eta;
-		Gtk::TreeModelColumn<bool> is_group;
+		Gtk::TreeModelColumn<sha1_hash> hash;
 	};
 	ModelColumns columns;
 
-	Glib::RefPtr<Gtk::TreeStore> model;
+	Glib::RefPtr<Gtk::ListStore> model;
+	Glib::RefPtr<Gtk::TreeModelFilter> filter;
+	
+	bool m_do_filter;
 
-	FilterManager* fm;
-
-	Gtk::TreeIter get_iter(const Glib::ustring& group);
 	Gtk::TreeIter get_iter(const sha1_hash& hash);
 
-	Gtk::TreeIter add_group(const Glib::ustring& name);
-	void select(const Glib::ustring& path);
-
-	void on_position_changed(const sha1_hash& hash, unsigned int position);
-	void on_group_changed(const sha1_hash& hash, const Glib::ustring& group);
-
-	void on_added(const sha1_hash& hash, const Glib::ustring& name, const Glib::ustring& group, unsigned int position);
+	void on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position);
 	void on_removed(const sha1_hash& hash);
-
-	void on_session_resumed();
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	void format_children(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	void format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 
 	bool on_button_press_event(GdkEventButton *event);
-
-	void on_settings();
+	
+	bool on_filter(const Gtk::TreeModel::const_iterator& iter, const GroupFilter& group);
+	void on_filter_set(const GroupFilter& group);
+	void on_filter_unset();
 
 	sigc::signal<void, const sha1_hash&> m_signal_double_click;
 	sigc::signal<void, const sha1_hash&> m_signal_right_click;
@@ -100,7 +91,6 @@ class TorrentList : public Gtk::TreeView
 public:
 	enum Column
 	{
-		COL_CHILDREN,
 		COL_POSITION,
 		COL_NAME,
 		COL_PROGRESS,
@@ -112,9 +102,11 @@ public:
 		COL_SEEDS,
 		COL_PEERS,
 		COL_ETA,
-		COL_IS_GROUP,
 		COL_HASH
 	};
+	
+	void set_filter_set_signal(sigc::signal<void, const GroupFilter&> signal);
+	void set_filter_unset_signal(sigc::signal<void> signal);
 
 	bool is_selected(const sha1_hash& hash);
 	HashList get_selected_list();
@@ -122,8 +114,7 @@ public:
 	void set_sort_column(Column col_id);
 	void set_sort_order(Gtk::SortType order);
 
-	void update_groups();
-	void update_row(const WeakPtr<Torrent>& torrent);
+	void update(const WeakPtr<Torrent>& torrent);
 
 	Glib::SignalProxy0<void> signal_changed();
 	sigc::signal<void, const sha1_hash&> signal_double_click();
