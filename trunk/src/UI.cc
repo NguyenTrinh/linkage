@@ -586,8 +586,7 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 			case PAGE_GENERAL:
 				if (stats.pieces)
 					piecemap->set_map(*stats.pieces);
-				if (stats.current_tracker.size())
-					button_tracker->set_label(stats.current_tracker);
+				button_tracker->set_label(stats.current_tracker);
 				label_next_announce->set_text(to_simple_string(stats.next_announce));
 				label_response->set_text(torrent->get_tracker_reply());
 				break;
