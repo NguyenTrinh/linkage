@@ -63,20 +63,20 @@ TorrentList::TorrentList()
 	}
 	set_headers_visible(false);
 
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	/* FIXME: Add option to trunkate names */
 	Gtk::SortType sort_order = Gtk::SortType(sm->get_int("UI", "SortOrder"));
 	model->set_sort_column_id(sm->get_int("UI", "SortColumn"), sort_order);
 
-	Glib::RefPtr<TorrentManager> tm = Engine::instance()->get_torrent_manager();
+	Glib::RefPtr<TorrentManager> tm = Engine::get_torrent_manager();
 	tm->signal_added().connect(sigc::mem_fun(*this, &TorrentList::on_added));
 	tm->signal_removed().connect(sigc::mem_fun(*this, &TorrentList::on_removed));
 }
 
 TorrentList::~TorrentList()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	int column;
 	Gtk::SortType order;
@@ -106,7 +106,7 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 {
 	Gtk::TreeRow row = *iter;
 	sha1_hash hash = row[columns.hash];
-	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	return (m_active_group) ? m_active_group.eval(torrent) : true;
 }
 
@@ -134,8 +134,8 @@ void TorrentList::set_filter_unset_signal(sigc::signal<void> signal)
 
 void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position)
 {
-	Glib::ustring selected_hash = Engine::instance()->get_settings_manager()->get_string("UI", "Selected");
-	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("UI", "Selected");
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	
 	Gtk::TreeIter iter = model->append();
 	Gtk::TreeRow new_row = *iter;

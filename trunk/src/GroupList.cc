@@ -29,14 +29,14 @@ GroupList::GroupList()
 
 	on_settings();
 
-	Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &GroupList::on_settings));
+	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &GroupList::on_settings));
 	
 	show_all_children();
 }
 
 GroupList::~GroupList()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
 	{
 		GroupFilter* group = iter->first;
@@ -81,7 +81,7 @@ void GroupList::on_settings()
 	}
 	m_map.clear();
 
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	std::list<Glib::ustring> keys = sm->get_keys("Groups");
 	for (std::list<Glib::ustring>::iterator iter = keys.begin();
 				iter != keys.end(); ++iter)
@@ -118,7 +118,7 @@ sigc::signal<void> GroupList::signal_filter_unset()
 
 void GroupList::update()
 {
-	TorrentManager::TorrentList torrents = Engine::instance()->get_torrent_manager()->get_torrents();
+	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
 
 	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
 	{

@@ -26,13 +26,13 @@ void DbusManager::callback_handler(unsigned int action, const char* data)
 	switch (action)
 	{
 		case ACTION_QUIT:
-			Engine::instance()->get_dbus_manager()->signal_quit().emit();
+			Engine::get_dbus_manager()->signal_quit().emit();
 			break;
 		case ACTION_OPEN:
-			Engine::instance()->get_dbus_manager()->signal_open().emit(data);
+			Engine::get_dbus_manager()->signal_open().emit(data);
 			break;
 		case ACTION_TOGGLE_VISIBLE:
-			Engine::instance()->get_dbus_manager()->signal_toggle_visible().emit();
+			Engine::get_dbus_manager()->signal_toggle_visible().emit();
 			break;
 	}
 }

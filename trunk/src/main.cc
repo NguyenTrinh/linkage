@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 		if (args)
 		{
 			send_args(files);
-			Engine::instance()->get_dbus_manager()->send("ToggleVisible");
+			Engine::get_dbus_manager()->send("ToggleVisible");
 			std::cout << argc - 1 << " file(s) passed to running instance.\n";
 			return 0;
 		}
@@ -92,6 +92,6 @@ void send_args(const std::list<Glib::ustring>& args)
 					iter != args.end(); ++iter)
 	{
 		/* Pass file(s) to running instance */
-		Engine::instance()->get_dbus_manager()->send("Open", *iter);
+		Engine::get_dbus_manager()->send("Open", *iter);
 	}
 }

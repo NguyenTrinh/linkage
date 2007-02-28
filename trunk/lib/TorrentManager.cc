@@ -29,11 +29,11 @@ Glib::RefPtr<TorrentManager> TorrentManager::create()
 
 TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 {
-	m_session_manager = Engine::instance()->get_session_manager();
+	m_session_manager = Engine::get_session_manager();
 
 	m_session_manager->signal_update_queue().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
 	
-	Glib::RefPtr<AlertManager> am = Engine::instance()->get_alert_manager();
+	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
 	am->signal_tracker_failed().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_failed));
@@ -104,7 +104,10 @@ void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustrin
 	else	
 		scode = str(code);
 	
-	Glib::ustring msg = "Failed: " + scode + " (" + str(times) + " times in a row)";
+	Glib::ustring msg = "Failed: " + scode;
+	if (times > 1)
+		msg = msg + " (" + str(times) + " times in a row)";
+
 	m_torrents[hash]->set_tracker_reply(msg);
 }
 
@@ -227,7 +230,7 @@ void TorrentManager::check_queue()
 {
 	std::vector<sha1_hash> order;
 	unsigned int num_active = 0;
-	unsigned int max_active = Engine::instance()->get_settings_manager()->get_int("Network", "MaxActive");
+	unsigned int max_active = Engine::get_settings_manager()->get_int("Network", "MaxActive");
 	//Sort m_torrents by position
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{

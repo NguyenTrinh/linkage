@@ -98,7 +98,7 @@ AlertManager::signal_peer_ban()
 void AlertManager::check_alerts()
 {
 	std::auto_ptr<alert> a;
-	a = Engine::instance()->get_session_manager()->pop_alert();
+	a = Engine::get_session_manager()->pop_alert();
 	while (a.get())
 	{
 		if (listen_failed_alert* p = dynamic_cast<listen_failed_alert*>(a.get()))
@@ -141,6 +141,6 @@ void AlertManager::check_alerts()
 		{
 			m_signal_peer_ban.emit(p->handle.info_hash(), p->msg(), p->ip.address().to_string());
 		}
-		a = Engine::instance()->get_session_manager()->pop_alert();
+		a = Engine::get_session_manager()->pop_alert();
 	}
 }
