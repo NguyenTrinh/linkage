@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <glibmm/object.h>
 #include <gdkmm/types.h>
-#include <gdkmm/pixbuf.h>
 #include <gtkmm/image.h>
 #include <gtkmm/eventbox.h>
+#include <gtkmm/tooltips.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/stock.h>
 
@@ -35,12 +35,13 @@ class TrayPlugin : public Plugin
 	EggTrayIcon *tray_icon;
 	Gtk::Widget* widget;
 	GtkWidget* gobj;
-	Gtk::EventBox* event_box;
-	Glib::RefPtr<Gdk::Pixbuf> pixbuf;
+	Gtk::EventBox* eventbox;
+	Gtk::Tooltips* tooltips;
 	Gtk::Image* image;
-	Gtk::Menu* popup_menu;
+	Gtk::Menu* menu;
 	
 	bool on_button_released(GdkEventButton* e);
+	void on_tick();
 	void on_quit();
 	void on_torrents_stop();
 	void on_torrents_start();

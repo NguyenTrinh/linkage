@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-#include <iostream>
+
 #include "PluginTrayIcon.hh"
 #include "linkage/Engine.hh"
 
@@ -29,9 +29,10 @@ TrayPlugin::TrayPlugin()
 
 TrayPlugin::~TrayPlugin()
 {
-	delete popup_menu;
+	delete menu;
 	delete image;
-	delete event_box;
+	delete eventbox;
+	delete tooltips;
 }
 
 Glib::ustring TrayPlugin::get_name()
@@ -49,33 +50,36 @@ void TrayPlugin::on_load()
 	Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.png", 24, 24, true);
 	image = new Gtk::Image(pixbuf);
 	
-	event_box = new Gtk::EventBox();;
-	event_box->add_events(Gdk::BUTTON_RELEASE_MASK);
-	event_box->signal_button_release_event().connect(sigc::mem_fun(this, &TrayPlugin::on_button_released));
-	event_box->add(*image);
-	event_box->show_all_children();
-	
-	Gtk::Widget* widget = dynamic_cast<Gtk::Widget*>(event_box);
+	eventbox = new Gtk::EventBox();;
+	eventbox->add_events(Gdk::BUTTON_RELEASE_MASK);
+	eventbox->signal_button_release_event().connect(sigc::mem_fun(this, &TrayPlugin::on_button_released));
+	eventbox->add(*image);
+	eventbox->show_all_children();
+
+	tooltips = new Gtk::Tooltips();
+
+	Gtk::Widget* widget = dynamic_cast<Gtk::Widget*>(eventbox);
 	GtkWidget* gobj = widget->gobj();
 
 	tray_icon = egg_tray_icon_new ("TrayPlugin");
 	gtk_container_add (GTK_CONTAINER (tray_icon), gobj);
 	gtk_widget_show_all (GTK_WIDGET (tray_icon));
 	
-	popup_menu = new Gtk::Menu();
+	menu = new Gtk::Menu();
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Start torrents"));
 	item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_start));
-	popup_menu->append(*item);
+	menu->append(*item);
 	item = Gtk::manage(new Gtk::MenuItem("Stop torrents"));
 	item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_stop));
-	popup_menu->append(*item);
+	menu->append(*item);
 	Gtk::SeparatorMenuItem* separator = Gtk::manage(new Gtk::SeparatorMenuItem());
-	popup_menu->append(*separator);
+	menu->append(*separator);
 	Gtk::ImageMenuItem* imageitem = Gtk::manage(new Gtk::ImageMenuItem(Gtk::Stock::QUIT));
 	imageitem->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_quit));
-	popup_menu->append(*imageitem);
-	
-	popup_menu->show_all_children();
+	menu->append(*imageitem);
+
+	Engine::instance()->signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
+	menu->show_all_children();
 }
 
 bool TrayPlugin::on_button_released(GdkEventButton* e)
@@ -86,8 +90,26 @@ bool TrayPlugin::on_button_released(GdkEventButton* e)
 	}
 	else if (e->button == 3)
 	{
-		popup_menu->popup(e->button, e->time);
+		menu->popup(e->button, e->time);
 	}
+}
+
+void TrayPlugin::on_tick()
+{
+	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
+	unsigned int num_active = 0, num_seeds = 0;
+	for (TorrentManager::TorrentList::iterator iter = torrents.begin(); iter != torrents.end(); ++iter)
+	{
+		WeakPtr<Torrent> torrent = *iter;
+		if (torrent->get_state() == Torrent::SEEDING)
+			num_seeds++;
+		else if (torrent->get_state() != Torrent::STOPPED)
+			num_active++;
+	}
+	
+	session_status status = Engine::get_session_manager()->status();
+	
+	tooltips->set_tip(*eventbox, str(num_active) + " downloads, " + str(num_seeds) + " seeds\nDL: " + suffix_value(status.payload_download_rate) + "/s\tUL:" + suffix_value(status.payload_upload_rate) + "/s");
 }
 
 void TrayPlugin::on_quit()
