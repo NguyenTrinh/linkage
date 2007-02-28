@@ -45,19 +45,19 @@ PeerList::PeerList()
 	int col = append_column("Down", columns.down);
 	column = get_column(col - 1);
 	Gtk::CellRendererText* cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.down, ""));
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.down));
 	col = append_column("Up", columns.up);
 	column = get_column(col - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.up, ""));
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.up));
 	col = append_column("Down rate", columns.down_rate);
 	column = get_column(col - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.down_rate, "/s"));
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_rates), columns.down_rate));
 	col = append_column("Up rate", columns.up_rate);
 	column = get_column(col - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.up_rate, "/s"));
+	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_rates), columns.up_rate));
 
 	Gtk::CellRendererProgress* prender = new Gtk::CellRendererProgress();
 	col = append_column("Progress", *Gtk::manage(prender));
@@ -78,12 +78,20 @@ PeerList::~PeerList()
 
 void PeerList::format_data(Gtk::CellRenderer* cell,
 									const Gtk::TreeIter& iter,
-									const Gtk::TreeModelColumn<unsigned int>& column,
-									const Glib::ustring& suffix)
+									const Gtk::TreeModelColumn<size_type>& column)
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
-	cell_text->property_text() = suffix_value(row[column]) + suffix;
+	cell_text->property_text() = suffix_value(row[column]);
+}
+
+void PeerList::format_rates(Gtk::CellRenderer* cell,
+									const Gtk::TreeIter& iter,
+									const Gtk::TreeModelColumn<float>& column)
+{
+	Gtk::TreeRow row = *iter;
+	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
+	cell_text->property_text() = suffix_value(row[column]) + "/s";
 }
 
 void PeerList::clear()
@@ -135,10 +143,10 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		#endif
 
 		row[columns.address] = peers[i].ip.address().to_string() + ":" + str(peers[i].ip.port());
-		row[columns.down] = (unsigned int)peers[i].total_download;
-		row[columns.up] = (unsigned int)peers[i].total_upload;
-		row[columns.down_rate] = (unsigned int)peers[i].payload_down_speed;
-		row[columns.up_rate] = (unsigned int)peers[i].payload_up_speed;
+		row[columns.down] = peers[i].total_download;
+		row[columns.up] = peers[i].total_upload;
+		row[columns.down_rate] = peers[i].payload_down_speed;
+		row[columns.up_rate] = peers[i].payload_up_speed;
 		unsigned int completed = 0;
 		for (unsigned int j = 0; j < peers[i].pieces.size(); j++)
 		{

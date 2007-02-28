@@ -104,7 +104,7 @@ void FileList::on_filter_toggled(const Glib::ustring& path)
 	}
 }
 
-void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column)
+void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<size_type>& column)
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
@@ -168,12 +168,10 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 			piece_index++;
 		}
 
-		unsigned int completed_bytes = (unsigned int)(fp[row[columns.index]] * file.size);
-
 		row[columns.filter] = filter[row[columns.index]];
 		row[columns.name] = file.path.string();
 		row[columns.map] = map;
-		row[columns.done] = completed_bytes;
+		row[columns.done] = (size_type)(fp[row[columns.index]] * file.size);
 		row[columns.size] = file.size;
 	}
 }

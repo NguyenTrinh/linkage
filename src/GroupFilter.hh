@@ -39,8 +39,24 @@ public:
 	const Glib::ustring& get_filter();
 	const TagType get_tag();
 	const EvalType get_eval();
+	
+	operator bool() const
+	{
+		return !m_name.empty();
+	}
+
+	bool operator==(const GroupFilter& src) const
+	{
+		return (m_name == src.m_name);
+	}
+
+	bool operator!=(const GroupFilter& src) const
+	{
+		return (m_name != src.m_name);
+	}
 
 	GroupFilter(const Glib::ustring& filter, TagType tag, EvalType eval, const Glib::ustring& name);
+	GroupFilter();
 	~GroupFilter();
 
 protected:

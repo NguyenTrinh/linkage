@@ -39,8 +39,6 @@ GroupFilterRow::GroupFilterRow(const Glib::ustring& name,
 
 void GroupFilterRow::init()
 {
-	m_radio = new Gtk::RadioButton();
-	m_radio->signal_toggled().connect(sigc::mem_fun(this, &GroupFilterRow::on_radio_changed));
 	m_name = new Gtk::Entry();
 	m_eval = new Gtk::ComboBoxText();
 	m_eval->append_text("Equals");
@@ -58,7 +56,6 @@ void GroupFilterRow::init()
 	m_tag->append_text("State");
 	m_filter = new Gtk::ComboBoxEntryText();
 
-	pack_start(*m_radio, false, false);
 	pack_start(*m_name, false, false);
 	pack_start(*m_tag, false, false);
 	pack_start(*m_eval, false, false);
@@ -69,7 +66,6 @@ void GroupFilterRow::init()
 
 GroupFilterRow::~GroupFilterRow()
 {
-	delete m_radio;
 	delete m_name;
 	delete m_tag;
 	delete m_eval;
@@ -107,19 +103,6 @@ void GroupFilterRow::on_tag_changed()
 	}
 }
 
-void GroupFilterRow::on_radio_changed()
-{
-	if (m_radio->get_active())
-	{
-		m_tag->set_active(0);
-		m_tag->set_sensitive(false);
-	}
-	else
-	{
-		m_tag->set_sensitive(true);
-	}
-}
-
 Glib::ustring GroupFilterRow::get_filter()
 {
 	return m_filter->get_entry()->get_text();
@@ -142,27 +125,7 @@ Glib::ustring GroupFilterRow::get_name()
 
 bool GroupFilterRow::has_focus()
 {
-	return (m_filter->has_focus() || m_tag->has_focus() || m_eval->has_focus() || m_name->has_focus() || m_radio->has_focus());
-}
-
-bool GroupFilterRow::is_default()
-{
-	return m_radio->get_active();
-}
-
-void GroupFilterRow::set_group(Gtk::RadioButtonGroup& group)
-{
-	m_radio->set_group(group);
-}
-
-Gtk::RadioButtonGroup GroupFilterRow::get_group()
-{
-	return m_radio->get_group();
-}
-
-void GroupFilterRow::set_default()
-{
-	m_radio->set_active(true);
+	return (m_filter->has_focus() || m_tag->has_focus() || m_eval->has_focus() || m_name->has_focus());
 }
 
 bool GroupFilterRow::is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,

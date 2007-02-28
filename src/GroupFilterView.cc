@@ -34,13 +34,6 @@ GroupFilterView::~GroupFilterView()
 
 void GroupFilterView::append(GroupFilterRow* row)
 {
-	if (!m_children.empty())
-	{
-		GroupFilterRow* first_row = *m_children.begin();
-		Gtk::RadioButtonGroup group = first_row->get_group();
-		row->set_group(group);
-	}
-
 	m_children.push_back(row);
 	pack_start(*row, false, false);
 	show_all_children();
@@ -53,12 +46,9 @@ void GroupFilterView::erase(GroupFilterRow* row)
 	{
 		if (row->get_name() == (*iter)->get_name())
 		{
-			bool was_default = (*iter)->is_default();
 			m_children.erase(iter);
 			remove(*row);
 			delete row;
-			if (was_default)
-				(*m_children.begin())->set_default();
 			break;
 		}
 	}

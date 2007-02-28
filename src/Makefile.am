@@ -37,6 +37,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   GroupFilterRow.cc \
                   GroupFilterView.hh \
                   GroupFilterView.cc \
+                  TorrentMenu.hh \
+                  TorrentMenu.cc \
                   main.cc
 
 

@@ -27,6 +27,11 @@ GroupFilter::GroupFilter(const Glib::ustring& filter, TagType tag, EvalType eval
 	m_name = name;
 }
 
+GroupFilter::GroupFilter()
+{
+	/* Invalid group */
+}
+
 GroupFilter::~GroupFilter()
 {
 }
@@ -34,6 +39,12 @@ GroupFilter::~GroupFilter()
 bool GroupFilter::eval(const WeakPtr<Torrent>& torrent) const
 {
 	torrent_info info = torrent->get_info();
+	
+	if (m_name.empty())
+		return false;
+	
+	if (torrent->get_group() == m_name)
+		return true;
 
 	switch (m_eval)
 	{
