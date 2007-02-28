@@ -31,6 +31,15 @@ enum { NUM_DEFAULT_GROUPS = 4 };
 
 class SettingsManager : public RefCounter<SettingsManager>
 {
+	Glib::KeyFile* keyfile;
+	Glib::KeyFile* fallback;
+
+	sigc::signal<void> m_signal_update_settings;
+	
+	static Glib::ustring defaults;
+	
+	SettingsManager();
+
 public: 
 	Glib::ustring get_string(const Glib::ustring& group, const Glib::ustring& key) const;
 	int get_int(const Glib::ustring& group, const Glib::ustring& key) const;
@@ -57,15 +66,6 @@ public:
 	
 	static Glib::RefPtr<SettingsManager> create();
 	~SettingsManager();
-	
-protected:
-	Glib::KeyFile* keyfile;
-	
-	sigc::signal<void> m_signal_update_settings;
-	
-	static Glib::ustring defaults;
-	
-	SettingsManager();
 };
 
 #endif /* SETTINGSMANAGER_HH */
