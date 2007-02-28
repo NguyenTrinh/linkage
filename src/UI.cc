@@ -1189,31 +1189,44 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
  
 		CURL *curl;
 		CURLcode res;
-
 		char err[CURL_ERROR_SIZE];
-		gchar* file;
-		int curl_file = g_file_open_tmp("torrent-", &file, NULL);
 
-		curl = curl_easy_init();
-		if(curl)
+		gchar* name;
+		GError* error;
+		gint fd = g_file_open_tmp("torrent-XXXXXX", &name, &error);
+		if (fd == -1)
 		{
-			curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err);
-			curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-			curl_easy_setopt(curl, CURLOPT_HEADER, 0);
-			curl_easy_setopt(curl, CURLOPT_WRITEDATA, curl_file);
+			g_warning(error->message);
+			g_error_free(error);
+		}
+		else
+		{
+			FILE* file = fdopen(fd, "wb");
 
-			curl_easy_setopt(curl, CURLOPT_URL, data.c_str());
+			curl = curl_easy_init();
+			if (curl && file)
+			{
+				curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err);
+				curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+				curl_easy_setopt(curl, CURLOPT_HEADER, 0);
+				curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
 
-			int res = curl_easy_perform(curl);
+				curl_easy_setopt(curl, CURLOPT_URL, data.c_str());
 
-			curl_easy_cleanup(curl);
+				int res = curl_easy_perform(curl);
 
-			close(curl_file);
+				curl_easy_cleanup(curl);
 
-			if (res == CURLE_OK)
-				add_torrent(file);
-			else
-				notify("Download failed", err);
+				fclose(file);
+
+				if (res == CURLE_OK)
+					add_torrent(name);
+				else
+					notify("Download failed", err);
+
+				g_remove(name);
+				g_free(name);
+			}
 		}
 	}
 	context->drag_finish(false, false, time);
