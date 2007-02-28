@@ -43,17 +43,16 @@ typedef char ip_address[15+1];
 
 using namespace libtorrent;
 
+Glib::ustring suffix_value(size_type value);
 Glib::ustring suffix_value(float value);
-Glib::ustring suffix_value(double value);
-Glib::ustring suffix_value(int value);
-Glib::ustring suffix_value(unsigned int value);
 
 Glib::ustring str(int value);
 Glib::ustring str(unsigned int value);
+Glib::ustring str(size_type value);
 Glib::ustring str(double value, int precision);
 Glib::ustring str(const sha1_hash& hash);
-Glib::ustring get_eta(int size, float rate);
-Glib::ustring format_time(int seconds);
+Glib::ustring get_eta(size_type size, float rate);
+Glib::ustring format_time(size_type seconds);
 
 /* Can _not_ use ustring for this! */
 sha1_hash info_hash(const std::string& chars);

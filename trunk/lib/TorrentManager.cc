@@ -149,9 +149,6 @@ void TorrentManager::add_torrent(const entry& e)
 {
 	entry::dictionary_type ed(e.dict());
 
-	if (!e.find_key("group"))
-		ed["group"] = Engine::instance()->get_settings_manager()->get_string("Files", "DefGroup");
-
 	if (!e.find_key("upload-limit"))
 		ed["upload-limit"] = 0;
 

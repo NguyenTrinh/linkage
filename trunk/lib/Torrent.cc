@@ -30,9 +30,10 @@ Torrent::Torrent(const entry& resume_entry, bool queued)
 	m_resume.uploaded = resume_entry["uploaded"].integer();
 
 	m_name = resume_entry["name"].string();
-	m_group = resume_entry["group"].string();
 	m_path = resume_entry["path"].string();
 	m_position = resume_entry["position"].integer();
+	if (resume_entry.find_key("group"))
+		m_group = resume_entry["group"].string();
 
 	m_up_limit = resume_entry["upload-limit"].integer();
 	m_down_limit = resume_entry["download-limit"].integer();
@@ -111,17 +112,17 @@ const sha1_hash& Torrent::get_hash() const
 	return m_hash;
 }
 
-const unsigned int Torrent::get_total_downloaded() const
+const size_type Torrent::get_total_downloaded() const
 {
-	unsigned int total = m_resume.downloaded;
+	size_type total = m_resume.downloaded;
 	if (m_handle.is_valid())
 		total += m_handle.status().total_download;
 	return total;
 }
 
-const unsigned int Torrent::get_total_uploaded() const
+const size_type Torrent::get_total_uploaded() const
 {
-	unsigned int total = m_resume.uploaded;
+	size_type total = m_resume.uploaded;
 	if (m_handle.is_valid())
 		total += m_handle.status().total_upload;
 	return total;
@@ -409,7 +410,8 @@ const entry Torrent::get_resume_entry(bool running)
 		if (m_filter[i])
 			el.push_back(i);
 	resume_entry["filter"] = el;
-	resume_entry["group"] = m_group;
+	if (!m_group.empty())
+		resume_entry["group"] = m_group;
 
 	return resume_entry;
 }

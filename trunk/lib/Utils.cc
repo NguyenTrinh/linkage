@@ -23,20 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 Glib::ustring suffix_value(float value)
 {
-	return suffix_value((double)value);
+	return suffix_value((size_type)value);
 }
 
-Glib::ustring suffix_value(int value)
-{
-	return suffix_value((double)value);
-}
-
-Glib::ustring suffix_value(unsigned int value)
-{
-	return suffix_value((double)value);
-}
-
-Glib::ustring suffix_value(double value)
+Glib::ustring suffix_value(size_type value)
 {
 	std::stringstream tc;
 	if (value > 1073741824)
@@ -68,6 +58,13 @@ Glib::ustring str(unsigned int value)
 	return tc.str();
 }
 
+Glib::ustring str(size_type value)
+{
+	std::stringstream tc;
+	tc << value;
+	return tc.str();
+}
+
 Glib::ustring str(double value, int precision)
 {
 	std::stringstream tc;
@@ -83,26 +80,26 @@ Glib::ustring str(const sha1_hash& hash)
 }
 
 
-Glib::ustring get_eta(int size, float rate)
+Glib::ustring get_eta(size_type size, float rate)
 {
 	if (!rate || !size)
 		return "\u221E";
-	int seconds = (int)round(size/rate);
+	size_type seconds = (size_type)round(size/rate);
 	return format_time(seconds);
 }
 
-Glib::ustring format_time(int seconds)
+Glib::ustring format_time(size_type seconds)
 {
-	int days, hours, minutes;
-	std::div_t div;
+	long long int days, hours, minutes;
+	std::lldiv_t div;
 
-	div = std::div(seconds, 60);
+	div = std::div((long long int)seconds, 60ll);
 	minutes = div.quot;
 	seconds = div.rem;
-	div = std::div(minutes, 60);
+	div = std::div(minutes, 60ll);
 	hours = div.quot;
 	minutes = div.rem;
-	div = std::div(hours, 24);
+	div = std::div(hours, 24ll);
 	days = div.quot;
 	hours = div.rem;
 

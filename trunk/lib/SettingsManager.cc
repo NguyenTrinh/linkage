@@ -59,7 +59,6 @@ Glib::ustring SettingsManager::defaults = "[Network]\n"
 																					"MoveFinished=0\n"
 																					"FinishedPath=\n"
 																					"Allocate=1\n"
-																					"DefGroup=Downloads\n"
 																					"[Groups]\n"
 																					"Downloads=;0;0\n"
 																					"Seeds=Seeding;0;3;\n";
@@ -95,6 +94,9 @@ SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(thi
 	keyfile = new Glib::KeyFile();
 	if (!keyfile->load_from_file(file))
 		g_warning("Could not read keyfile.");
+	
+	fallback = new Glib::KeyFile();
+	fallback->load_from_data(defaults);
 }
 
 SettingsManager::~SettingsManager()
@@ -120,42 +122,98 @@ sigc::signal<void> SettingsManager::signal_update_settings()
 
 Glib::ustring SettingsManager::get_string(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile->get_string(group, key);
+	try
+	{
+		return keyfile->get_string(group, key);
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->get_string(group, key);
+	}
 }
 
 int SettingsManager::get_int(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile->get_integer(group, key);
+	try
+	{
+		return keyfile->get_integer(group, key);
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->get_integer(group, key);
+	}
 }
 
 bool SettingsManager::get_bool(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile->get_boolean(group, key);
+	try
+	{
+		return keyfile->get_boolean(group, key);
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->get_boolean(group, key);
+	}
 }
 
 UStringArray SettingsManager::get_string_list(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile->get_string_list(group, key);
+	try
+	{
+		return keyfile->get_string_list(group, key);
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->get_string_list(group, key);
+	}
 }
 
 IntArray SettingsManager::get_int_list(const Glib::ustring& group, const Glib::ustring& key) const
 {
-	return keyfile->get_integer_list(group, key);
+	try
+	{
+		return keyfile->get_integer_list(group, key);
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->get_integer_list(group, key);
+	}
 }
 
 UStringArray SettingsManager::get_groups() const
 {
-	return keyfile->get_groups();
+	try
+	{
+		return keyfile->get_groups();
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->get_groups();
+	}
 }
 
 UStringArray SettingsManager::get_keys(const Glib::ustring& group) const
 {
-	return keyfile->get_keys(group);
+	try
+	{
+		return keyfile->get_keys(group);
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->get_keys(group);
+	}
 }
 
 bool SettingsManager::has_group(const Glib::ustring& group) const
 {
-	return keyfile->has_group(group);
+	try
+	{
+		return keyfile->has_group(group);
+	}
+	catch(Glib::Error& e)
+	{
+		return fallback->has_group(group);
+	}
 }
 
 void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, const Glib::ustring& value)

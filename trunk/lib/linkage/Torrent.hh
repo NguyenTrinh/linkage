@@ -60,8 +60,8 @@ public:
 	const int get_down_limit() const;
 	const sha1_hash& get_hash() const;
 	
-	const unsigned int get_total_downloaded() const;
-	const unsigned int get_total_uploaded() const;
+	const size_type get_total_downloaded() const;
+	const size_type get_total_uploaded() const;
 	
 	const State get_state() const;
 	const Glib::ustring get_state_string() const;
@@ -96,8 +96,8 @@ public:
 private:
 	struct ResumeInfo {
 											//unsigned int time;
-											unsigned int uploaded;
-											unsigned int downloaded;
+											size_type uploaded;
+											size_type downloaded;
 										} m_resume;
 
 	torrent_handle m_handle;
