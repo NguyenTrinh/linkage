@@ -58,12 +58,6 @@ GroupList::~GroupList()
 
 void GroupList::on_group_toggled(GroupFilter* group)
 {
-	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
-	{
-		Gtk::RadioButton* radio = iter->second;
-		if (radio->get_active())
-			radio->set_active(false);
-	}
 	m_signal_filter_set.emit(*group);
 }
 
@@ -140,4 +134,6 @@ void GroupList::update()
 
 		radio->set_label(group->get_name() + " (" + str(n) + ")");
 	}
+	
+	m_all->set_label("All ( " + str(torrents.size()) + ")");
 }

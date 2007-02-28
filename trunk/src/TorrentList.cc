@@ -31,18 +31,17 @@ TorrentList::TorrentList()
 {
 	model = Gtk::ListStore::create(columns);
 	filter = Gtk::TreeModelFilter::create(model);
+	filter->set_visible_func(sigc::mem_fun(this, &TorrentList::on_filter));
 
 	set_model(filter);
 
 	get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 
 	append_column("#", columns.position);
-	Gtk::TreeViewColumn* column = get_column(COL_POSITION);
-	column->set_cell_data_func(*column->get_first_cell_renderer(), sigc::mem_fun(this, &TorrentList::format_position));
 	append_column("Name", columns.name);
 	CellRendererProgressText* renderer = manage(new CellRendererProgressText());
 	append_column("Progress", *renderer);
-	column = get_column(COL_PROGRESS);
+	Gtk::TreeViewColumn* column = get_column(COL_PROGRESS);
 	column->add_attribute(*renderer, "value", COL_PROGRESS);
 	column->add_attribute(*renderer, "text", COL_ETA);
 	column->add_attribute(*renderer, "text-left", COL_DOWNRATE);
@@ -69,7 +68,7 @@ TorrentList::TorrentList()
 	/* FIXME: Add option to trunkate names */
 	Gtk::SortType sort_order = Gtk::SortType(sm->get_int("UI", "SortOrder"));
 	model->set_sort_column_id(sm->get_int("UI", "SortColumn"), sort_order);
-	
+
 	Glib::RefPtr<TorrentManager> tm = Engine::instance()->get_torrent_manager();
 	tm->signal_added().connect(sigc::mem_fun(*this, &TorrentList::on_added));
 	tm->signal_removed().connect(sigc::mem_fun(*this, &TorrentList::on_removed));
@@ -103,23 +102,24 @@ Glib::SignalProxy0<void> TorrentList::signal_changed()
 	return get_selection()->signal_changed();
 }
 
-bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter, const GroupFilter& group)
+bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 {
 	Gtk::TreeRow row = *iter;
 	sha1_hash hash = row[columns.hash];
 	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
-	return (m_do_filter) ? group.eval(torrent) : true;
+	return (m_active_group) ? m_active_group.eval(torrent) : true;
 }
 
 void TorrentList::on_filter_set(const GroupFilter& group)
 {
-	m_do_filter = true;
-	filter->set_visible_func(sigc::bind(sigc::mem_fun(this, &TorrentList::on_filter), group));
+	m_active_group = group;
+	filter->refilter();
 }
 
 void TorrentList::on_filter_unset()
 {
-	m_do_filter = false;
+	m_active_group = GroupFilter();
+	filter->refilter();
 }
 
 void TorrentList::set_filter_set_signal(sigc::signal<void, const GroupFilter&> signal)
@@ -239,23 +239,17 @@ void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	cell_pt->property_text_right() = "UL: " + suffix_value(row[columns.up_rate]) + "/s";
 }
 
-void TorrentList::format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
+bool TorrentList::on_button_press_event(GdkEventButton* event)
 {
-	Gtk::TreeRow row = *iter;
-	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
-
-	cell_t->property_text() = str(row[columns.position]);
-}
-
-bool TorrentList::on_button_press_event(GdkEventButton *event)
-{
-	Gtk::TreeView::on_button_press_event(event);
-
 	Gtk::TreePath path;
 	Gtk::TreeViewColumn* column;
 	int cell_x, cell_y;
 
-	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y))
+	/* Don't reset a multi selection */
+	if (event->button == 1 || get_selection()->get_selected_rows().size() <= 1)
+		TreeView::on_button_press_event(event);
+
+	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y) && event->button == 1)
 		return false;
 	
 	Gtk::TreeRow row = *model->get_iter(path);
@@ -263,9 +257,9 @@ bool TorrentList::on_button_press_event(GdkEventButton *event)
 	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
 		m_signal_double_click.emit(row[columns.hash]);
 	else if (event->button == 3)
-		m_signal_right_click.emit(row[columns.hash]);
+		m_signal_right_click.emit(event);
 
-	return true;
+	return (event->button != 1);
 }
 
 sigc::signal<void, const sha1_hash&> TorrentList::signal_double_click()
@@ -273,7 +267,7 @@ sigc::signal<void, const sha1_hash&> TorrentList::signal_double_click()
 	return m_signal_double_click;
 }
 
-sigc::signal<void, const sha1_hash&> TorrentList::signal_right_click()
+sigc::signal<void, GdkEventButton*> TorrentList::signal_right_click()
 {
 	return m_signal_right_click;
 }
@@ -309,8 +303,8 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 
 	row[columns.state] = torrent->get_state_string();
 
-	unsigned int up = torrent->get_total_uploaded();
-	unsigned int down = torrent->get_total_downloaded();
+	size_type up = torrent->get_total_uploaded();
+	size_type down = torrent->get_total_downloaded();
 	
 	row[columns.down] = down;
 	row[columns.up] = up;
@@ -333,7 +327,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 
 	if (torrent->get_state() == Torrent::SEEDING)
 	{
-		int size = status.total_wanted_done - up;
+		size_type size = status.total_wanted_done - up;
 		if (down != 0)
 		{
 			double ratio = (double)up/down;
@@ -365,7 +359,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	}
 
 	ss << "<span foreground='" << color << "'><b>" << name <<
-		"</b> (" << suffix_value((int)torrent->get_info().total_size()) << ")" <<
+		"</b> (" << suffix_value(torrent->get_info().total_size()) << ")" <<
 		"</span>\n";
 	Torrent::State state = torrent->get_state();
 	if (state != Torrent::QUEUED && state != Torrent::SEEDING)
@@ -377,8 +371,8 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		ss << status.num_peers - status.num_seeds << " connected peers";
 
 	row[columns.name] = ss.str();
-	row[columns.down_rate] = (unsigned int)status.download_payload_rate;
-	row[columns.up_rate] = (unsigned int)status.upload_payload_rate;
+	row[columns.down_rate] = status.download_payload_rate;
+	row[columns.up_rate] = status.upload_payload_rate;
 	row[columns.seeds] = status.num_seeds;
 	row[columns.peers] = status.num_peers - status.num_seeds;
 }

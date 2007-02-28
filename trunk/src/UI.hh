@@ -47,6 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "FileList.hh"
 #include "SettingsWin.hh"
 #include "TorrentCreator.hh"
+#include "TorrentMenu.hh"
 
 class OpenDialog : public Gtk::FileChooserDialog
 {
@@ -112,6 +113,8 @@ class UI : public Gtk::Window
 	OpenDialog* file_chooser;
 	SaveDialog* path_chooser;
 
+	TorrentMenu* torrent_menu;
+
 	PieceMap* piecemap;
 	TorrentList* torrent_list;
 	GroupList* group_list;
@@ -121,7 +124,6 @@ class UI : public Gtk::Window
 	SettingsWin* settings_win;
 	TorrentCreator* torrent_win;
 
-	sigc::connection connection_switch_page;	/* This must be disconnected before UI is destroy to avoid segfault */
 	sigc::connection connection_tick;
 
 	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
@@ -131,7 +133,7 @@ class UI : public Gtk::Window
 	void on_spin_up();
 
 	void on_add();
-	void on_remove();
+	void on_remove(bool erase_content = false);
 	void on_start();
 	void on_stop();
 	void on_up();
@@ -143,11 +145,15 @@ class UI : public Gtk::Window
 	void on_about();
 	void on_quit();
 
+	void on_open_location();
+	void on_check();
+	void on_set_group(const Glib::ustring& group);
+
 	void on_details_expanded();
 
 	void on_torrent_list_selection_changed();
 	void on_torrent_list_double_clicked(const sha1_hash& hash);
-	void on_torrent_list_right_clicked(const sha1_hash& hash);
+	void on_torrent_list_right_clicked(GdkEventButton* event);
 
 	void on_tick();
 

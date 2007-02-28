@@ -328,8 +328,6 @@ void SettingsWin::on_hide()
 	{
 		GroupFilterRow* row = *iter;
 		Glib::ustring name = Glib::Markup::escape_text(row->get_name());
-		if (row->is_default())
-			sm->set("Files", "DefGroup", name);
 
 		std::list<Glib::ustring> info;
 		info.push_back(row->get_filter());
@@ -432,21 +430,13 @@ void SettingsWin::on_show()
 			GroupFilterRow* row = new GroupFilterRow(*iter, tag + 2*(tag >= 2), eval, filter);
 			groups_view->append(row);
 		}
-		Glib::ustring def = sm->get_string("Files", "DefGroup");
-		GroupFilterRow* row = groups_view->get_row(def);
-		if (!row)
-		{
-			row = new GroupFilterRow(def, 0, 0, "");
-			groups_view->append(row);
-		}
-		row->set_default();
 	}
 
 	Gtk::Window::on_show();
 }
 
 bool SettingsWin::is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
-									 const Gtk::TreeIter& iter)
+									 							const Gtk::TreeIter& iter)
 {
 	Gtk::TreeRow row = *iter;
 	Glib::ustring data;

@@ -50,14 +50,14 @@ class TorrentList : public Gtk::TreeView
 				add(eta);
 				add(hash);
 			}
-		Gtk::TreeModelColumn<int> position;
+		Gtk::TreeModelColumn<unsigned int> position;
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> state;
-		Gtk::TreeModelColumn<unsigned int> down;
-		Gtk::TreeModelColumn<unsigned int> up;
-		Gtk::TreeModelColumn<unsigned int> down_rate;
-		Gtk::TreeModelColumn<unsigned int> up_rate;
+		Gtk::TreeModelColumn<size_type> down;
+		Gtk::TreeModelColumn<size_type> up;
+		Gtk::TreeModelColumn<float> down_rate;
+		Gtk::TreeModelColumn<float> up_rate;
 		Gtk::TreeModelColumn<unsigned int> seeds;
 		Gtk::TreeModelColumn<unsigned int> peers;
 		Gtk::TreeModelColumn<Glib::ustring> eta;
@@ -68,7 +68,7 @@ class TorrentList : public Gtk::TreeView
 	Glib::RefPtr<Gtk::ListStore> model;
 	Glib::RefPtr<Gtk::TreeModelFilter> filter;
 	
-	bool m_do_filter;
+	GroupFilter m_active_group;
 
 	Gtk::TreeIter get_iter(const sha1_hash& hash);
 
@@ -76,17 +76,15 @@ class TorrentList : public Gtk::TreeView
 	void on_removed(const sha1_hash& hash);
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
-	void format_children(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
-	void format_position(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 
 	bool on_button_press_event(GdkEventButton *event);
 	
-	bool on_filter(const Gtk::TreeModel::const_iterator& iter, const GroupFilter& group);
+	bool on_filter(const Gtk::TreeModel::const_iterator& iter);
 	void on_filter_set(const GroupFilter& group);
 	void on_filter_unset();
 
 	sigc::signal<void, const sha1_hash&> m_signal_double_click;
-	sigc::signal<void, const sha1_hash&> m_signal_right_click;
+	sigc::signal<void, GdkEventButton*> m_signal_right_click;
 
 public:
 	enum Column
@@ -118,7 +116,7 @@ public:
 
 	Glib::SignalProxy0<void> signal_changed();
 	sigc::signal<void, const sha1_hash&> signal_double_click();
-	sigc::signal<void, const sha1_hash&> signal_right_click();
+	sigc::signal<void, GdkEventButton*> signal_right_click();
 
 	TorrentList();
 	virtual ~TorrentList();

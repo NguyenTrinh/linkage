@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef GROUP_FILTER_ROW_HH
 #define GROUP_FILTER_ROW_HH
 
-#include <gtkmm/radiobutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/comboboxentrytext.h>
 #include <gtkmm/entry.h>
@@ -27,13 +26,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class GroupFilterRow : public Gtk::HBox
 {
-	Gtk::RadioButton* m_radio;
 	Gtk::Entry *m_name;
 	Gtk::ComboBoxText *m_eval, *m_tag;
 	Gtk::ComboBoxEntryText *m_filter;
 
 	void on_tag_changed();
-	void on_radio_changed();
 	void init();
 	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
 										const Gtk::TreeIter& iter);
@@ -42,12 +39,7 @@ public:
 	int get_tag();
 	int get_eval();
 	Glib::ustring get_name();
-	bool is_default();
 	bool has_focus();
-	
-	void set_group(Gtk::RadioButtonGroup& group);
-	Gtk::RadioButtonGroup get_group();
-	void set_default();
 
 	GroupFilterRow();
 	GroupFilterRow(const Glib::ustring& filter,

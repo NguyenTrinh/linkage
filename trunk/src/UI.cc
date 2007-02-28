@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <curl/curl.h>
-
+#include <string.h>
 #include <glib/gstdio.h>
 
 #include <gtkmm/main.h>
@@ -102,7 +102,7 @@ UI::UI()
 	action_group->add(Gtk::Action::create("Add", Gtk::Stock::ADD, "Add", "Add torrent"),
 										sigc::mem_fun(this, &UI::on_add));
 	action_group->add(Gtk::Action::create("Remove", Gtk::Stock::REMOVE, "Remove", "Remove torrent"),
-										sigc::mem_fun(this, &UI::on_remove));
+										sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
 	action_group->add(Gtk::Action::create("Start", Gtk::Stock::APPLY, "Start", "Start torrent"),
 										sigc::mem_fun(this, &UI::on_start));
 	action_group->add(Gtk::Action::create("Stop", Gtk::Stock::STOP, "Stop", "Stop torrent"),
@@ -219,9 +219,8 @@ UI::UI()
 	vpan->pack2(*expander_details, false, true);
 
 	notebook_details = manage(new Gtk::Notebook());
-	connection_switch_page = notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
+	notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
 	expander_details->add(*notebook_details);
-
 
 	Gtk::VBox* general_box = manage(new Gtk::VBox());
 
@@ -410,6 +409,17 @@ UI::UI()
 
 	statusbar = manage(new Statusbar());
 	main_vbox->pack_start(*statusbar, false, false, 0);
+	
+	torrent_menu = new TorrentMenu();
+	torrent_menu->signal_open().connect(sigc::mem_fun(this, &UI::on_open_location));
+	torrent_menu->signal_info().connect(sigc::mem_fun(this, &UI::on_info));
+	torrent_menu->signal_up().connect(sigc::mem_fun(this, &UI::on_up));
+	torrent_menu->signal_down().connect(sigc::mem_fun(this, &UI::on_down));
+	torrent_menu->signal_start().connect(sigc::mem_fun(this, &UI::on_start));
+	torrent_menu->signal_stop().connect(sigc::mem_fun(this, &UI::on_stop));
+	torrent_menu->signal_group().connect(sigc::mem_fun(this, &UI::on_set_group));
+	torrent_menu->signal_remove().connect(sigc::mem_fun(this, &UI::on_remove));
+	torrent_menu->signal_check().connect(sigc::mem_fun(this, &UI::on_check));
 
 	show_all_children();
 
@@ -480,8 +490,6 @@ UI::~UI()
 	sm->set("UI", "Expanded", expander_details->get_expanded());
 	Gtk::HPaned* hpan = dynamic_cast<Gtk::HPaned*>(group_list->get_parent());
 	sm->set("UI", "GroupsWidth",hpan->get_position());
-	/* This seems to cause a segfault if connected */
-	connection_switch_page.disconnect();
 
 	delete torrent_list;
 	delete piecemap;
@@ -489,6 +497,8 @@ UI::~UI()
 	delete file_list;
 	delete settings_win;
 	delete torrent_win;
+	delete group_list;
+	delete torrent_menu;
 }
 
 void UI::on_plugin_load(Plugin* plugin)
@@ -549,6 +559,8 @@ void UI::on_tick()
 			update(*iter, (tick == 0));
 	}
 
+	group_list->update();
+
 	session_status status = Engine::instance()->get_session_manager()->status();
 	statusbar->set_connections_label(str(status.num_peers));
 	statusbar->set_download_label(suffix_value(status.payload_download_rate) + "/s");
@@ -578,12 +590,11 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 		reset_views();
 
 	torrent_list->update(torrent);
-	group_list->update();
 
 	if (selected && expander_details->get_expanded() && torrent->is_running())
 	{
-		int down = torrent->get_total_downloaded();
-		int up = torrent->get_total_uploaded();
+		size_type down = torrent->get_total_downloaded();
+		size_type up = torrent->get_total_uploaded();
 		double ratio = 0;
 		Glib::ustring tracker = stats.current_tracker;
 		switch (notebook_details->get_current_page())
@@ -599,13 +610,13 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 				break;
 			case PAGE_PEERS:
 				label_down->set_text(suffix_value(down));
-				label_down_rate->set_text(suffix_value((int)stats.download_payload_rate) + "/s");
+				label_down_rate->set_text(suffix_value(stats.download_payload_rate) + "/s");
 				label_up->set_text(suffix_value(up));
-				label_up_rate->set_text(suffix_value((int)stats.upload_payload_rate) + "/s");
+				label_up_rate->set_text(suffix_value(stats.upload_payload_rate) + "/s");
 				if (down)
 					ratio = (double)up/down;
 				label_ratio->set_text(str(ratio, 3));
-				label_wasted->set_text(suffix_value((int)stats.total_failed_bytes));
+				label_wasted->set_text(suffix_value(stats.total_failed_bytes));
 				if (update_lists)
 					peer_list->update(torrent);
 				break;
@@ -628,9 +639,9 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 		label_comment->set_text(info.comment());
 		label_date->set_text(to_simple_string(*info.creation_date()));
 		label_path->set_text(Glib::build_filename(torrent->get_path(), info.name()));
-		label_size->set_text(suffix_value((int)info.total_size()));
+		label_size->set_text(suffix_value(info.total_size()));
 		label_files->set_text(str(info.num_files()));
-		label_pieces->set_text(str(info.num_pieces()) + " x " + suffix_value((int)info.piece_length()));
+		label_pieces->set_text(str(info.num_pieces()) + " x " + suffix_value(info.piece_length()));
 		label_private->set_text(info.priv() ? "Yes" : "No");
 	}
 }
@@ -821,7 +832,7 @@ void UI::on_add()
 		file_chooser->hide();
 }
 
-void UI::on_remove()
+void UI::on_remove(bool erase_content)
 {
 	HashList list = torrent_list->get_selected_list();
 
@@ -899,6 +910,61 @@ void UI::on_down()
 		if (position < Engine::instance()->get_torrent_manager()->get_torrents_count())
 			torrent->set_position(position + 1);
 		update(torrent);
+	}
+}
+
+void UI::on_set_group(const Glib::ustring& group)
+{
+	HashList list = torrent_list->get_selected_list();
+
+	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
+	{
+		sha1_hash hash = *iter;
+		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		torrent->set_group(group);
+	}
+}
+
+void UI::on_check()
+{
+	return;
+
+	HashList list = torrent_list->get_selected_list();
+
+	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
+	{
+		sha1_hash hash = *iter;
+		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		/* FIXME: force_recheck(), libtorrent currently doesn't support this */
+	}
+}
+
+void UI::on_open_location()
+{
+	HashList list = torrent_list->get_selected_list();
+
+	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
+	{
+		sha1_hash hash = *iter;
+		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		Glib::ustring n_cmd = "nautilus --no-desktop " + torrent->get_path();
+		Glib::ustring t_cmd = "thunar " + torrent->get_path();
+		GError* err;
+		if (g_spawn_command_line_async(n_cmd.c_str(), &err))
+			continue;
+		else
+		{
+			g_warning(err->message);
+			g_error_free(err);
+		}
+
+		if (g_spawn_command_line_async(t_cmd.c_str(), &err))
+			continue;
+		else
+		{
+			g_warning(err->message);
+			g_error_free(err);
+		}
 	}
 }
 
@@ -998,9 +1064,10 @@ void UI::on_torrent_list_double_clicked(const sha1_hash& hash)
 	}
 }
 
-void UI::on_torrent_list_right_clicked(const sha1_hash& hash)
+void UI::on_torrent_list_right_clicked(GdkEventButton* event)
 {
-	/* FIXME: add popup menu */
+	if (!torrent_list->get_selected_list().empty())
+		torrent_menu->popup(event->button, event->time);
 }
 
 bool UI::on_tracker_update(GdkEventButton* e)
@@ -1124,7 +1191,8 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 		CURLcode res;
 
 		char err[CURL_ERROR_SIZE];
-		FILE* curl_file = g_fopen("/tmp/.linkage-tmp.torrent", "wb");
+		gchar* file;
+		int curl_file = g_file_open_tmp("torrent-", &file, NULL);
 
 		curl = curl_easy_init();
 		if(curl)
@@ -1140,12 +1208,12 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 
 			curl_easy_cleanup(curl);
 
-			fclose(curl_file);
+			close(curl_file);
 
 			if (res == CURLE_OK)
-				add_torrent("/tmp/.linkage-tmp.torrent");
+				add_torrent(file);
 			else
-				g_warning(err);
+				notify("Download failed", err);
 		}
 	}
 	context->drag_finish(false, false, time);

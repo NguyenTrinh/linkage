@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 
-#include "GroupFilter.hh"
+#include "linkage/Torrent.hh"
+#include "linkage/WeakPtr.hh"
 
 using namespace libtorrent;
 
@@ -43,8 +44,8 @@ class FileList : public Gtk::TreeView
 		Gtk::TreeModelColumn<bool> filter;
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<std::list<bool> > map;
-		Gtk::TreeModelColumn<unsigned int> done;
-		Gtk::TreeModelColumn<unsigned int> size;
+		Gtk::TreeModelColumn<size_type> done;
+		Gtk::TreeModelColumn<size_type> size;
 		Gtk::TreeModelColumn<unsigned int> index;
 	};
 	
@@ -53,7 +54,7 @@ class FileList : public Gtk::TreeView
 	
 	void on_filter_toggled(const Glib::ustring& path);
 	
-	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<unsigned int>& column);
+	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<size_type>& column);
 	
 	sha1_hash current_hash;
 	
