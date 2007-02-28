@@ -37,7 +37,7 @@ class Engine : public RefCounter<Engine>
 	
 	static Glib::RefPtr<Engine> self;
 	
-	sigc::signal<void> m_signal_tick;
+	static sigc::signal<void> m_signal_tick;
 	sigc::connection m_conn_tick;
 
 	bool on_timeout();
@@ -45,14 +45,14 @@ class Engine : public RefCounter<Engine>
 	Engine();
 	
 public:
-	Glib::RefPtr<AlertManager> get_alert_manager();
-	Glib::RefPtr<PluginManager> get_plugin_manager();
-	Glib::RefPtr<SessionManager> get_session_manager();
-	Glib::RefPtr<SettingsManager>	get_settings_manager();
-	Glib::RefPtr<TorrentManager>	get_torrent_manager();
-	Glib::RefPtr<DbusManager>	get_dbus_manager();
+	static Glib::RefPtr<AlertManager> get_alert_manager();
+	static Glib::RefPtr<PluginManager> get_plugin_manager();
+	static Glib::RefPtr<SessionManager> get_session_manager();
+	static Glib::RefPtr<SettingsManager>	get_settings_manager();
+	static Glib::RefPtr<TorrentManager>	get_torrent_manager();
+	static Glib::RefPtr<DbusManager>	get_dbus_manager();
 	
-	sigc::signal<void> signal_tick();
+	static sigc::signal<void> signal_tick();
 	/*bool is_ticking();
 	void start_tick();
 	void stop_tick();*/

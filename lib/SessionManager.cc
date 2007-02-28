@@ -38,7 +38,7 @@ SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this)
 
 	//add_extension(&create_ut_pex_plugin);
 
-	Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
+	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
 
 	on_settings(); //Apply settings on startup
 
@@ -91,7 +91,7 @@ void SessionManager::resume_session()
 
 void SessionManager::on_settings()
 {
-	Glib::RefPtr<SettingsManager> settings = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> settings = Engine::get_settings_manager();
 
 	Glib::ustring iface = settings->get_string("Network", "Interface");
 	ip_address ip;
@@ -174,10 +174,10 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	torrent_info info(e);
 	sha1_hash hash = info.info_hash();
 
-	if (!Engine::instance()->get_torrent_manager()->exists(hash))
+	if (!Engine::get_torrent_manager()->exists(hash))
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), entry(),
-			!Engine::instance()->get_settings_manager()->get_bool("Files", "Allocate"));
+			!Engine::get_settings_manager()->get_bool("Files", "Allocate"));
 		entry::dictionary_type de;
 		de["path"] = save_path;
 		de["files"] = info.num_files();
@@ -185,16 +185,16 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		/* Must use std::string beacuse Glib::ustring is UTF-8 */
 		de["info-hash"] = std::string((char*)info.info_hash().begin(), (char*)info.info_hash().end());;
 
-		Engine::instance()->get_torrent_manager()->add_torrent(handle, de);
+		Engine::get_torrent_manager()->add_torrent(handle, de);
 	}
 	else
 	{
 		m_signal_duplicate_torrent.emit("Torrent already exists in session as " +
-			Engine::instance()->get_torrent_manager()->get_torrent(hash)->get_name(), hash);
+			Engine::get_torrent_manager()->get_torrent(hash)->get_name(), hash);
 		return hash;
 	}
 
-	//Save metadata to data_dir/hash
+	/* Save metadata to ~/.config/linkage/data/hash */
 	Glib::ustring metafile = Glib::build_filename(get_data_dir(), str(hash));
 	std::ofstream out;
 	out.open(metafile.c_str(), std::ios_base::binary);
@@ -233,7 +233,7 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 
 	torrent_info info = torrent_info(e);
 	/* Check if torrent is up an running, if so return */
-	if (Engine::instance()->get_torrent_manager()->get_handle(info.info_hash()).is_valid())
+	if (Engine::get_torrent_manager()->get_handle(info.info_hash()).is_valid())
 		return info.info_hash();
 
 	file = file + ".resume";
@@ -249,24 +249,24 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 		m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
 	}
 
-	bool allocate = Engine::instance()->get_settings_manager()->get_bool("Files", "Allocate");
+	bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
 	Glib::ustring save_path = er.dict()["path"].string();
 	er.dict()["name"] = info.name();
 	er.dict()["files"] = info.num_files();
 
-	if (Engine::instance()->get_torrent_manager()->exists(hash_str)) //Torrent was resumed from stopped state
+	if (Engine::get_torrent_manager()->exists(hash_str)) //Torrent was resumed from stopped state
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-		Engine::instance()->get_torrent_manager()->add_torrent(handle, er.dict());
+		Engine::get_torrent_manager()->add_torrent(handle, er.dict());
 		m_signal_update_queue.emit();
 	}
 	else //Torrent was resumed from previous session
 	{
-		Engine::instance()->get_torrent_manager()->add_torrent(er.dict());
+		Engine::get_torrent_manager()->add_torrent(er.dict());
 		if (er.dict()["running"].integer())
 		{
 			torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-			Engine::instance()->get_torrent_manager()->add_torrent(handle, er.dict());
+			Engine::get_torrent_manager()->add_torrent(handle, er.dict());
 			m_signal_update_queue.emit();
 		}
 	}
@@ -275,17 +275,17 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 
 void SessionManager::stop_torrent(const sha1_hash& hash)
 {
-	if (Engine::instance()->get_torrent_manager()->exists(hash))
+	if (Engine::get_torrent_manager()->exists(hash))
 	{
 		Glib::ustring hash_str = str(hash);
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
 		if (!torrent->is_running())
 			return;
 
 		entry e = torrent->get_resume_entry();
 
-		Engine::instance()->get_torrent_manager()->save_fastresume(hash, e);
+		Engine::get_torrent_manager()->save_fastresume(hash, e);
 
 		remove_torrent(torrent->get_handle());
 
@@ -295,13 +295,13 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 
 void SessionManager::erase_torrent(const sha1_hash& hash)
 {
-	torrent_handle handle = Engine::instance()->get_torrent_manager()->get_handle(hash);
+	torrent_handle handle = Engine::get_torrent_manager()->get_handle(hash);
 
 	if (handle.is_valid())
 		remove_torrent(handle);
 
 
-	Engine::instance()->get_torrent_manager()->remove_torrent(hash);
+	Engine::get_torrent_manager()->remove_torrent(hash);
 
 	Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash));
 	g_remove(file.c_str());

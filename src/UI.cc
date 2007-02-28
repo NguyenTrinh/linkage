@@ -125,7 +125,7 @@ UI::UI()
 
 	Gtk::Toolbar* toolbar = dynamic_cast<Gtk::Toolbar*>(manager->get_widget("/ToolBar"));
 
-	switch (Engine::instance()->get_settings_manager()->get_int("UI", "SortOrder"))
+	switch (Engine::get_settings_manager()->get_int("UI", "SortOrder"))
 	{
 		case 1:
 			tb_sort = manage(new Gtk::MenuToolButton(Gtk::Stock::SORT_DESCENDING));
@@ -233,16 +233,16 @@ UI::UI()
 
 	Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
 
-	std::vector<int> rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorDark");
+	std::vector<int> rgb = Engine::get_settings_manager()->get_int_list("UI", "ColorDark");
 	Gdk::Color light, mid, dark;
 	dark.set_red(rgb[0]);
 	dark.set_green(rgb[1]);
 	dark.set_blue(rgb[2]);
-	rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorMid");
+	rgb = Engine::get_settings_manager()->get_int_list("UI", "ColorMid");
 	mid.set_red(rgb[0]);
 	mid.set_green(rgb[1]);
 	mid.set_blue(rgb[2]);
-	rgb = Engine::instance()->get_settings_manager()->get_int_list("UI", "ColorLight");
+	rgb = Engine::get_settings_manager()->get_int_list("UI", "ColorLight");
 	light.set_red(rgb[0]);
 	light.set_green(rgb[1]);
 	light.set_blue(rgb[2]);
@@ -426,9 +426,9 @@ UI::UI()
 	file_chooser = new OpenDialog(this);
 	path_chooser = new SaveDialog(this);
 
-	Engine::instance()->get_session_manager()->resume_session();
+	Engine::get_session_manager()->resume_session();
 
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	resize(sm->get_int("UI", "WinWidth"), sm->get_int("UI", "WinHeight"));
 
@@ -449,37 +449,37 @@ UI::UI()
 		max_down = 1000;
 	spinbutton_down->set_range(0, max_down);
 
-	Engine::instance()->get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
+	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
 
-	Engine::instance()->get_plugin_manager()->signal_plugin_load().connect(sigc::mem_fun(this, &UI::on_plugin_load));
-	Engine::instance()->get_plugin_manager()->signal_plugin_unload().connect(sigc::mem_fun(this, &UI::on_plugin_unload));
-	Engine::instance()->get_plugin_manager()->signal_add_widget().connect(sigc::mem_fun(this, &UI::on_add_widget));
+	Engine::get_plugin_manager()->signal_plugin_load().connect(sigc::mem_fun(this, &UI::on_plugin_load));
+	Engine::get_plugin_manager()->signal_plugin_unload().connect(sigc::mem_fun(this, &UI::on_plugin_unload));
+	Engine::get_plugin_manager()->signal_add_widget().connect(sigc::mem_fun(this, &UI::on_add_widget));
 
-	Engine::instance()->get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &UI::on_invalid_bencoding));
-	Engine::instance()->get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &UI::on_missing_file));
-	Engine::instance()->get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &UI::on_duplicate_torrent));
+	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &UI::on_invalid_bencoding));
+	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &UI::on_missing_file));
+	Engine::get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &UI::on_duplicate_torrent));
 
-	Engine::instance()->get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &UI::on_listen_failed));
-	Engine::instance()->get_alert_manager()->signal_tracker_failed().connect(sigc::mem_fun(this, &UI::on_tracker_failed));
-	Engine::instance()->get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(this, &UI::on_tracker_reply));
-	Engine::instance()->get_alert_manager()->signal_tracker_warning().connect(sigc::mem_fun(this, &UI::on_tracker_warning));
-	Engine::instance()->get_alert_manager()->signal_tracker_announce().connect(sigc::mem_fun(this, &UI::on_tracker_announce));
-	Engine::instance()->get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &UI::on_torrent_finished));
-	Engine::instance()->get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &UI::on_file_error));
-	Engine::instance()->get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &UI::on_fastresume_rejected));
-	Engine::instance()->get_alert_manager()->signal_hash_failed().connect(sigc::mem_fun(this, &UI::on_hash_failed));
-	Engine::instance()->get_alert_manager()->signal_peer_ban().connect(sigc::mem_fun(this, &UI::on_peer_ban));
+	Engine::get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &UI::on_listen_failed));
+	Engine::get_alert_manager()->signal_tracker_failed().connect(sigc::mem_fun(this, &UI::on_tracker_failed));
+	Engine::get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(this, &UI::on_tracker_reply));
+	Engine::get_alert_manager()->signal_tracker_warning().connect(sigc::mem_fun(this, &UI::on_tracker_warning));
+	Engine::get_alert_manager()->signal_tracker_announce().connect(sigc::mem_fun(this, &UI::on_tracker_announce));
+	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &UI::on_torrent_finished));
+	Engine::get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &UI::on_file_error));
+	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &UI::on_fastresume_rejected));
+	Engine::get_alert_manager()->signal_hash_failed().connect(sigc::mem_fun(this, &UI::on_hash_failed));
+	Engine::get_alert_manager()->signal_peer_ban().connect(sigc::mem_fun(this, &UI::on_peer_ban));
 
-	Engine::instance()->get_dbus_manager()->signal_open().connect(sigc::mem_fun(this, &UI::add_torrent));
-	Engine::instance()->get_dbus_manager()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
-	Engine::instance()->get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
+	Engine::get_dbus_manager()->signal_open().connect(sigc::mem_fun(this, &UI::add_torrent));
+	Engine::get_dbus_manager()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
+	Engine::get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
 
 	connection_tick = Engine::instance()->signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
 }
 
 UI::~UI()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	int w, h;
 	get_size(w, h);
@@ -551,7 +551,7 @@ void UI::on_tick()
 	static int tick;
 	tick = (tick + 1) % 3;
 
-	TorrentManager::TorrentList torrents = Engine::instance()->get_torrent_manager()->get_torrents();
+	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
 				iter != torrents.end(); ++iter)
 	{
@@ -561,7 +561,7 @@ void UI::on_tick()
 
 	group_list->update();
 
-	session_status status = Engine::instance()->get_session_manager()->status();
+	session_status status = Engine::get_session_manager()->status();
 	statusbar->set_connections_label(str(status.num_peers));
 	statusbar->set_download_label(suffix_value(status.payload_download_rate) + "/s");
 	statusbar->set_upload_label(suffix_value(status.payload_upload_rate) + "/s");
@@ -691,13 +691,13 @@ void UI::add_torrent(const Glib::ustring& file)
 {
 	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 	{
-		Engine::instance()->get_session_manager()->signal_missing_file().emit("File not found, \"" + file + "\"", file);
+		Engine::get_session_manager()->signal_missing_file().emit("File not found, \"" + file + "\"", file);
 		return;
 	}
 	
 	Glib::ustring save_path;
 
-	if (!Engine::instance()->get_settings_manager()->get_bool("Files", "UseDefPath"))
+	if (!Engine::get_settings_manager()->get_bool("Files", "UseDefPath"))
 		if (path_chooser->run() == Gtk::RESPONSE_OK)
 		{
 			save_path = path_chooser->get_filename();
@@ -709,10 +709,10 @@ void UI::add_torrent(const Glib::ustring& file)
 			return;
 		}
 	else
-		save_path = Engine::instance()->get_settings_manager()->get_string("Files", "DefPath");
+		save_path = Engine::get_settings_manager()->get_string("Files", "DefPath");
 
-	sha1_hash hash = Engine::instance()->get_session_manager()->open_torrent(file, save_path);
-	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	sha1_hash hash = Engine::get_session_manager()->open_torrent(file, save_path);
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (torrent)
 		update(torrent, expander_details->get_expanded());
 }
@@ -793,7 +793,7 @@ void UI::on_spin_down()
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
 	{
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 		torrent->set_down_limit((int)spinbutton_down->get_value());
 	}
 }
@@ -803,18 +803,18 @@ void UI::on_spin_up()
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
 	{
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 		torrent->set_up_limit((int)spinbutton_up->get_value());
 	}
 }
 
 void UI::on_settings()
 {
-	int max_up = Engine::instance()->get_settings_manager()->get_int("Network", "MaxUpRate");
+	int max_up = Engine::get_settings_manager()->get_int("Network", "MaxUpRate");
 	if (max_up == 0)
 		max_up = 10000;
 	spinbutton_up->set_range(0, max_up);
-	int max_down = Engine::instance()->get_settings_manager()->get_int("Network", "MaxDownRate");
+	int max_down = Engine::get_settings_manager()->get_int("Network", "MaxDownRate");
 	if (max_down == 0)
 		max_down = 10000;
 	spinbutton_down->set_range(0, max_down);
@@ -839,7 +839,7 @@ void UI::on_remove(bool erase_content)
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		Engine::instance()->get_session_manager()->erase_torrent(hash);
+		Engine::get_session_manager()->erase_torrent(hash);
 	}
 
 	if (!list.empty())
@@ -856,10 +856,10 @@ void UI::on_start()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		if (!torrent->is_running())
 		{
-			Engine::instance()->get_session_manager()->resume_torrent(hash);
+			Engine::get_session_manager()->resume_torrent(hash);
 			button_tracker->set_sensitive(true);
 			update(torrent, (list.size() == 1));
 		}
@@ -873,7 +873,7 @@ void UI::on_stop()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		Engine::instance()->get_session_manager()->stop_torrent(hash);
+		Engine::get_session_manager()->stop_torrent(hash);
 	}
 
 	if (!list.empty())
@@ -890,7 +890,7 @@ void UI::on_up()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		int position = torrent->get_position();
 		if (position > 1)
 			torrent->set_position(position - 1);
@@ -905,9 +905,9 @@ void UI::on_down()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		int position = torrent->get_position();
-		if (position < Engine::instance()->get_torrent_manager()->get_torrents_count())
+		if (position < Engine::get_torrent_manager()->get_torrents_count())
 			torrent->set_position(position + 1);
 		update(torrent);
 	}
@@ -920,7 +920,7 @@ void UI::on_set_group(const Glib::ustring& group)
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		torrent->set_group(group);
 	}
 }
@@ -934,7 +934,7 @@ void UI::on_check()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		/* FIXME: force_recheck(), libtorrent currently doesn't support this */
 	}
 }
@@ -946,7 +946,7 @@ void UI::on_open_location()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		Glib::ustring n_cmd = "nautilus --no-desktop " + torrent->get_path();
 		Glib::ustring t_cmd = "thunar " + torrent->get_path();
 		GError* err;
@@ -1011,7 +1011,7 @@ void UI::on_details_expanded()
 		HashList list = torrent_list->get_selected_list();
 		if (list.size() == 1) /* FIXME: This shouldn't be needed */
 		{
-			WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 			update(torrent, true);
 		}
 	}
@@ -1031,10 +1031,10 @@ void UI::on_torrent_list_selection_changed()
 		sha1_hash hash = *list.begin();
 
 		expander_details->set_sensitive(true);
-		if (Engine::instance()->get_settings_manager()->get_bool("UI", "AutoExpand"))
+		if (Engine::get_settings_manager()->get_bool("UI", "AutoExpand"))
 			expander_details->set_expanded(true);
 
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		spinbutton_down->set_value((double)torrent->get_down_limit());
 		spinbutton_up->set_value((double)torrent->get_up_limit());
 
@@ -1056,7 +1056,7 @@ void UI::on_torrent_list_double_clicked(const sha1_hash& hash)
 	{
 		if (!expander_details->get_expanded())
 		{
-			if (Engine::instance()->get_torrent_manager()->exists(hash)) /* Unnecessary? */
+			if (Engine::get_torrent_manager()->exists(hash)) /* Unnecessary? */
 				expander_details->set_expanded(true);
 		}
 		else
@@ -1076,7 +1076,7 @@ bool UI::on_tracker_update(GdkEventButton* e)
 	if (list.size() == 1)
 	{
 		sha1_hash hash = *list.begin();
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		if (torrent->is_running())
 		{
 			switch (e->button)
@@ -1102,7 +1102,7 @@ void UI::on_popup_tracker_selected(const Glib::ustring& tracker, int tier)
 	if (list.size() == 1)
 	{
 		sha1_hash hash = *list.begin();
-		torrent_handle handle = Engine::instance()->get_torrent_manager()->get_handle(hash);
+		torrent_handle handle = Engine::get_torrent_manager()->get_handle(hash);
 		std::vector<announce_entry> trackers = handle.get_torrent_info().trackers();
 		std::vector<announce_entry> new_trackers;
 		for (int i = 0; i < trackers.size(); i++)
@@ -1145,7 +1145,7 @@ void UI::on_switch_page(GtkNotebookPage*, int page_num)
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1)
 	{
-		WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(*list.begin());
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 		update(torrent, true);
 	}
 }
@@ -1224,7 +1224,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 				else
 					notify("Download failed", err);
 
-				g_remove(name);
+				unlink(name);
 				g_free(name);
 			}
 		}
@@ -1274,7 +1274,7 @@ void UI::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
 
 void UI::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 {
-	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	notify("Torrent finished", torrent->get_name() + " is_complete");
 }
 

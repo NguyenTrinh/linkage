@@ -26,8 +26,10 @@ Glib::RefPtr<SettingsManager> Engine::ssm	= Glib::RefPtr<SettingsManager>();
 Glib::RefPtr<TorrentManager> Engine::tm		= Glib::RefPtr<TorrentManager>();
 Glib::RefPtr<SessionManager> Engine::sm		= Glib::RefPtr<SessionManager>();
 Glib::RefPtr<AlertManager> Engine::am			= Glib::RefPtr<AlertManager>();
-Glib::RefPtr<PluginManager> Engine::pm		 = Glib::RefPtr<PluginManager>();
+Glib::RefPtr<PluginManager> Engine::pm		= Glib::RefPtr<PluginManager>();
 Glib::RefPtr<DbusManager> Engine::dbm			= Glib::RefPtr<DbusManager>();
+
+sigc::signal<void> Engine::m_signal_tick	= sigc::signal<void>();
 
 Glib::RefPtr<Engine> Engine::instance()
 {
@@ -77,6 +79,9 @@ bool Engine::on_timeout()
 
 sigc::signal<void> Engine::signal_tick()
 {
+	if (!self)
+		instance();
+
 	return m_signal_tick;
 }
 
@@ -102,30 +107,48 @@ void Engine::stop_tick()
 
 Glib::RefPtr<AlertManager> Engine::get_alert_manager()
 {
+	if (!self)
+		instance();
+
 	return am;
 }
 
 Glib::RefPtr<PluginManager> Engine::get_plugin_manager()
 {
+	if (!self)
+		instance();
+
 	return pm;
 }
 
 Glib::RefPtr<SessionManager> Engine::get_session_manager()
 {
+	if (!self)
+		instance();
+
 	return sm;
 }
 
 Glib::RefPtr<SettingsManager> Engine::get_settings_manager()
 {
+	if (!self)
+		instance();
+
 	return ssm;
 }
 
 Glib::RefPtr<TorrentManager> Engine::get_torrent_manager()
 {
+	if (!self)
+		instance();
+
 	return tm;
 }
 
 Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
 {
+	if (!self)
+		instance();
+
 	return dbm;
 }

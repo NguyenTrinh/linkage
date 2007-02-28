@@ -283,7 +283,7 @@ void Torrent::set_position(unsigned int position)
 {
 	Direction direction = (position < m_position) ? DIR_UP : DIR_DOWN;
 	m_position = position;
-	Engine::instance()->get_torrent_manager()->set_torrent_position(m_hash, direction);
+	Engine::get_torrent_manager()->set_torrent_position(m_hash, direction);
 }
 
 void Torrent::set_filter(std::vector<bool>& filter)

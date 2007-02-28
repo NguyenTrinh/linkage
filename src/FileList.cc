@@ -41,7 +41,7 @@ FileList::FileList()
 	/* FIXME: Get colors from SettingsManager */
 	Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
 	
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	std::vector<unsigned int> rgb = sm->get_int_list("UI", "ColorDark");
 	Gdk::Color light, mid, dark;
 	dark.set_red(rgb[0]);
@@ -95,7 +95,7 @@ void FileList::clear()
 void FileList::on_filter_toggled(const Glib::ustring& path)
 {
 	Gtk::TreeRow row = *(model->get_iter(path));
-	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(current_hash);
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(current_hash);
 
 	if (torrent)
 	{

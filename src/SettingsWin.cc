@@ -274,7 +274,7 @@ void SettingsWin::on_hide()
 {
 	Gtk::Window::on_hide();
 
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	/* Network */
 	if (interfaces->get_active_row_number() <= 0)
@@ -337,12 +337,12 @@ void SettingsWin::on_hide()
 		sm->set("Groups", name, UStringArray(info));
 	}
 
-	Engine::instance()->get_settings_manager()->update();
+	Engine::get_settings_manager()->update();
 }
 
 void SettingsWin::on_show()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	/* Network */
 	Glib::ustring interface = sm->get_string("Network", "Interface");
@@ -381,7 +381,7 @@ void SettingsWin::on_show()
 	/* Plugins */
 	if (!model_plugins->children().size())
 	{
-		std::list<PluginInfo> plugins = Engine::instance()->get_plugin_manager()->list_plugins();
+		std::list<PluginInfo> plugins = Engine::get_plugin_manager()->list_plugins();
 
 		for (std::list<PluginInfo>::iterator iter = plugins.begin();
 				 iter != plugins.end(); ++iter)

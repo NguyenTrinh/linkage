@@ -59,7 +59,7 @@ Glib::RefPtr<PluginManager> PluginManager::create()
 PluginManager::PluginManager() : RefCounter<PluginManager>::RefCounter(this)
 {
 	/* TODO: load plugins from SettinsManger */
-	Glib::RefPtr<SettingsManager> sm = Engine::instance()->get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	sm->signal_update_settings().connect(sigc::mem_fun(this, &PluginManager::on_settings));
 	
 	on_settings();
@@ -204,7 +204,7 @@ void PluginManager::on_settings()
 {
 	std::list<Glib::ustring> plugins;
 
- 	plugins = Engine::instance()->get_settings_manager()->get_string_list("UI", "Plugins");
+ 	plugins = Engine::get_settings_manager()->get_string_list("UI", "Plugins");
 
 	/* Load all new */
 	for (std::list<Glib::ustring>::iterator iter = plugins.begin();
