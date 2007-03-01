@@ -50,8 +50,7 @@ Torrent::Torrent(const entry& resume_entry, bool queued)
 	catch (std::exception& e) {}
 
 	m_filter.assign(resume_entry["files"].integer(), false);
-	for (std::list<entry>::iterator iter = ++fl.begin();
-				iter != fl.end(); ++iter)
+	for (std::list<entry>::iterator iter = fl.begin(); iter != fl.end(); ++iter)
 	{
 		entry e = *iter;
 		m_filter[e.integer()] = true;
@@ -296,17 +295,11 @@ void Torrent::set_filter(std::vector<bool>& filter)
 		m_handle.filter_files(m_filter);
 }
 
-void Torrent::filter_file(const Glib::ustring& name, bool filter)
+void Torrent::filter_file(unsigned int index, bool filter)
 {
 	torrent_info info = m_handle.get_torrent_info();
 
-	/* Get the file index to i */
-	unsigned int i = 0;
-	for (i = 0; i < info.num_files(); i++)
-		if (name == info.file_at(i).path.string())
-			break;
-
-	m_filter[i] = filter;
+	m_filter[index] = filter;
 
 	set_filter(m_filter);
 }
