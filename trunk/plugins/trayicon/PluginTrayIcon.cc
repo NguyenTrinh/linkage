@@ -78,7 +78,7 @@ void TrayPlugin::on_load()
 	imageitem->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_quit));
 	menu->append(*imageitem);
 
-	Engine::instance()->signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
+	Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
 	menu->show_all_children();
 }
 
@@ -86,7 +86,7 @@ bool TrayPlugin::on_button_released(GdkEventButton* e)
 {
 	if (e->button == 1)
 	{
-		Engine::instance()->get_dbus_manager()->send("ToggleVisible");
+		Engine::get_dbus_manager()->send("ToggleVisible");
 	}
 	else if (e->button == 3)
 	{
@@ -114,7 +114,7 @@ void TrayPlugin::on_tick()
 
 void TrayPlugin::on_quit()
 {
-	Engine::instance()->get_dbus_manager()->send("Quit");
+	Engine::get_dbus_manager()->send("Quit");
 }
 
 void TrayPlugin::on_torrents_stop()
