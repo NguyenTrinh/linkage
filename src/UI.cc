@@ -207,7 +207,7 @@ UI::UI()
 	torrent_list->set_filter_set_signal(group_list->signal_filter_set());
 	torrent_list->set_filter_unset_signal(group_list->signal_filter_unset());
 	Gtk::HPaned* hpan = manage(new Gtk::HPaned());
-	hpan->pack1(*group_list, true, true);
+	hpan->pack1(*group_list, false, true);
 	hpan->pack2(*scrollwin, true, true);
 
 	notebook_main->append_page(*hpan, "Torrents");

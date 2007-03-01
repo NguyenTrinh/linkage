@@ -335,8 +335,10 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 			if (ratio < 1)
 			{
 				row[columns.progress] = ratio*100;
-				row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate)
+				row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate);
+			}
 		 	else
+		 	{
 		 		row[columns.progress] = 100;
 		 		row[columns.eta] = str(ratio, 3);
 		 	}
