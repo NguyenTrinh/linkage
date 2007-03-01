@@ -65,14 +65,14 @@ Glib::ustring NotifyPlugin::get_description()
 
 void NotifyPlugin::on_load()
 {
-	Engine::instance()->get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &NotifyPlugin::on_invalid_bencoding));
-	Engine::instance()->get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &NotifyPlugin::on_missing_file));
-	Engine::instance()->get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &NotifyPlugin::on_duplicate_torrent));
+	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &NotifyPlugin::on_invalid_bencoding));
+	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &NotifyPlugin::on_missing_file));
+	Engine::get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &NotifyPlugin::on_duplicate_torrent));
 
-	Engine::instance()->get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &NotifyPlugin::on_listen_failed));
-	Engine::instance()->get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &NotifyPlugin::on_torrent_finished));
-	Engine::instance()->get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &NotifyPlugin::on_file_error));
-	Engine::instance()->get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &NotifyPlugin::on_fastresume_rejected));
+	Engine::get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &NotifyPlugin::on_listen_failed));
+	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &NotifyPlugin::on_torrent_finished));
+	Engine::get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &NotifyPlugin::on_file_error));
+	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &NotifyPlugin::on_fastresume_rejected));
 }
 
 bool NotifyPlugin::notify(const Glib::ustring& title,
@@ -110,7 +110,7 @@ void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
 
 void NotifyPlugin::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 {
-	WeakPtr<Torrent> torrent = Engine::instance()->get_torrent_manager()->get_torrent(hash);
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	notify("Torrent finished", torrent->get_name() + " is complete", NOTIFY_INFO);
 }
 
