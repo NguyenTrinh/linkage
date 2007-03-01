@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <glibmm/stringutils.h>
+
 #include "Group.hh"
 
 
@@ -55,11 +57,10 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							if (f.filter == tracker)
-								ret = true;
+							ret = (f.filter == tracker);
 						}
 						break;
 					case TAG_NAME:
@@ -77,11 +78,10 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							if (tracker.find(f.filter) != Glib::ustring::npos)
-								ret = true;
+							ret = (tracker.find(f.filter) != Glib::ustring::npos);
 						}
 						break;
 					case TAG_NAME:
@@ -99,21 +99,20 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							if (tracker.substr(0, f.filter.size()) == f.filter)
-								ret = true;
+							ret = Glib::str_has_prefix(tracker, f.filter);
 						}
 						break;
 					case TAG_NAME:
-						ret = (info.name().substr(0, f.filter.size()) == f.filter);
+						ret = Glib::str_has_prefix(info.name(), f.filter);
 						break;
 					case TAG_COMMENT:
-						ret = (info.comment().substr(0, f.filter.size()) == f.filter);
+						ret = Glib::str_has_prefix(info.comment(), f.filter);
 						break;
 					case TAG_STATE:
-						ret = (torrent->get_state_string().substr(0, f.filter.size()) == f.filter);
+						ret = Glib::str_has_prefix(torrent->get_state_string(), f.filter);
 						break;
 				}
 				break;
@@ -121,22 +120,20 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							if (tracker.substr(tracker.size()-f.filter.size(), tracker.size()) == f.filter)
-								ret = true;
+							ret = Glib::str_has_suffix(tracker, f.filter);
 						}
 						break;
 					case TAG_NAME:
-						ret = (info.name().substr(info.name().size()-f.filter.size(), info.name().size()) == f.filter);
+						ret = Glib::str_has_suffix(info.name(), f.filter);
 						break;
 					case TAG_COMMENT:
-						ret = (info.comment().substr(info.comment().size()-f.filter.size(), info.comment().size()) == f.filter);
+						ret = Glib::str_has_suffix(info.comment(), f.filter);
 						break;
 					case TAG_STATE:
-						Glib::ustring state = torrent->get_state_string();
-						ret = (state.substr(state.size() - f.filter.size(), state.size()) == f.filter);
+						ret = Glib::str_has_suffix(torrent->get_state_string(), f.filter);
 						break;
 				}
 				break;
