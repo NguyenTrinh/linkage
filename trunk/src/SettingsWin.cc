@@ -190,8 +190,8 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	notebook->append_page(*treeview_plugins, "Plugins");
 
 	Gtk::HBox* groups_box = manage(new Gtk::HBox());
-	groups_view = manage(new GroupFilterView());
-	groups_box->pack_start(*groups_view, true, true);
+	groups_view = manage(new GroupView());
+	groups_box->pack_start(*groups_view, false, false);
 	group_add = manage(new Gtk::Button(Gtk::Stock::ADD));
 	group_add->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_add));
 	group_remove = manage(new Gtk::Button(Gtk::Stock::REMOVE));
@@ -200,7 +200,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	Gtk::VBox* groups_vbox = manage(new Gtk::VBox());
 	groups_vbox->pack_start(*group_add, false, false);
 	groups_vbox->pack_start(*group_remove, false, false);
-	groups_box->pack_start(*groups_vbox);
+	groups_box->pack_end(*groups_vbox);
 
 	notebook->append_page(*groups_box, "Groups");
 
@@ -231,7 +231,7 @@ void SettingsWin::on_button_close()
 void SettingsWin::on_group_add()
 {
 	Glib::ustring number = str(groups_view->get_children().size());
-	GroupFilterRow* row = new GroupFilterRow("Group " + number, 0, 0, "");
+	GroupRow* row = new GroupRow("Group " + number);
 	groups_view->append(row);
 	if (groups_view->children().size() > 1)
 		group_remove->set_sensitive(true);
@@ -239,7 +239,7 @@ void SettingsWin::on_group_add()
 
 void SettingsWin::on_group_remove()
 {
-	GroupFilterRow* row = groups_view->get_selected();
+	GroupRow* row = groups_view->get_selected();
 	if (row)
 		groups_view->erase(row);
 	if (groups_view->children().size() == 1)
@@ -322,17 +322,24 @@ void SettingsWin::on_hide()
 	sm->set("Files", "Allocate", allocate->get_active());
 	/* Groups */
 	sm->remove_group("Groups");
-	std::list<GroupFilterRow*> rows = groups_view->children();
-	for (std::list<GroupFilterRow*>::iterator iter = rows.begin();
+	std::list<GroupRow*> rows = groups_view->children();
+	for (std::list<GroupRow*>::iterator iter = rows.begin();
 				iter != rows.end(); ++iter)
 	{
-		GroupFilterRow* row = *iter;
+		GroupRow* row = *iter;
 		Glib::ustring name = Glib::Markup::escape_text(row->get_name());
 
 		std::list<Glib::ustring> info;
-		info.push_back(row->get_filter());
-		info.push_back(str(row->get_eval()));
-		info.push_back(str(row->get_tag() - 2*(row->get_tag() >= 2)));
+		std::list<Group::Filter> filters = row->get_filters();
+
+		for (std::list<Group::Filter>::iterator iter = filters.begin();
+					iter != filters.end(); ++iter)
+		{
+			Group::Filter f = *iter;
+			info.push_back(f.filter);
+			info.push_back(str(f.eval));
+			info.push_back(str(f.tag));
+		}
 
 		sm->set("Groups", name, UStringArray(info));
 	}
@@ -421,13 +428,18 @@ void SettingsWin::on_show()
 		{
 			std::vector<Glib::ustring> info = sm->get_string_list("Groups", *iter);
 
-			if (info.size() != 3)
+			if ((info.size() % 3) != 0)
 				continue;
 
-			Glib::ustring filter = info[0];
-			int eval = std::atoi(info[1].c_str());
-			int tag = std::atoi(info[2].c_str());
-			GroupFilterRow* row = new GroupFilterRow(*iter, tag + 2*(tag >= 2), eval, filter);
+			std::list<Group::Filter> filters;
+			for (int i = 0; i < info.size(); i+=3)
+			{
+				Glib::ustring filter = info[i];
+				Group::EvalType eval = Group::EvalType(std::atoi(info[i+1].c_str()));
+				Group::TagType tag = Group::TagType(std::atoi(info[i+2].c_str()));
+				filters.push_back(Group::Filter(filter, tag, eval));
+			}
+			GroupRow* row = new GroupRow(*iter, filters);
 			groups_view->append(row);
 		}
 	}

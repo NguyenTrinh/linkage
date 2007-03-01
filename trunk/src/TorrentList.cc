@@ -110,7 +110,7 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 	return (m_active_group) ? m_active_group.eval(torrent) : true;
 }
 
-void TorrentList::on_filter_set(const GroupFilter& group)
+void TorrentList::on_filter_set(const Group& group)
 {
 	m_active_group = group;
 	filter->refilter();
@@ -118,11 +118,11 @@ void TorrentList::on_filter_set(const GroupFilter& group)
 
 void TorrentList::on_filter_unset()
 {
-	m_active_group = GroupFilter();
+	m_active_group = Group();
 	filter->refilter();
 }
 
-void TorrentList::set_filter_set_signal(sigc::signal<void, const GroupFilter&> signal)
+void TorrentList::set_filter_set_signal(sigc::signal<void, const Group&> signal)
 {
 	signal.connect(sigc::mem_fun(this, &TorrentList::on_filter_set));
 }
@@ -255,14 +255,14 @@ bool TorrentList::on_button_press_event(GdkEventButton* event)
 	Gtk::TreeRow row = *model->get_iter(path);
 
 	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
-		m_signal_double_click.emit(row[columns.hash]);
+		m_signal_double_click.emit(event, row[columns.hash]);
 	else if (event->button == 3)
 		m_signal_right_click.emit(event);
 
 	return (event->button != 1);
 }
 
-sigc::signal<void, const sha1_hash&> TorrentList::signal_double_click()
+sigc::signal<void, GdkEventButton*, const sha1_hash&> TorrentList::signal_double_click()
 {
 	return m_signal_double_click;
 }

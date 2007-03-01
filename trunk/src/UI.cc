@@ -474,7 +474,7 @@ UI::UI()
 	Engine::get_dbus_manager()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
 	Engine::get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
 
-	connection_tick = Engine::instance()->signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
+	connection_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
 }
 
 UI::~UI()
@@ -1050,7 +1050,7 @@ void UI::on_torrent_list_selection_changed()
 	}
 }
 
-void UI::on_torrent_list_double_clicked(const sha1_hash& hash)
+void UI::on_torrent_list_double_clicked(GdkEventButton* event, const sha1_hash& hash)
 {
 	if (expander_details->is_sensitive())
 	{

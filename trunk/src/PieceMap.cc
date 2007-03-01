@@ -51,7 +51,7 @@ void PieceMap::on_realize()
 	get_window()->clear();
 }
 
-bool PieceMap::on_expose_event(GdkEventExpose*)
+bool PieceMap::on_expose_event(GdkEventExpose* event)
 {
 	if (!m_map.size())
 		m_map.push_back(false);

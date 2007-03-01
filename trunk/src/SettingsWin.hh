@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeview.h>
 
 #include "AlignedSpinButton.hh"
-#include "GroupFilterView.hh"
+#include "GroupView.hh"
 
 class SettingsWin : public Gtk::Window
 {
@@ -64,7 +64,7 @@ class SettingsWin : public Gtk::Window
 	Gtk::Entry *proxy_ip, *proxy_user, *proxy_pass;
 
 	Gtk::Button *group_add, *group_remove;
-	GroupFilterView* groups_view;
+	GroupView* groups_view;
 
 	void on_plugin_toggled(const Glib::ustring& path);
 

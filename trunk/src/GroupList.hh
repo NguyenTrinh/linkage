@@ -27,26 +27,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/WeakPtr.hh"
 #include "linkage/Torrent.hh"
 
-#include "GroupFilter.hh"
+#include "Group.hh"
 
 class GroupList : public Gtk::VBox
 {
-	typedef std::map<GroupFilter*, Gtk::RadioButton*> GroupMap;
+	typedef std::map<Group*, Gtk::RadioButton*> GroupMap;
 
 	Gtk::RadioButton* m_all;
 
 	GroupMap m_map;
 	
-	sigc::signal<void, const GroupFilter&> m_signal_filter_set;
+	sigc::signal<void, const Group&> m_signal_filter_set;
 	sigc::signal<void> m_signal_filter_unset;
 
 	void on_all_toggled();
-	void on_group_toggled(GroupFilter* group);
+	void on_group_toggled(Group* group);
 
 	void on_settings();
 
 public:
-	sigc::signal<void, const GroupFilter&> signal_filter_set();
+	sigc::signal<void, const Group&> signal_filter_set();
 	sigc::signal<void> signal_filter_unset();
 
 	void update();

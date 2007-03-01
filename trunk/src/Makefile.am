@@ -21,8 +21,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   TorrentCreator.cc \
                   TorrentList.cc \
                   UI.cc \
-                  GroupFilter.cc \
-                  GroupFilter.hh \
+                  Group.cc \
+                  Group.hh \
                   AlignedLabel.hh \
                   AlignedLabel.cc \
                   AlignedSpinButton.hh \
@@ -33,12 +33,14 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   CellRendererProgressText.cc \
                   GroupList.hh \
                   GroupList.cc \
-                  GroupFilterRow.hh \
-                  GroupFilterRow.cc \
-                  GroupFilterView.hh \
-                  GroupFilterView.cc \
+                  GroupRow.hh \
+                  GroupRow.cc \
+                  GroupView.hh \
+                  GroupView.cc \
                   TorrentMenu.hh \
                   TorrentMenu.cc \
+                  ExpanderButton.hh \
+                  ExpanderButton.cc \
                   main.cc
 
 
