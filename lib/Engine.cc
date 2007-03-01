@@ -31,27 +31,6 @@ Glib::RefPtr<DbusManager> Engine::dbm			= Glib::RefPtr<DbusManager>();
 
 sigc::signal<void> Engine::m_signal_tick	= sigc::signal<void>();
 
-Glib::RefPtr<Engine> Engine::instance()
-{
-	static bool creating = false;
-	if (!self && is_primary() && !creating)
-	{
-		creating = true;
-		self = Glib::RefPtr<Engine>(new Engine());
-		creating = false;
-	}
-
-	return self;
-}
-
-bool Engine::is_primary()
-{
-	if (!dbm)
-		dbm = DbusManager::create();
-	
-	return dbm->is_primary();
-}
-
 Engine::Engine() : RefCounter<Engine>::RefCounter(this)
 {
 	ssm = SettingsManager::create();
@@ -71,6 +50,25 @@ Engine::~Engine()
 {
 }
 
+void Engine::init()
+{
+	static bool creating = false;
+	if (!self && is_primary() && !creating)
+	{
+		creating = true;
+		self = Glib::RefPtr<Engine>(new Engine());
+		creating = false;
+	}
+}
+
+bool Engine::is_primary()
+{
+	if (!dbm)
+		dbm = DbusManager::create();
+	
+	return dbm->is_primary();
+}
+
 bool Engine::on_timeout()
 {
 	m_signal_tick.emit();
@@ -80,7 +78,7 @@ bool Engine::on_timeout()
 sigc::signal<void> Engine::signal_tick()
 {
 	if (!self)
-		instance();
+		init();
 
 	return m_signal_tick;
 }
@@ -108,7 +106,7 @@ void Engine::stop_tick()
 Glib::RefPtr<AlertManager> Engine::get_alert_manager()
 {
 	if (!self)
-		instance();
+		init();
 
 	return am;
 }
@@ -116,7 +114,7 @@ Glib::RefPtr<AlertManager> Engine::get_alert_manager()
 Glib::RefPtr<PluginManager> Engine::get_plugin_manager()
 {
 	if (!self)
-		instance();
+		init();
 
 	return pm;
 }
@@ -124,7 +122,7 @@ Glib::RefPtr<PluginManager> Engine::get_plugin_manager()
 Glib::RefPtr<SessionManager> Engine::get_session_manager()
 {
 	if (!self)
-		instance();
+		init();
 
 	return sm;
 }
@@ -132,7 +130,7 @@ Glib::RefPtr<SessionManager> Engine::get_session_manager()
 Glib::RefPtr<SettingsManager> Engine::get_settings_manager()
 {
 	if (!self)
-		instance();
+		init();
 
 	return ssm;
 }
@@ -140,7 +138,7 @@ Glib::RefPtr<SettingsManager> Engine::get_settings_manager()
 Glib::RefPtr<TorrentManager> Engine::get_torrent_manager()
 {
 	if (!self)
-		instance();
+		init();
 
 	return tm;
 }
@@ -148,7 +146,7 @@ Glib::RefPtr<TorrentManager> Engine::get_torrent_manager()
 Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
 {
 	if (!self)
-		instance();
+		init();
 
 	return dbm;
 }
