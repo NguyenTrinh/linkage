@@ -59,10 +59,9 @@ void TrayPlugin::on_load()
 	tooltips = new Gtk::Tooltips();
 
 	Gtk::Widget* widget = dynamic_cast<Gtk::Widget*>(eventbox);
-	GtkWidget* gobj = widget->gobj();
 
 	tray_icon = egg_tray_icon_new ("TrayPlugin");
-	gtk_container_add (GTK_CONTAINER (tray_icon), gobj);
+	gtk_container_add (GTK_CONTAINER (tray_icon), widget->gobj());
 	gtk_widget_show_all (GTK_WIDGET (tray_icon));
 	
 	menu = new Gtk::Menu();

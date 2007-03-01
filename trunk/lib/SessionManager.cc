@@ -48,10 +48,17 @@ SessionManager::SessionManager()
 	on_settings(); //Apply settings on startup
 
 	#ifndef TORRENT_DISABLE_DHT
+	try
+	{
 		start_dht();
 		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
+	}
+	catch (const asio::error& e)
+	{
+		g_warning(("Failed to start DHT: " + Glib::ustring(e.what())).c_str());
+	}
 	#endif
 }
 
@@ -101,20 +108,20 @@ void SessionManager::on_settings()
 	Glib::ustring iface = settings->get_string("Network", "Interface");
 	ip_address ip;
 	get_ip(iface.c_str(), ip);
-	int max_port = settings->get_int("Network", "MinPort");
-	int min_port = settings->get_int("Network", "MaxPort");
-	
+	int min_port = settings->get_int("Network", "MinPort");
+	int max_port = settings->get_int("Network", "MaxPort");
+
+	std::cout << min_port << " - " << max_port << std::endl;
+
 	/* Only call listen_on if we really need to */
 	if (!is_listening() || max_port < listen_port() || min_port > listen_port())
 	{
 		if (get_ip(iface.c_str(), ip))
 		{
-			listen_on(std::make_pair(settings->get_int("Network", "MinPort"),
-															 settings->get_int("Network", "MaxPort")), ip);
+			listen_on(std::pair<int, int>(min_port, max_port), ip);
 		}
 		else
-			listen_on(std::make_pair(settings->get_int("Network", "MinPort"),
-															 settings->get_int("Network", "MaxPort")));
+			listen_on(std::pair<int, int>(min_port, max_port));
 	}
 
 	int up_rate = settings->get_int("Network", "MaxUpRate")*1024;

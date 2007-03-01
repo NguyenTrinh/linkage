@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef PLUGIN_TRAYICON_HH
 #define PLUGIN_TRAYICON_HH
 
-#include <glibmm/object.h>
 #include <gdkmm/types.h>
 #include <gtkmm/image.h>
 #include <gtkmm/eventbox.h>
@@ -34,7 +33,6 @@ class TrayPlugin : public Plugin
 {
 	EggTrayIcon *tray_icon;
 	Gtk::Widget* widget;
-	GtkWidget* gobj;
 	Gtk::EventBox* eventbox;
 	Gtk::Tooltips* tooltips;
 	Gtk::Image* image;
