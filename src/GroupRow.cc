@@ -146,6 +146,7 @@ GroupRow::GroupRow(const Glib::ustring& name)
 	init();
 
 	m_name->set_text(name);
+	m_exp->set_sensitive(false);
 }
 
 GroupRow::GroupRow(const Glib::ustring& name, const std::list<Group::Filter>& filters)
@@ -158,7 +159,6 @@ GroupRow::GroupRow(const Glib::ustring& name, const std::list<Group::Filter>& fi
 				iter != filters.end(); ++iter)
 	{
 		Group::Filter f = *iter;
-		std::cout << name << ": " << f.filter << std::endl;
 		FilterRow* row = manage(new FilterRow(f.filter, f.tag, f.eval));
 		row->signal_removed().connect(sigc::mem_fun(this, &GroupRow::on_removed));
 		if (!m_exp->get_expanded())
