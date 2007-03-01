@@ -42,6 +42,7 @@ class Engine : public RefCounter<Engine>
 
 	bool on_timeout();
 	
+	static void init();
 	Engine();
 	
 public:
@@ -58,7 +59,6 @@ public:
 	void stop_tick();*/
 
 	static bool is_primary();
-	static Glib::RefPtr<Engine> instance();
 	static void destroy();
 	
 	~Engine();
