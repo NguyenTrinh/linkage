@@ -36,7 +36,8 @@ void GroupView::append(GroupRow* row)
 {
 	m_children.push_back(row);
 	pack_start(*row, false, false);
-	show_all_children();
+	row->show_all_children();
+	row->show();
 }
 
 void GroupView::erase(GroupRow* row)
