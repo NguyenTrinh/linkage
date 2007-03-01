@@ -31,9 +31,10 @@ TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 {
 	m_session_manager = Engine::get_session_manager();
 
-	m_session_manager->signal_update_queue().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
+	Engine::signal_tick().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
 	
 	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
+	/* FIXME: add on_tracker_announce and set reply to <i>Trying http://my.tracker</i> */
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
 	am->signal_tracker_failed().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_failed));
@@ -181,11 +182,17 @@ void TorrentManager::remove_torrent(const sha1_hash& hash)
 	delete m_torrents[hash];
 	m_torrents.erase(hash);
 
+	std::vector<Torrent*> torrents;
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
 		Torrent* torrent = iter->second;
 		if (torrent->get_position() > pos)
-			torrent->set_position(torrent->get_position() - 1);
+			torrents.push_back(torrent);
+	}
+	sort(torrents);
+	for (unsigned int i = 0; i < torrents.size(); i++)
+	{
+		torrents[i]->set_position(pos + i);
 	}
 
 	m_signal_removed.emit(hash);
@@ -226,103 +233,71 @@ unsigned int TorrentManager::get_torrents_count()
 	return m_torrents.size();
 }
 
+void TorrentManager::sort(std::vector<Torrent*>& torrents)
+{
+	for (unsigned int i = 0; i < torrents.size(); i++)
+	{
+		Torrent* torrent = torrents[i];
+		unsigned int j = i;
+		while (j > 0)
+		{
+			if (torrents[j - 1]->get_position() > torrent->get_position())
+				torrents[j] = torrents[j - 1];
+			else
+				break;
+			j--;
+		}
+		torrents[j] = torrent;
+	}
+}
+
 void TorrentManager::check_queue()
 {
-	std::vector<sha1_hash> order;
+	unsigned int last_active = 0;
 	unsigned int num_active = 0;
-	unsigned int max_active = Engine::get_settings_manager()->get_int("Network", "MaxActive");
-	//Sort m_torrents by position
+	std::vector<Torrent*> torrents;
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
 		Torrent* torrent = iter->second;
-		if (torrent->is_running())
-		{
-			if (!torrent->is_queued())
-				num_active++;
-		}
-		else
+		Torrent::State state = torrent->get_state();
+		if (state == Torrent::SEEDING || state == Torrent::STOPPED || state == Torrent::ERROR)
 			continue;
 
-		if (order.empty())
-			order.push_back(torrent->get_hash());
+		torrents.push_back(torrent);
+		if (torrent->get_state() != Torrent::QUEUED)
+		{
+			num_active++;
+			if (torrent->get_position() > last_active)
+				last_active = torrent->get_position();
+		}
+	}
+
+	sort(torrents);
+
+	unsigned int max_active = Engine::get_settings_manager()->get_int("Network", "MaxActive");
+	for (unsigned int k = 0; k < torrents.size(); k++)
+	{
+		Torrent* torrent = torrents[k];
+		Torrent::State state = torrent->get_state();
+		if (state != Torrent::QUEUED)
+		{
+			if (torrent->get_position() >= last_active && num_active > max_active)
+			{
+				num_active--;
+				torrent->queue();
+				for (unsigned int l = 0; l < k; l++)
+					if (torrents[l]->get_state() != Torrent::QUEUED)
+						last_active = torrents[l]->get_position();
+			}
+		}
 		else
 		{
-			unsigned int offset = 0;
-			while (offset < order.size() && m_torrents[order[offset]]->get_position() < torrent->get_position())
-				offset++;
-			order.insert(order.begin() + offset, torrent->get_hash());
-		}
-	}
-
-	if (num_active == max_active) //Make sure queue is correct
-	{
-		/* Loop backwards until we hit the first running torrent */
-		for (unsigned int i = order.size()-1; i > 0; i--)
-		{
-			Torrent* torrent = m_torrents[order[i]];
-			if (!torrent->is_running() || (torrent->get_state() & Torrent::SEEDING))
-				continue;
-
-			if (!torrent->is_queued())
+			if (torrent->get_position() < last_active || num_active < max_active)
 			{
-				/* Loop trough all m_torrents above the current one, if they are queued,
-					 unqueue all above and queue the current one */
-				bool should_queue = false;
-				for (unsigned int j = i; j > 0; j--)
-				{
-					Torrent* torrent_above = m_torrents[order[i]];
-					if (torrent_above->is_queued())
-					{
-						should_queue = true;
-						torrent_above->unqueue();
-						num_active++;
-					}
-				}
-				if (should_queue)
-				{
-					torrent->queue();
-					num_active--;
-				}
-			}
-		}
-	}
-
-	if (num_active > max_active) //Stop everything from bottom until queue is ok
-	{
-		unsigned int i = order.size() - 1;
-		while (num_active != max_active && i > 0)
-		{
-			Torrent* torrent = m_torrents[order[i]];
-			if (torrent->get_state() & Torrent::SEEDING)
-				continue;
-
-			if (torrent->is_running() && !torrent->is_queued())
-			{
-				torrent->queue();
-				num_active--;
-			}
-			i--;
-		}
-	}
-
-	if (num_active < max_active) //Start everything paused until queue is maxed
-	{
-		unsigned int i = 0;
-		while (num_active != max_active && i < order.size())
-		{
-			Torrent* torrent = m_torrents[order[i]];
-			if (torrent->is_running() && torrent->is_queued())
-			{
-				torrent->unqueue();
 				num_active++;
+				torrent->unqueue();
+				last_active = torrent->get_position();
 			}
-			i++;
 		}
 	}
-
-	/*if (!num_active)
-		Engine::instance()->stop_tick();
-	else if (!Engine::instance()->is_ticking())
-		Engine::instance()->start_tick();*/
-
 }

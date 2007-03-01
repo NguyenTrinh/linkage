@@ -129,100 +129,70 @@ const size_type Torrent::get_total_uploaded() const
 
 const Torrent::State Torrent::get_state() const
 {
-	if (!m_is_queued)
+	if (m_handle.is_valid())
 	{
-		if (m_handle.is_valid())
+		/* libtorrent only says it's seeding after it's announced to the tracker */
+		if (get_status().total_done == get_info().total_size())
+			return SEEDING;
+
+		if (m_handle.is_paused() && m_is_queued)
+			return QUEUED;
+		else if (m_handle.is_paused()) /* libtorrent paused this handle, something bad happened */
+			return ERROR;
+
+		unsigned int state = m_handle.status().state;
+		switch (state)
 		{
-			unsigned int state = m_handle.status().state;
-			switch (state)
-			{
-				case torrent_status::queued_for_checking:
-					return CHECK_QUEUE;
-				case torrent_status::checking_files:
-					return CHECKING;
-				case torrent_status::connecting_to_tracker:
-					return ANNOUNCING;
-				case torrent_status::downloading:
+			case torrent_status::queued_for_checking:
+				return CHECK_QUEUE;
+			case torrent_status::checking_files:
+				return CHECKING;
+			case torrent_status::connecting_to_tracker:
+				return ANNOUNCING;
+			case torrent_status::downloading:
 					return DOWNLOADING;
-				case torrent_status::finished:
-					return FINISHED;
-				case torrent_status::seeding:
-					return SEEDING;
-				case torrent_status::allocating:
-					return ALLOCATING;
-			}
+			case torrent_status::finished:
+				return FINISHED;
+			case torrent_status::seeding:
+				return SEEDING;
+			case torrent_status::allocating:
+				return ALLOCATING;
 		}
-		else
-			return STOPPED;
 	}
 	else
-		return QUEUED;
+		return STOPPED;
 }
 
 const Glib::ustring Torrent::get_state_string() const
 {
-	if (!m_is_queued)
-	{
-		if (m_handle.is_valid())
-		{
-			unsigned int state = m_handle.status().state;
-			switch (state)
-			{
-				case torrent_status::queued_for_checking:
-					return "Queued";
-				case torrent_status::checking_files:
-					return "Checking";
-				case torrent_status::connecting_to_tracker:
-					return "Announcing";
-				case torrent_status::downloading:
-					return "Downloading";
-				case torrent_status::finished:
-					return "Finished";
-				case torrent_status::seeding:
-					return "Seeding";
-				case torrent_status::allocating:
-					return "Allocating";
-			}
-		}
-		else
-			return "Stopped";
-	}
-	else
-		return "Queued";
+	return get_state_string(get_state());
 }
 
 const Glib::ustring Torrent::get_state_string(State state) const
 {
 	switch (state)
 	{
+		case ERROR:
+			return "Error";
 		case QUEUED:
 			return "Queued";
-			break;
 		case STOPPED:
 			return "Stopped";
-			break;
 		case CHECK_QUEUE:
 			return "Queued";
-			break;
 		case CHECKING:
 			return "Checking";
-			break;
 		case ANNOUNCING:
 			return "Announcing";
-			break;
 		case FINISHED:
 			return "Finished";
-			break;
 		case SEEDING:
 			return "Seeding";
-			break;
 		case ALLOCATING:
 			return "Allocating";
-			break;
 		case DOWNLOADING:
 		default:
 			return "Downloading";
-			break;
 	}
 }
 
