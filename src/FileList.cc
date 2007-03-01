@@ -100,7 +100,7 @@ void FileList::on_filter_toggled(const Glib::ustring& path)
 	if (torrent)
 	{
 		row[columns.filter] = !row[columns.filter];
-		torrent->filter_file(row[columns.name], row[columns.filter]);
+		torrent->filter_file(row[columns.index], row[columns.filter]);
 	}
 }
 

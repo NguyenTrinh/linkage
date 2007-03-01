@@ -76,7 +76,7 @@ public:
 	void set_group(const Glib::ustring& group);
 	void set_position(unsigned int position);
 	void set_filter(std::vector<bool>& filter);
-	void filter_file(const Glib::ustring& name, bool filter = true);
+	void filter_file(unsigned int index, bool filter = true);
 	void set_up_limit(int limit);
 	void set_down_limit(int limit);
 	
