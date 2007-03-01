@@ -40,8 +40,8 @@ class PieceMap : public Gtk::DrawingArea
 	std::list<Part> draw_more_pixels(); //FIXME: Broken again, dark not shown on more_pixels?
 	void draw(); //FIXME: Should be public to be able to redraw unchanged map
 	
-	virtual void on_realize();
-	virtual bool on_expose_event(GdkEventExpose*);
+	void on_realize();
+	bool on_expose_event(GdkEventExpose* event);
 
 public:
 	void set_map(const std::vector<bool>& map);

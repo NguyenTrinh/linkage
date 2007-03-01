@@ -152,7 +152,7 @@ class UI : public Gtk::Window
 	void on_details_expanded();
 
 	void on_torrent_list_selection_changed();
-	void on_torrent_list_double_clicked(const sha1_hash& hash);
+	void on_torrent_list_double_clicked(GdkEventButton* event, const sha1_hash& hash);
 	void on_torrent_list_right_clicked(GdkEventButton* event);
 
 	void on_tick();

@@ -39,15 +39,22 @@ GroupList::~GroupList()
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
 	{
-		GroupFilter* group = iter->first;
+		Group* group = iter->first;
 		
 		std::list<Glib::ustring> info;
-		info.push_back(group->get_filter());
-		info.push_back(str((int)group->get_eval()));
-		info.push_back(str((int)group->get_tag()));
+		std::list<Group::Filter> filters = group->get_filters();
+
+		for (std::list<Group::Filter>::iterator giter = filters.begin();
+					giter != filters.end(); ++giter)
+		{
+			Group::Filter f = *giter;
+			info.push_back(f.filter);
+			info.push_back(str(f.eval));
+			info.push_back(str(f.tag));
+		}
 
 		sm->set("Groups", group->get_name(), UStringArray(info));
-		
+
 		Gtk::RadioButton* radio = iter->second;
 		remove(*radio);
 		delete radio;
@@ -56,7 +63,7 @@ GroupList::~GroupList()
 	m_map.clear();
 }
 
-void GroupList::on_group_toggled(GroupFilter* group)
+void GroupList::on_group_toggled(Group* group)
 {
 	m_signal_filter_set.emit(*group);
 }
@@ -72,7 +79,7 @@ void GroupList::on_settings()
 	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
 	{
 		Gtk::RadioButton* radio = iter->second;
-		GroupFilter* group = iter->first;
+		Group* group = iter->first;
 		if (radio->get_active())
 			active_group = group->get_name();
 		remove(*radio);
@@ -81,6 +88,7 @@ void GroupList::on_settings()
 	}
 	m_map.clear();
 
+	bool all_active = true;
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	std::list<Glib::ustring> keys = sm->get_keys("Groups");
 	for (std::list<Glib::ustring>::iterator iter = keys.begin();
@@ -88,25 +96,36 @@ void GroupList::on_settings()
 	{
 		std::vector<Glib::ustring> info = sm->get_string_list("Groups", *iter);
 
-		if (info.size() != 3)
+		if ((info.size() % 3) != 0)
 			continue;
 
-		Glib::ustring filter = info[0];
-		GroupFilter::EvalType eval = GroupFilter::EvalType(std::atoi(info[1].c_str()));
-		GroupFilter::TagType tag = GroupFilter::TagType(std::atoi(info[2].c_str()));
+		std::list<Group::Filter> filters;
+		for (int i = 0; i < info.size(); i+=3)
+		{
+			Glib::ustring filter = info[i];
+			Group::EvalType eval = Group::EvalType(std::atoi(info[i+1].c_str()));
+			Group::TagType tag = Group::TagType(std::atoi(info[i+2].c_str()));
+			filters.push_back(Group::Filter(filter, tag, eval));
+		}
 		
-		GroupFilter* group = new GroupFilter(filter, tag, eval, *iter);
+		Group* group = new Group(*iter, filters);
 		Gtk::RadioButtonGroup radio_group = m_all->get_group();
 		Gtk::RadioButton* radio = new Gtk::RadioButton(radio_group, group->get_name());
 		m_map[group] = radio;
 		radio->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &GroupList::on_group_toggled), group));
-		radio->set_active(active_group == group->get_name());
+		if (active_group == group->get_name())
+		{
+			radio->set_active(true);
+			all_active = false;
+		}
 		pack_start(*radio, false, false);
 		radio->show();
 	}
+	if (all_active)
+		m_all->set_active(true);
 }
 
-sigc::signal<void, const GroupFilter&> GroupList::signal_filter_set()
+sigc::signal<void, const Group&> GroupList::signal_filter_set()
 {
 	return m_signal_filter_set;
 }
@@ -122,7 +141,7 @@ void GroupList::update()
 
 	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
 	{
-		GroupFilter* group = iter->first;
+		Group* group = iter->first;
 		int n = 0;
 		for (TorrentManager::TorrentList::iterator titer = torrents.begin();
 					titer != torrents.end(); ++titer)
@@ -135,5 +154,5 @@ void GroupList::update()
 		radio->set_label(group->get_name() + " (" + str(n) + ")");
 	}
 	
-	m_all->set_label("All ( " + str(torrents.size()) + ")");
+	m_all->set_label("All (" + str(torrents.size()) + ")");
 }

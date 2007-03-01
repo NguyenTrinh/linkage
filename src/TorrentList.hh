@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 
-#include "GroupFilter.hh"
+#include "Group.hh"
 
 class TorrentList : public Gtk::TreeView
 {
@@ -68,7 +68,7 @@ class TorrentList : public Gtk::TreeView
 	Glib::RefPtr<Gtk::ListStore> model;
 	Glib::RefPtr<Gtk::TreeModelFilter> filter;
 	
-	GroupFilter m_active_group;
+	Group m_active_group;
 
 	Gtk::TreeIter get_iter(const sha1_hash& hash);
 
@@ -80,10 +80,10 @@ class TorrentList : public Gtk::TreeView
 	bool on_button_press_event(GdkEventButton *event);
 	
 	bool on_filter(const Gtk::TreeModel::const_iterator& iter);
-	void on_filter_set(const GroupFilter& group);
+	void on_filter_set(const Group& group);
 	void on_filter_unset();
 
-	sigc::signal<void, const sha1_hash&> m_signal_double_click;
+	sigc::signal<void, GdkEventButton*, const sha1_hash&> m_signal_double_click;
 	sigc::signal<void, GdkEventButton*> m_signal_right_click;
 
 public:
@@ -103,7 +103,7 @@ public:
 		COL_HASH
 	};
 	
-	void set_filter_set_signal(sigc::signal<void, const GroupFilter&> signal);
+	void set_filter_set_signal(sigc::signal<void, const Group&> signal);
 	void set_filter_unset_signal(sigc::signal<void> signal);
 
 	bool is_selected(const sha1_hash& hash);
@@ -115,7 +115,7 @@ public:
 	void update(const WeakPtr<Torrent>& torrent);
 
 	Glib::SignalProxy0<void> signal_changed();
-	sigc::signal<void, const sha1_hash&> signal_double_click();
+	sigc::signal<void, GdkEventButton*, const sha1_hash&> signal_double_click();
 	sigc::signal<void, GdkEventButton*> signal_right_click();
 
 	TorrentList();

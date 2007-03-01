@@ -16,54 +16,59 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#ifndef GROUP_FILTER_HH
-#define GROUP_FILTER_HH
+#ifndef GROUP_HH
+#define GROUP_HH
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 
 using namespace libtorrent;
 
-class GroupFilter
+class Group
 {
 public:
 	/* FIXME: Add EVAL_LESS and EVAL_GREATER? */
 	enum EvalType { EVAL_EQUALS, EVAL_CONTAINS, EVAL_STARTS, EVAL_ENDS };
 	/* FIXME: Add more tags, like size, num_files etc.. */
 	/* FIXME: Add more tags for dynamic filters, like % completed, share ratio etc.. */
-	enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
+	enum TagType { TAG_NONE, TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
+
+	struct Filter
+	{
+		Glib::ustring filter;
+		TagType tag;
+		EvalType eval;
+
+		Filter(const Glib::ustring& f, TagType t, EvalType e) : filter(f), tag(t), eval(e) {}
+	};
 
 	bool eval(const WeakPtr<Torrent>& torrent) const;
 
 	const Glib::ustring& get_name();
-	const Glib::ustring& get_filter();
-	const TagType get_tag();
-	const EvalType get_eval();
+	const std::list<Filter>& get_filters();
 	
 	operator bool() const
 	{
 		return !m_name.empty();
 	}
 
-	bool operator==(const GroupFilter& src) const
+	bool operator==(const Group& src) const
 	{
 		return (m_name == src.m_name);
 	}
 
-	bool operator!=(const GroupFilter& src) const
+	bool operator!=(const Group& src) const
 	{
 		return (m_name != src.m_name);
 	}
 
-	GroupFilter(const Glib::ustring& filter, TagType tag, EvalType eval, const Glib::ustring& name);
-	GroupFilter();
-	~GroupFilter();
+	Group(const Glib::ustring& name, const std::list<Filter>& filters);
+	Group();
+	~Group();
 
 protected:
-	Glib::ustring m_filter;
-	TagType m_tag;
-	EvalType m_eval;
+	std::list<Filter> m_filters;
 	Glib::ustring m_name;
 };
 
-#endif /* GROUP_FILTER_HH */
+#endif /* GROUP_HH */

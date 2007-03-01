@@ -16,29 +16,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#ifndef GROUP_FILTER_VIEW_HH
-#define GROUP_FILTER_VIEW_HH
+#ifndef GROUP_VIEW_HH
+#define GROUP_VIEW_HH
 
 #include <list>
 
 #include <gtkmm/radiobuttongroup.h>
 #include <gtkmm/box.h>
 
-#include "GroupFilterRow.hh"
+#include "GroupRow.hh"
 
-class GroupFilterView : public Gtk::VBox
+class GroupView : public Gtk::VBox
 {
-	std::list<GroupFilterRow*> m_children;
+	std::list<GroupRow*> m_children;
 
 public:
-	void append(GroupFilterRow* row);
-	void erase(GroupFilterRow* row);
-	GroupFilterRow* get_row(const Glib::ustring& group);
-	const std::list<GroupFilterRow*>& children();
-	GroupFilterRow* get_selected();
+	void append(GroupRow* row);
+	void erase(GroupRow* row);
+	GroupRow* get_row(const Glib::ustring& group);
+	const std::list<GroupRow*>& children();
+	GroupRow* get_selected();
 
-	GroupFilterView();
-	~GroupFilterView();
+	GroupView();
+	~GroupView();
 };
 
-#endif /* GROUP_FILTER_VIEW_HH */
+#endif /* GROUP_VIEW_HH */

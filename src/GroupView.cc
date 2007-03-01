@@ -16,15 +16,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include "GroupFilterView.hh"
+#include "GroupView.hh"
 #include <iostream>
-GroupFilterView::GroupFilterView()
+GroupView::GroupView()
 {
 }
 
-GroupFilterView::~GroupFilterView()
+GroupView::~GroupView()
 {
-	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+	for (std::list<GroupRow*>::iterator iter = m_children.begin();
 				iter != m_children.end(); ++iter)
 	{
 		delete *iter;
@@ -32,16 +32,16 @@ GroupFilterView::~GroupFilterView()
 	m_children.clear();
 }
 
-void GroupFilterView::append(GroupFilterRow* row)
+void GroupView::append(GroupRow* row)
 {
 	m_children.push_back(row);
 	pack_start(*row, false, false);
 	show_all_children();
 }
 
-void GroupFilterView::erase(GroupFilterRow* row)
+void GroupView::erase(GroupRow* row)
 {
-	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+	for (std::list<GroupRow*>::iterator iter = m_children.begin();
 				iter != m_children.end(); ++iter)
 	{
 		if (row->get_name() == (*iter)->get_name())
@@ -54,9 +54,9 @@ void GroupFilterView::erase(GroupFilterRow* row)
 	}
 }
 
-GroupFilterRow* GroupFilterView::get_row(const Glib::ustring& group)
+GroupRow* GroupView::get_row(const Glib::ustring& group)
 {
-	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+	for (std::list<GroupRow*>::iterator iter = m_children.begin();
 				iter != m_children.end(); ++iter)
 	{
 		if (group == (*iter)->get_name())
@@ -66,9 +66,9 @@ GroupFilterRow* GroupFilterView::get_row(const Glib::ustring& group)
 	return 0;
 }
 
-GroupFilterRow* GroupFilterView::get_selected()
+GroupRow* GroupView::get_selected()
 {
-	for (std::list<GroupFilterRow*>::iterator iter = m_children.begin();
+	for (std::list<GroupRow*>::iterator iter = m_children.begin();
 				iter != m_children.end(); ++iter)
 	{
 		if ((*iter)->has_focus())
@@ -78,7 +78,7 @@ GroupFilterRow* GroupFilterView::get_selected()
 	return 0;
 }
 
-const std::list<GroupFilterRow*>& GroupFilterView::children()
+const std::list<GroupRow*>& GroupView::children()
 {
 	return m_children;
 }
