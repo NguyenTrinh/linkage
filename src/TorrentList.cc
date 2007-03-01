@@ -332,17 +332,20 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		{
 			double ratio = (double)up/down;
 
-			row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate);
 			if (ratio < 1)
+			{
 				row[columns.progress] = ratio*100;
+				row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate)
 		 	else
 		 		row[columns.progress] = 100;
+		 		row[columns.eta] = str(ratio, 3);
+		 	}
 		}
 		else
 		{
 			if (up != 0)
 			{
-				row[columns.eta] = "\u221E " + get_eta(size, status.upload_payload_rate);
+				row[columns.eta] = "\u221E";
 				row[columns.progress] = 100;
 			}
 			else
