@@ -7,13 +7,17 @@ m4_define(linkage_tag_revision, r@REVISION@)
 m4_define(linkage_version, linkage_major_version().linkage_minor_version().linkage_micro_version()m4_ifdef(linkage_tag,,linkage_tag()-linkage_tag_revision()))
 
 AC_INIT([linkage], [linkage_version()])
-
 AC_CONFIG_SRCDIR(src/main.cc)
 AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
+AC_CONFIG_HEADERS([config.h])
+
+AC_DEFINE([LINKAGE_VERSION_MAJOR], [linkage_major_version()], [Major version])
+AC_DEFINE([LINKAGE_VERSION_MINOR], [linkage_minor_version()], [Minor version])
+AC_DEFINE([LINKAGE_VERSION_MICRO], [linkage_micro_version()], [Micro version])
 
 builtin([include],[m4/geoip.m4])
 
-CHECK_GEOIP
+CHECK_GEOIP()
 
 PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.10)
 AC_SUBST(GTKMM_CFLAGS)
@@ -35,9 +39,10 @@ PKG_CHECK_MODULES(DBUSGLIB, dbus-glib-1 >= 0.70)
 AC_SUBST(DBUSGLIB_CFLAGS)
 AC_SUBST(DBUSGLIB_LIBS)
 
-AC_PROG_CC
-AC_PROG_CXX
-AC_PROG_LIBTOOL
-AC_PROG_INSTALL
+AC_PROG_CC()
+AC_PROG_CXX()
+AC_DISABLE_STATIC()
+AC_PROG_LIBTOOL()
+AC_PROG_INSTALL()
 
 AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile  data/Makefile data/flags/Makefile)

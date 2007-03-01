@@ -52,7 +52,6 @@ then
                 #
                 # If both library and header were found, use them
                 #
-                USE_GEOIP=yes
                 AC_CHECK_LIB(GeoIP, GeoIP_country_code_by_addr)
                 AC_MSG_CHECKING(geoip in ${GEOIP_HOME})
                 AC_MSG_RESULT(ok)

@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "config.h"
+
 #include "linkage/SessionManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
@@ -30,7 +32,10 @@ Glib::RefPtr<SessionManager> SessionManager::create()
 	return Glib::RefPtr<SessionManager>(new SessionManager());
 }
 
-SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this)
+SessionManager::SessionManager()
+	: RefCounter<SessionManager>::RefCounter(this),
+		session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))
+																		
 {
 	boost::filesystem::path::default_name_check(boost::filesystem::native);
 
@@ -133,8 +138,7 @@ void SessionManager::on_settings()
 	set_max_connections(max_connections);
 
 	session_settings sset;
-	fingerprint id("LK", 0, 19, 0, 0);
-	sset.user_agent = id.to_string();
+	sset.user_agent = PACKAGE_NAME "/" PACKAGE_VERSION " libtorrent/" LIBTORRENT_VERSION;
 	sset.tracker_completion_timeout = settings->get_int("Network", "TrackerTimeout");
 	sset.tracker_receive_timeout = settings->get_int("Network", "TrackerTimeout");
 	sset.stop_tracker_timeout = settings->get_int("Network", "TrackerTimeout");
