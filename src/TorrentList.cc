@@ -280,6 +280,9 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	Glib::ustring color;
 	switch (torrent->get_state())
 	{
+		case Torrent::ERROR:
+			color = "#C22C22";
+			break;
 		case Torrent::STOPPED:
 			color = "#999999";
 			break;
@@ -367,13 +370,13 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		"</b> (" << suffix_value(torrent->get_info().total_size()) << ")" <<
 		"</span>\n";
 	Torrent::State state = torrent->get_state();
-	if (state != Torrent::QUEUED && state != Torrent::SEEDING)
+	if (state == Torrent::DOWNLOADING)
 		ss << status.num_seeds << " connected seeds, " <<
 					status.num_peers - status.num_seeds << " peers";
-	else if (state == Torrent::QUEUED || state == Torrent::CHECK_QUEUE)
-		ss << "Queued";
-	if (state == Torrent::SEEDING)
+	else if (state == Torrent::SEEDING || state == Torrent::FINISHED)
 		ss << status.num_peers - status.num_seeds << " connected peers";
+	else
+		ss << torrent->get_state_string();
 
 	row[columns.name] = ss.str();
 	row[columns.down_rate] = status.download_payload_rate;

@@ -46,7 +46,8 @@ public:
 							 SEEDING,
 							 ALLOCATING,
 							 STOPPED,
-							 QUEUED
+							 QUEUED,
+							 ERROR
 						 };
 
 	const torrent_handle& get_handle() const;

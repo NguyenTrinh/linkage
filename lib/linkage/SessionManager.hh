@@ -39,9 +39,7 @@ using namespace libtorrent;
 class SessionManager : public session, public RefCounter<SessionManager>
 {
 	void on_settings();
-	
-	sigc::signal<void> m_signal_update_queue;
-	
+
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
 	sigc::signal<void, const Glib::ustring&, const sha1_hash&> m_signal_duplicate_torrent;
@@ -49,12 +47,10 @@ class SessionManager : public session, public RefCounter<SessionManager>
 	SessionManager();
 	
 public:
-	sigc::signal<void> signal_update_queue();
-	
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_invalid_bencoding();
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_missing_file();
 	sigc::signal<void, const Glib::ustring&, const sha1_hash&> signal_duplicate_torrent();
-	
+
 	sha1_hash open_torrent(const Glib::ustring& file, const Glib::ustring& save_path);
 	sha1_hash resume_torrent(const Glib::ustring& hash_str);
 	sha1_hash resume_torrent(const sha1_hash& hash);

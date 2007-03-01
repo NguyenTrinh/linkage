@@ -67,11 +67,6 @@ SessionManager::~SessionManager()
 	/* FIXME: Save Session settings and clean? */
 }
 
-sigc::signal<void> SessionManager::signal_update_queue()
-{
-	return m_signal_update_queue;
-}
-
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
 SessionManager::signal_invalid_bencoding()
 {
@@ -110,8 +105,6 @@ void SessionManager::on_settings()
 	get_ip(iface.c_str(), ip);
 	int min_port = settings->get_int("Network", "MinPort");
 	int max_port = settings->get_int("Network", "MaxPort");
-
-	std::cout << min_port << " - " << max_port << std::endl;
 
 	/* Only call listen_on if we really need to */
 	if (!is_listening() || max_port < listen_port() || min_port > listen_port())
@@ -212,8 +205,6 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	out.write(&buff[0], buff.size());
 	out.close();
 
-	m_signal_update_queue.emit();
-
 	return hash;
 }
 
@@ -269,7 +260,6 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
 		Engine::get_torrent_manager()->add_torrent(handle, er.dict());
-		m_signal_update_queue.emit();
 	}
 	else //Torrent was resumed from previous session
 	{
@@ -278,7 +268,6 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 		{
 			torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
 			Engine::get_torrent_manager()->add_torrent(handle, er.dict());
-			m_signal_update_queue.emit();
 		}
 	}
 	return info.info_hash();
@@ -299,8 +288,6 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 		Engine::get_torrent_manager()->save_fastresume(hash, e);
 
 		remove_torrent(torrent->get_handle());
-
-		m_signal_update_queue.emit();
 	}
 }
 

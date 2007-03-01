@@ -34,6 +34,8 @@ class TorrentManager : public RefCounter<TorrentManager>
 	
 	TorrentMap m_torrents;
 
+	void sort(std::vector<Torrent*>& torrents);
+
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> m_signal_added;
 	sigc::signal<void, const sha1_hash&> m_signal_removed;
 	

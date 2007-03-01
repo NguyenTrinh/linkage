@@ -849,6 +849,7 @@ void UI::on_remove(bool erase_content)
 		expander_details->set_expanded(false);
 		expander_details->set_sensitive(false);
 	}
+	on_tick();
 }
 
 void UI::on_start()
@@ -863,9 +864,9 @@ void UI::on_start()
 		{
 			Engine::get_session_manager()->resume_torrent(hash);
 			button_tracker->set_sensitive(true);
-			update(torrent, (list.size() == 1));
 		}
 	}
+	on_tick();
 }
 
 void UI::on_stop()
@@ -883,6 +884,7 @@ void UI::on_stop()
 		button_tracker->set_sensitive(false);
 		reset_views();
 	}
+	on_tick();
 }
 
 void UI::on_up()
@@ -896,8 +898,8 @@ void UI::on_up()
 		int position = torrent->get_position();
 		if (position > 1)
 			torrent->set_position(position - 1);
-		update(torrent);
 	}
+	on_tick();
 }
 
 void UI::on_down()
@@ -911,8 +913,8 @@ void UI::on_down()
 		int position = torrent->get_position();
 		if (position < Engine::get_torrent_manager()->get_torrents_count())
 			torrent->set_position(position + 1);
-		update(torrent);
 	}
+	on_tick();
 }
 
 void UI::on_set_group(const Glib::ustring& group)
@@ -925,6 +927,7 @@ void UI::on_set_group(const Glib::ustring& group)
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		torrent->set_group(group);
 	}
+	on_tick();
 }
 
 void UI::on_check()
