@@ -61,12 +61,16 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 							if (f.filter == tracker)
 								ret = true;
 						}
+						break;
 					case TAG_NAME:
 						ret = (f.filter == info.name());
+						break;
 					case TAG_COMMENT:
 						ret = (f.filter == info.comment());
+						break;
 					case TAG_STATE:
 						ret = (f.filter == torrent->get_state_string());
+						break;
 				}
 				break;
 			case EVAL_CONTAINS:
@@ -76,15 +80,19 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 						for (unsigned int i = 0; i < info.trackers().size(); i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							if (tracker.find(f.filter, 0) != Glib::ustring::npos)
+							if (tracker.find(f.filter) != Glib::ustring::npos)
 								ret = true;
 						}
+						break;
 					case TAG_NAME:
-						ret = (info.name().find(f.filter, 0) != Glib::ustring::npos);
+						ret = (info.name().find(f.filter) != Glib::ustring::npos);
+						break;
 					case TAG_COMMENT:
-						ret = (info.comment().find(f.filter, 0) != Glib::ustring::npos);
+						ret = (info.comment().find(f.filter) != Glib::ustring::npos);
+						break;
 					case TAG_STATE:
-						ret = (torrent->get_state_string().find(f.filter, 0) != Glib::ustring::npos);
+						ret = (torrent->get_state_string().find(f.filter) != Glib::ustring::npos);
+						break;
 				}
 				break;
 			case EVAL_STARTS:
@@ -97,12 +105,16 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 							if (tracker.substr(0, f.filter.size()) == f.filter)
 								ret = true;
 						}
+						break;
 					case TAG_NAME:
 						ret = (info.name().substr(0, f.filter.size()) == f.filter);
+						break;
 					case TAG_COMMENT:
 						ret = (info.comment().substr(0, f.filter.size()) == f.filter);
+						break;
 					case TAG_STATE:
 						ret = (torrent->get_state_string().substr(0, f.filter.size()) == f.filter);
+						break;
 				}
 				break;
 			case EVAL_ENDS:
@@ -115,13 +127,17 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 							if (tracker.substr(tracker.size()-f.filter.size(), tracker.size()) == f.filter)
 								ret = true;
 						}
+						break;
 					case TAG_NAME:
 						ret = (info.name().substr(info.name().size()-f.filter.size(), info.name().size()) == f.filter);
+						break;
 					case TAG_COMMENT:
 						ret = (info.comment().substr(info.comment().size()-f.filter.size(), info.comment().size()) == f.filter);
+						break;
 					case TAG_STATE:
 						Glib::ustring state = torrent->get_state_string();
 						ret = (state.substr(state.size() - f.filter.size(), state.size()) == f.filter);
+						break;
 				}
 				break;
 		}
