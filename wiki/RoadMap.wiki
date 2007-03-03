@@ -10,6 +10,5 @@ Currently there is no release. 0.1.2beta-1 is pending.
   * *0.1.2beta-1* Basicly the current trunk, some small changes/fixes left. Biggest change should be zith's new GroupList.
   * *0.1.2beta-2* Just bugfixes, no new features. Introduce libtorrent 0.12.
   * *0.1.2* Just bugfixes.
-  * *0.1.4* Move from Glib::KeyFile to GConf, make preferences apply when changed. Clean up liblinkage and break ABI, rewrite SessionManager. Optimize code.
-
+  * *0.1.4* Move from Glib::KeyFile to GConf, make preferences apply when changed. Clean up liblinkage and break ABI, rewrite SessionManager. Optimize code. RSS and uPnP plugin.
   * *0.1.6* Avahi support.
