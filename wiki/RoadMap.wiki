@@ -5,7 +5,7 @@
 
 Currently there is no release. 0.1.2beta-1 is pending.
 
-= Details =
+= Planned releases =
 
   * *0.1.2beta-1* Basicly the current trunk, some small changes/fixes left.
   * *0.1.2beta-2* Just bugfixes, no new features. Introduce libtorrent 0.12.
