@@ -1,0 +1,13 @@
+#summary Direction for future versions of Linkage
+#labels Phase-Implementation
+
+= Introduction =
+
+Currently there is no release. 0.1.2beta-1 is pending.
+
+= Details =
+
+  * *0.1.2beta-1* Basicly the current trunk, some small changes/fixes left.
+  * *0.1.2beta-2* Just bugfixes, no new features. Introduce libtorrent 0.12.
+  * *0.1.2* Just bugfixes.
+  * *0.1.4svn* Move from Glib::KeyFile to GConf, make preferences apply when changed. Optimize code.
