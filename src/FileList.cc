@@ -183,15 +183,12 @@ int FileList::compare_piece_map(const Gtk::TreeIter& a,
 	row_a = *a;
 	row_b = *b;
 	
-	if (!row_a[columns.size] && !row_a[columns.size])
-		return 0;
-	else if (row_a[columns.size])
-		return -1;
-	else
-		return 1;
+	double complete_a = 0, complete_b = 0;
 
-	double complete_a = (double)row_a[columns.done]/row_a[columns.size];
-	double complete_b = (double)row_b[columns.done]/row_b[columns.size];
+	if (row_a[columns.size])
+		complete_a = (double)row_a[columns.done]/row_a[columns.size];
+	if (row_b[columns.size])
+		complete_b = (double)row_b[columns.done]/row_b[columns.size];
 	
 	if (complete_a < complete_b)
 		return -1;
