@@ -145,32 +145,32 @@ bool TorrentManager::exists(const Glib::ustring& hash_str)
 void TorrentManager::add_torrent(const torrent_handle& handle, const entry& e)
 {
 	if (m_torrents.find(handle.info_hash()) == m_torrents.end())
-		add_torrent(e);
+		add_torrent(e, handle.get_torrent_info());
 	m_torrents[handle.info_hash()]->set_handle(handle);
 }
 
-void TorrentManager::add_torrent(const entry& e)
+void TorrentManager::add_torrent(const entry& e, const torrent_info& info)
 {
-	entry::dictionary_type ed(e.dict());
+	Torrent::ResumeInfo ri(e, info);
 
-	if (!e.find_key("upload-limit"))
-		ed["upload-limit"] = 0;
+	if (!ri.resume.find_key("upload-limit"))
+		ri.resume["upload-limit"] = 0;
 
-	if (!e.find_key("download-limit"))
-		ed["download-limit"] = 0;
+	if (!ri.resume.find_key("download-limit"))
+		ri.resume["download-limit"] = 0;
 
-	if (!e.find_key("downloaded"))
-		ed["downloaded"] = 0;
+	if (!ri.resume.find_key("downloaded"))
+		ri.resume["downloaded"] = 0;
 
-	if (!e.find_key("uploaded"))
-		ed["uploaded"] = 0;
+	if (!ri.resume.find_key("uploaded"))
+		ri.resume["uploaded"] = 0;
 
-	if (!e.find_key("position"))
-		ed["position"] = m_torrents.size() + 1;
+	if (!ri.resume.find_key("position"))
+		ri.resume["position"] = m_torrents.size() + 1;
 
-	Torrent* torrent = new Torrent(ed, false);
+	Torrent* torrent = new Torrent(ri, false);
 
-	sha1_hash hash = info_hash(ed["info-hash"].string());
+	sha1_hash hash = info.info_hash();
 	m_torrents[hash] = torrent;
 
 	m_signal_added.emit(hash, torrent->get_name(), torrent->get_position());

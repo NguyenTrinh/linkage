@@ -20,23 +20,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
 
-Torrent::Torrent(const entry& resume_entry, bool queued)
+Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued)
 {
 	m_is_queued = queued;
 
-	m_hash = info_hash(resume_entry["info-hash"].string());
+	m_info = ri.info;
 
-	m_resume.downloaded = resume_entry["downloaded"].integer();
-	m_resume.uploaded = resume_entry["uploaded"].integer();
+	entry::dictionary_type e = ri.resume.dict();
+	m_downloaded = e["downloaded"].integer();
+	m_uploaded = e["uploaded"].integer();
 
-	m_name = resume_entry["name"].string();
-	m_path = resume_entry["path"].string();
-	m_position = resume_entry["position"].integer();
-	if (resume_entry.find_key("group"))
-		m_group = resume_entry["group"].string();
+	m_path = e["path"].string();
+	m_position = e["position"].integer();
+	if (ri.resume.find_key("group"))
+		m_group = e["group"].string();
 
-	m_up_limit = resume_entry["upload-limit"].integer();
-	m_down_limit = resume_entry["download-limit"].integer();
+	m_up_limit = e["upload-limit"].integer();
+	m_down_limit = e["download-limit"].integer();
 
 	/*
 		A note for the curious, the "filter" key in the resume file
@@ -45,11 +45,11 @@ Torrent::Torrent(const entry& resume_entry, bool queued)
 	std::list<entry> fl;
 	try
 	{
-		fl = resume_entry["filter"].list();
+		fl = e["filter"].list();
 	}
 	catch (std::exception& e) {}
 
-	m_filter.assign(resume_entry["files"].integer(), false);
+	m_filter.assign(m_info.num_files(), false);
 	for (std::list<entry>::iterator iter = fl.begin(); iter != fl.end(); ++iter)
 	{
 		entry e = *iter;
@@ -66,9 +66,9 @@ const torrent_handle& Torrent::get_handle() const
 	return m_handle;
 }
 
-const Glib::ustring& Torrent::get_name() const
+const Glib::ustring Torrent::get_name() const
 {
-	return m_name;
+	return m_info.name();
 }
 
 const Glib::ustring& Torrent::get_group() const
@@ -106,14 +106,14 @@ const int Torrent::get_down_limit() const
 	return m_down_limit;
 }
 
-const sha1_hash& Torrent::get_hash() const
+const sha1_hash Torrent::get_hash() const
 {
-	return m_hash;
+	return m_info.info_hash();
 }
 
 const size_type Torrent::get_total_downloaded() const
 {
-	size_type total = m_resume.downloaded;
+	size_type total = m_downloaded;
 	if (m_handle.is_valid())
 		total += m_handle.status().total_download;
 	return total;
@@ -121,7 +121,7 @@ const size_type Torrent::get_total_downloaded() const
 
 const size_type Torrent::get_total_uploaded() const
 {
-	size_type total = m_resume.uploaded;
+	size_type total = m_uploaded;
 	if (m_handle.is_valid())
 		total += m_handle.status().total_upload;
 	return total;
@@ -198,10 +198,7 @@ const Glib::ustring Torrent::get_state_string(State state) const
 
 const torrent_info Torrent::get_info() const
 {
-	if (m_handle.is_valid())
-		return m_handle.get_torrent_info();
-	else
-		return torrent_info();
+	m_info;
 }
 
 const torrent_status Torrent::get_status() const
@@ -252,7 +249,7 @@ void Torrent::set_position(unsigned int position)
 {
 	Direction direction = (position < m_position) ? DIR_UP : DIR_DOWN;
 	m_position = position;
-	Engine::get_torrent_manager()->set_torrent_position(m_hash, direction);
+	Engine::get_torrent_manager()->set_torrent_position(m_info.info_hash(), direction);
 }
 
 void Torrent::set_filter(std::vector<bool>& filter)
@@ -326,8 +323,8 @@ const entry Torrent::get_resume_entry(bool running)
 		if (!m_handle.is_paused())
 		{
 			m_handle.pause();
-			m_resume.downloaded += m_handle.status().total_download;
-			m_resume.uploaded += m_handle.status().total_upload;
+			m_downloaded += m_handle.status().total_download;
+			m_uploaded += m_handle.status().total_upload;
 		}
 
 		try
@@ -338,13 +335,13 @@ const entry Torrent::get_resume_entry(bool running)
 		{
 			g_warning(e.what());
 
-			resume_entry["info-hash"] = std::string(m_hash.begin(), m_hash.end());
+			resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
 		}
 	}
 	else
 	{
 		std::ifstream in;
-		Glib::ustring file = Glib::build_filename(get_data_dir(), str(m_hash) + ".resume");
+		Glib::ustring file = Glib::build_filename(get_data_dir(), str(m_info.info_hash()) + ".resume");
 		try
 		{
 			in.open(file.c_str(), std::ios_base::binary);
@@ -357,15 +354,15 @@ const entry Torrent::get_resume_entry(bool running)
 		{
 			g_warning(e.what());
 
-			resume_entry["info-hash"] = std::string(m_hash.begin(), m_hash.end());
+			resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
 		}
 	}
 
 	resume_entry["path"] = m_path;
 	resume_entry["position"] = m_position;
 	resume_entry["running"] = running;
-	resume_entry["downloaded"] = m_resume.downloaded;
-	resume_entry["uploaded"] = m_resume.uploaded;
+	resume_entry["downloaded"] = m_downloaded;
+	resume_entry["uploaded"] = m_uploaded;
 	resume_entry["download-limit"] = m_down_limit;
 	resume_entry["upload-limit"] = m_up_limit;
 	entry::list_type el;

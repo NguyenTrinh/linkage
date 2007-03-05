@@ -62,7 +62,7 @@ public:
 	bool exists(const Glib::ustring& hash_str);
 	
 	void add_torrent(const torrent_handle& handle, const entry& e);
-	void add_torrent(const entry& e);
+	void add_torrent(const entry& e, const torrent_info& info);
 	void remove_torrent(const sha1_hash& hash);
 	
 	//FIXME: Should be removed, or at least friends only.
