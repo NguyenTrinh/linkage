@@ -49,17 +49,23 @@ public:
 							 QUEUED,
 							 ERROR
 						 };
+	struct ResumeInfo 
+	{
+		entry resume;
+		torrent_info info;
+		ResumeInfo(const entry& e, const torrent_info& i) : resume(e), info(i) {}
+	};
 
 	const torrent_handle& get_handle() const;
 	const Glib::ustring& get_tracker_reply() const;
-	const Glib::ustring& get_name() const;
+	const Glib::ustring get_name() const;
 	const Glib::ustring& get_group() const;
 	const Glib::ustring& get_path() const;
 	const unsigned int get_position() const;
 	const std::vector<bool>& get_filter() const;
 	const int get_up_limit() const;
 	const int get_down_limit() const;
-	const sha1_hash& get_hash() const;
+	const sha1_hash get_hash() const;
 	
 	const size_type get_total_downloaded() const;
 	const size_type get_total_uploaded() const;
@@ -91,20 +97,15 @@ public:
 	/* FIXME: Friend access only? */
 	void set_handle(const torrent_handle& handle);
 	
-	Torrent(const entry& resume_data, bool queued = false);
+	Torrent(const ResumeInfo& ri, bool queued = false);
 	~Torrent();
 
 private:
-	struct ResumeInfo {
-											//unsigned int time;
-											size_type uploaded;
-											size_type downloaded;
-										} m_resume;
+	size_type m_uploaded;
+	size_type m_downloaded;
 
 	torrent_handle m_handle;
-	sha1_hash m_hash;
-	
-	Glib::TimeVal m_time_val;
+	torrent_info m_info;
 	
 	Glib::ustring m_tracker_reply;
 	
@@ -113,7 +114,7 @@ private:
 	bool m_is_queued;
 	
 	unsigned int m_position;
-	Glib::ustring m_name, m_group, m_path;
+	Glib::ustring m_group, m_path;
 	int m_up_limit, m_down_limit;
 };
 

@@ -184,10 +184,6 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 			!Engine::get_settings_manager()->get_bool("Files", "Allocate"));
 		entry::dictionary_type de;
 		de["path"] = save_path;
-		de["files"] = info.num_files();
-		de["name"] = info.name();
-		/* Must use std::string beacuse Glib::ustring is UTF-8 */
-		de["info-hash"] = std::string((char*)info.info_hash().begin(), (char*)info.info_hash().end());;
 
 		Engine::get_torrent_manager()->add_torrent(handle, de);
 	}
@@ -253,22 +249,21 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 
 	bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
 	Glib::ustring save_path = er.dict()["path"].string();
-	er.dict()["name"] = info.name();
-	er.dict()["files"] = info.num_files();
 
 	if (Engine::get_torrent_manager()->exists(hash_str)) //Torrent was resumed from stopped state
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-		Engine::get_torrent_manager()->add_torrent(handle, er.dict());
+		Engine::get_torrent_manager()->add_torrent(handle, er);
 	}
 	else //Torrent was resumed from previous session
-	{
-		Engine::get_torrent_manager()->add_torrent(er.dict());
+	{		
 		if (er.dict()["running"].integer())
 		{
 			torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-			Engine::get_torrent_manager()->add_torrent(handle, er.dict());
+			Engine::get_torrent_manager()->add_torrent(handle, er);
 		}
+		else
+			Engine::get_torrent_manager()->add_torrent(er, info);
 	}
 	return info.info_hash();
 }
