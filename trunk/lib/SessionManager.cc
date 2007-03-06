@@ -152,33 +152,60 @@ void SessionManager::on_settings()
 	set_settings(sset);
 }
 
-sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
-																			 const Glib::ustring& save_path)
+bool SessionManager::decode(const Glib::ustring& file, entry& e)
 {
-	std::ifstream in(file.c_str(), std::ios::binary|std::ios::ate);
+	std::vector<char> buffer;
+	return decode(file, e, buffer);
+}
+
+bool SessionManager::decode(const Glib::ustring& file,
+														entry& e,
+														std::vector<char>& buffer)
+{
+	static std::ifstream in;
+
+	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
+	{
+		m_signal_missing_file.emit("File not found, \"" + file + "\"", file);
+		return false;
+	}
+
+	in.open(file.c_str(), std::ios_base::binary|std::ios_base::ate);
 	in.unsetf(std::ios_base::skipws);
-	std::streampos sz = in.tellg();
+	std::streampos size = in.tellg();
 	in.seekg(0, std::ios::beg);
-	std::vector<char> buff(sz);
+	buffer.resize(size);
 
-	in.read(&buff[0], sz);
-
-	entry e;
+	in.read(&buffer[0], size);
+	in.close();
 
 	try
 	{
-		e = bdecode(buff.begin(), buff.end());
+		e = bdecode(buffer.begin(), buffer.end());
 	}
 	catch (std::exception& e)
 	{
 		m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
-		return INVALID_HASH;
+		return false;
 	}
+
+	return true;
+}
+
+sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
+																			 const Glib::ustring& save_path)
+{
+	std::vector<char> buff;
+	entry e;
+
+	if (!decode(file, e, buff))
+		return INVALID_HASH;
 
 	torrent_info info(e);
 	sha1_hash hash = info.info_hash();
 
-	if (!Engine::get_torrent_manager()->exists(hash))
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	if (!torrent)
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), entry(),
 			!Engine::get_settings_manager()->get_bool("Files", "Allocate"));
@@ -190,7 +217,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	else
 	{
 		m_signal_duplicate_torrent.emit("Torrent already exists in session as " +
-			Engine::get_torrent_manager()->get_torrent(hash)->get_name(), hash);
+			torrent->get_name(), hash);
 		return hash;
 	}
 
@@ -216,41 +243,24 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 
 	entry e, er;
 
-	try
-	{
-		in.open(file.c_str(), std::ios_base::binary);
-		in.unsetf(std::ios_base::skipws);
-		e = bdecode(std::istream_iterator<char>(in), std::istream_iterator<char>());
-		in.close();
-	}
-	catch (std::exception& e)
-	{
-		m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
+	if (!decode(file, e))
 		return INVALID_HASH;
-	}
 
 	torrent_info info = torrent_info(e);
 	/* Check if torrent is up an running, if so return */
-	if (Engine::get_torrent_manager()->get_handle(info.info_hash()).is_valid())
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(info.info_hash());
+
+	if (torrent && torrent->is_running())
 		return info.info_hash();
 
 	file = file + ".resume";
-	try
-	{
-		in.open(file.c_str(), std::ios_base::binary);
-		er = bdecode(std::istream_iterator<char>(in), std::istream_iterator<char>());
-		in.close();
-	}
-	catch (std::exception& e)
-	{
-		/* If this happens we need to handle it better below */
-		m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
-	}
+	/* If this fails we need to handle it better below */
+	decode(file, er);
 
 	bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
 	Glib::ustring save_path = er.dict()["path"].string();
 
-	if (Engine::get_torrent_manager()->exists(hash_str)) //Torrent was resumed from stopped state
+	if (torrent) //Torrent was resumed from stopped state
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
 		Engine::get_torrent_manager()->add_torrent(handle, er);
@@ -266,6 +276,22 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 			Engine::get_torrent_manager()->add_torrent(er, info);
 	}
 	return info.info_hash();
+}
+
+void SessionManager::recheck_torrent(const sha1_hash& hash)
+{
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	if (torrent)
+	{
+		if (torrent->is_running())
+			stop_torrent(hash);
+
+		torrent_info info = torrent->get_info();
+		Glib::ustring path = torrent->get_path();
+		bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
+		torrent_handle handle = add_torrent(info, path.c_str(), entry(), !allocate);
+		torrent->set_handle(handle);
+	}
 }
 
 void SessionManager::stop_torrent(const sha1_hash& hash)
@@ -286,17 +312,33 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 	}
 }
 
-void SessionManager::erase_torrent(const sha1_hash& hash)
+void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 {
-	torrent_handle handle = Engine::get_torrent_manager()->get_handle(hash);
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
-	if (handle.is_valid())
-		remove_torrent(handle);
+	if (torrent->is_running())
+		remove_torrent(torrent->get_handle());
 
+	if (erase_content)
+	{
+		Glib::ustring root = torrent->get_path();
+		torrent_info info = torrent->get_info();
+
+		for (torrent_info::file_iterator iter = info.begin_files();
+					iter != info.end_files(); ++iter)
+		{
+			file_entry fe = *iter;
+			g_remove(Glib::build_filename(root, fe.path.string()).c_str());
+		}
+
+		/* Multi file torrents have their own root folder */
+		if (info.num_files() > 1)
+			g_remove(Glib::build_filename(root, info.name()).c_str());
+	}
 
 	Engine::get_torrent_manager()->remove_torrent(hash);
 
 	Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash));
-	g_remove(file.c_str());
-	g_remove((file + ".resume").c_str());
+	g_unlink(file.c_str());
+	g_unlink((file + ".resume").c_str());
 }

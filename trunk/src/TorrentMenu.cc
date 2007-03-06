@@ -16,7 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <gtkmm/stock.h>
+#include <gtkmm/image.h>
 #include <gtkmm/menuitem.h>
+#include <gtkmm/imagemenuitem.h>
 #include <gtkmm/separatormenuitem.h>
 
 #include "linkage/Engine.hh"
@@ -28,29 +31,35 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 TorrentMenu::TorrentMenu()
 {
 	/* FIXME: add pretty icons */
-	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Open location"));
-	item->signal_activate().connect(sigc::mem_fun(&m_signal_open, &sigc::signal<void>::emit));
-	append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Information"));
-	item->signal_activate().connect(sigc::mem_fun(&m_signal_info, &sigc::signal<void>::emit));
-	append(*item);
+	Gtk::Image* image = manage(new Gtk::Image(Gtk::Stock::OPEN, Gtk::ICON_SIZE_MENU));
+	Gtk::ImageMenuItem* imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Open location"));
+	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_open, &sigc::signal<void>::emit));
+	append(*imageitem);
+	image = manage(new Gtk::Image(Gtk::Stock::DIALOG_INFO, Gtk::ICON_SIZE_MENU));
+	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Details"));
+	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_info, &sigc::signal<void>::emit));
+	append(*imageitem);
 	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
-	item = Gtk::manage(new Gtk::MenuItem("Move up"));
-	item->signal_activate().connect(sigc::mem_fun(&m_signal_up, &sigc::signal<void>::emit));
-	append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Move down"));
-	item->signal_activate().connect(sigc::mem_fun(&m_signal_down, &sigc::signal<void>::emit));
-	append(*item);
+	image = manage(new Gtk::Image(Gtk::Stock::GO_UP, Gtk::ICON_SIZE_MENU));
+	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Move up"));
+	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_up, &sigc::signal<void>::emit));
+	append(*imageitem);
+	image = manage(new Gtk::Image(Gtk::Stock::GO_DOWN, Gtk::ICON_SIZE_MENU));
+	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Move down"));
+	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_down, &sigc::signal<void>::emit));
+	append(*imageitem);
 	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
-	item = Gtk::manage(new Gtk::MenuItem("Start"));
-	item->signal_activate().connect(sigc::mem_fun(&m_signal_start, &sigc::signal<void>::emit));
-	append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Stop"));
-	item->signal_activate().connect(sigc::mem_fun(&m_signal_stop, &sigc::signal<void>::emit));
-	append(*item);
+	image = manage(new Gtk::Image(Gtk::Stock::APPLY, Gtk::ICON_SIZE_MENU));
+	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Start"));
+	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_start, &sigc::signal<void>::emit));
+	append(*imageitem);
+	image = manage(new Gtk::Image(Gtk::Stock::STOP, Gtk::ICON_SIZE_MENU));
+	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Stop"));
+	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_stop, &sigc::signal<void>::emit));
+	append(*imageitem);
 	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	submenu_groups = Gtk::manage(new Gtk::Menu());
-	item = Gtk::manage(new Gtk::MenuItem("Group"));
+	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Group"));
 	item->set_submenu(*submenu_groups);
 	append(*item);
 	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
@@ -61,9 +70,10 @@ TorrentMenu::TorrentMenu()
 	item = Gtk::manage(new Gtk::MenuItem("Remove torrent + content"));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_remove, &sigc::signal<void, bool>::emit), true));
 	submenu_remove->append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Remove"));
-	item->set_submenu(*submenu_remove);
-	append(*item);
+	image = manage(new Gtk::Image(Gtk::Stock::REMOVE, Gtk::ICON_SIZE_MENU));
+	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Remove"));
+	imageitem->set_submenu(*submenu_remove);
+	append(*imageitem);
 	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	item = Gtk::manage(new Gtk::MenuItem("Check files"));
 	item->signal_activate().connect(sigc::mem_fun(&m_signal_check, &sigc::signal<void>::emit));

@@ -49,7 +49,7 @@ Glib::ustring ui_info = "<ui>"
 												"			<menuitem action='Quit'/>"
 												"		</menu>"
 												"		<menu action='ViewMenu'>"
-												"			<menuitem action='Information'/>"
+												"			<menuitem action='Details'/>"
 												"			<separator/>"
 												"			<menuitem action='Preferences'/>"
 												"		</menu>"
@@ -94,7 +94,7 @@ UI::UI()
 	action_group->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT, "_Quit", "Quit"),
 										Gtk::AccelKey("<control>Q"),
 										sigc::mem_fun(this, &UI::on_quit));
-	action_group->add(Gtk::Action::create("Information", Gtk::Stock::DIALOG_INFO, "_Information", "Show detailed information"),
+	action_group->add(Gtk::Action::create("Details", Gtk::Stock::DIALOG_INFO, "_Details", "Show detailed information"),
 										sigc::mem_fun(this, &UI::on_info));
 	action_group->add(Gtk::Action::create("Preferences", Gtk::Stock::PREFERENCES, "Prefere_nces", "Configure linkage"),
 										sigc::mem_fun(this, &UI::on_prefs));
@@ -103,15 +103,15 @@ UI::UI()
 
 	action_group->add(Gtk::Action::create("Add", Gtk::Stock::ADD, "Add", "Add torrent"),
 										sigc::mem_fun(this, &UI::on_add));
-	action_group->add(Gtk::Action::create("Remove", Gtk::Stock::REMOVE, "Remove", "Remove torrent"),
+	action_group->add(Gtk::Action::create("Remove", Gtk::Stock::REMOVE, "Remove", "Remove selected torrents"),
 										sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
-	action_group->add(Gtk::Action::create("Start", Gtk::Stock::APPLY, "Start", "Start torrent"),
+	action_group->add(Gtk::Action::create("Start", Gtk::Stock::APPLY, "Start", "Start selected torrents"),
 										sigc::mem_fun(this, &UI::on_start));
-	action_group->add(Gtk::Action::create("Stop", Gtk::Stock::STOP, "Stop", "Stop torrent"),
+	action_group->add(Gtk::Action::create("Stop", Gtk::Stock::STOP, "Stop", "Stop selected torrents"),
 										sigc::mem_fun(this, &UI::on_stop));
-	action_group->add(Gtk::Action::create("Up", Gtk::Stock::GO_UP, "Up", "Move up"),
+	action_group->add(Gtk::Action::create("Up", Gtk::Stock::GO_UP, "Up", "Move selected torrents up"),
 										sigc::mem_fun(this, &UI::on_up));
-	action_group->add(Gtk::Action::create("Down", Gtk::Stock::GO_DOWN, "Down", "Move down"),
+	action_group->add(Gtk::Action::create("Down", Gtk::Stock::GO_DOWN, "Down", "Move selected torrents down"),
 										sigc::mem_fun(this, &UI::on_down));
 
 	manager = Gtk::UIManager::create();
@@ -581,19 +581,13 @@ bool UI::on_visibility_notify_event(GdkEventVisibility* event)
 
 void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 {
-	sha1_hash hash = torrent->get_hash();
-	bool selected = torrent_list->is_selected(hash);
-	torrent_status stats;
-	if (torrent->is_running())
-	{
-		stats = torrent->get_status();
-	}
-	else if (selected)
-		reset_views();
+	bool selected = torrent_list->is_selected(torrent->get_hash());
+
+	torrent_status stats = torrent->get_status();
 
 	torrent_list->update(torrent);
 
-	if (selected && expander_details->get_expanded() && torrent->is_running())
+	if (selected && expander_details->get_expanded())
 	{
 		size_type down = torrent->get_total_downloaded();
 		size_type up = torrent->get_total_uploaded();
@@ -604,6 +598,8 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 			case PAGE_GENERAL:
 				if (stats.pieces)
 					piecemap->set_map(*stats.pieces);
+				else if (!torrent->is_running())
+					piecemap->set_map(std::vector<bool>(1, false));
 				if (tracker.empty())
 					tracker = "<i>None</i>";
 				label_tracker->set_markup(tracker);
@@ -623,7 +619,7 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 					peer_list->update(torrent);
 				break;
 			case PAGE_FILES:
-				if (stats.pieces && update_lists)
+				if (update_lists)
 					file_list->update(torrent);
 				break;
 
@@ -633,19 +629,16 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 
 void UI::update_statics(const WeakPtr<Torrent>& torrent)
 {
-	if (torrent->is_running())
-	{
-		torrent_info info = torrent->get_info();
+	torrent_info info = torrent->get_info();
 
-		label_creator->set_text(info.creator());
-		label_comment->set_text(info.comment());
-		label_date->set_text(to_simple_string(*info.creation_date()));
-		label_path->set_text(Glib::build_filename(torrent->get_path(), info.name()));
-		label_size->set_text(suffix_value(info.total_size()));
-		label_files->set_text(str(info.num_files()));
-		label_pieces->set_text(str(info.num_pieces()) + " x " + suffix_value(info.piece_length()));
-		label_private->set_text(info.priv() ? "Yes" : "No");
-	}
+	label_creator->set_text(info.creator());
+	label_comment->set_text(info.comment());
+	label_date->set_text(to_simple_string(*info.creation_date()));
+	label_path->set_text(Glib::build_filename(torrent->get_path(), info.name()));
+	label_size->set_text(suffix_value(info.total_size()));
+	label_files->set_text(str(info.num_files()));
+	label_pieces->set_text(str(info.num_pieces()) + " x " + suffix_value(info.piece_length()));
+	label_private->set_text(info.priv() ? "Yes" : "No");
 }
 
 void UI::reset_views()
@@ -845,7 +838,7 @@ void UI::on_remove(bool erase_content)
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		Engine::get_session_manager()->erase_torrent(hash);
+		Engine::get_session_manager()->erase_torrent(hash, erase_content);
 	}
 
 	if (!list.empty())
@@ -936,15 +929,12 @@ void UI::on_set_group(const Glib::ustring& group)
 
 void UI::on_check()
 {
-	return;
-
 	HashList list = torrent_list->get_selected_list();
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		/* FIXME: force_recheck(), libtorrent currently doesn't support this */
+		Engine::get_session_manager()->recheck_torrent(hash);
 	}
 }
 
@@ -1233,7 +1223,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 				else
 					notify("Download failed", err);
 
-				unlink(name);
+				g_unlink(name);
 				g_free(name);
 			}
 		}

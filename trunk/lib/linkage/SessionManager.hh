@@ -40,6 +40,9 @@ class SessionManager : public session, public RefCounter<SessionManager>
 {
 	void on_settings();
 
+	bool decode(const Glib::ustring& file, entry& e);
+	bool decode(const Glib::ustring& file, entry& e, std::vector<char>& buffer);
+
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
 	sigc::signal<void, const Glib::ustring&, const sha1_hash&> m_signal_duplicate_torrent;
@@ -54,9 +57,10 @@ public:
 	sha1_hash open_torrent(const Glib::ustring& file, const Glib::ustring& save_path);
 	sha1_hash resume_torrent(const Glib::ustring& hash_str);
 	sha1_hash resume_torrent(const sha1_hash& hash);
+	void recheck_torrent(const sha1_hash& hash);
 	void resume_session();
 	void stop_torrent(const sha1_hash& hash);
-	void erase_torrent(const sha1_hash& hash);
+	void erase_torrent(const sha1_hash& hash, bool erase_content = false);
 
 	static Glib::RefPtr<SessionManager> create();
 	virtual ~SessionManager();
