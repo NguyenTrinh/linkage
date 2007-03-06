@@ -40,8 +40,7 @@ int main(int argc, char *argv[])
 		if (args)
 		{
 			send_args(files);
-			Engine::get_dbus_manager()->send("ToggleVisible");
-			std::cout << argc - 1 << " file(s) passed to running instance.\n";
+			std::cout << argc - 1 << " files passed to running instance.\n";
 			return 0;
 		}
 		else
