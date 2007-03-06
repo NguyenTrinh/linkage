@@ -131,8 +131,9 @@ const Torrent::State Torrent::get_state() const
 {
 	if (m_handle.is_valid())
 	{
+		torrent_status status = m_handle.status();
 		/* libtorrent only says it's seeding after it's announced to the tracker */
-		if (get_status().total_done == get_info().total_size())
+		if (status.total_done == m_info.total_size())
 			return SEEDING;
 
 		if (m_handle.is_paused() && m_is_queued)
@@ -140,7 +141,7 @@ const Torrent::State Torrent::get_state() const
 		else if (m_handle.is_paused()) /* libtorrent paused this handle, something bad happened */
 			return ERROR;
 
-		unsigned int state = m_handle.status().state;
+		unsigned int state = status.state;
 		switch (state)
 		{
 			case torrent_status::queued_for_checking:
@@ -196,9 +197,9 @@ const Glib::ustring Torrent::get_state_string(State state) const
 	}
 }
 
-const torrent_info Torrent::get_info() const
+const torrent_info& Torrent::get_info() const
 {
-	m_info;
+	return m_info;
 }
 
 const torrent_status Torrent::get_status() const

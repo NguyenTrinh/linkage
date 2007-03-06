@@ -74,7 +74,7 @@ public:
 	const Glib::ustring get_state_string() const;
 	const Glib::ustring get_state_string(State state) const;
 	
-	const torrent_info get_info() const;
+	const torrent_info& get_info() const;
 	const torrent_status get_status() const;
 	const std::vector<partial_piece_info> get_download_queue() const;
 	const std::vector<float> get_file_progress();
