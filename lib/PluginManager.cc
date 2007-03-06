@@ -178,9 +178,8 @@ void PluginManager::unload_plugin(Plugin* plugin)
 /* This method is used to catch plugins that remove themselfs/crash/whatever */
 void PluginManager::on_plugin_unloading(Plugin* plugin)
 {
-	m_signal_plugin_unload.emit(plugin);
-	
-	loaded_plugins.remove(plugin);
+	if (std::find(loaded_plugins.begin(), loaded_plugins.end(), plugin) != loaded_plugins.end())
+		m_signal_plugin_unload.emit(plugin);
 }
 
 bool PluginManager::is_loaded(const Glib::ustring& name)

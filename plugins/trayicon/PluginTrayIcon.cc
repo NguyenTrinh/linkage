@@ -29,6 +29,7 @@ TrayPlugin::TrayPlugin()
 
 TrayPlugin::~TrayPlugin()
 {
+	m_conn_tick.disconnect();
 	delete menu;
 	delete image;
 	delete eventbox;
@@ -77,7 +78,7 @@ void TrayPlugin::on_load()
 	imageitem->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_quit));
 	menu->append(*imageitem);
 
-	Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
+	m_conn_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
 	menu->show_all_children();
 }
 
