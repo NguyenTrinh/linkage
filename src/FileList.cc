@@ -122,7 +122,9 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 	torrent_handle handle = torrent->get_handle();
 	torrent_info info = torrent->get_info();
 	torrent_status status = torrent->get_status();
-	std::vector<bool> pieces = *status.pieces;
+	std::vector<bool> pieces(info.num_pieces(), false);
+	if (status.pieces)
+		pieces = *status.pieces;
 	std::vector<partial_piece_info> queue = torrent->get_download_queue();
 	std::vector<float> fp = torrent->get_file_progress();
 	std::vector<bool> filter = torrent->get_filter();
@@ -134,7 +136,8 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 	unsigned int pos = 0;
 
 	Gtk::CellRendererToggle* cell = dynamic_cast<Gtk::CellRendererToggle*>(get_column(0)->get_first_cell_renderer());
-	cell->property_activatable() = (torrent->get_state() != Torrent::SEEDING);
+	Torrent::State state = torrent->get_state();
+	cell->property_activatable() = (state != Torrent::SEEDING && state != Torrent::STOPPED);
 	
 	Gtk::TreeNodeChildren children = model->children();
 	if (!children.size())

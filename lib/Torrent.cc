@@ -224,6 +224,8 @@ const std::vector<float> Torrent::get_file_progress()
 	std::vector<float> fp;
 	if (m_handle.is_valid())
 		m_handle.file_progress(fp);
+	else
+		fp.assign(m_info.num_files(), 0);
 
 	return fp;
 }
