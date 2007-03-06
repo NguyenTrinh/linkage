@@ -696,9 +696,13 @@ void UI::add_torrent(const Glib::ustring& file)
 		Engine::get_session_manager()->signal_missing_file().emit("File not found, \"" + file + "\"", file);
 		return;
 	}
-	
-	Glib::ustring save_path;
 
+	if (!is_visible())
+		show();
+
+	Glib::ustring save_path;
+	Glib::ustring name = file.substr(file.rfind("/") + 1, file.size());
+	path_chooser->set_title("Select path for " + name);
 	if (!Engine::get_settings_manager()->get_bool("Files", "UseDefPath"))
 		if (path_chooser->run() == Gtk::RESPONSE_OK)
 		{

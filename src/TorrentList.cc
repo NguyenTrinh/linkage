@@ -140,8 +140,9 @@ void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, uns
 	Gtk::TreeIter iter = model->append();
 	Gtk::TreeRow new_row = *iter;
 	new_row[columns.hash] = hash;
+
 	if (selected_hash == str(hash))
-		get_selection()->select(iter);
+		get_selection()->select(filter->convert_child_iter_to_iter(iter));
 
 	update(torrent);
 }
