@@ -37,7 +37,9 @@ class TrayPlugin : public Plugin
 	Gtk::Tooltips* tooltips;
 	Gtk::Image* image;
 	Gtk::Menu* menu;
-	
+
+	sigc::connection m_conn_tick;
+
 	bool on_button_released(GdkEventButton* e);
 	void on_tick();
 	void on_quit();
