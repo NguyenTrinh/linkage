@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/widget.h>
 #include "linkage/Torrent.hh"
 
-class Plugin
+class Plugin : public sigc::trackable
 {
 public:
 	enum PluginParent { PARENT_NONE, PARENT_MAIN, PARENT_DETAILS, PARENT_MENU, PARENT_TOOLBAR };
