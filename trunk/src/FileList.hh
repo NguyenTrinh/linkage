@@ -53,7 +53,9 @@ class FileList : public Gtk::TreeView
 	Glib::RefPtr<Gtk::ListStore> model;
 	
 	void on_filter_toggled(const Glib::ustring& path);
-	
+	bool on_foreach(const Gtk::TreeIter& iter,
+									const WeakPtr<Torrent>& torrent,
+									const std::vector<float>& fp);
 	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<size_type>& column);
 	
 	sha1_hash current_hash;
