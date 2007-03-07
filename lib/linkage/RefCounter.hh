@@ -19,7 +19,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef REF_COUNTER_HH
 #define REF_COUNTER_HH
 
-template<class T> class RefCounter
+#include <sigc++/trackable.h>
+
+template<class T> class RefCounter : public sigc::trackable
 {
 private:
 	int references;
