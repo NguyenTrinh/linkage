@@ -323,7 +323,8 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		row[columns.up_rate] = 0;
 		row[columns.seeds] = 0;
 		row[columns.peers] = 0;
-		row[columns.eta] = str(double(row[columns.progress]), 2) + " %";
+		row[columns.progress] = 0;
+		row[columns.eta] = "";
 		return;
 	}
 

@@ -641,8 +641,8 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 
 void UI::reset_views()
 {
-	file_list->clear();
-	peer_list->clear();
+	/* file_list->clear();
+	peer_list->clear(); */
 	piecemap->set_map(std::vector<bool>(1, false));
 	label_down->set_text("");
 	label_up->set_text("");
