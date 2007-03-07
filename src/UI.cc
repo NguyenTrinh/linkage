@@ -598,8 +598,6 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 			case PAGE_GENERAL:
 				if (stats.pieces)
 					piecemap->set_map(*stats.pieces);
-				else if (!torrent->is_running())
-					piecemap->set_map(std::vector<bool>(1, false));
 				if (tracker.empty())
 					tracker = "<i>None</i>";
 				label_tracker->set_markup(tracker);
@@ -1038,6 +1036,9 @@ void UI::on_torrent_list_selection_changed()
 		spinbutton_up->set_value((double)torrent->get_up_limit());
 
 		button_tracker->set_sensitive(torrent->is_running());
+
+		if (!torrent->is_running())
+			piecemap->set_map(std::vector<bool>(1, false));
 
 		update_statics(torrent);
 		update(torrent, expander_details->get_expanded());

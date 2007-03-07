@@ -125,30 +125,30 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 	std::vector<bool> pieces(info.num_pieces(), false);
 	if (status.pieces)
 		pieces = *status.pieces;
-	std::vector<partial_piece_info> queue = torrent->get_download_queue();
 	std::vector<float> fp = torrent->get_file_progress();
 	std::vector<bool> filter = torrent->get_filter();
-
-	unsigned int byte_pos = 0;
-	unsigned int piece_index = 0;
-	unsigned int completed_bytes = 0;
-	unsigned int overlapped_bytes = 0;
-	unsigned int pos = 0;
 
 	Gtk::CellRendererToggle* cell = dynamic_cast<Gtk::CellRendererToggle*>(get_column(0)->get_first_cell_renderer());
 	Torrent::State state = torrent->get_state();
 	cell->property_activatable() = (state != Torrent::SEEDING && state != Torrent::STOPPED);
-	
+
+	/* Sorting messes up iteration */
+	int id;
+	Gtk::SortType order;
+	model->get_sort_column_id(id, order);
+	model->set_sort_column(columns.index, Gtk::SORT_ASCENDING);
+
 	Gtk::TreeNodeChildren children = model->children();
-	if (!children.size())
+	if (children.size() != info.num_files())
 	{
+		model->clear();
 		for (int i = 0; i < info.num_files(); i++)
 		{
 			Gtk::TreeRow row = *(model->append());
 			row[columns.index] = i;
 		}
 	}
-	
+
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
 		Gtk::TreeRow row = *iter;
@@ -177,6 +177,7 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 		row[columns.done] = (size_type)(fp[row[columns.index]] * file.size);
 		row[columns.size] = file.size;
 	}
+	model->set_sort_column(id, order);
 }
 
 int FileList::compare_piece_map(const Gtk::TreeIter& a,
