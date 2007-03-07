@@ -108,13 +108,11 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		torrent->get_handle().get_peer_info(peers);
 
 	Glib::ustring sel_addr;
-	bool select = false;
-	Gtk::TreeModel::iterator iter = get_selection()->get_selected();
+	Gtk::TreeIter iter = get_selection()->get_selected();
 	if (iter)
 	{
-		Gtk::TreeModel::Row row = *iter;
+		Gtk::TreeRow row = *iter;
 		sel_addr = row[columns.address];
-		select = true;
 	}
 
 	clear();
@@ -146,6 +144,8 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		#endif
 
 		row[columns.address] = peers[i].ip.address().to_string() + ":" + str(peers[i].ip.port());
+		if (row[columns.address] == sel_addr)
+			get_selection()->select(row);
 		row[columns.down] = peers[i].total_download;
 		row[columns.up] = peers[i].total_upload;
 		row[columns.down_rate] = peers[i].payload_down_speed;
@@ -169,18 +169,4 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	#ifdef HAVE_LIBGEOIP
 		GeoIP_delete(gi);
 	#endif
-
-	if (select)
-	{
-		Gtk::TreeNodeChildren children = model->children();
-		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
-		{
-			Gtk::TreeRow row = *iter;
-			if (row[columns.address] == sel_addr)
-			{
-				get_selection()->select(row);
-				break;
-			}
-		}
-	}
 }
