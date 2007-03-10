@@ -88,7 +88,8 @@ TorrentList::~TorrentList()
 	PathList path_list = get_selection()->get_selected_rows();
 	if (path_list.size() == 1)
 	{
-		Gtk::TreeIter iter = model->get_iter(*path_list.begin());
+		Gtk::TreePath path = filter->convert_path_to_child_path(*path_list.begin());
+		Gtk::TreeIter iter = model->get_iter(path);
 		if (iter)
 		{
 			Gtk::TreeRow row = *iter;
@@ -169,7 +170,8 @@ bool TorrentList::is_selected(const sha1_hash& hash)
 	PathList paths = get_selection()->get_selected_rows();
 	for (PathList::iterator piter = paths.begin(); piter != paths.end(); ++piter)
 	{
-		Gtk::TreeIter iter = model->get_iter(*piter);
+		Gtk::TreePath path = filter->convert_path_to_child_path(*piter);
+		Gtk::TreeIter iter = model->get_iter(path);
 		if (iter)
 		{
 			Gtk::TreeRow row = *iter;
@@ -188,7 +190,8 @@ HashList TorrentList::get_selected_list()
 	std::list<Gtk::TreeRow> ordered_rows;
 	for (PathList::iterator piter = paths.begin(); piter != paths.end(); ++piter)
 	{
-		Gtk::TreeIter iter = model->get_iter(*piter);
+		Gtk::TreePath path = filter->convert_path_to_child_path(*piter);
+		Gtk::TreeIter iter = model->get_iter(path);
 		if (iter)
 		{
 			Gtk::TreeRow row = *iter;
@@ -252,18 +255,16 @@ bool TorrentList::on_button_press_event(GdkEventButton* event)
 
 	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y) && event->button == 1)
 		return false;
-	
-	Gtk::TreeRow row = *model->get_iter(path);
 
 	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
-		m_signal_double_click.emit(event, row[columns.hash]);
+		m_signal_double_click.emit(event);
 	else if (event->button == 3)
 		m_signal_right_click.emit(event);
 
 	return (event->button != 1);
 }
 
-sigc::signal<void, GdkEventButton*, const sha1_hash&> TorrentList::signal_double_click()
+sigc::signal<void, GdkEventButton*> TorrentList::signal_double_click()
 {
 	return m_signal_double_click;
 }
@@ -317,7 +318,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 
 	if (!torrent->is_running())
 	{
-		ss << "<span foreground='" << color << "'><b>" << name << "</b></span>\nStopped";
+		ss << "<span foreground='" << color << "'><b>" << name << "</b> (" << suffix_value(torrent->get_info().total_size()) << ")</span>\nStopped";
 		row[columns.name] = ss.str();
 		row[columns.down_rate] = 0;
 		row[columns.up_rate] = 0;
@@ -368,10 +369,12 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		row[columns.eta] = str(double(status.progress*100), 2) + " % " + get_eta(status.total_wanted-status.total_wanted_done, status.download_payload_rate);
 	}
 
-	ss << "<span foreground='" << color << "'><b>" << name <<
-		"</b> (" << suffix_value(torrent->get_info().total_size()) << ")" <<
-		"</span>\n";
 	Torrent::State state = torrent->get_state();
+	Glib::ustring s = suffix_value((state == Torrent::DOWNLOADING) ? down : up);
+
+	ss << "<span foreground='" << color << "'><b>" << name <<
+		"</b> (" << s << " of " << suffix_value(torrent->get_info().total_size()) << ")" <<
+		"</span>\n";
 	if (state == Torrent::DOWNLOADING)
 		ss << status.num_seeds << " connected seeds, " <<
 					status.num_peers - status.num_seeds << " peers";

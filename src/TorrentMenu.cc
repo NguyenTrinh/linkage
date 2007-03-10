@@ -116,6 +116,8 @@ void TorrentMenu::on_settings()
 		item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), *iter));
 		submenu_groups->append(*item);
 	}
+
+	submenu_groups->show_all_children();
 }
 
 sigc::signal<void> TorrentMenu::signal_open()

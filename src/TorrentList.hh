@@ -83,7 +83,7 @@ class TorrentList : public Gtk::TreeView
 	void on_filter_set(const Group& group);
 	void on_filter_unset();
 
-	sigc::signal<void, GdkEventButton*, const sha1_hash&> m_signal_double_click;
+	sigc::signal<void, GdkEventButton*> m_signal_double_click;
 	sigc::signal<void, GdkEventButton*> m_signal_right_click;
 
 public:
@@ -115,7 +115,7 @@ public:
 	void update(const WeakPtr<Torrent>& torrent);
 
 	Glib::SignalProxy0<void> signal_changed();
-	sigc::signal<void, GdkEventButton*, const sha1_hash&> signal_double_click();
+	sigc::signal<void, GdkEventButton*> signal_double_click();
 	sigc::signal<void, GdkEventButton*> signal_right_click();
 
 	TorrentList();
