@@ -72,10 +72,11 @@ Glib::ustring ui_info = "<ui>"
 
 UI::UI()
 {
+	set_title("Linkage");
+	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.png"));
+
 	settings_win = new SettingsWin(this);
 	torrent_win = new TorrentCreator(this);
-
-	set_title("Linkage");
 
 	menu_trackers = manage(new Gtk::Menu());
 
@@ -598,6 +599,8 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 			case PAGE_GENERAL:
 				if (stats.pieces)
 					piecemap->set_map(*stats.pieces);
+				else
+					piecemap->set_map(std::vector<bool>(1, false));
 				if (tracker.empty())
 					tracker = "<i>None</i>";
 				label_tracker->set_markup(tracker);
@@ -637,30 +640,6 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 	label_files->set_text(str(info.num_files()));
 	label_pieces->set_text(str(info.num_pieces()) + " x " + suffix_value(info.piece_length()));
 	label_private->set_text(info.priv() ? "Yes" : "No");
-}
-
-void UI::reset_views()
-{
-	/* file_list->clear();
-	peer_list->clear(); */
-	piecemap->set_map(std::vector<bool>(1, false));
-	label_down->set_text("");
-	label_up->set_text("");
-	label_down_rate->set_text("");
-	label_up_rate->set_text("");
-	label_ratio->set_text("");
-	label_wasted->set_text("");
-	label_response->set_text("");
-	label_next_announce->set_text("");
-	label_path->set_text("");
-	label_comment->set_text("");
-	label_size->set_text("");
-	label_files->set_text("");
-	label_pieces->set_text("");
-	label_creator->set_text("");
-	label_date->set_text("");
-	label_private->set_text("");
-	label_tracker->set_markup("");
 }
 
 void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
@@ -875,10 +854,8 @@ void UI::on_stop()
 	}
 
 	if (!list.empty())
-	{
 		button_tracker->set_sensitive(false);
-		reset_views();
-	}
+
 	on_tick();
 }
 
@@ -944,24 +921,12 @@ void UI::on_open_location()
 	{
 		sha1_hash hash = *iter;
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		Glib::ustring n_cmd = "nautilus --no-desktop " + torrent->get_path();
-		Glib::ustring t_cmd = "thunar " + torrent->get_path();
-		GError* err;
-		if (g_spawn_command_line_async(n_cmd.c_str(), &err))
-			continue;
-		else
-		{
-			g_warning(err->message);
-			g_error_free(err);
-		}
+		Glib::ustring path = torrent->get_path();
+		if (torrent->get_info().num_files() > 1)
+			path = Glib::build_filename(path, torrent->get_name());
 
-		if (g_spawn_command_line_async(t_cmd.c_str(), &err))
-			continue;
-		else
-		{
-			g_warning(err->message);
-			g_error_free(err);
-		}
+		Glib::ustring cmd = "nautilus --no-desktop \"" + path + "\"";
+		Glib::spawn_command_line_async(cmd);
 	}
 }
 
@@ -1037,9 +1002,6 @@ void UI::on_torrent_list_selection_changed()
 
 		button_tracker->set_sensitive(torrent->is_running());
 
-		if (!torrent->is_running())
-			piecemap->set_map(std::vector<bool>(1, false));
-
 		update_statics(torrent);
 		update(torrent, expander_details->get_expanded());
 	}
@@ -1050,18 +1012,10 @@ void UI::on_torrent_list_selection_changed()
 	}
 }
 
-void UI::on_torrent_list_double_clicked(GdkEventButton* event, const sha1_hash& hash)
+void UI::on_torrent_list_double_clicked(GdkEventButton* event)
 {
 	if (expander_details->is_sensitive())
-	{
-		if (!expander_details->get_expanded())
-		{
-			if (Engine::get_torrent_manager()->exists(hash)) /* Unnecessary? */
-				expander_details->set_expanded(true);
-		}
-		else
-			expander_details->set_expanded(false);
-	}
+		expander_details->set_expanded(!expander_details->get_expanded());
 }
 
 void UI::on_torrent_list_right_clicked(GdkEventButton* event)
@@ -1110,7 +1064,7 @@ void UI::on_popup_tracker_selected(const Glib::ustring& tracker, int tier)
 			if (trackers[i].url == tracker)
 			{
 				trackers[i].tier = 0;
-				new_trackers.insert(new_trackers.begin(),trackers[i]);
+				new_trackers.insert(new_trackers.begin(), trackers[i]);
 			}
 			else
 			{

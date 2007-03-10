@@ -234,8 +234,7 @@ void Torrent::set_handle(const torrent_handle& handle)
 {
 	m_handle = handle;
 
-	if (m_handle.is_valid())
-		m_handle.filter_files(m_filter);
+	set_filter(m_filter);
 }
 
 void Torrent::set_group(const Glib::ustring& group)
@@ -320,11 +319,11 @@ const entry Torrent::get_resume_entry(bool running)
 {
 	entry::dictionary_type resume_entry;
 
-	/* This shouldn't happen */
 	if (m_handle.is_valid())
 	{
 		if (!m_handle.is_paused())
 		{
+			/* FIXME: This gives torrent State::Error (for a brief moment) */
 			m_handle.pause();
 			m_downloaded += m_handle.status().total_download;
 			m_uploaded += m_handle.status().total_upload;

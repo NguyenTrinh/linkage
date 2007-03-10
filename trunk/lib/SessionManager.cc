@@ -328,7 +328,12 @@ void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 					iter != info.end_files(); ++iter)
 		{
 			file_entry fe = *iter;
-			g_remove(Glib::build_filename(root, fe.path.string()).c_str());
+			Glib::ustring file = fe.path.string();
+			g_remove(Glib::build_filename(root, file).c_str());
+
+			/* Try to remove parent dir */
+			if (file.find("/") != Glib::ustring::npos)
+				g_remove(Glib::build_filename(root, Glib::path_get_dirname(file)).c_str());
 		}
 
 		/* Multi file torrents have their own root folder */

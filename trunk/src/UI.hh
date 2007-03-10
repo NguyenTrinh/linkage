@@ -152,7 +152,7 @@ class UI : public Gtk::Window
 	void on_details_expanded();
 
 	void on_torrent_list_selection_changed();
-	void on_torrent_list_double_clicked(GdkEventButton* event, const sha1_hash& hash);
+	void on_torrent_list_double_clicked(GdkEventButton* event);
 	void on_torrent_list_right_clicked(GdkEventButton* event);
 
 	void on_tick();
@@ -170,8 +170,6 @@ class UI : public Gtk::Window
 	void on_tracker_leave();
 
 	void on_switch_page(GtkNotebookPage* child, int page);
-
-	void reset_views();
 
 	void build_tracker_menu(const WeakPtr<Torrent>& torrent);
 	void on_popup_tracker_selected(const Glib::ustring& tracker, int tier);

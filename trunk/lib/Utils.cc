@@ -30,18 +30,12 @@ Glib::ustring suffix_value(size_type value)
 {
 	std::stringstream tc;
 	if (value > 1073741824)
-	{
 		tc << std::fixed << std::setprecision(2) << value/1073741824.0 << " GB";
-		return tc.str();
-	}else if (value > 524288) //>512kB displayed as 0.X MB
-	{
+	else if (value > 1048576)
 		tc << std::fixed << std::setprecision(2) << value/1048576.0 << " MB";
-		return tc.str();
-	}else
-	{
+	else
 		tc << std::fixed << std::setprecision(2) << value/1024.0 << " kB";
-		return tc.str();
-	}
+	return tc.str();
 }
 
 Glib::ustring str(int value)

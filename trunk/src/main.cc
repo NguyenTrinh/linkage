@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "config.h"
+
 #include <iostream>
 #include <list>
 
@@ -25,22 +27,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "UI.hh"
 
 /* FIXME: use add_gtk_option_group */
-bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& data);
-void send_args(const std::list<Glib::ustring>& args);
+bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files);
+void send_files(const std::list<Glib::ustring>& files);
 
 int main(int argc, char *argv[])
 {
+	std::list<Glib::ustring> files;
+	if (parse_args(argc, argv, files))
+		return 0;
+
 	Gtk::Main kit(&argc, &argv);
 
-	std::list<Glib::ustring> files;
-	bool args = parse_args(argc, argv, files);
+	bool file_args = (argc > 1);
 
 	if (!Engine::is_primary())
 	{
-		if (args)
+		if (file_args)
 		{
-			send_args(files);
-			std::cout << argc - 1 << " files passed to running instance.\n";
+			send_files(files);
+				std::cout << argc - 1 << " files passed to running instance.\n";
 			return 0;
 		}
 		else
@@ -53,8 +58,8 @@ int main(int argc, char *argv[])
 	{
 		UI* ui = new UI();
 		ui->show();
-		if (args)
-			send_args(files);
+		if (file_args)
+			send_files(files);
 
 		kit.run();
 		delete ui;
@@ -63,32 +68,49 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& data)
+bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files)
 {
-	/* FIXME: Add support for command line options */
-  for (int i = 1; i < argc; i++)
+	Glib::OptionGroup options(PACKAGE_NAME, "Command line options");
+	bool version = false;
+	Glib::OptionEntry e_version;
+	e_version.set_long_name("version") ;
+	e_version.set_description("Show version and quit");
+	options.add_entry(e_version, version);
+	Glib::OptionContext context("[FILE...] \n\nA BitTorrent client for GTK+\n");
+	context.set_main_group(options);
+	try
+	{
+		context.parse(argc, argv);
+	}
+	catch (const Glib::OptionError& e)
+	{
+		std::cerr << e.what() << std::endl;
+		std::cout << "Run \"linkage --help\" to see a full list of available command line options.\n";
+		return true;
+	}
+
+	if (version)
+	{
+		std::cout << PACKAGE_VERSION << std::endl;
+		return true;
+	}
+
+	for (int i = 1; i < argc; i++)
 	{
 		Glib::ustring file = argv[i];
-		if (file.substr(0, 1) == "-" || file.substr(0, 2) == "--")
-		{
-			throw Glib::OptionError(Glib::OptionError::UNKNOWN_OPTION,
-															"Unknown flag: \n"
-															"Usage:\n	linkage [TORRENTS...]");
-		}
-		/* Check for relative paths */
-		if (file.substr(0, 1) != "/")
-			file.insert(0,g_getenv("PWD") +	Glib::ustring("/"));
+		if (!Glib::path_is_absolute(file))
+			file.insert(0, Glib::get_current_dir() + "/");
 
-		data.push_back(file);
+		files.push_back(file);
 	}
 	
-	return (argc > 1);
+	return false;
 }
 
-void send_args(const std::list<Glib::ustring>& args)
+void send_files(const std::list<Glib::ustring>& files)
 {
-	for (std::list<Glib::ustring>::const_iterator iter = args.begin();
-					iter != args.end(); ++iter)
+	for (std::list<Glib::ustring>::const_iterator iter = files.begin();
+					iter != files.end(); ++iter)
 	{
 		/* Pass file(s) to running instance */
 		Engine::get_dbus_manager()->send("Open", *iter);
