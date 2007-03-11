@@ -43,7 +43,7 @@ Engine::Engine() : RefCounter<Engine>::RefCounter(this)
 	signal_tick().connect(sigc::mem_fun(am.operator->(), &AlertManager::check_alerts));
 	
 	int interval = ssm->get_int("UI", "Interval")*1000;
-	m_conn_tick = Glib::signal_timeout().connect(sigc::mem_fun(this, &Engine::on_timeout), interval);
+	Glib::signal_timeout().connect(sigc::mem_fun(this, &Engine::on_timeout), interval);
 }
 
 Engine::~Engine()
@@ -82,26 +82,6 @@ sigc::signal<void> Engine::signal_tick()
 
 	return m_signal_tick;
 }
-
-/*bool Engine::is_ticking()
-{
-	return m_conn_tick.connected();
-}
-
-void Engine::start_tick()
-{
-	if (!m_conn_tick.connected())
-	{
-		int interval = ssm->get_int("UI", "Interval")*1000;
-		m_conn_tick = Glib::signal_timeout().connect(sigc::mem_fun(this, &Engine::on_timeout), interval);
-	}
-}
-
-void Engine::stop_tick()
-{
-	if (m_conn_tick.connected())
-		m_conn_tick.disconnect();
-}*/
 
 Glib::RefPtr<AlertManager> Engine::get_alert_manager()
 {

@@ -32,10 +32,8 @@ Glib::RefPtr<SessionManager> SessionManager::create()
 	return Glib::RefPtr<SessionManager>(new SessionManager());
 }
 
-SessionManager::SessionManager()
-	: RefCounter<SessionManager>::RefCounter(this),
-		session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))
-																		
+SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
+	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))								
 {
 	boost::filesystem::path::default_name_check(boost::filesystem::native);
 
@@ -48,9 +46,14 @@ SessionManager::SessionManager()
 	on_settings(); //Apply settings on startup
 
 	#ifndef TORRENT_DISABLE_DHT
+	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
+	entry e;
+	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
+		decode(file, e);
+
 	try
 	{
-		start_dht();
+		start_dht(e);
 		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
@@ -64,7 +67,13 @@ SessionManager::SessionManager()
 
 SessionManager::~SessionManager()
 {
-	/* FIXME: Save Session settings and clean? */
+	#ifndef TORRENT_DISABLE_DHT
+	entry e = dht_state();
+	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
+	std::ofstream out;
+	out.open(file.c_str(), std::ios_base::binary);
+	bencode(std::ostream_iterator<char>(out), e);
+	#endif
 }
 
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
@@ -98,56 +107,60 @@ void SessionManager::resume_session()
 
 void SessionManager::on_settings()
 {
-	Glib::RefPtr<SettingsManager> settings = Engine::get_settings_manager();
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	Glib::ustring iface = settings->get_string("Network", "Interface");
+	Glib::ustring iface = sm->get_string("Network", "Interface");
 	ip_address ip;
-	get_ip(iface.c_str(), ip);
-	int min_port = settings->get_int("Network", "MinPort");
-	int max_port = settings->get_int("Network", "MaxPort");
+	int min_port = sm->get_int("Network", "MinPort");
+	int max_port = sm->get_int("Network", "MaxPort");
 
 	/* Only call listen_on if we really need to */
-	if (!is_listening() || max_port < listen_port() || min_port > listen_port())
+	int port = listen_port();
+	if (!is_listening() || port < min_port || port > max_port)
 	{
 		if (get_ip(iface.c_str(), ip))
-		{
 			listen_on(std::pair<int, int>(min_port, max_port), ip);
-		}
 		else
 			listen_on(std::pair<int, int>(min_port, max_port));
+
+		#ifndef TORRENT_DISABLE_DHT
+		dht_settings settings;
+		settings.service_port = listen_port();
+		set_dht_settings(settings);
+		#endif
 	}
 
-	int up_rate = settings->get_int("Network", "MaxUpRate")*1024;
+	int up_rate = sm->get_int("Network", "MaxUpRate")*1024;
 	if (up_rate < 1)
 		up_rate = -1;
 	set_upload_rate_limit(up_rate);
 
-	int down_rate = settings->get_int("Network", "MaxDownRate")*1024;
+	int down_rate = sm->get_int("Network", "MaxDownRate")*1024;
 	if (down_rate < 1)
 		down_rate = -1;
 	set_download_rate_limit(down_rate);
 
-	int max_uploads = settings->get_int("Network", "MaxUploads");
+	int max_uploads = sm->get_int("Network", "MaxUploads");
 	if (max_uploads == 0)
 		max_uploads = -1;
 	set_max_uploads(max_uploads);
 
-	int max_connections = settings->get_int("Network", "MaxConnections");
+	int max_connections = sm->get_int("Network", "MaxConnections");
 	if (max_connections == 0)
 		max_connections = -1;
 	set_max_connections(max_connections);
 
 	session_settings sset;
 	sset.user_agent = PACKAGE_NAME "/" PACKAGE_VERSION " libtorrent/" LIBTORRENT_VERSION;
-	sset.tracker_completion_timeout = settings->get_int("Network", "TrackerTimeout");
-	sset.tracker_receive_timeout = settings->get_int("Network", "TrackerTimeout");
-	sset.stop_tracker_timeout = settings->get_int("Network", "TrackerTimeout");
-	if (settings->get_bool("Network", "UseProxy"))
+	sset.tracker_completion_timeout = sm->get_int("Network", "TrackerTimeout");
+	sset.tracker_receive_timeout = sm->get_int("Network", "TrackerTimeout");
+	sset.stop_tracker_timeout = sm->get_int("Network", "TrackerTimeout");
+	if (sm->get_bool("Network", "UseProxy"))
 	{
-		sset.proxy_port = settings->get_int("Network", "ProxyPort");
-		sset.proxy_ip = settings->get_string("Network", "ProxyPort");
-		sset.proxy_login = settings->get_string("Network", "ProxyLogin");
-		sset.proxy_password = settings->get_string("Network", "ProxyPass");
+		sset.proxy_port = sm->get_int("Network", "ProxyPort");
+		sset.proxy_ip = sm->get_string("Network", "ProxyPort");
+		sset.proxy_login = sm->get_string("Network", "ProxyLogin");
+		sset.proxy_password = sm->get_string("Network", "ProxyPass");
 	}
 	set_settings(sset);
 }

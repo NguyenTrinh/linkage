@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class TorrentManager : public RefCounter<TorrentManager>
 {
+private:
 	typedef std::map<sha1_hash, Torrent*> TorrentMap;
 	typedef TorrentMap::iterator TorrentIter;
 	
@@ -47,7 +48,16 @@ class TorrentManager : public RefCounter<TorrentManager>
 	
 	/* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */
 	Glib::RefPtr<SessionManager> m_session_manager;
-	
+
+	void check_queue();
+
+protected:
+	friend class SessionManager;
+
+	void add_torrent(const torrent_handle& handle, const entry& e);
+	void add_torrent(const entry& e, const torrent_info& info);
+	void remove_torrent(const sha1_hash& hash);
+
 public:
 	typedef std::list<WeakPtr<Torrent> > TorrentList;
 
@@ -56,14 +66,8 @@ public:
 	
 	void set_torrent_position(const sha1_hash& hash, Torrent::Direction direction);
 	
-	void check_queue(); /* FIXME: Should be protected, not public? */
-	
 	bool exists(const sha1_hash& hash);
 	bool exists(const Glib::ustring& hash_str);
-	
-	void add_torrent(const torrent_handle& handle, const entry& e);
-	void add_torrent(const entry& e, const torrent_info& info);
-	void remove_torrent(const sha1_hash& hash);
 	
 	//FIXME: Should be removed, or at least friends only.
 	torrent_handle get_handle(const sha1_hash& hash);
