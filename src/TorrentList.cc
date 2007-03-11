@@ -108,6 +108,9 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 	Gtk::TreeRow row = *iter;
 	sha1_hash hash = row[columns.hash];
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	if (!torrent)
+		return false;
+
 	return (m_active_group) ? m_active_group.eval(torrent) : true;
 }
 
