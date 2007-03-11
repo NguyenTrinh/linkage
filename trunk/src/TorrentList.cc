@@ -318,7 +318,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 
 	if (!torrent->is_running())
 	{
-		ss << "<span foreground='" << color << "'><b>" << name << "</b> (" << suffix_value(torrent->get_info().total_size()) << ")</span>\nStopped";
+		ss << "<span foreground='" << color << "'><b>" << name.c_str() << "</b> (" << suffix_value(torrent->get_info().total_size()) << ")</span>\nStopped";
 		row[columns.name] = ss.str();
 		row[columns.down_rate] = 0;
 		row[columns.up_rate] = 0;
@@ -372,7 +372,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	Torrent::State state = torrent->get_state();
 	Glib::ustring s = suffix_value((state == Torrent::DOWNLOADING) ? down : up);
 
-	ss << "<span foreground='" << color << "'><b>" << name <<
+	ss << "<span foreground='" << color << "'><b>" << name.c_str() <<
 		"</b> (" << s << " of " << suffix_value(torrent->get_info().total_size()) << ")" <<
 		"</span>\n";
 	if (state == Torrent::DOWNLOADING)
