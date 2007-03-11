@@ -36,7 +36,8 @@ int main(int argc, char *argv[])
 	if (parse_args(argc, argv, files))
 		return 0;
 
-	Gtk::Main kit(&argc, &argv);
+	/* Don't set up translations since we don't have any */
+	Gtk::Main kit(&argc, &argv, false);
 
 	bool file_args = (argc > 1);
 
