@@ -38,7 +38,6 @@ class Engine : public RefCounter<Engine>
 	static Glib::RefPtr<Engine> self;
 	
 	static sigc::signal<void> m_signal_tick;
-	sigc::connection m_conn_tick;
 
 	bool on_timeout();
 	
@@ -54,9 +53,6 @@ public:
 	static Glib::RefPtr<DbusManager>	get_dbus_manager();
 	
 	static sigc::signal<void> signal_tick();
-	/*bool is_ticking();
-	void start_tick();
-	void stop_tick();*/
 
 	static bool is_primary();
 	static void destroy();

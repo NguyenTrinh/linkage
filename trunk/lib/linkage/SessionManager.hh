@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 using namespace libtorrent;
 
-class SessionManager : public session, public RefCounter<SessionManager>
+class SessionManager : public RefCounter<SessionManager>, public session
 {
 	void on_settings();
 
