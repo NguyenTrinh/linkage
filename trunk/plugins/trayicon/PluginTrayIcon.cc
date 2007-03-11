@@ -60,9 +60,9 @@ void TrayPlugin::on_load()
 
 	Gtk::Widget* widget = dynamic_cast<Gtk::Widget*>(eventbox);
 
-	tray_icon = egg_tray_icon_new ("TrayPlugin");
-	gtk_container_add (GTK_CONTAINER (tray_icon), widget->gobj());
-	gtk_widget_show_all (GTK_WIDGET (tray_icon));
+	tray_icon = egg_tray_icon_new("TrayPlugin");
+	gtk_container_add(GTK_CONTAINER(tray_icon), widget->gobj());
+	gtk_widget_show_all(GTK_WIDGET(tray_icon));
 	
 	menu = new Gtk::Menu();
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Start torrents"));
@@ -118,15 +118,29 @@ void TrayPlugin::on_quit()
 
 void TrayPlugin::on_torrents_stop()
 {
-	/* FIXME: Poll TorrentManager */
+	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
+	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
+				iter != torrents.end(); ++iter)
+	{
+		WeakPtr<Torrent> torrent = *iter;
+		if (torrent->is_running())
+			Engine::get_session_manager()->stop_torrent(torrent->get_hash());
+	}
 }
 
 void TrayPlugin::on_torrents_start()
 {
-	/* FIXME: Poll TorrentManager */
+	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
+	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
+				iter != torrents.end(); ++iter)
+	{
+		WeakPtr<Torrent> torrent = *iter;
+		if (!torrent->is_running())
+			Engine::get_session_manager()->resume_torrent(torrent->get_hash());
+	}
 }
 
-Plugin * CreatePlugin()
+Plugin* CreatePlugin()
 {
 	 return new TrayPlugin();
 }
