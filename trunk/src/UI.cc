@@ -634,7 +634,10 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 
 	label_creator->set_text(info.creator());
 	label_comment->set_text(info.comment());
-	label_date->set_text(to_simple_string(*info.creation_date()));
+	if (info.creation_date())
+		label_date->set_text(to_simple_string(*info.creation_date()));
+	else
+		label_date->set_text("");
 	label_path->set_text(Glib::build_filename(torrent->get_path(), info.name()));
 	label_size->set_text(suffix_value(info.total_size()));
 	label_files->set_text(str(info.num_files()));
