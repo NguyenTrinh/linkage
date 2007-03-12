@@ -373,10 +373,9 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	}
 
 	Torrent::State state = torrent->get_state();
-	Glib::ustring s = suffix_value((state == Torrent::DOWNLOADING) ? down : up);
 
 	ss << "<span foreground='" << color << "'><b>" << name.c_str() <<
-		"</b> (" << s << " of " << suffix_value(torrent->get_info().total_size()) << ")" <<
+		"</b> (" << suffix_value(torrent->get_info().total_size()) << ")" <<
 		"</span>\n";
 	if (state == Torrent::DOWNLOADING)
 		ss << status.num_seeds << " connected seeds, " <<
@@ -384,7 +383,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	else if (state == Torrent::SEEDING || state == Torrent::FINISHED)
 		ss << status.num_peers - status.num_seeds << " connected peers";
 	else
-		ss << torrent->get_state_string();
+		ss << torrent->get_state_string(state);
 
 	row[columns.name] = ss.str();
 	row[columns.down_rate] = status.download_payload_rate;

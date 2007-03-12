@@ -565,9 +565,7 @@ void UI::on_tick()
 	group_list->update();
 
 	session_status status = Engine::get_session_manager()->status();
-	statusbar->set_connections_label(str(status.num_peers));
-	statusbar->set_download_label(suffix_value(status.payload_download_rate) + "/s");
-	statusbar->set_upload_label(suffix_value(status.payload_upload_rate) + "/s");
+	statusbar->set_status(status.num_peers, status.payload_download_rate, status.payload_upload_rate);
 }
 
 bool UI::on_visibility_notify_event(GdkEventVisibility* event)
@@ -1083,17 +1081,21 @@ void UI::on_popup_tracker_selected(const Glib::ustring& tracker, int tier)
 
 void UI::on_tracker_enter()
 {
-/*	Pointer<Gdk::Cursor> cursor = new Gdk::Cursor(GDK_HAND2);
+/*
+	Pointer<Gdk::Cursor> cursor = new Gdk::Cursor(GDK_HAND2);
 	button_tracker->get_window()->set_cursor(*cursor);
-	button_tracker->set_relief(Gtk::RELIEF_NORMAL); */
+*/
+	button_tracker->set_relief(Gtk::RELIEF_NORMAL);
 	return;
 }
 
 void UI::on_tracker_leave()
 {
-/*	Pointer<Gdk::Cursor> cursor = new Gdk::Cursor(GDK_LEFT_PTR);
+/*
+	Pointer<Gdk::Cursor> cursor = new Gdk::Cursor(GDK_LEFT_PTR);
 	button_tracker->get_window()->set_cursor(*cursor);
-	button_tracker->set_relief(Gtk::RELIEF_NONE); */
+*/
+	button_tracker->set_relief(Gtk::RELIEF_NONE);
 	return;
 }
 
