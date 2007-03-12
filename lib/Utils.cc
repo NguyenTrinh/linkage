@@ -29,9 +29,9 @@ Glib::ustring suffix_value(float value)
 Glib::ustring suffix_value(size_type value)
 {
 	std::stringstream tc;
-	if (value > 1073741824)
+	if (value >= 1073741824)
 		tc << std::fixed << std::setprecision(2) << value/1073741824.0 << " GB";
-	else if (value > 1048576)
+	else if (value >= 1048576)
 		tc << std::fixed << std::setprecision(2) << value/1048576.0 << " MB";
 	else
 		tc << std::fixed << std::setprecision(2) << value/1024.0 << " kB";
