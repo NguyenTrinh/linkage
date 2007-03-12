@@ -29,9 +29,7 @@ class Statusbar : public Gtk::Statusbar
 	Gtk::Label* m_upload;
 
 public:
-	void set_connections_label(const Glib::ustring& text);
-	void set_upload_label(const Glib::ustring& text);
-	void set_download_label(const Glib::ustring& text);
+	void set_status(int connections, float down_rate, float up_rate);
 	
 	Statusbar();
 	~Statusbar();
