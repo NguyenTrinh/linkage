@@ -41,7 +41,7 @@ Statusbar::Statusbar()
 	box->pack_end(*manage(new Gtk::Label("Connections:")), false, false, 10);
 
 	frame->add(*box);
-	pack_end(*frame);
+	pack_end(*frame, false, false);
 }
 
 Statusbar::~Statusbar()
