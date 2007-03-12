@@ -19,16 +19,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef PIECEMAP_HH
 #define PIECEMAP_HH
 
+#include <list>
+#include <vector>
+
 #include <gtkmm/drawingarea.h>
 #include <gdkmm/window.h>
 
 struct Part
 {
-	unsigned int first;
-	unsigned int last;
-	unsigned int fac;
+	int first;
+	int last;
+	int fac;
 	
-	Part(unsigned int fi, unsigned int la, unsigned int fa);
+	Part(int fi, int la, int fa) : first(fi), last(la), fac(fa) {}
 };
 
 class PieceMap : public Gtk::DrawingArea
@@ -36,9 +39,8 @@ class PieceMap : public Gtk::DrawingArea
 	std::vector<bool> m_map;
 	Gdk::Color m_dark, m_mid, m_light;
 
-	std::list<Part> draw_more_pieces();
-	std::list<Part> draw_more_pixels(); //FIXME: Broken again, dark not shown on more_pixels?
-	void draw(); //FIXME: Should be public to be able to redraw unchanged map
+	std::list<Part> more_pieces();
+	std::list<Part> more_pixels();
 	
 	void on_realize();
 	bool on_expose_event(GdkEventExpose* event);
@@ -47,7 +49,7 @@ public:
 	void set_map(const std::vector<bool>& map);
 
 	PieceMap(Gdk::Color& dark, Gdk::Color& mid, Gdk::Color& light);
-	virtual ~PieceMap();
+	~PieceMap();
 };
 	
 #endif 

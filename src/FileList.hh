@@ -43,7 +43,7 @@ class FileList : public Gtk::TreeView
 			}
 		Gtk::TreeModelColumn<bool> filter;
 		Gtk::TreeModelColumn<Glib::ustring> name;
-		Gtk::TreeModelColumn<std::list<bool> > map;
+		Gtk::TreeModelColumn<std::vector<bool> > map;
 		Gtk::TreeModelColumn<size_type> done;
 		Gtk::TreeModelColumn<size_type> size;
 		Gtk::TreeModelColumn<unsigned int> index;

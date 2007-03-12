@@ -153,7 +153,7 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 	{
 		Gtk::TreeRow row = *iter;
 		
-		std::list<bool> map;
+		std::vector<bool> map;
 
 		file_entry file = info.file_at(row[columns.index]);
 		peer_request file_info = info.map_file(row[columns.index], 0, file.size);
