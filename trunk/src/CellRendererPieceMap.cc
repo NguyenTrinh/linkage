@@ -26,46 +26,28 @@ CellRendererPieceMap::CellRendererPieceMap(Gdk::Color& dark,
 																					 Gdk::Color& light) :
 	Glib::ObjectBase(typeid(CellRendererPieceMap)),
 	Gtk::CellRenderer(),
-	property_map_(*this, "map")
+	m_prop_map(*this, "map")
 {
 	property_xpad() = 0;
 	property_ypad() = 0;
 
-	/*Glib::RefPtr<Gdk::Colormap> colormap = screen->get_default_colormap();
-
-	dark_ = Gdk::Color("blue");
-	mid_.set_red(32767);
-	mid_.set_green(32767);
-	mid_.set_blue(65535);
-	light_.set_red(52428);
-	light_.set_green(52428);
-	light_.set_blue(65535);
-
-	colormap->alloc_color(dark_);
-	colormap->alloc_color(mid_);
-	colormap->alloc_color(light_);*/
-
-	dark_ = dark;
-	mid_ = mid;
-	light_ = light;
+	m_dark = dark;
+	m_mid = mid;
+	m_light = light;
 }
 
 CellRendererPieceMap::~CellRendererPieceMap()
 {
 }
 
-std::list<Part>
-CellRendererPieceMap::draw_more_pixels(const std::list<bool>& map,
-																			 unsigned int width,
-																			 unsigned int height)
+std::list<Part> CellRendererPieceMap::more_pixels(int width, int height)
 {
 	std::list<Part> parts;
-	std::vector<bool> vmap(map.begin(), map.end());
-	unsigned int count = vmap.size();
+	int count = m_prop_map.get_value().size();
 
-	for (unsigned int i = 0; i < count; i++)
+	for (int i = 0; i < count; i++)
 	{
-		if (!vmap[i])
+		if (!m_prop_map.get_value()[i])
 			continue;
 
 		if (parts.empty())
@@ -73,7 +55,7 @@ CellRendererPieceMap::draw_more_pixels(const std::list<bool>& map,
 		else
 		{
 			Part & l = parts.back();
-			if (l.last == (unsigned int)(i - 1))
+			if (l.last == (int)(i - 1))
 				l.last = i;
 			else
 				parts.push_back(Part(i, i, 100));
@@ -83,36 +65,32 @@ CellRendererPieceMap::draw_more_pixels(const std::list<bool>& map,
 	return parts;
 }
 
-std::list<Part>
-CellRendererPieceMap::draw_more_pieces(const std::list<bool>& map,
-																			 unsigned int width,
-																			 unsigned int height)
+std::list<Part> CellRendererPieceMap::more_pieces(int width, int height)
 {
 	std::list<Part> parts;
-	std::vector<bool> vmap(map.begin(), map.end());
-	unsigned int count = vmap.size();
+	int count = m_prop_map.get_value().size();
 	double pieces_per_part = (double)count/width;
 
-	for (unsigned int i = 0; i < width; i++)
+	for (int i = 0; i < width; i++)
 	{
-		unsigned int completed = 0;
-		unsigned int start = (unsigned int)(i*pieces_per_part);
-		unsigned int end = (unsigned int)((i+1)*pieces_per_part+0.5);
-		for (unsigned int j = start; j < end; j++)
-			if (vmap[j])
+		int completed = 0;
+		int start = (int)(i*pieces_per_part);
+		int end = (int)((i+1)*pieces_per_part+0.5);
+		for (int j = start; j < end; j++)
+			if (m_prop_map.get_value()[j])
 				completed++;
 
 		if (!completed)
 			continue;
 
-		unsigned int fac = (unsigned int)(100*((double)completed / (end - start)) + 0.5);
+		int fac = (int)(100*((double)completed / (end - start)) + 0.5);
 
 		if (parts.empty())
 			parts.push_back(Part(i, i, fac));
 		else
 		{
-			Part & l = parts.back();
-			if (l.last == (unsigned int)(i - 1) && l.fac == fac)
+			Part& l = parts.back();
+			if (l.last == (int)(i - 1) && l.fac == fac)
 				l.last = i;
 			else
 				parts.push_back(Part(i, i, fac));
@@ -132,7 +110,7 @@ void CellRendererPieceMap::get_size_vfunc(Gtk::Widget&,
 	const int xalign = property_xalign();
 	const int yalign = property_yalign();
 
-	unsigned int w = 0, h = 0;
+	int w = 0, h = 0;
 	if (cell_area)
 	{
 		w = cell_area->get_width();
@@ -191,7 +169,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 											 cell_area.get_y() + y_offset + cell_ypad,
 											 width - 1, height - 1);
 
-	unsigned int bar_x = 0, bar_y = 0, bar_width = 0, bar_height = 0;
+	int bar_x = 0, bar_y = 0, bar_width = 0, bar_height = 0;
 	bar_x = cell_area.get_x() + x_offset + cell_xpad + widget.get_style()->get_xthickness();
 	bar_y = cell_area.get_y() + y_offset + cell_ypad + widget.get_style()->get_ythickness();
 	bar_width = width - 1 - (widget.get_style()->get_xthickness() * 2);
@@ -199,37 +177,36 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 
 	double scale = 1.0;
 	std::list<Part> parts;
-	unsigned int num = property_map_.get_value().size();
+	int num = m_prop_map.get_value().size();
 	if (num >= bar_width)
-		parts = draw_more_pieces(property_map_.get_value(), bar_width, bar_height);
+		parts = more_pieces(bar_width, bar_height);
 	else
 	{
-		parts = draw_more_pixels(property_map_.get_value(), bar_width, bar_height);
+		parts = more_pixels(bar_width, bar_height);
 		scale = double(bar_width)/num;
 	}
 
 	gc->set_foreground(widget.get_style()->get_bg(Gtk::STATE_NORMAL));
 	cwin->draw_rectangle(gc, true, bar_x, bar_y, bar_width, bar_height);
 
-	for (std::list<Part>::iterator i = parts.begin();i != parts.end(); ++i)
+	for (std::list<Part>::iterator iter = parts.begin(); iter != parts.end(); ++iter)
 	{
-		Part & pa = *i;
-		unsigned int fac = pa.fac;
-		unsigned int rw = (unsigned int)(scale*(pa.last - pa.first + 1));
-		unsigned int x = (unsigned int)(scale*pa.first) + bar_x;
+		Part& p = *iter;
+		int pw = (int)(scale*(p.last - p.first + 1));
+		int px = (int)(scale*p.first) + bar_x;
 
-		if (fac >= 100)
-			gc->set_foreground(dark_);
-		else if (fac >= 50)
-			gc->set_foreground(mid_);
+		if (p.fac >= 100)
+			gc->set_foreground(m_dark);
+		else if (p.fac >= 50)
+			gc->set_foreground(m_mid);
 		else
-			gc->set_foreground(light_);
+			gc->set_foreground(m_light);
 
-		cwin->draw_rectangle(gc, true, x, bar_y, rw, bar_height);
+		cwin->draw_rectangle(gc, true, px, bar_y, pw, bar_height);
 	}
 }
 
-Glib::PropertyProxy<std::list<bool> > CellRendererPieceMap::property_map()
+Glib::PropertyProxy<std::vector<bool> > CellRendererPieceMap::property_map()
 {
-	return property_map_.get_proxy();
+	return m_prop_map.get_proxy();
 }

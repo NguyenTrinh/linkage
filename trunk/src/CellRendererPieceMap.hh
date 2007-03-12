@@ -21,41 +21,35 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/cellrenderer.h>
 
-/* Has Part class */
 #include "PieceMap.hh"
 
 class CellRendererPieceMap : public Gtk::CellRenderer
 {
-	//std::vector<bool> map_;
-	Gdk::Color dark_, mid_, light_;
+	Gdk::Color m_dark, m_mid, m_light;
 	
-	Glib::Property<std::list<bool> > property_map_;
-protected:
-	std::list<Part> draw_more_pieces(const std::list<bool>& map,
-																			 unsigned int width,
-																			 unsigned int height);
-	std::list<Part> draw_more_pixels(const std::list<bool>& map,
-																			 unsigned int width,
-																			 unsigned int height);
-	
-	virtual void render_vfunc(const Glib::RefPtr<Gdk::Drawable>& window,
-														Gtk::Widget& widget,
-														const Gdk::Rectangle&,
-														const Gdk::Rectangle& cell_area,
-														const Gdk::Rectangle&,
-														Gtk::CellRendererState flags);
+	Glib::Property<std::vector<bool> > m_prop_map;
 
-	virtual void get_size_vfunc(Gtk::Widget& widget,
-															const Gdk::Rectangle* cell_area,
-															int* x_offset, int* y_offset,
-															int* width,		int* height) const;															
-public:
-	Glib::PropertyProxy<std::list<bool> > property_map();
+	std::list<Part> more_pieces(int width, int height);
+	std::list<Part> more_pixels(int width, int height);
 	
+	void render_vfunc(const Glib::RefPtr<Gdk::Drawable>& window,
+										Gtk::Widget& widget,
+										const Gdk::Rectangle&,
+										const Gdk::Rectangle& cell_area,
+										const Gdk::Rectangle&,
+										Gtk::CellRendererState flags);
+
+	void get_size_vfunc(Gtk::Widget& widget,
+											const Gdk::Rectangle* cell_area,
+											int* x_offset, int* y_offset,
+											int* width,		int* height) const;															
+public:
+	Glib::PropertyProxy<std::vector<bool> > property_map();
+
 	CellRendererPieceMap(Gdk::Color& dark, 
 											 Gdk::Color& mid, 
 											 Gdk::Color& light);
-	virtual ~CellRendererPieceMap();
+	~CellRendererPieceMap();
 };
 	
 #endif 
