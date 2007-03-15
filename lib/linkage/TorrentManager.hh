@@ -54,8 +54,7 @@ private:
 protected:
 	friend class SessionManager;
 
-	void add_torrent(const torrent_handle& handle, const entry& e);
-	void add_torrent(const entry& e, const torrent_info& info);
+	WeakPtr<Torrent> add_torrent(const entry& e, const torrent_info& info);
 	void remove_torrent(const sha1_hash& hash);
 
 public:
@@ -64,7 +63,7 @@ public:
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> signal_added();
 	sigc::signal<void, const sha1_hash&> signal_removed();
 	
-	void set_torrent_position(const sha1_hash& hash, Torrent::Direction direction);
+	void set_torrent_position(const sha1_hash& hash, int diff);
 	
 	bool exists(const sha1_hash& hash);
 	bool exists(const Glib::ustring& hash_str);
@@ -76,8 +75,6 @@ public:
 	TorrentList get_torrents();
 	
 	unsigned int get_torrents_count();
-	
-	void save_fastresume(const sha1_hash& hash, const entry& e);
 	
 	static Glib::RefPtr<TorrentManager> create();
 	~TorrentManager();

@@ -36,7 +36,6 @@ typedef std::list<sha1_hash> HashList;
 class Torrent
 {
 public:
-	enum Direction { DIR_UP, DIR_DOWN };
 	enum State { 
 							 CHECK_QUEUE,
 							 CHECKING,

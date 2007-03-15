@@ -249,9 +249,9 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply)
 
 void Torrent::set_position(unsigned int position)
 {
-	Direction direction = (position < m_position) ? DIR_UP : DIR_DOWN;
+	int diff = m_position - position;
 	m_position = position;
-	Engine::get_torrent_manager()->set_torrent_position(m_info.info_hash(), direction);
+	Engine::get_torrent_manager()->set_torrent_position(m_info.info_hash(), diff);
 }
 
 void Torrent::set_filter(std::vector<bool>& filter)
