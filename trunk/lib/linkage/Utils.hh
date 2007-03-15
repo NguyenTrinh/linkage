@@ -64,4 +64,7 @@ bool get_ip(const char *iface, ip_address ip);
 Glib::ustring get_config_dir();
 Glib::ustring get_data_dir();
 
+void save_entry(const sha1_hash& hash, const entry& e, const Glib::ustring& suffix = Glib::ustring());
+void save_entry(const Glib::ustring& file, const entry& e);
+
 #endif /* UTILS_HH */

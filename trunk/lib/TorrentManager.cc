@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <vector>
-#include <fstream>
 
 #include "linkage/Engine.hh"
 #include "linkage/TorrentManager.hh"
@@ -50,21 +49,12 @@ TorrentManager::~TorrentManager()
 		Glib::ustring hash_str = str(hash);
 
 		entry e = torrent->get_resume_entry(torrent->is_running());
-		save_fastresume(hash, e);
+		save_entry(hash, e, ".resume");
 		if (torrent->is_running())
 			m_session_manager->remove_torrent(torrent->get_handle());
 
 		delete torrent;
 	}
-}
-
-void TorrentManager::save_fastresume(const sha1_hash& hash, const entry& e)
-{
-	Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash) + ".resume");
-	std::ofstream out(file.c_str(), std::ios_base::binary);
-	out.unsetf(std::ios_base::skipws);
-	bencode(std::ostream_iterator<char>(out), e);
-	out.close();
 }
 
 sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> TorrentManager::signal_added()
@@ -112,18 +102,13 @@ void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustrin
 	m_torrents[hash]->set_tracker_reply(msg);
 }
 
-void TorrentManager::set_torrent_position(const sha1_hash& hash, Torrent::Direction direction)
+void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
 {
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
 		unsigned int position = iter->second->get_position();
 		if (position == m_torrents[hash]->get_position() && iter->first != hash)
-		{
-			if (direction == Torrent::DIR_UP)
-				iter->second->set_position(position + 1);
-			else if (direction == Torrent::DIR_DOWN)
-				iter->second->set_position(position - 1);
-		}
+			iter->second->set_position(position + diff);
 	}
 }
 
@@ -142,14 +127,7 @@ bool TorrentManager::exists(const Glib::ustring& hash_str)
 	return false;
 }
 
-void TorrentManager::add_torrent(const torrent_handle& handle, const entry& e)
-{
-	if (m_torrents.find(handle.info_hash()) == m_torrents.end())
-		add_torrent(e, handle.get_torrent_info());
-	m_torrents[handle.info_hash()]->set_handle(handle);
-}
-
-void TorrentManager::add_torrent(const entry& e, const torrent_info& info)
+WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info& info)
 {
 	Torrent::ResumeInfo ri(e, info);
 
@@ -174,6 +152,8 @@ void TorrentManager::add_torrent(const entry& e, const torrent_info& info)
 	m_torrents[hash] = torrent;
 
 	m_signal_added.emit(hash, torrent->get_name(), torrent->get_position());
+
+	return WeakPtr<Torrent>(torrent);
 }
 
 void TorrentManager::remove_torrent(const sha1_hash& hash)
@@ -201,21 +181,18 @@ void TorrentManager::remove_torrent(const sha1_hash& hash)
 torrent_handle TorrentManager::get_handle(const sha1_hash& hash)
 {
 	torrent_handle handle;
-	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
-	{
-		if (iter->first == hash)
-			handle = iter->second->get_handle();
-	}
+	
+	if (exists(hash))
+		handle = m_torrents[hash]->get_handle();
+
 	return handle;
 }
 
 WeakPtr<Torrent> TorrentManager::get_torrent(const sha1_hash& hash)
 {
-	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
-	{
-		if (iter->first == hash)
-			return WeakPtr<Torrent>(iter->second);
-	}
+	if (exists(hash))
+		return WeakPtr<Torrent>(m_torrents[hash]);
+
 	return WeakPtr<Torrent>();
 }
 

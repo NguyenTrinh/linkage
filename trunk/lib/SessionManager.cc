@@ -58,9 +58,9 @@ SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
 		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
 	}
-	catch (const asio::error& e)
+	catch (const asio::error& err)
 	{
-		g_warning(("Failed to start DHT: " + Glib::ustring(e.what())).c_str());
+		g_warning(("Failed to start DHT: " + Glib::ustring(err.what())).c_str());
 	}
 	#endif
 }
@@ -70,9 +70,7 @@ SessionManager::~SessionManager()
 	#ifndef TORRENT_DISABLE_DHT
 	entry e = dht_state();
 	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
-	std::ofstream out;
-	out.open(file.c_str(), std::ios_base::binary);
-	bencode(std::ostream_iterator<char>(out), e);
+	save_entry(file, e);
 	#endif
 }
 
@@ -196,7 +194,7 @@ bool SessionManager::decode(const Glib::ustring& file,
 	{
 		e = bdecode(buffer.begin(), buffer.end());
 	}
-	catch (std::exception& e)
+	catch (std::exception& err)
 	{
 		m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
 		return false;
@@ -217,6 +215,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	torrent_info info(e);
 	sha1_hash hash = info.info_hash();
 
+	entry er;
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
 	{
@@ -225,7 +224,9 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		entry::dictionary_type de;
 		de["path"] = save_path;
 
-		Engine::get_torrent_manager()->add_torrent(handle, de);
+		torrent = Engine::get_torrent_manager()->add_torrent(de, info);
+		er = torrent->get_resume_entry(true);
+		torrent->set_handle(handle);
 	}
 	else
 	{
@@ -240,6 +241,12 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	out.open(metafile.c_str(), std::ios_base::binary);
 	out.write(&buff[0], buff.size());
 	out.close();
+
+	/*
+		Save an almost empty .resume file, so the torrent is resumed next session
+		even if something nasty happens to this session
+	*/
+	save_entry(hash, er, ".resume");
 
 	return hash;
 }
@@ -276,17 +283,17 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	if (torrent) //Torrent was resumed from stopped state
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-		Engine::get_torrent_manager()->add_torrent(handle, er);
+		torrent = Engine::get_torrent_manager()->get_torrent(handle.info_hash());
+		torrent->set_handle(handle);
 	}
 	else //Torrent was resumed from previous session
-	{		
+	{
+		torrent = Engine::get_torrent_manager()->add_torrent(er, info);
 		if (er.dict()["running"].integer())
 		{
 			torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
-			Engine::get_torrent_manager()->add_torrent(handle, er);
+			torrent->set_handle(handle);
 		}
-		else
-			Engine::get_torrent_manager()->add_torrent(er, info);
 	}
 	return info.info_hash();
 }
@@ -319,7 +326,7 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 
 		entry e = torrent->get_resume_entry();
 
-		Engine::get_torrent_manager()->save_fastresume(hash, e);
+		save_entry(hash, e, ".resume");
 
 		remove_torrent(torrent->get_handle());
 	}

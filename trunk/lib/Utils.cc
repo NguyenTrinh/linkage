@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <fstream>
+
 #include "libtorrent/hasher.hpp"
 #include "libtorrent/bencode.hpp"
 
@@ -181,4 +183,17 @@ Glib::ustring get_config_dir()
 Glib::ustring get_data_dir()
 {
 	return Glib::build_filename(get_config_dir(), "data");
+}
+
+void save_entry(const sha1_hash& hash, const entry& e, const Glib::ustring& suffix)
+{
+	save_entry(Glib::build_filename(get_data_dir(), str(hash)) + suffix, e);
+}
+
+void save_entry(const Glib::ustring& file, const entry& e)
+{
+	std::ofstream out(file.c_str(), std::ios_base::binary);
+	out.unsetf(std::ios_base::skipws);
+	bencode(std::ostream_iterator<char>(out), e);
+	out.close();
 }
