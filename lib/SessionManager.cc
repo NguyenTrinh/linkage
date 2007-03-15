@@ -248,6 +248,8 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	*/
 	save_entry(hash, er, ".resume");
 
+	Engine::get_torrent_manager()->check_queue();
+
 	return hash;
 }
 
@@ -295,6 +297,9 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 			torrent->set_handle(handle);
 		}
 	}
+
+	Engine::get_torrent_manager()->check_queue();
+
 	return info.info_hash();
 }
 
@@ -311,6 +316,8 @@ void SessionManager::recheck_torrent(const sha1_hash& hash)
 		bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
 		torrent_handle handle = add_torrent(info, path.c_str(), entry(), !allocate);
 		torrent->set_handle(handle);
+
+		Engine::get_torrent_manager()->check_queue();
 	}
 }
 
@@ -329,6 +336,8 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 		save_entry(hash, e, ".resume");
 
 		remove_torrent(torrent->get_handle());
+
+		Engine::get_torrent_manager()->check_queue();
 	}
 }
 

@@ -29,14 +29,14 @@ Glib::RefPtr<TorrentManager> TorrentManager::create()
 TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 {
 	m_session_manager = Engine::get_session_manager();
-
-	Engine::signal_tick().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
 	
 	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
 	/* FIXME: add on_tracker_announce and set reply to <i>Trying http://my.tracker</i> */
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
 	am->signal_tracker_failed().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_failed));
+	am->signal_torrent_finished().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
+	am->signal_file_error().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
 }
 
 TorrentManager::~TorrentManager()
@@ -102,6 +102,11 @@ void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustrin
 	m_torrents[hash]->set_tracker_reply(msg);
 }
 
+void TorrentManager::on_update_queue(const sha1_hash& hash, const Glib::ustring& msg)
+{
+	check_queue();
+}
+
 void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
 {
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
@@ -110,6 +115,7 @@ void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
 		if (position == m_torrents[hash]->get_position() && iter->first != hash)
 			iter->second->set_position(position + diff);
 	}
+	check_queue();
 }
 
 bool TorrentManager::exists(const sha1_hash& hash)
@@ -145,6 +151,34 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 
 	if (!ri.resume.find_key("position"))
 		ri.resume["position"] = m_torrents.size() + 1;
+	else
+	{
+		/* Make sure we don't have two torrents with the same position */
+		int position = ri.resume["position"].integer();
+		bool taken = false;
+		for (TorrentIter iter = m_torrents.begin(); 
+					iter != m_torrents.end() && !taken; ++iter)
+		{
+			taken = (position == iter->second->get_position());
+		}
+
+		int new_position = 0;
+		while (taken)
+		{
+			new_position++;
+			for (TorrentIter iter = m_torrents.begin(); 
+					iter != m_torrents.end(); ++iter)
+			{
+				taken = (new_position == iter->second->get_position());
+				if (taken)
+					break;
+			}
+			if (!taken)
+				position = new_position;
+		}
+
+		ri.resume["position"] = position;
+	}
 
 	Torrent* torrent = new Torrent(ri, false);
 
@@ -152,6 +186,8 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	m_torrents[hash] = torrent;
 
 	m_signal_added.emit(hash, torrent->get_name(), torrent->get_position());
+
+	check_queue();
 
 	return WeakPtr<Torrent>(torrent);
 }
@@ -176,6 +212,8 @@ void TorrentManager::remove_torrent(const sha1_hash& hash)
 	}
 
 	m_signal_removed.emit(hash);
+
+	check_queue();
 }
 
 torrent_handle TorrentManager::get_handle(const sha1_hash& hash)
