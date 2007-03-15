@@ -879,7 +879,7 @@ void UI::on_down()
 {
 	HashList list = torrent_list->get_selected_list();
 
-	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
+	for (HashList::reverse_iterator iter = list.rbegin(); iter != list.rend(); ++iter)
 	{
 		sha1_hash hash = *iter;
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
@@ -1047,7 +1047,7 @@ bool UI::on_tracker_update(GdkEventButton* e)
 			}
 		}
 	}
-	return true;
+	return false;
 }
 
 void UI::on_popup_tracker_selected(const Glib::ustring& tracker, int tier)
@@ -1081,22 +1081,12 @@ void UI::on_popup_tracker_selected(const Glib::ustring& tracker, int tier)
 
 void UI::on_tracker_enter()
 {
-/*
-	Pointer<Gdk::Cursor> cursor = new Gdk::Cursor(GDK_HAND2);
-	button_tracker->get_window()->set_cursor(*cursor);
-*/
 	button_tracker->set_relief(Gtk::RELIEF_NORMAL);
-	return;
 }
 
 void UI::on_tracker_leave()
 {
-/*
-	Pointer<Gdk::Cursor> cursor = new Gdk::Cursor(GDK_LEFT_PTR);
-	button_tracker->get_window()->set_cursor(*cursor);
-*/
 	button_tracker->set_relief(Gtk::RELIEF_NONE);
-	return;
 }
 
 void UI::on_switch_page(GtkNotebookPage*, int page_num)
