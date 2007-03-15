@@ -44,18 +44,19 @@ private:
 	void on_tracker_warning(const sha1_hash& hash, const Glib::ustring& reply);
 	void on_tracker_failed(const sha1_hash& hash, const Glib::ustring& reply, int code, int times);
 
+	void on_update_queue(const sha1_hash& hash, const Glib::ustring& msg);
+
 	TorrentManager();
 	
 	/* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */
 	Glib::RefPtr<SessionManager> m_session_manager;
-
-	void check_queue();
 
 protected:
 	friend class SessionManager;
 
 	WeakPtr<Torrent> add_torrent(const entry& e, const torrent_info& info);
 	void remove_torrent(const sha1_hash& hash);
+	void check_queue();
 
 public:
 	typedef std::list<WeakPtr<Torrent> > TorrentList;
