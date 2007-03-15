@@ -590,7 +590,7 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 	{
 		size_type down = torrent->get_total_downloaded();
 		size_type up = torrent->get_total_uploaded();
-		double ratio = 0;
+		float ratio = 0;
 		Glib::ustring tracker = stats.current_tracker;
 		switch (notebook_details->get_current_page())
 		{
@@ -611,7 +611,7 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 				label_up->set_text(suffix_value(up));
 				label_up_rate->set_text(suffix_value(stats.upload_payload_rate) + "/s");
 				if (down)
-					ratio = (double)up/down;
+					ratio = (1.0f*up)/(1.0f*down);
 				label_ratio->set_text(str(ratio, 3));
 				label_wasted->set_text(suffix_value(stats.total_failed_bytes));
 				if (update_lists)

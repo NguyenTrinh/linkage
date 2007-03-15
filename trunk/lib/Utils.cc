@@ -61,7 +61,7 @@ Glib::ustring str(size_type value)
 	return tc.str();
 }
 
-Glib::ustring str(double value, int precision)
+Glib::ustring str(float value, int precision)
 {
 	std::stringstream tc;
 	tc << std::fixed << std::setprecision(precision) << value;
