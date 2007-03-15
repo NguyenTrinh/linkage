@@ -339,9 +339,9 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		size_type size = status.total_wanted_done - up;
 		if (down != 0)
 		{
-			double ratio = (double)up/down;
+			float ratio = (1.0f*up)/(1.0f*down);
 
-			if (ratio < 1)
+			if (ratio < 1.0f)
 			{
 				row[columns.progress] = ratio*100;
 				row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate);

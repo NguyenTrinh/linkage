@@ -49,7 +49,7 @@ Glib::ustring suffix_value(float value);
 Glib::ustring str(int value);
 Glib::ustring str(unsigned int value);
 Glib::ustring str(size_type value);
-Glib::ustring str(double value, int precision);
+Glib::ustring str(float value, int precision);
 Glib::ustring str(const sha1_hash& hash);
 Glib::ustring get_eta(size_type size, float rate);
 Glib::ustring format_time(size_type seconds);
