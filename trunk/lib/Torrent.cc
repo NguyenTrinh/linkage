@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
 
-Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued)
+Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*this, "handle")
 {
 	m_is_queued = queued;
 
@@ -61,9 +61,14 @@ Torrent::~Torrent()
 {
 }
 
-const torrent_handle& Torrent::get_handle() const
+Glib::PropertyProxy<torrent_handle> Torrent::property_handle()
 {
-	return m_handle;
+	return m_prop_handle.get_proxy();
+}
+
+torrent_handle Torrent::get_handle() const
+{
+	return m_prop_handle.get_value();
 }
 
 const Glib::ustring Torrent::get_name() const
@@ -114,34 +119,43 @@ const sha1_hash Torrent::get_hash() const
 const size_type Torrent::get_total_downloaded() const
 {
 	size_type total = m_downloaded;
-	if (m_handle.is_valid())
-		total += m_handle.status().total_download;
+	if (m_prop_handle.get_value().is_valid())
+		total += m_prop_handle.get_value().status().total_download;
 	return total;
 }
 
 const size_type Torrent::get_total_uploaded() const
 {
 	size_type total = m_uploaded;
-	if (m_handle.is_valid())
-		total += m_handle.status().total_upload;
+	if (m_prop_handle.get_value().is_valid())
+		total += m_prop_handle.get_value().status().total_upload;
 	return total;
 }
 
 const Torrent::State Torrent::get_state() const
 {
-	if (m_handle.is_valid())
+	if (m_prop_handle.get_value().is_valid())
 	{
-		torrent_status status = m_handle.status();
+		torrent_status status = m_prop_handle.get_value().status();
 		/* libtorrent only says it's seeding after it's announced to the tracker */
 		if (status.total_done == m_info.total_size())
 			return SEEDING;
 
-		if (m_handle.is_paused() && m_is_queued)
-			return QUEUED;
-		else if (m_handle.is_paused()) /* libtorrent paused this handle, something bad happened */
+		unsigned int state = status.state;
+		if (m_prop_handle.get_value().is_paused() && m_is_queued)
+		{
+			/* Queued torrents can be in check state */
+			if (state == torrent_status::checking_files)
+				return CHECKING;
+			else if (state == torrent_status::queued_for_checking)
+				return CHECK_QUEUE;
+			else
+				return QUEUED;
+		}
+		else if (m_prop_handle.get_value().is_paused()) /* libtorrent paused this handle, something bad happened */
 			return ERROR;
 
-		unsigned int state = status.state;
+
 		switch (state)
 		{
 			case torrent_status::queued_for_checking:
@@ -180,7 +194,7 @@ const Glib::ustring Torrent::get_state_string(State state) const
 		case STOPPED:
 			return "Stopped";
 		case CHECK_QUEUE:
-			return "Queued";
+			return "Queued for checking";
 		case CHECKING:
 			return "Checking";
 		case ANNOUNCING:
@@ -204,8 +218,8 @@ const torrent_info& Torrent::get_info() const
 
 const torrent_status Torrent::get_status() const
 {
-	if (m_handle.is_valid())
-		return m_handle.status();
+	if (m_prop_handle.get_value().is_valid())
+		return m_prop_handle.get_value().status();
 	else
 		return torrent_status();
 }
@@ -213,8 +227,8 @@ const torrent_status Torrent::get_status() const
 const std::vector<partial_piece_info> Torrent::get_download_queue() const
 {
 	std::vector<partial_piece_info> queue;
-	if (m_handle.is_valid())
-		m_handle.get_download_queue(queue);
+	if (m_prop_handle.get_value().is_valid())
+		m_prop_handle.get_value().get_download_queue(queue);
 
 	return queue;
 }
@@ -222,8 +236,8 @@ const std::vector<partial_piece_info> Torrent::get_download_queue() const
 const std::vector<float> Torrent::get_file_progress()
 {
 	std::vector<float> fp;
-	if (m_handle.is_valid())
-		m_handle.file_progress(fp);
+	if (m_prop_handle.get_value().is_valid())
+		m_prop_handle.get_value().file_progress(fp);
 	else
 		fp.assign(m_info.num_files(), 0);
 
@@ -232,7 +246,7 @@ const std::vector<float> Torrent::get_file_progress()
 
 void Torrent::set_handle(const torrent_handle& handle)
 {
-	m_handle = handle;
+	m_prop_handle = handle;
 
 	set_filter(m_filter);
 }
@@ -260,13 +274,13 @@ void Torrent::set_filter(std::vector<bool>& filter)
 		m_filter.assign(filter.begin(), filter.end());
 
 	/* TODO: Thread this? It completly freezes UI on large files.. */
-	if (m_handle.is_valid())
-		m_handle.filter_files(m_filter);
+	if (m_prop_handle.get_value().is_valid())
+		m_prop_handle.get_value().filter_files(m_filter);
 }
 
 void Torrent::filter_file(unsigned int index, bool filter)
 {
-	torrent_info info = m_handle.get_torrent_info();
+	torrent_info info = m_prop_handle.get_value().get_torrent_info();
 
 	m_filter[index] = filter;
 
@@ -276,31 +290,31 @@ void Torrent::filter_file(unsigned int index, bool filter)
 void Torrent::set_up_limit(int limit)
 {
 	m_up_limit = limit;
-	if (m_handle.is_valid())
-		m_handle.set_upload_limit(m_up_limit*1024);
+	if (m_prop_handle.get_value().is_valid())
+		m_prop_handle.get_value().set_upload_limit(m_up_limit*1024);
 }
 
 void Torrent::set_down_limit(int limit)
 {
 	m_down_limit = limit;
-	if (m_handle.is_valid())
-		m_handle.set_download_limit(m_down_limit*1024);
+	if (m_prop_handle.get_value().is_valid())
+		m_prop_handle.get_value().set_download_limit(m_down_limit*1024);
 }
 
 void Torrent::queue()
 {
-	if (m_handle.is_valid())
+	if (m_prop_handle.get_value().is_valid())
 	{
-		m_handle.pause();
+		m_prop_handle.get_value().pause();
 		m_is_queued = true;
 	}
 }
 
 void Torrent::unqueue()
 {
-	if (m_handle.is_valid())
+	if (m_prop_handle.get_value().is_valid())
 	{
-		m_handle.resume();
+		m_prop_handle.get_value().resume();
 		m_is_queued = false;
 	}
 }
@@ -312,26 +326,26 @@ bool Torrent::is_queued()
 
 bool Torrent::is_running()
 {
-	m_handle.is_valid();
+	m_prop_handle.get_value().is_valid();
 }
 
 const entry Torrent::get_resume_entry(bool running)
 {
 	entry::dictionary_type resume_entry;
 
-	if (m_handle.is_valid())
+	if (m_prop_handle.get_value().is_valid())
 	{
-		if (!m_handle.is_paused())
+		if (!m_prop_handle.get_value().is_paused())
 		{
 			/* FIXME: This gives torrent State::Error (for a brief moment) */
-			m_handle.pause();
-			m_downloaded += m_handle.status().total_download;
-			m_uploaded += m_handle.status().total_upload;
+			m_prop_handle.get_value().pause();
+			m_downloaded += m_prop_handle.get_value().status().total_download;
+			m_uploaded += m_prop_handle.get_value().status().total_upload;
 		}
 
 		try
 		{
-			resume_entry = m_handle.write_resume_data().dict();
+			resume_entry = m_prop_handle.get_value().write_resume_data().dict();
 		}
 		catch (std::exception& e)
 		{

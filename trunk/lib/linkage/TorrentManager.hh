@@ -46,6 +46,8 @@ private:
 
 	void on_update_queue(const sha1_hash& hash, const Glib::ustring& msg);
 
+	void on_handle_changed();
+
 	TorrentManager();
 	
 	/* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */

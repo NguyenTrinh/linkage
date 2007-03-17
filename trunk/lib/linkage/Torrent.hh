@@ -23,8 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <vector>
 
+#include <glibmm/object.h>
 #include <glibmm/ustring.h>
-#include <glibmm/timeval.h>
+#include <glibmm/property.h>
+#include <glibmm/propertyproxy.h>
 #include <sigc++/signal.h>
 
 #include "libtorrent/torrent.hpp"
@@ -33,7 +35,7 @@ using namespace libtorrent;
 
 typedef std::list<sha1_hash> HashList;
 
-class Torrent
+class Torrent : public Glib::Object
 {
 public:
 	enum State { 
@@ -55,7 +57,8 @@ public:
 		ResumeInfo(const entry& e, const torrent_info& i) : resume(e), info(i) {}
 	};
 
-	const torrent_handle& get_handle() const;
+	Glib::PropertyProxy<torrent_handle> property_handle();
+	torrent_handle get_handle() const;
 	const Glib::ustring& get_tracker_reply() const;
 	const Glib::ustring get_name() const;
 	const Glib::ustring& get_group() const;
@@ -103,7 +106,7 @@ private:
 	size_type m_uploaded;
 	size_type m_downloaded;
 
-	torrent_handle m_handle;
+	Glib::Property<torrent_handle> m_prop_handle;
 	torrent_info m_info;
 	
 	Glib::ustring m_tracker_reply;

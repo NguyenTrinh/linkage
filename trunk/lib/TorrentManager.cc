@@ -107,6 +107,11 @@ void TorrentManager::on_update_queue(const sha1_hash& hash, const Glib::ustring&
 	check_queue();
 }
 
+void TorrentManager::on_handle_changed()
+{
+	check_queue();
+}
+
 void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
 {
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
@@ -181,6 +186,7 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	}
 
 	Torrent* torrent = new Torrent(ri, false);
+	torrent->property_handle().signal_changed().connect(sigc::mem_fun(this, &TorrentManager::on_handle_changed));
 
 	sha1_hash hash = info.info_hash();
 	m_torrents[hash] = torrent;
@@ -270,6 +276,7 @@ void TorrentManager::check_queue()
 {
 	unsigned int last_active = 0;
 	unsigned int num_active = 0;
+	unsigned int max_active = Engine::get_settings_manager()->get_int("Network", "MaxActive");
 	std::vector<Torrent*> torrents;
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
@@ -279,28 +286,31 @@ void TorrentManager::check_queue()
 			continue;
 
 		torrents.push_back(torrent);
-		if (torrent->get_state() != Torrent::QUEUED)
+		if (!torrent->is_queued())
 		{
-			num_active++;
-			if (torrent->get_position() > last_active)
-				last_active = torrent->get_position();
+			if (num_active < max_active)
+			{
+				num_active++;
+				if (torrent->get_position() > last_active)
+					last_active = torrent->get_position();
+			}
+			else
+				torrent->queue();
 		}
 	}
 
 	sort(torrents);
 
-	unsigned int max_active = Engine::get_settings_manager()->get_int("Network", "MaxActive");
 	for (unsigned int k = 0; k < torrents.size(); k++)
 	{
 		Torrent* torrent = torrents[k];
-		Torrent::State state = torrent->get_state();
-		if (state != Torrent::QUEUED)
+		if (!torrent->is_queued())
 		{
 			if (torrent->get_position() >= last_active && num_active > max_active)
 			{
 				num_active--;
 				torrent->queue();
-				for (unsigned int l = 0; l < k; l++)
+				for (unsigned int l = k; l > 0; l--)
 					if (torrents[l]->get_state() != Torrent::QUEUED)
 						last_active = torrents[l]->get_position();
 			}
