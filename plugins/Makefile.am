@@ -1,1 +1,1 @@
-SUBDIRS = trayicon notification
+SUBDIRS = trayicon notification upnp
