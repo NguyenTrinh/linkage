@@ -23,6 +23,10 @@ PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.10)
 AC_SUBST(GTKMM_CFLAGS)
 AC_SUBST(GTKMM_LIBS)
 
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= 2.10)
+AC_SUBST(GTHREAD_CFLAGS)
+AC_SUBST(GTHREAD_LIBS)
+
 PKG_CHECK_MODULES(LIBTORRENT, libtorrent >= 0.11)
 AC_SUBST(LIBTORRENT_CFLAGS)
 AC_SUBST(LIBTORRENT_LIBS)
@@ -39,10 +43,15 @@ PKG_CHECK_MODULES(DBUSGLIB, dbus-glib-1 >= 0.70)
 AC_SUBST(DBUSGLIB_CFLAGS)
 AC_SUBST(DBUSGLIB_LIBS)
 
+PKG_CHECK_MODULES(LIBUPNP, libupnp >= 1.4.3)
+AC_SUBST(LIBUPNP_CFLAGS)
+AC_SUBST(LIBUPNP_LIBS)
+
 AC_PROG_CC()
 AC_PROG_CXX()
 AC_DISABLE_STATIC()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
 
-AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile  data/Makefile data/flags/Makefile)
+AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile plugins/upnp/Makefile  data/Makefile data/flags/Makefile)
+
