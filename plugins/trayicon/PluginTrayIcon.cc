@@ -47,7 +47,7 @@ Glib::ustring TrayPlugin::get_description()
 	
 void TrayPlugin::on_load()
 {
-	Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.png", 24, 24, true);
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg", 24, 24, true);
 	image = new Gtk::Image(pixbuf);
 	
 	eventbox = new Gtk::EventBox();;
