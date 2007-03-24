@@ -62,7 +62,7 @@ void UPnPPlugin::on_settings()
 		if (ret)
 		{
 			ports.push_back(port);
-			std::cout << "Port forward succeded for " << ip << std::endl;
+			std::cout << "Port forward succeded for " << ip << ":" << port << std::endl;
 		}
 	}
 	else
@@ -85,7 +85,7 @@ void UPnPPlugin::on_settings()
 				if (ret)
 				{
 					ports.push_back(port);
-					std::cout << "Port forward succeded for " << ip << std::endl;
+					std::cout << "Port forward succeded for " << ip << ":" << port << std::endl;
 				}
 			}
 		}
