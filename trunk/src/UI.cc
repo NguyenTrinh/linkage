@@ -73,7 +73,7 @@ Glib::ustring ui_info = "<ui>"
 UI::UI()
 {
 	set_title("Linkage");
-	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.png"));
+	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 
 	settings_win = new SettingsWin(this);
 	torrent_win = new TorrentCreator(this);
@@ -754,11 +754,12 @@ void UI::on_about()
 	people.push_back("Christian Lundgren");
 	about.set_authors(people);
 	people.clear();
+	people.push_back("Brian William Davis");
 	people.push_back("Ludvig Aleman");
 	about.set_artists(people);
 	people.clear();
 	about.set_comments("A BitTorrent client");
-	about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.png"));
+	about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 	about.set_version(PACKAGE_VERSION);
 	about.set_copyright("Copyright \u00A9 2006-2007 Christian Lundgren");
 	about.set_name("Linkage");
