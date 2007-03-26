@@ -32,6 +32,8 @@ using namespace libtorrent;
 
 class AlertManager : public RefCounter<AlertManager>
 {
+	void check_alerts();
+
 	sigc::signal<void, const Glib::ustring&> m_signal_listen_failed;
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> m_signal_tracker_failed;
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> m_signal_tracker_reply;
@@ -46,8 +48,6 @@ class AlertManager : public RefCounter<AlertManager>
 	AlertManager();
 	
 public:
-	void check_alerts();
-
 	sigc::signal<void, const Glib::ustring&> signal_listen_failed();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> signal_tracker_failed();
 	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> signal_tracker_reply();

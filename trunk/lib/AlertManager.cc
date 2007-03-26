@@ -28,7 +28,7 @@ Glib::RefPtr<AlertManager> AlertManager::create()
 
 AlertManager::AlertManager() : RefCounter<AlertManager>::RefCounter(this)
 {
-	//Engine::instance()->signal_tick().connect(sigc::mem_fun(this, &AlertManager::check_alerts));
+	Engine::signal_tick().connect(sigc::mem_fun(this, &AlertManager::check_alerts));
 }
 
 AlertManager::~AlertManager()
