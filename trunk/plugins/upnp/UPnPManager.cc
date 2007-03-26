@@ -130,14 +130,39 @@ UPnPManager::UPnPManager()
 	if (UpnpInit(NULL, 0) != UPNP_E_SUCCESS)
 		std::cerr << "Failed to intialize uPnP" << std::endl;
 	
-	UpnpRegisterClient(UPnPManager::upnp_cb, NULL, &m_handle);
-	UpnpSearchAsync(m_handle, 3, "upnp:rootdevice", NULL);
+	int ret = UpnpRegisterClient(UPnPManager::upnp_cb, NULL, &m_handle);
+	if (ret != UPNP_E_SUCCESS)
+		std::cerr << "Failed to register UPnP client: " << UpnpGetErrorMessage(ret) << std::endl;
 
-	if(!Glib::thread_supported()) Glib::thread_init();
+	m_searching = false;
+}
+
+sigc::signal<void> UPnPManager::signal_search_complete()
+{
+	return m_signal_search_complete;
+}
+
+void UPnPManager::search()
+{
+	if (m_searching)
+		return;
+
+	int ret = UpnpSearchAsync(m_handle, 3, "upnp:rootdevice", NULL);
+	if (ret != UPNP_E_SUCCESS)
+		std::cerr << "UPnP search failed: " << UpnpGetErrorMessage(ret) << std::endl;
 
 	m_mutex.lock();
-	m_cond.wait(m_mutex);
+	m_searching = true;
+	while (m_searching)
+		m_cond.wait(m_mutex);
 	m_mutex.unlock();
+
+	m_signal_search_complete.emit();
+}
+
+bool UPnPManager::is_searching()
+{
+	return m_searching;
 }
 
 UPnPManager::~UPnPManager()
@@ -152,6 +177,7 @@ int UPnPManager::upnp_cb(Upnp_EventType type, void* event, void* cookie)
 		case UPNP_DISCOVERY_SEARCH_TIMEOUT:
 		{
 			UPnPManager::self->m_mutex.lock();
+			UPnPManager::self->m_searching = false;
 			UPnPManager::self->m_cond.signal();
 			UPnPManager::self->m_mutex.unlock();
 			break;
@@ -282,6 +308,11 @@ void UPnPManager::refresh_port_mappings()
 
 bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address)
 {
+	m_mutex.lock();
+	while (m_searching)
+		m_cond.wait(m_mutex);
+	m_mutex.unlock();
+
 	Service::ArgList args(8);
 	
 	args[0].first = "NewRemoteHost";
@@ -310,6 +341,11 @@ bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustrin
 
 void UPnPManager::remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol)
 {
+	m_mutex.lock();
+	while (m_searching)
+		m_cond.wait(m_mutex);
+	m_mutex.unlock();
+
 	Service::ArgList args(3);
 
 	args[0].first = "NewRemoteHost";

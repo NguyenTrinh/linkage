@@ -32,6 +32,9 @@ void send_files(const std::list<Glib::ustring>& files);
 
 int main(int argc, char *argv[])
 {
+	if(!Glib::thread_supported()) 
+		Glib::thread_init();
+
 	std::list<Glib::ustring> files;
 	if (parse_args(argc, argv, files))
 		return 0;
