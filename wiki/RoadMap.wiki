@@ -11,9 +11,9 @@ Currently there is no release. 0.1.2beta-1 is pending and is probably released s
     * Fix unimplemented options (Move finished, Enable/Disable DHT/PEX, Custom colors for torrent status and piecemaps...)
     * Drop geoip, use libtorrent 0.12 instead.
     * Implement missing plugin features.
+    * Test UPnP plugin some more.
   * *0.1.2beta-2* Just bugfixes, no new features.
   * *0.1.2* Stable release.
-  * *0.1.4* Clean up and review code. Optimize code. Add zith's new GroupList.
-  * *0.1.6* Move from Glib::KeyFile to GConf, make preferences apply when changed. RSS and uPnP plugin.
+  * *0.1.4* Clean up and review code, Optimize code, Add zith's new GroupList, Scheduler plugin.
+  * *0.1.6* Move from Glib::KeyFile to GConf, make preferences apply when changed. RSS plugin.
   * *0.1.8* Avahi support.
-
