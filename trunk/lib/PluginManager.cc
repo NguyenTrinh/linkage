@@ -132,12 +132,13 @@ Glib::ustring PluginManager::get_module(const Glib::ustring& name)
 		if (name == info.get_name())
 			return info.get_file();
 	}
+	return "";
 }
 
 void PluginManager::load_plugin(const Glib::ustring& file)
 {
 	Plugin* (*CreatePlugin)();
-	
+
 	Glib::Module module(file);
 	if (module)
 	{
