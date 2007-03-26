@@ -92,6 +92,8 @@ class UPnPManager
 
 	Glib::Cond m_cond;
 	Glib::Mutex m_mutex;
+	bool m_searching;
+	sigc::signal<void> m_signal_search_complete;
 
 	DeviceMap m_devices;
 	ServiceMap m_services;
@@ -117,6 +119,9 @@ class UPnPManager
 	static Glib::ustring get_value(IXML_Element *element, const DOMString tag);
 	static Glib::ustring get_value(IXML_Element *element);
 public:
+	void search();
+	bool is_searching();
+	sigc::signal<void> signal_search_complete();
 
 	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address);
 	void remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);

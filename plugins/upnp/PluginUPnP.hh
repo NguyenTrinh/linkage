@@ -25,8 +25,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 class UPnPPlugin : public Plugin
 {
 	UPnPManager* m_upnp;
-	std::list<unsigned int> ports;
+	typedef std::map<unsigned int, bool> PortMap;
+	PortMap ports;
 	void on_settings();
+	void update_mappings();
 
 public:
 	Glib::ustring get_name() { return "UPnPPlugin"; };
