@@ -33,20 +33,23 @@ DBusGConnection* init(int* p, void (*cb_func)(unsigned int, const char*))
 	}
 	dbus_connection_setup_with_g_main(connection, NULL);
 
-	int ret = dbus_bus_request_name(connection, "org.linkage", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
-	if (dbus_error_is_set(&error)) {
-		g_warning("Error requesting name: (%s)", error.message);
+	*p = !dbus_bus_name_has_owner(connection, "org.linkage", &error);
+	if (dbus_error_is_set(&error))
+	{
+		g_warning("Error querying D-BUS: (%s)", error.message);
 		dbus_error_free(&error);
 	}
-	if (ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) 
+
+	if (*p)
 	{
-		*p = 0;
-	}
-	else
-	{ 
+		int ret = dbus_bus_request_name(connection, "org.linkage", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
+		if (dbus_error_is_set(&error))
+		{
+			g_warning("Error requesting D-BUS name: (%s)", error.message);
+			dbus_error_free(&error);
+		}
 		dbus_bus_add_match(connection, "type='signal',interface='org.linkage'", &error);
 		dbus_connection_add_filter(connection, signal_filter, cb_func, NULL);
-		*p = 1;
 	}
 
 	return connection;

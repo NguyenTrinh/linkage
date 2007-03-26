@@ -38,10 +38,8 @@ Engine::Engine() : RefCounter<Engine>::RefCounter(this)
 	am = AlertManager::create();
 	tm = TorrentManager::create();
 	pm = PluginManager::create();
-	
-	/* FIXME: this is so ugly it makes my eyes bleed */
-	signal_tick().connect(sigc::mem_fun(am.operator->(), &AlertManager::check_alerts));
-	
+
+	/* FIXME: update interval on_settings() */
 	int interval = ssm->get_int("UI", "Interval")*1000;
 	Glib::signal_timeout().connect(sigc::mem_fun(this, &Engine::on_timeout), interval);
 }
@@ -85,7 +83,7 @@ sigc::signal<void> Engine::signal_tick()
 
 Glib::RefPtr<AlertManager> Engine::get_alert_manager()
 {
-	if (!self)
+	if (!am)
 		init();
 
 	return am;
@@ -93,7 +91,7 @@ Glib::RefPtr<AlertManager> Engine::get_alert_manager()
 
 Glib::RefPtr<PluginManager> Engine::get_plugin_manager()
 {
-	if (!self)
+	if (!pm)
 		init();
 
 	return pm;
@@ -101,7 +99,7 @@ Glib::RefPtr<PluginManager> Engine::get_plugin_manager()
 
 Glib::RefPtr<SessionManager> Engine::get_session_manager()
 {
-	if (!self)
+	if (!sm)
 		init();
 
 	return sm;
@@ -109,7 +107,7 @@ Glib::RefPtr<SessionManager> Engine::get_session_manager()
 
 Glib::RefPtr<SettingsManager> Engine::get_settings_manager()
 {
-	if (!self)
+	if (!ssm)
 		init();
 
 	return ssm;
@@ -117,7 +115,7 @@ Glib::RefPtr<SettingsManager> Engine::get_settings_manager()
 
 Glib::RefPtr<TorrentManager> Engine::get_torrent_manager()
 {
-	if (!self)
+	if (!tm)
 		init();
 
 	return tm;
@@ -125,7 +123,7 @@ Glib::RefPtr<TorrentManager> Engine::get_torrent_manager()
 
 Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
 {
-	if (!self)
+	if (!dbm)
 		init();
 
 	return dbm;
