@@ -18,11 +18,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "config.h"
 
+#define LT_012 (LIBTORRENT_VERSION_MINOR == 12)
+
 #include "linkage/SessionManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
-//#include <libtorrent/extensions/ut_pex.hpp>
+#if LT_012
+#include <libtorrent/extensions/ut_pex.hpp>
+#endif
 
 #include <glib/gstdio.h>
 #include <glibmm/fileutils.h>
@@ -35,11 +39,13 @@ Glib::RefPtr<SessionManager> SessionManager::create()
 SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
 	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))								
 {
-	boost::filesystem::path::default_name_check(boost::filesystem::native);
+	if (!LT_012)
+		boost::filesystem::path::default_name_check(boost::filesystem::native);
 
-	set_severity_level(alert::debug);
+	set_severity_level(alert::info);
 
-	//add_extension(&create_ut_pex_plugin);
+	if (LT_012)
+		add_extension(&create_ut_pex_plugin);
 
 	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
 
@@ -51,18 +57,25 @@ SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
 	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 		decode(file, e);
 
+	/* Seems asio::error has changed, to lazy to look it up atm */
+	#if LT_012
+	#else
 	try
 	{
+	#endif /* LT_012 */
 		start_dht(e);
 		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
+	#if LT_012
+	#else
 	}
 	catch (const asio::error& err)
 	{
 		g_warning(("Failed to start DHT: " + Glib::ustring(err.what())).c_str());
 	}
-	#endif
+	#endif /* LT_012 */
+	#endif /* TORRENT_DISABLE_DHT */
 }
 
 SessionManager::~SessionManager()
@@ -99,7 +112,7 @@ void SessionManager::resume_session()
 	{
 		Glib::ustring file = Glib::build_filename(get_data_dir(), *iter + ".resume");
 		if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-			resume_torrent(*iter);
+			resume_torrent((*iter).c_str());
 	}
 }
 
@@ -333,6 +346,8 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 		save_entry(hash, e, ".resume");
 
 		remove_torrent(torrent->get_handle());
+		/* FIXME: this is pretty stupid, just to get the TorrentManager's attention */
+		torrent->set_handle(torrent_handle());
 	}
 }
 
