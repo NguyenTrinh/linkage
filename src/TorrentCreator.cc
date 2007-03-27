@@ -16,6 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "config.h"
+
+#define LT_012 (LIBTORRENT_VERSION_MINOR == 12)
+
 #include <fstream>
 #include <sys/stat.h>
 
@@ -34,6 +38,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "libtorrent/file.hpp"
 #include "libtorrent/storage.hpp"
 #include "libtorrent/hasher.hpp"
+#if LT_012
+#include "libtorrent/file_pool.hpp"
+#endif
 
 #include "TorrentCreator.hh"
 
@@ -173,7 +180,7 @@ void TorrentCreator::on_button_save()
 		content.erase(0, root.size()+1);
 		add_files(info, root, content);
 
-		info.set_creator("Linkage/0.1.1");
+		info.set_creator(PACKAGE_NAME "/" PACKAGE_VERSION);
 		info.set_piece_size(piece_size);
 		info.add_tracker(tracker.c_str());
 		info.set_comment(comment.c_str());
@@ -191,7 +198,12 @@ void TorrentCreator::on_button_save()
 		check_private->set_sensitive(false);
 		button_save->set_sensitive(false);
 
+		#if LT_012
+		file_pool fp;
+		storage st(info, root.c_str(), fp);
+		#else
 		storage st(info, root.c_str());
+		#endif
 		std::vector<char> buf(piece_size);
 		
 		for (unsigned int i = 0; i < info.num_pieces(); i++)

@@ -125,6 +125,7 @@ class UI : public Gtk::Window
 	TorrentCreator* torrent_win;
 
 	sigc::connection connection_tick;
+	sigc::connection connection_switch_page;
 
 	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
 
