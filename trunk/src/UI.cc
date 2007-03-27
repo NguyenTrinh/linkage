@@ -212,7 +212,7 @@ UI::UI()
 	hpan->pack2(*scrollwin, true, true);
 
 	notebook_main->append_page(*hpan, "Torrents");
-	Gtk::VPaned* vpan = new Gtk::VPaned();
+	Gtk::VPaned* vpan = manage(new Gtk::VPaned());
 	main_vbox->pack_start(*vpan, true, true, 0);
 	vpan->pack1(*notebook_main, true, true);
 
@@ -222,7 +222,7 @@ UI::UI()
 	vpan->pack2(*expander_details, false, true);
 
 	notebook_details = manage(new Gtk::Notebook());
-	notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
+	connection_switch_page = notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
 	expander_details->add(*notebook_details);
 
 	Gtk::VBox* general_box = manage(new Gtk::VBox());
@@ -482,6 +482,8 @@ UI::UI()
 
 UI::~UI()
 {
+	connection_switch_page.disconnect();
+
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	int w, h;
@@ -502,6 +504,8 @@ UI::~UI()
 	delete torrent_win;
 	delete group_list;
 	delete torrent_menu;
+	delete file_chooser;
+	delete path_chooser;
 }
 
 void UI::on_plugin_load(Plugin* plugin)

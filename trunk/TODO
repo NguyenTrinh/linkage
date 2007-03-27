@@ -1,6 +1,6 @@
 * Add color selection to the settings window
 * Revamp plugins
 * Mathusalem plugin? http://tw.apinc.org/weblog/2006/08/13#mathusalem-gets-useful
-* Support for DHT
 * Update TorrentCreator (private flag, DHT, other new stuff)
-* Use TreeStore in FileList to emulate folders
+* Make plugins configureable
+* Add UPnP, Scheduler and Auto-file filter (like *.nfo etc...) plugins
