@@ -44,8 +44,9 @@ SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
 
 	set_severity_level(alert::info);
 
-	if (LT_012)
-		add_extension(&create_ut_pex_plugin);
+	#if LT_012
+	add_extension(&create_ut_pex_plugin);
+	#endif
 
 	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
 
