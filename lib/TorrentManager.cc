@@ -332,7 +332,7 @@ void TorrentManager::check_queue()
 			}
 			else
 			{
-				if (torrent->get_position() < last_active || num_active < max_active)
+				if ((torrent->get_position() < last_active && num_active < max_active) || num_active < max_active)
 				{
 					num_active++;
 					torrent->unqueue();
