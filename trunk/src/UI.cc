@@ -1109,7 +1109,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 												 const Gtk::SelectionData& selection_data,
 												 guint info, guint time)
 {
-	std::string data = selection_data.get_data_as_string();
+	Glib::ustring data = selection_data.get_data_as_string();
 	Glib::StringArrayHandle a = context->get_targets();
 
 	bool is_file_uri = false;
@@ -1119,24 +1119,26 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 
 	if (is_file_uri)
 	{
-		std::list<std::string> uri_list;
+		std::list<Glib::ustring> uri_list;
 		int pos, offset = 0;
-		while ((pos = data.find("\n", offset)) != std::string::npos)
+		while ((pos = data.find("\r\n", offset)) != Glib::ustring::npos)
 		{
-			std::string s = data.substr(0, pos-1);
+			Glib::ustring s = data.substr(offset, pos);
+			if (Glib::str_has_suffix(s, "\r\n"))
+				s = s.substr(0, s.size() - 2);
 			uri_list.push_back(s);
-			offset = pos+1;
+			offset = pos + 2;
 		}
-		for (std::list<std::string>::iterator li = uri_list.begin(); li != uri_list.end(); ++li)
+
+		for (std::list<Glib::ustring>::iterator li = uri_list.begin(); li != uri_list.end(); ++li)
 		{
-			std::string file = *li;
-			pos = file.find("file://");
-			if (pos != std::string::npos)
+			Glib::ustring file = *li;
+			if (Glib::str_has_prefix(file, "file://"))
 				file.erase(0, 7); /* Get rid of leading file:// */
 			add_torrent(file);
 		}
 	}
-	else
+	else if (Glib::str_has_prefix(data, "http://"))
 	{
 		/* TODO: Add a progress bar */	
 		notify("Downloading torrent", "downloading " + data);
