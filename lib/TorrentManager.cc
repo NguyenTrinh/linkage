@@ -312,33 +312,33 @@ void TorrentManager::check_queue()
 
 	sort(torrents);
 
-	bool do_once = true;
-	while (num_active > max_active || do_once)
+	for (unsigned int k = 0; k < torrents.size(); k++)
 	{
-		do_once = false;
-		for (unsigned int k = 0; k < torrents.size(); k++)
+		Torrent* torrent = torrents[k];
+		if (!torrent->is_queued())
 		{
-			Torrent* torrent = torrents[k];
-			if (!torrent->is_queued())
+			if (torrent->get_position() >= last_active && num_active > max_active)
 			{
-				if (torrent->get_position() >= last_active && num_active > max_active)
-				{
-					num_active--;
-					torrent->queue();
-					for (unsigned int l = k; l > 0; l--)
-						if (torrents[l]->get_state() != Torrent::QUEUED)
-							last_active = torrents[l]->get_position();
-				}
+				num_active--;
+				torrent->queue();
+				for (unsigned int l = k; l > 0; l--)
+					if (torrents[l]->get_state() != Torrent::QUEUED)
+						last_active = torrents[l]->get_position();
 			}
-			else
+		}
+		else
+		{
+			if (torrent->get_position() < last_active || num_active < max_active)
 			{
-				if ((torrent->get_position() < last_active && num_active < max_active) || num_active < max_active)
-				{
-					num_active++;
-					torrent->unqueue();
-					last_active = torrent->get_position();
-				}
+				num_active++;
+				torrent->unqueue();
+				for (unsigned int l = k; l < torrents.size(); l++)
+					if (torrents[l]->get_state() != Torrent::QUEUED)
+						last_active = torrents[l]->get_position();
 			}
 		}
 	}
+
+	if (num_active > max_active)
+		check_queue();
 }
