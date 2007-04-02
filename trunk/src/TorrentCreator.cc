@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "config.h"
 
+#include "libtorrent/version.hpp"
 #define LT_012 (LIBTORRENT_VERSION_MINOR == 12)
 
 #include <fstream>
