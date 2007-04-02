@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/thread.h>
 #include "upnp/upnp.h"
 
-class UPnPManager
+class UPnPManager : public sigc::trackable
 {
 	class Device;
 	class Service;
@@ -124,7 +124,7 @@ public:
 	sigc::signal<void> signal_search_complete();
 
 	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address);
-	void remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);
+	bool remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);
 
 	UPnPManager();
 	~UPnPManager();

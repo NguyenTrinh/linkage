@@ -24,8 +24,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class UPnPPlugin : public Plugin
 {
+	Glib::Cond m_cond;
+	Glib::Mutex m_mutex;
+
+	enum MappedProtocol { P_NONE, P_TCP, P_UDP };
 	UPnPManager* m_upnp;
-	typedef std::map<unsigned int, bool> PortMap;
+	typedef std::map<unsigned int, int> PortMap;
 	PortMap ports;
 	void on_settings();
 	void update_mappings();
@@ -40,7 +44,7 @@ public:
 	void on_load();
 	
 	UPnPPlugin();
-	~UPnPPlugin();
+	virtual ~UPnPPlugin();
 };
 
 #endif /* PLUGIN_UPNP_HH */

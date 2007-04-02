@@ -19,6 +19,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "config.h"
+
 #include <glibmm/ustring.h>
 #include <upnp/upnptools.h>
 
@@ -28,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 UPnPManager* UPnPManager::self = NULL;
 
 const char* sIGD = "urn:schemas-upnp-org:device:InternetGatewayDevice:1";
+const char* sWANCON = "urn:schemas-upnp-org:service:WANIPConnection:1";
 
 UPnPManager::Device::Device(IXML_Element* root,
 														const Glib::ustring& url, 
@@ -64,7 +67,7 @@ UPnPManager::Service::Service(IXML_Element *element, const Glib::ustring& URLBas
 	m_id = UPnPManager::get_value(element, "serviceId");
 	m_control_url = UPnPManager::get_value(element, "controlURL");
 	m_event_url = UPnPManager::get_value(element, "eventSubURL");
-	m_timeout = 1801;
+	m_timeout = 3;
 
 	char* url = new char[URLBase.length() + m_control_url.length() + 1];
 	if(UpnpResolveURL(URLBase.c_str(),	m_control_url.c_str(), url) == UPNP_E_SUCCESS)
@@ -76,12 +79,13 @@ UPnPManager::Service::Service(IXML_Element *element, const Glib::ustring& URLBas
 		m_event_url = url;
 	delete url;
 
-//	m_wan = (m_type == UPNP_SERVICE_WAN_IP_CONNECTION || m_type == UPNP_SERVICE_WAN_PPP_CONNECTION);
-	m_wan = true;
-	std::cout << "New service, type: " << m_type << std::endl;
+	m_wan = (m_type == sWANCON);
 
 	if (m_wan)
+	{
 		UPnPManager::self->subscribe(this);
+		std::cout << "Found WANIPConnection service" << std::endl;
+	}
 }
 
 bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::Service::ArgList& args)
@@ -108,7 +112,7 @@ bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::
 			return false;
 		}
 	}
-	
+
 	// Send the action synchronously
 	IXML_Document* ret_doc = NULL;
 	int ret = UpnpSendAction(UPnPManager::self->m_handle, m_control_url.c_str(), m_type.c_str(),	NULL, doc, &ret_doc);
@@ -137,6 +141,25 @@ UPnPManager::UPnPManager()
 	m_searching = false;
 }
 
+UPnPManager::~UPnPManager()
+{
+	for (ServiceMap::iterator iter = m_services.begin();
+				iter != m_services.end(); ++iter)
+	{
+		unsubscribe(iter->second);
+	}
+	m_services.clear();
+
+	for (DeviceMap::iterator iter = m_devices.begin();
+				iter != m_devices.end(); ++iter)
+	{
+		delete iter->second;
+	}
+	m_devices.clear();
+
+	UpnpFinish();
+}
+
 sigc::signal<void> UPnPManager::signal_search_complete()
 {
 	return m_signal_search_complete;
@@ -147,7 +170,7 @@ void UPnPManager::search()
 	if (m_searching)
 		return;
 
-	int ret = UpnpSearchAsync(m_handle, 3, "upnp:rootdevice", NULL);
+	int ret = UpnpSearchAsync(m_handle, 3, sIGD, NULL);
 	if (ret != UPNP_E_SUCCESS)
 		std::cerr << "UPnP search failed: " << UpnpGetErrorMessage(ret) << std::endl;
 
@@ -163,11 +186,6 @@ void UPnPManager::search()
 bool UPnPManager::is_searching()
 {
 	return m_searching;
-}
-
-UPnPManager::~UPnPManager()
-{
-	UpnpFinish();
 }
 
 int UPnPManager::upnp_cb(Upnp_EventType type, void* event, void* cookie)
@@ -205,7 +223,7 @@ int UPnPManager::upnp_cb(Upnp_EventType type, void* event, void* cookie)
 		{
 			Upnp_Event_Subscribe* e =	static_cast<Upnp_Event_Subscribe*>(event);
 			Upnp_SID sid;
-			int timeout = 1801;
+			int timeout = 3;
 			int ret = UpnpSubscribe(UPnPManager::self->m_handle, e->PublisherUrl, &timeout,	sid);
 			if (ret == UPNP_E_SUCCESS)
 			{
@@ -267,7 +285,7 @@ void UPnPManager::on_discovery(Upnp_EventType type, Upnp_Discovery* d)
 		if (devType == sIGD)
 		{
 			if (type != UPNP_DISCOVERY_ADVERTISEMENT_ALIVE)
-				std::cout << "Internet Gateway Device Detected." << std::endl;
+				std::cout << "Internet Gateway Device found" << std::endl;
 
 			add_igd(rootDevice, urlBase, d->Location, d->Expires);
 		}
@@ -297,13 +315,17 @@ void UPnPManager::unsubscribe(Service* service)
 	if (iter != m_services.end())
 	{
 		m_services.erase(iter);
-		UpnpUnSubscribe(m_handle, service->get_sid());
+		int ret = UpnpUnSubscribe(m_handle, service->get_sid());
+		if (ret != UPNP_E_SUCCESS)
+			std::cerr << "Error unsubscribing to " <<	service->get_event_url() << ": " << UpnpGetErrorMessage(ret) << std::endl;
+
 		delete service;
 	}
 }
 
 void UPnPManager::refresh_port_mappings()
 {
+	/* FIXME: implement this */
 }
 
 bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address)
@@ -328,7 +350,7 @@ bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustrin
 	args[5].first = "NewEnabled";
 	args[5].second = "1";
 	args[6].first = "NewPortMappingDescription";
-	args[6].second = "";
+	args[6].second = PACKAGE_NAME "/" PACKAGE_VERSION;
 	args[7].first = "NewLeaseDuration";
 	args[7].second = "0";
 
@@ -339,7 +361,7 @@ bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustrin
 	return ret;
 }
 
-void UPnPManager::remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol)
+bool UPnPManager::remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol)
 {
 	m_mutex.lock();
 	while (m_searching)
@@ -354,9 +376,12 @@ void UPnPManager::remove_port_mapping(const Glib::ustring& port, const Glib::ust
 	args[1].second = port;
 	args[2].first = "NewProtocol";
 	args[2].second = protocol;
-	
+
+	bool ret = false;
 	for (ServiceMap::iterator iter = m_services.begin(); iter != m_services.end(); ++iter)
-		iter->second->send("DeletePortMapping", args);
+		ret = iter->second->send("DeletePortMapping", args);
+
+	return ret;
 }
 
 IXML_Element* UPnPManager::get_first_child(IXML_Element *element, const DOMString tag)
