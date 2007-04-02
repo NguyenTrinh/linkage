@@ -49,7 +49,7 @@ class UPnPManager : public sigc::trackable
 						const Glib::ustring& udn,
 						const Glib::ustring& name,
 						int expires);
-		~Device() {}
+		~Device();
 
 		const Glib::ustring& get_url() { return m_url; }
 		const Glib::ustring& get_location() { return m_location; }
@@ -71,7 +71,7 @@ class UPnPManager : public sigc::trackable
 
 	public:
 		Service(IXML_Element *element, const Glib::ustring& URLBase);
-		~Service() {};
+		~Service();
 		
 		const Glib::ustring& get_type() { return m_type; }
 		const Glib::ustring& get_id() { return m_id; }
@@ -123,6 +123,7 @@ public:
 	bool is_searching();
 	sigc::signal<void> signal_search_complete();
 
+	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);
 	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address);
 	bool remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);
 

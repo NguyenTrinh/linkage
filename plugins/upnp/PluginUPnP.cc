@@ -53,8 +53,7 @@ UPnPPlugin::~UPnPPlugin()
 		}
 	}
 
-	if (m_upnp)
-		delete m_upnp;
+	delete m_upnp;
 }
 
 void UPnPPlugin::on_load()
@@ -99,45 +98,23 @@ void UPnPPlugin::update_mappings()
 				ports[port] |= P_TCP;
 			if (m_upnp->add_port_mapping(str(port), "UDP", ip))
 				ports[port] |= P_UDP;
-
-			if (ports[port] & P_TCP)
-				std::cout << "Successfully mapped " << ip << ":" << port << " (TCP)" << std::endl;
-			else
-				std::cout << "Failed to map " << ip << ":" << port << " (TCP)" << std::endl;
-			if (ports[port] & P_UDP)
-				std::cout << "Successfully mapped " << ip << ":" << port << " (UDP)" << std::endl;
-			else
-				std::cout << "Failed to map " << ip << ":" << port << " (UDP)" << std::endl;
 		}
 		else
 		{
-			/* No valid interface is specified so we'll just try any ip */
-			std::list<Glib::ustring> ifaces = get_interfaces();
-			for (std::list<Glib::ustring>::iterator iter = ifaces.begin();
-						iter != ifaces.end(); ++iter)
-			{
-				/* Skip loop back interface */
-				if (*iter == "lo")
-					continue;
-
-				if (get_ip((*iter).c_str(), ip))
-				{
-					if (m_upnp->add_port_mapping(str(port), "TCP", ip))
-						ports[port] |= P_TCP;
-					if (m_upnp->add_port_mapping(str(port), "UDP", ip))
-						ports[port] |= P_UDP;
-
-					if (ports[port] & P_TCP)
-						std::cout << "Successfully mapped " << ip << ":" << port << " (TCP)" << std::endl;
-					else
-						std::cout << "Failed to map " << ip << ":" << port << " (TCP)" << std::endl;
-					if (ports[port] & P_UDP)
-						std::cout << "Successfully mapped " << ip << ":" << port << " (UDP)" << std::endl;
-					else
-						std::cout << "Failed to map " << ip << ":" << port << " (UDP)" << std::endl;
-				}
-			}
+			if (m_upnp->add_port_mapping(str(port), "TCP"))
+				ports[port] |= P_TCP;
+			if (m_upnp->add_port_mapping(str(port), "UDP"))
+				ports[port] |= P_UDP;
 		}
+
+		if (ports[port] & P_TCP)
+			std::cout << "Successfully mapped " << port << " (TCP)" << std::endl;
+		else
+			std::cout << "Failed to map " << port << " (TCP)" << std::endl;
+		if (ports[port] & P_UDP)
+			std::cout << "Successfully mapped " << port << " (UDP)" << std::endl;
+		else
+			std::cout << "Failed to map " << port << " (UDP)" << std::endl;
 	}
 	m_mutex.lock();
 	m_cond.signal();

@@ -61,6 +61,24 @@ UPnPManager::Device::Device(IXML_Element* root,
 	}
 }
 
+UPnPManager::Device::~Device()
+{
+	for (ServiceMap::iterator iter = m_services.begin();
+				iter != m_services.end(); ++iter)
+	{
+		if (!iter->second->is_wan())
+			delete iter->second;
+	}
+	m_services.clear();
+
+	for (DeviceMap::iterator iter = m_devices.begin();
+				iter != m_devices.end(); ++iter)
+	{
+		delete iter->second;
+	}
+	m_devices.clear();
+}
+
 UPnPManager::Service::Service(IXML_Element *element, const Glib::ustring& URLBase)
 {
 	m_type = UPnPManager::get_value(element, "serviceType");
@@ -86,6 +104,10 @@ UPnPManager::Service::Service(IXML_Element *element, const Glib::ustring& URLBas
 		UPnPManager::self->subscribe(this);
 		std::cout << "Found WANIPConnection service" << std::endl;
 	}
+}
+
+UPnPManager::Service::~Service()
+{
 }
 
 bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::Service::ArgList& args)
@@ -133,7 +155,7 @@ UPnPManager::UPnPManager()
 	/* FIXME: Get Interface from settings manager and use that ip */
 	if (UpnpInit(NULL, 0) != UPNP_E_SUCCESS)
 		std::cerr << "Failed to intialize uPnP" << std::endl;
-	
+
 	int ret = UpnpRegisterClient(UPnPManager::upnp_cb, NULL, &m_handle);
 	if (ret != UPNP_E_SUCCESS)
 		std::cerr << "Failed to register UPnP client: " << UpnpGetErrorMessage(ret) << std::endl;
@@ -143,19 +165,21 @@ UPnPManager::UPnPManager()
 
 UPnPManager::~UPnPManager()
 {
-	for (ServiceMap::iterator iter = m_services.begin();
-				iter != m_services.end(); ++iter)
-	{
-		unsubscribe(iter->second);
-	}
-	m_services.clear();
-
 	for (DeviceMap::iterator iter = m_devices.begin();
 				iter != m_devices.end(); ++iter)
 	{
 		delete iter->second;
 	}
 	m_devices.clear();
+
+	for (ServiceMap::iterator iter = m_services.begin();
+				iter != m_services.end(); ++iter)
+	{
+		unsubscribe(iter->second);
+
+		delete iter->second;
+	}
+	m_services.clear();
 
 	UpnpFinish();
 }
@@ -285,7 +309,7 @@ void UPnPManager::on_discovery(Upnp_EventType type, Upnp_Discovery* d)
 		if (devType == sIGD)
 		{
 			if (type != UPNP_DISCOVERY_ADVERTISEMENT_ALIVE)
-				std::cout << "Internet Gateway Device found" << std::endl;
+				std::cout << "Found Internet Gateway device" << std::endl;
 
 			add_igd(rootDevice, urlBase, d->Location, d->Expires);
 		}
@@ -314,18 +338,24 @@ void UPnPManager::unsubscribe(Service* service)
 	ServiceMap::iterator iter = m_services.find(service->get_event_url());
 	if (iter != m_services.end())
 	{
-		m_services.erase(iter);
 		int ret = UpnpUnSubscribe(m_handle, service->get_sid());
 		if (ret != UPNP_E_SUCCESS)
 			std::cerr << "Error unsubscribing to " <<	service->get_event_url() << ": " << UpnpGetErrorMessage(ret) << std::endl;
-
-		delete service;
 	}
 }
 
 void UPnPManager::refresh_port_mappings()
 {
 	/* FIXME: implement this */
+}
+
+bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol)
+{
+	char* ip = UpnpGetServerIpAddress();
+	if (ip)
+		return add_port_mapping(port, protocol, ip);
+	else
+		return false;
 }
 
 bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address)
@@ -356,7 +386,7 @@ bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustrin
 
 	bool ret = false;
 	for (ServiceMap::iterator iter = m_services.begin(); iter != m_services.end(); ++iter)
-		ret = iter->second->send("AddPortMapping", args);
+		ret = iter->second->send("AddPortMapping", args) || ret;
 
 	return ret;
 }
@@ -379,7 +409,7 @@ bool UPnPManager::remove_port_mapping(const Glib::ustring& port, const Glib::ust
 
 	bool ret = false;
 	for (ServiceMap::iterator iter = m_services.begin(); iter != m_services.end(); ++iter)
-		ret = iter->second->send("DeletePortMapping", args);
+		ret = iter->second->send("DeletePortMapping", args) || ret;
 
 	return ret;
 }
