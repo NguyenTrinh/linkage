@@ -57,9 +57,11 @@ public:
 		ResumeInfo(const entry& e, const torrent_info& i) : resume(e), info(i) {}
 	};
 
+	typedef std::map<Glib::ustring, Glib::ustring> TrackerMap;
+	TrackerMap trackers;
 	Glib::PropertyProxy<torrent_handle> property_handle();
 	torrent_handle get_handle() const;
-	const Glib::ustring& get_tracker_reply() const;
+	const std::pair<Glib::ustring, Glib::ustring>& get_tracker_reply() const;
 	const Glib::ustring get_name() const;
 	const Glib::ustring& get_group() const;
 	const Glib::ustring& get_path() const;
@@ -81,7 +83,7 @@ public:
 	const std::vector<partial_piece_info> get_download_queue() const;
 	const std::vector<float> get_file_progress();
 
-	void set_tracker_reply(const Glib::ustring& reply);
+	void set_tracker_reply(const Glib::ustring& tracker, const Glib::ustring& reply);
 	void set_group(const Glib::ustring& group);
 	void set_position(unsigned int position);
 	void set_filter(std::vector<bool>& filter);
@@ -109,7 +111,8 @@ private:
 	Glib::Property<torrent_handle> m_prop_handle;
 	torrent_info m_info;
 	
-	Glib::ustring m_tracker_reply;
+	typedef std::vector<std::pair<Glib::ustring, Glib::ustring> > ReplyList;
+	ReplyList m_replies;
 	
 	std::vector<bool> m_filter;
 	

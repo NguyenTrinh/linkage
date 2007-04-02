@@ -131,9 +131,9 @@ void SessionManager::on_settings()
 	if (!is_listening() || port < min_port || port > max_port)
 	{
 		if (get_ip(iface.c_str(), ip))
-			listen_on(std::pair<int, int>(min_port, max_port), ip);
+			listen_on(std::make_pair(min_port, max_port), ip);
 		else
-			listen_on(std::pair<int, int>(min_port, max_port));
+			listen_on(std::make_pair(min_port, max_port));
 
 		#ifndef TORRENT_DISABLE_DHT
 		dht_settings settings;
