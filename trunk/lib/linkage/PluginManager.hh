@@ -22,9 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <list>
 
 #include "linkage/Plugin.hh"
+#include "linkage/WeakPtr.hh"
 #include "linkage/RefCounter.hh"
-
-typedef std::list<Plugin*> PluginList;
 
 class PluginInfo
 {
@@ -42,8 +41,8 @@ public:
 };
 
 class PluginManager : public RefCounter<PluginManager>
-{ 
-	PluginList loaded_plugins;
+{
+	std::list<Plugin*> loaded_plugins;
 	
 	void load_plugin(const Glib::ustring& file);
 	void unload_plugin(Plugin* plugin);
@@ -66,7 +65,8 @@ class PluginManager : public RefCounter<PluginManager>
 	PluginManager();
 	
 public:
-	const PluginList& get_plugins();
+	typedef std::list<WeakPtr<Plugin> > PluginList;
+	PluginList get_plugins();
 	
 	sigc::signal<void, Plugin*> signal_plugin_load();
 	sigc::signal<void, Plugin*> signal_plugin_unload();

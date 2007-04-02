@@ -68,6 +68,12 @@ PluginManager::PluginManager() : RefCounter<PluginManager>::RefCounter(this)
 PluginManager::~PluginManager()
 {
 	/* TODO: save plugins to SettinsManger */
+	for (std::list<Plugin*>::iterator iter = loaded_plugins.begin(); 
+				iter != loaded_plugins.end(); ++iter)
+	{
+		delete *iter;
+	}
+	loaded_plugins.clear();
 }
 
 sigc::signal<void, Plugin*> PluginManager::signal_plugin_load()
@@ -84,10 +90,16 @@ sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> PluginManager::s
 {
 	return m_signal_add_widget;
 }
-	
-const PluginList& PluginManager::get_plugins()
+
+PluginManager::PluginList PluginManager::get_plugins()
 {
-	return loaded_plugins;
+	PluginList list;
+	for (std::list<Plugin*>::iterator iter = loaded_plugins.begin(); 
+				iter != loaded_plugins.end(); ++iter)
+	{
+		list.push_back(WeakPtr<Plugin>(*iter));
+	}
+	return list;
 }
 
 std::list<PluginInfo> PluginManager::list_plugins()
@@ -161,19 +173,13 @@ void PluginManager::load_plugin(const Glib::ustring& file)
 
 void PluginManager::unload_plugin(Plugin* plugin)
 {
-	m_signal_plugin_unload.emit(plugin);
-	
-	for (PluginList::iterator iter = loaded_plugins.begin(); 
-					iter != loaded_plugins.end(); ++iter)
+	std::list<Plugin*>::iterator iter = std::find(loaded_plugins.begin(), loaded_plugins.end(), plugin);
+	if (iter != loaded_plugins.end())
 	{
-		Plugin* loaded_plugin = *iter;
-		if (plugin->get_name() == loaded_plugin->get_name())
-		{
-			loaded_plugins.erase(iter);
-			break;
-		}
+		m_signal_plugin_unload.emit(plugin);
+		loaded_plugins.erase(iter);
+		delete plugin;
 	}
-	delete plugin;
 }
 
 /* This method is used to catch plugins that remove themselfs/crash/whatever */
@@ -185,7 +191,7 @@ void PluginManager::on_plugin_unloading(Plugin* plugin)
 
 bool PluginManager::is_loaded(const Glib::ustring& name)
 {
-	for (PluginList::iterator iter = loaded_plugins.begin(); 
+	for (std::list<Plugin*>::iterator iter = loaded_plugins.begin(); 
 					iter != loaded_plugins.end(); ++iter)
 	{
 		Plugin* loaded_plugin = *iter;
@@ -220,8 +226,8 @@ void PluginManager::on_settings()
 	}
 	
 	/* Unload all old */
-	PluginList unload_list;
-	for (PluginList::iterator piter = loaded_plugins.begin(); 
+	std::list<Plugin*> unload_list;
+	for (std::list<Plugin*>::iterator piter = loaded_plugins.begin(); 
 					piter != loaded_plugins.end(); ++piter)
 	{
 		Plugin* loaded_plugin = *piter;
@@ -237,7 +243,7 @@ void PluginManager::on_settings()
 			unload_list.push_back(unload);
 	}
 	
-	for (PluginList::iterator piter = unload_list.begin(); 
+	for (std::list<Plugin*>::iterator piter = unload_list.begin(); 
 					piter != unload_list.end(); ++piter)
 	{
 		unload_plugin(*piter);
