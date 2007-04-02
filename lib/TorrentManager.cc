@@ -33,6 +33,7 @@ TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
 	/* FIXME: add on_tracker_announce and set reply to <i>Trying http://my.tracker</i> */
 	/* FIXME: Torrents should have a list of pair<tracker, reply> */
+	am->signal_tracker_announce().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_announce));
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
 	am->signal_tracker_failed().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_failed));
@@ -70,39 +71,38 @@ sigc::signal<void, const sha1_hash&> TorrentManager::signal_removed()
 	return m_signal_removed;
 }
 
+void TorrentManager::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
+{
+	std::cout << "TM: " << "on_tracker_announce - " << msg << std::endl;
+}
+
 void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply, int peers)
 {
-	m_torrents[hash]->set_tracker_reply("OK, got " + str(peers) + " peers");
+	Glib::ustring tracker = reply.substr(27);
+	m_torrents[hash]->set_tracker_reply(tracker, "OK, got " + str(peers) + " peers");
 }
 
 void TorrentManager::on_tracker_warning(const sha1_hash& hash, const Glib::ustring& reply)
 {
-	m_torrents[hash]->set_tracker_reply(reply);
+	std::cout << "TM: " << "on_tracker_warning - " << reply << std::endl;
+	//m_torrents[hash]->set_tracker_reply(reply);
 }
 
 void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustring& reply, int code, int times)
 {
-	Glib::ustring scode;
-	if (code == 200)
-	{
-		/* Get rid of tracker: "http://foo.bar" */
-		Glib::ustring tracker_msg = reply.substr(reply.find(" ", 9));
-		m_torrents[hash]->set_tracker_reply(tracker_msg);
-		return;
-	}
-	
-	if (code == -1)
-		scode = "connection refused";
-	else if (code == 0)
-		scode = "timed out";
-	else	
-		scode = str(code);
-	
-	Glib::ustring msg = "Failed: " + scode;
-	if (times > 1)
-		msg = msg + " (" + str(times) + " times in a row)";
+	int pos = reply.find(" ", 9);
+	Glib::ustring msg = reply.substr(pos + 1);
+	Glib::ustring tracker = reply.substr(10, pos - 11);
 
-	m_torrents[hash]->set_tracker_reply(msg);
+	Glib::ustring s;
+	if (code != 200)
+		s = "Failed: ";
+
+	s += msg;
+	if (times > 1)
+		s = s + " (" + str(times) + " times in a row)";
+
+	m_torrents[hash]->set_tracker_reply(tracker, s);
 }
 
 void TorrentManager::on_update_queue(const sha1_hash& hash, const Glib::ustring& msg)

@@ -55,6 +55,12 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 		entry e = *iter;
 		m_filter[e.integer()] = true;
 	}
+
+	std::vector<announce_entry> trackers = m_info.trackers();
+	for (unsigned int i = 0; i < trackers.size(); i++)
+	{
+		m_replies.push_back(std::make_pair(trackers[i].url, ""));
+	}
 }
 
 Torrent::~Torrent()
@@ -86,9 +92,11 @@ const Glib::ustring& Torrent::get_path() const
 	return m_path;
 }
 
-const Glib::ustring& Torrent::get_tracker_reply() const
+const std::pair<Glib::ustring, Glib::ustring>& Torrent::get_tracker_reply() const
 {
-	return m_tracker_reply;
+	static int index = -1;
+	index = (++index) % m_replies.size();
+	return m_replies[index];
 }
 
 const unsigned int Torrent::get_position() const
@@ -256,9 +264,14 @@ void Torrent::set_group(const Glib::ustring& group)
 	m_group = group;
 }
 
-void Torrent::set_tracker_reply(const Glib::ustring& reply)
+void Torrent::set_tracker_reply(const Glib::ustring& tracker, const Glib::ustring& reply)
 {
-	m_tracker_reply = reply;
+	int index = 0;
+	for (int i = 0; i < m_replies.size(); i++)
+	{
+		if (m_replies[i].first == tracker)
+			m_replies[i] = std::make_pair(tracker, reply);
+	}
 }
 
 void Torrent::set_position(unsigned int position)

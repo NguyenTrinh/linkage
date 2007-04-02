@@ -269,7 +269,7 @@ UI::UI()
 	Gtk::Table* table_tracker = manage(new Gtk::Table(2, 4));
 	table_tracker->set_spacings(10);
 	table_tracker->set_border_width(5);
-	label = manage(new AlignedLabel("Active tracker:"));
+	label = manage(new AlignedLabel("Tracker:"));
 	table_tracker->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	label = manage(new AlignedLabel("Next announce:"));
 	table_tracker->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
@@ -595,20 +595,20 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 		size_type down = torrent->get_total_downloaded();
 		size_type up = torrent->get_total_uploaded();
 		float ratio = 0;
-		Glib::ustring tracker = stats.current_tracker;
 		switch (notebook_details->get_current_page())
 		{
 			case PAGE_GENERAL:
+			{
 				if (stats.pieces)
 					piecemap->set_map(*stats.pieces);
 				else
 					piecemap->set_map(std::vector<bool>(1, false));
-				if (tracker.empty())
-					tracker = "<i>None</i>";
-				label_tracker->set_markup(tracker);
+				std::pair<Glib::ustring, Glib::ustring> p = torrent->get_tracker_reply();
+				label_tracker->set_text(p.first);
+				label_response->set_text(p.second);
 				label_next_announce->set_text(to_simple_string(stats.next_announce));
-				label_response->set_text(torrent->get_tracker_reply());
 				break;
+			}
 			case PAGE_PEERS:
 				label_down->set_text(suffix_value(down));
 				label_down_rate->set_text(suffix_value(stats.download_payload_rate) + "/s");
