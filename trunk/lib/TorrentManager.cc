@@ -32,7 +32,6 @@ TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 	
 	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
 	/* FIXME: add on_tracker_announce and set reply to <i>Trying http://my.tracker</i> */
-	/* FIXME: Torrents should have a list of pair<tracker, reply> */
 	am->signal_tracker_announce().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_announce));
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
@@ -73,7 +72,7 @@ sigc::signal<void, const sha1_hash&> TorrentManager::signal_removed()
 
 void TorrentManager::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
 {
-	std::cout << "TM: " << "on_tracker_announce - " << msg << std::endl;
+	/* If tracker_alert had some relevant info we could do something here */
 }
 
 void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply, int peers)
@@ -84,7 +83,7 @@ void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring
 
 void TorrentManager::on_tracker_warning(const sha1_hash& hash, const Glib::ustring& reply)
 {
-	std::cout << "TM: " << "on_tracker_warning - " << reply << std::endl;
+	/* tracker_warning doesn't have any info about which tracker who spawned the warning */
 	//m_torrents[hash]->set_tracker_reply(reply);
 }
 
