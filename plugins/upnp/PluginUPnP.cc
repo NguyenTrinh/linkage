@@ -29,12 +29,27 @@ UPnPPlugin::UPnPPlugin()
 
 UPnPPlugin::~UPnPPlugin()
 {
+	/* Hack to make sure we don't leave the search thread behind */
+	m_mutex.lock();
+	while (m_upnp->is_searching())
+		m_cond.wait(m_mutex);
+	m_mutex.unlock();
+
 	for (PortMap::iterator iter = ports.begin(); iter != ports.end(); ++iter)
 	{
-		if (iter->second)
+		if (iter->second & P_TCP)
 		{
-			m_upnp->remove_port_mapping(str(iter->first), "TCP");
-			m_upnp->remove_port_mapping(str(iter->first), "UDP");
+			if (m_upnp->remove_port_mapping(str(iter->first), "TCP"))
+				std::cout << "Successfully unmapped port: " << iter->first << " (TCP)" << std::endl;
+			else
+				std::cout << "Failed to unmap port: " << iter->first << " (TCP)" << std::endl;
+		}
+		if (iter->second & P_UDP)
+		{
+			if (m_upnp->remove_port_mapping(str(iter->first), "UDP"))
+				std::cout << "Successfully unmapped port: " << iter->first << " (UDP)" << std::endl;
+			else
+				std::cout << "Failed to unmap port: " << iter->first << " (UDP)" << std::endl;
 		}
 	}
 
@@ -56,7 +71,7 @@ void UPnPPlugin::on_load()
 void UPnPPlugin::on_settings()
 {
 	unsigned int port = Engine::get_session_manager()->listen_port();
-	ports[port] = false;
+	ports[port] = P_NONE;
 
 	if (!m_upnp->is_searching())
 		update_mappings();
@@ -70,26 +85,29 @@ void UPnPPlugin::update_mappings()
 
 	unsigned int port = Engine::get_session_manager()->listen_port();
 	if (ports.find(port) == ports.end())
-		ports[port] = false;
+		ports[port] = P_NONE;
 
 	for (PortMap::iterator iter = ports.begin(); iter != ports.end(); ++iter)
 	{
 		port = iter->first;
-		if (iter->second)
+		if (iter->second & P_TCP && iter->second & P_UDP)
 			continue;
 
 		if (get_ip(iface.c_str(), ip))
 		{
-			std::cout << "Mapping " << ip << ":" << port;
-			bool ret = m_upnp->add_port_mapping(str(port), "TCP", ip);
-			ret = m_upnp->add_port_mapping(str(port), "UDP", ip) && ret;
-			if (ret)
-			{
-				ports[port] = true;
-				std::cout << " ...succeded" << std::endl;
-			}
+			if (m_upnp->add_port_mapping(str(port), "TCP", ip))
+				ports[port] |= P_TCP;
+			if (m_upnp->add_port_mapping(str(port), "UDP", ip))
+				ports[port] |= P_UDP;
+
+			if (ports[port] & P_TCP)
+				std::cout << "Successfully mapped " << ip << ":" << port << " (TCP)" << std::endl;
 			else
-				std::cout << " ...failed" << std::endl;
+				std::cout << "Failed to map " << ip << ":" << port << " (TCP)" << std::endl;
+			if (ports[port] & P_UDP)
+				std::cout << "Successfully mapped " << ip << ":" << port << " (UDP)" << std::endl;
+			else
+				std::cout << "Failed to map " << ip << ":" << port << " (UDP)" << std::endl;
 		}
 		else
 		{
@@ -104,21 +122,26 @@ void UPnPPlugin::update_mappings()
 
 				if (get_ip((*iter).c_str(), ip))
 				{
-					std::cout << "Mapping " << ip << ":" << port;
-					bool ret = m_upnp->add_port_mapping(str(port), "TCP", ip);
-					ret = m_upnp->add_port_mapping(str(port), "UDP", ip) && ret;
+					if (m_upnp->add_port_mapping(str(port), "TCP", ip))
+						ports[port] |= P_TCP;
+					if (m_upnp->add_port_mapping(str(port), "UDP", ip))
+						ports[port] |= P_UDP;
 
-					if (ret)
-					{
-						ports[port] = true;
-						std::cout << " ...succeded" << std::endl;
-					}
+					if (ports[port] & P_TCP)
+						std::cout << "Successfully mapped " << ip << ":" << port << " (TCP)" << std::endl;
 					else
-						std::cout << " ...failed" << std::endl;
+						std::cout << "Failed to map " << ip << ":" << port << " (TCP)" << std::endl;
+					if (ports[port] & P_UDP)
+						std::cout << "Successfully mapped " << ip << ":" << port << " (UDP)" << std::endl;
+					else
+						std::cout << "Failed to map " << ip << ":" << port << " (UDP)" << std::endl;
 				}
 			}
 		}
 	}
+	m_mutex.lock();
+	m_cond.signal();
+	m_mutex.unlock();
 }
 
 Plugin* CreatePlugin()
