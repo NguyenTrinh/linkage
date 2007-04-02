@@ -1037,7 +1037,8 @@ bool UI::on_tracker_update(GdkEventButton* e)
 	{
 		sha1_hash hash = *list.begin();
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		if (torrent->is_running())
+		Torrent::State state = torrent->get_state();
+		if (state == Torrent::DOWNLOADING || state == Torrent::ANNOUNCING)
 		{
 			switch (e->button)
 			{
