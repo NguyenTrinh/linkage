@@ -234,27 +234,7 @@ UI::UI()
 	label->set_markup("<b>Pieces</b>");
 	frame_pieces->set_label_widget(*label);
 
-	Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
-
-	std::vector<int> rgb = Engine::get_settings_manager()->get_int_list("UI", "ColorDark");
-	Gdk::Color light, mid, dark;
-	dark.set_red(rgb[0]);
-	dark.set_green(rgb[1]);
-	dark.set_blue(rgb[2]);
-	rgb = Engine::get_settings_manager()->get_int_list("UI", "ColorMid");
-	mid.set_red(rgb[0]);
-	mid.set_green(rgb[1]);
-	mid.set_blue(rgb[2]);
-	rgb = Engine::get_settings_manager()->get_int_list("UI", "ColorLight");
-	light.set_red(rgb[0]);
-	light.set_green(rgb[1]);
-	light.set_blue(rgb[2]);
-
-	colormap->alloc_color(dark);
-	colormap->alloc_color(mid);
-	colormap->alloc_color(light);
-
-	piecemap = new PieceMap(dark, mid, light);
+	piecemap = new PieceMap();
 
 	frame_pieces->add(*piecemap);
 	general_box->pack_start(*frame_pieces, false, false, 0);
@@ -1038,7 +1018,8 @@ bool UI::on_tracker_update(GdkEventButton* e)
 		sha1_hash hash = *list.begin();
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		Torrent::State state = torrent->get_state();
-		if (state == Torrent::DOWNLOADING || state == Torrent::ANNOUNCING)
+		if (state == Torrent::DOWNLOADING || state == Torrent::ANNOUNCING ||
+				state == Torrent::SEEDING || state == Torrent::FINISHED)
 		{
 			switch (e->button)
 			{

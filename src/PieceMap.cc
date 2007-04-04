@@ -1,4 +1,8 @@
 /*
+Copyright (C) 2005 by
+Joris Guisson <joris.guisson@gmail.com>
+Vincent Wagelaar <vincent@ricardis.tudelft.nl>
+
 Copyright (C) 2006	Christian Lundgren
 
 This program is free software; you can redistribute it and/or
@@ -18,11 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "PieceMap.hh"
 
-PieceMap::PieceMap(Gdk::Color& dark, Gdk::Color& mid, Gdk::Color& light)
+PieceMap::PieceMap()
 {
-	m_dark = dark;
-	m_mid = mid;
-	m_light = light;
 }
 
 void PieceMap::on_realize()
@@ -34,8 +35,13 @@ void PieceMap::on_realize()
 	get_window()->clear();
 }
 
+/* http://www.cs.rit.edu/~ncs/color/t_convert.html */
 bool PieceMap::on_expose_event(GdkEventExpose* event)
 {
+	Gdk::Color base = get_style()->get_bg(Gtk::STATE_SELECTED);
+
+	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_default_colormap();
+
 	int fw = get_allocation().get_width();
 	int fh = get_allocation().get_height();
 	Glib::RefPtr<Gdk::Window> window = get_window();
@@ -71,14 +77,23 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 		if (px > (x + w))
 			break;
 
-		if (p.fac >= 100)	
-			gc->set_foreground(m_dark);
-		else if (p.fac >= 50)
-			gc->set_foreground(m_mid);
-		else
-			gc->set_foreground(m_light);
-			
+		Gdk::Color c = base;
+		unsigned int r = (unsigned int)(c.get_red()*p.fac);
+		unsigned int g = (unsigned int)(c.get_green()*p.fac);
+		unsigned int b = (unsigned int)(c.get_blue()*p.fac);
+		if (r > USHRT_MAX)
+			r = USHRT_MAX;
+		if (g > USHRT_MAX)
+			g = USHRT_MAX;
+		if (b > USHRT_MAX)
+			b = USHRT_MAX;
+		c.set_rgb(r, g, b);
+		colormap->alloc_color(c);
+
+		gc->set_foreground(c);
+
 		get_window()->draw_rectangle(gc, true, px, get_style()->get_ythickness(), pw, ph);
+		colormap->free_color(c);
 	}
 
 	return true;
@@ -101,14 +116,14 @@ std::list<Part> PieceMap::more_pixels()
 			continue;
 			
 		if (parts.empty())
-			parts.push_back(Part(i, i, 100));
+			parts.push_back(Part(i, i, 1));
 		else
 		{
 			Part & l = parts.back();
 			if (l.last == (int)(i - 1))
 				l.last = i;
 			else
-				parts.push_back(Part(i, i, 100));
+				parts.push_back(Part(i, i, 1));
 		} 
 	}
 	return parts;
@@ -134,7 +149,7 @@ std::list<Part> PieceMap::more_pieces()
 		if (!completed)
 			continue;
 			
-		int fac = (int)(100*((double)completed / (end - start)) + 0.5);
+		double fac = 2 - (double)completed / (end - start);
 
 		if (parts.empty())
 			parts.push_back(Part(i, i, fac));

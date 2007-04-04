@@ -25,8 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class CellRendererPieceMap : public Gtk::CellRenderer
 {
-	Gdk::Color m_dark, m_mid, m_light;
-	
 	Glib::Property<std::vector<bool> > m_prop_map;
 
 	std::list<Part> more_pieces(int width, int height);
@@ -46,9 +44,7 @@ class CellRendererPieceMap : public Gtk::CellRenderer
 public:
 	Glib::PropertyProxy<std::vector<bool> > property_map();
 
-	CellRendererPieceMap(Gdk::Color& dark, 
-											 Gdk::Color& mid, 
-											 Gdk::Color& light);
+	CellRendererPieceMap();
 	~CellRendererPieceMap();
 };
 	
