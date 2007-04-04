@@ -38,29 +38,7 @@ FileList::FileList()
 	get_column(0)->add_attribute(*trender, "active", cols_count - 1);
 	append_column("Name", columns.name);
 
-	/* FIXME: Get colors from SettingsManager */
-	Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
-	
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	std::vector<unsigned int> rgb = sm->get_int_list("UI", "ColorDark");
-	Gdk::Color light, mid, dark;
-	dark.set_red(rgb[0]);
-	dark.set_green(rgb[1]);
-	dark.set_blue(rgb[2]);
-	rgb = sm->get_int_list("UI", "ColorMid");
-	mid.set_red(rgb[0]);
-	mid.set_green(rgb[1]);
-	mid.set_blue(rgb[2]);
-	rgb = sm->get_int_list("UI", "ColorLight");
-	light.set_red(rgb[0]);
-	light.set_green(rgb[1]);
-	light.set_blue(rgb[2]);
-
-	colormap->alloc_color(dark);
-	colormap->alloc_color(mid);
-	colormap->alloc_color(light);
-
-	CellRendererPieceMap *renderer = new CellRendererPieceMap(dark, mid, light);
+	CellRendererPieceMap *renderer = new CellRendererPieceMap();
 	Gtk::TreeViewColumn *column = new Gtk::TreeViewColumn("Progress", *Gtk::manage(renderer));
 	append_column(*Gtk::manage(column));
 	column->add_attribute(renderer->property_map(), columns.map);

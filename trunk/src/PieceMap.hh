@@ -1,4 +1,8 @@
 /*
+Copyright (C) 2005 by
+Joris Guisson <joris.guisson@gmail.com>
+Vincent Wagelaar <vincent@ricardis.tudelft.nl>
+
 Copyright (C) 2006	Christian Lundgren
 
 This program is free software; you can redistribute it and/or
@@ -29,15 +33,14 @@ struct Part
 {
 	int first;
 	int last;
-	int fac;
+	double fac;
 	
-	Part(int fi, int la, int fa) : first(fi), last(la), fac(fa) {}
+	Part(int fi, int la, double fa) : first(fi), last(la), fac(fa) {}
 };
 
 class PieceMap : public Gtk::DrawingArea
 {
 	std::vector<bool> m_map;
-	Gdk::Color m_dark, m_mid, m_light;
 
 	std::list<Part> more_pieces();
 	std::list<Part> more_pixels();
@@ -48,7 +51,7 @@ class PieceMap : public Gtk::DrawingArea
 public:
 	void set_map(const std::vector<bool>& map);
 
-	PieceMap(Gdk::Color& dark, Gdk::Color& mid, Gdk::Color& light);
+	PieceMap();
 	~PieceMap();
 };
 	

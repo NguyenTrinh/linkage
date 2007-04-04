@@ -21,19 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "CellRendererPieceMap.hh"
 
-CellRendererPieceMap::CellRendererPieceMap(Gdk::Color& dark,
-																					 Gdk::Color& mid,
-																					 Gdk::Color& light) :
+CellRendererPieceMap::CellRendererPieceMap() :
 	Glib::ObjectBase(typeid(CellRendererPieceMap)),
 	Gtk::CellRenderer(),
 	m_prop_map(*this, "map")
 {
 	property_xpad() = 0;
 	property_ypad() = 0;
-
-	m_dark = dark;
-	m_mid = mid;
-	m_light = light;
 }
 
 CellRendererPieceMap::~CellRendererPieceMap()
@@ -51,14 +45,14 @@ std::list<Part> CellRendererPieceMap::more_pixels(int width, int height)
 			continue;
 
 		if (parts.empty())
-			parts.push_back(Part(i, i, 100));
+			parts.push_back(Part(i, i, 1));
 		else
 		{
 			Part & l = parts.back();
 			if (l.last == (int)(i - 1))
 				l.last = i;
 			else
-				parts.push_back(Part(i, i, 100));
+				parts.push_back(Part(i, i, 1));
 		}
 	}
 
@@ -83,7 +77,7 @@ std::list<Part> CellRendererPieceMap::more_pieces(int width, int height)
 		if (!completed)
 			continue;
 
-		int fac = (int)(100*((double)completed / (end - start)) + 0.5);
+		double fac = 2 - (double)(completed / (end - start));
 
 		if (parts.empty())
 			parts.push_back(Part(i, i, fac));
@@ -148,6 +142,10 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 																				const Gdk::Rectangle&,
 																				Gtk::CellRendererState flags)
 {
+	Gdk::Color base = widget.get_style()->get_bg(Gtk::STATE_SELECTED);
+
+	Glib::RefPtr<Gdk::Colormap> colormap = widget.get_screen()->get_default_colormap();
+
 	const int cell_xpad = property_xpad();
 	const int cell_ypad = property_ypad();
 
@@ -195,14 +193,23 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		int pw = (int)(scale*(p.last - p.first + 1));
 		int px = (int)(scale*p.first) + bar_x;
 
-		if (p.fac >= 100)
-			gc->set_foreground(m_dark);
-		else if (p.fac >= 50)
-			gc->set_foreground(m_mid);
-		else
-			gc->set_foreground(m_light);
+		Gdk::Color c = base;
+		unsigned int r = (unsigned int)(c.get_red()*p.fac);
+		unsigned int g = (unsigned int)(c.get_green()*p.fac);
+		unsigned int b = (unsigned int)(c.get_blue()*p.fac);
+		if (r > USHRT_MAX)
+			r = USHRT_MAX;
+		if (g > USHRT_MAX)
+			g = USHRT_MAX;
+		if (b > USHRT_MAX)
+			b = USHRT_MAX;
+		c.set_rgb(r, g, b);
+		colormap->alloc_color(c);
+
+		gc->set_foreground(c);
 
 		cwin->draw_rectangle(gc, true, px, bar_y, pw, bar_height);
+		colormap->free_color(c);
 	}
 }
 
