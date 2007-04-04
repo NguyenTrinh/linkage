@@ -1,4 +1,8 @@
 /*
+Copyright (C) 2005 by
+Joris Guisson <joris.guisson@gmail.com>
+Vincent Wagelaar <vincent@ricardis.tudelft.nl>
+
 Copyright (C) 2006	Christian Lundgren
 
 This program is free software; you can redistribute it and/or
