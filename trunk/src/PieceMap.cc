@@ -35,7 +35,6 @@ void PieceMap::on_realize()
 	get_window()->clear();
 }
 
-/* http://www.cs.rit.edu/~ncs/color/t_convert.html */
 bool PieceMap::on_expose_event(GdkEventExpose* event)
 {
 	Gdk::Color base = get_style()->get_bg(Gtk::STATE_SELECTED);
