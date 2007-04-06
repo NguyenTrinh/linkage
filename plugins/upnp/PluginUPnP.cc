@@ -70,7 +70,8 @@ void UPnPPlugin::on_load()
 void UPnPPlugin::on_settings()
 {
 	unsigned int port = Engine::get_session_manager()->listen_port();
-	ports[port] = P_NONE;
+	if (ports.find(port) == ports.end())
+		ports[port] = P_NONE;
 
 	if (!m_upnp->is_searching())
 		update_mappings();
@@ -89,7 +90,7 @@ void UPnPPlugin::update_mappings()
 	for (PortMap::iterator iter = ports.begin(); iter != ports.end(); ++iter)
 	{
 		port = iter->first;
-		if (iter->second & P_TCP && iter->second & P_UDP)
+		if (iter->second & (P_TCP | P_UDP))
 			continue;
 
 		if (get_ip(iface.c_str(), ip))

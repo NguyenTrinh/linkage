@@ -27,7 +27,7 @@ class UPnPPlugin : public Plugin
 	Glib::Cond m_cond;
 	Glib::Mutex m_mutex;
 
-	enum MappedProtocol { P_NONE, P_TCP, P_UDP };
+	enum MappedProtocol { P_NONE = 0x0, P_TCP = 0x1, P_UDP = 0x2 };
 	UPnPManager* m_upnp;
 	typedef std::map<unsigned int, int> PortMap;
 	PortMap ports;
