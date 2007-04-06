@@ -38,8 +38,8 @@ class TrayPlugin : public Plugin
 	Gtk::Image* image;
 	Gtk::Menu* menu;
 
-	bool on_button_released(GdkEventButton* e);
-	void on_tick();
+	bool on_button_released(GdkEventButton* event);
+	bool on_update_tooltip(GdkEventCrossing* event);
 	void on_quit();
 	void on_torrents_stop();
 	void on_torrents_start();
