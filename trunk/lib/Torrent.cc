@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*this, "handle")
 {
+	m_cur_tier = 0;
+	m_announcing = false;
+
 	m_is_queued = queued;
 
 	m_info = ri.info;
@@ -59,7 +62,7 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	std::vector<announce_entry> trackers = m_info.trackers();
 	for (unsigned int i = 0; i < trackers.size(); i++)
 	{
-		m_replies.push_back(std::make_pair(trackers[i].url, ""));
+		m_replies[trackers[i].url] = "";
 	}
 }
 
@@ -92,11 +95,19 @@ const Glib::ustring& Torrent::get_path() const
 	return m_path;
 }
 
-const std::pair<Glib::ustring, Glib::ustring>& Torrent::get_tracker_reply() const
+const std::pair<Glib::ustring, Glib::ustring> Torrent::get_tracker_reply()
 {
-	static int index = -1;
-	index = (++index) % m_replies.size();
-	return m_replies[index];
+	static int offset = 0;
+
+	ReplyMap::const_iterator iter = m_replies.begin();
+	for (int i = 0; i < offset; i++)
+		iter++;
+	if (iter == m_replies.end())
+		iter = m_replies.begin();
+
+	offset = (offset + 1) % m_replies.size();
+
+	return *iter;
 }
 
 const unsigned int Torrent::get_position() const
@@ -257,6 +268,14 @@ void Torrent::set_handle(const torrent_handle& handle)
 	m_prop_handle = handle;
 
 	set_filter(m_filter);
+
+	/* Reset all replies on stop */
+	if (!handle.is_valid())
+	{
+		for (ReplyMap::iterator iter = m_replies.begin(); iter != m_replies.end(); ++iter)
+			iter->second = "";
+		m_cur_tier = 0;
+	}
 }
 
 void Torrent::set_group(const Glib::ustring& group)
@@ -264,14 +283,36 @@ void Torrent::set_group(const Glib::ustring& group)
 	m_group = group;
 }
 
-void Torrent::set_tracker_reply(const Glib::ustring& tracker, const Glib::ustring& reply)
+void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker)
 {
-	int index = 0;
-	for (int i = 0; i < m_replies.size(); i++)
+	std::vector<announce_entry> trackers = m_prop_handle.get_value().trackers();
+	if (tracker.empty())
 	{
-		if (m_replies[i].first == tracker)
-			m_replies[i] = std::make_pair(tracker, reply);
+		for (int j = 0; j < trackers.size(); j++)
+		{
+			if (trackers[j].tier == m_cur_tier)
+			{
+				m_replies[trackers[j].url] = reply;
+				m_cur_tier = (m_cur_tier + 1) % trackers.size();
+				break;
+			}
+		}
 	}
+	else
+	{
+		m_replies[tracker] = reply;
+		for (int j = 0; j < trackers.size(); j++)
+			if (trackers[j].url == tracker)
+				m_cur_tier = (trackers[j].tier + 1) % trackers.size();
+	}
+
+	if (Glib::str_has_prefix(reply, "OK, got "))
+	{
+		m_announcing = false;
+		m_cur_tier = 0;
+	}
+	else
+		m_announcing = true;
 }
 
 void Torrent::set_position(unsigned int position)
@@ -340,6 +381,44 @@ bool Torrent::is_queued()
 bool Torrent::is_running()
 {
 	m_prop_handle.get_value().is_valid();
+}
+
+void Torrent::reannounce(const Glib::ustring& tracker)
+{
+	if (!is_running())
+		return;
+
+	if (m_announcing)
+		return;
+	else
+		m_announcing = true;
+
+	std::vector<announce_entry> trackers = m_prop_handle.get_value().trackers();
+	if (!tracker.empty())
+	{
+		for (int i = 0; i < trackers.size(); i++)
+		{
+			if (trackers[i].url == tracker)
+			{
+				m_cur_tier = trackers[i].tier;
+				announce_entry a(tracker);
+				a.tier = 0;
+				trackers.erase(trackers.begin() + i);
+				trackers.insert(trackers.begin(), a);
+				break;
+			}
+		}
+		for (int i = 1; i < trackers.size(); i++)
+		{
+			if (trackers[i].tier < m_cur_tier)
+				trackers[i].tier++;
+		}
+
+		m_prop_handle.get_value().replace_trackers(trackers);
+	}
+
+	m_cur_tier = 0;
+	m_prop_handle.get_value().force_reannounce();
 }
 
 const entry Torrent::get_resume_entry(bool running)

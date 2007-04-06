@@ -638,7 +638,7 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 		Glib::ustring tracker = trackers[i].url;
 		Gtk::MenuItem* item = manage(new Gtk::MenuItem(tracker));
 		item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_popup_tracker_selected), tracker, trackers[i].tier));
+			this, &UI::on_popup_tracker_selected), tracker));
 		menu_trackers->append(*item);
 	}
 	menu_trackers->show_all_children();
@@ -1025,7 +1025,7 @@ bool UI::on_tracker_update(GdkEventButton* e)
 			{
 				case 1:
 					/* TODO: add timeout to prevent hammering */
-					torrent->get_handle().force_reannounce();
+					torrent->reannounce();
 					break;
 				case 3:
 					build_tracker_menu(torrent);
@@ -1037,32 +1037,15 @@ bool UI::on_tracker_update(GdkEventButton* e)
 	return false;
 }
 
-void UI::on_popup_tracker_selected(const Glib::ustring& tracker, int tier)
+void UI::on_popup_tracker_selected(const Glib::ustring& tracker)
 {
 	/* TODO: Save info to next session */
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1)
 	{
 		sha1_hash hash = *list.begin();
-		torrent_handle handle = Engine::get_torrent_manager()->get_handle(hash);
-		std::vector<announce_entry> trackers = handle.get_torrent_info().trackers();
-		std::vector<announce_entry> new_trackers;
-		for (int i = 0; i < trackers.size(); i++)
-		{
-			if (trackers[i].url == tracker)
-			{
-				trackers[i].tier = 0;
-				new_trackers.insert(new_trackers.begin(), trackers[i]);
-			}
-			else
-			{
-				if (trackers[i].tier < tier)
-					trackers[i].tier++;
-				new_trackers.push_back(trackers[i]);
-			}
-		}
-		handle.replace_trackers(new_trackers);
-		handle.force_reannounce();
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		torrent->reannounce(tracker);
 	}
 }
 

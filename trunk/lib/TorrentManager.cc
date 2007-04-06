@@ -31,7 +31,7 @@ TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 	m_session_manager = Engine::get_session_manager();
 	
 	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
-	/* FIXME: add on_tracker_announce and set reply to <i>Trying http://my.tracker</i> */
+
 	am->signal_tracker_announce().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_announce));
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
@@ -72,36 +72,40 @@ sigc::signal<void, const sha1_hash&> TorrentManager::signal_removed()
 
 void TorrentManager::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
 {
-	/* If tracker_alert had some relevant info we could do something here */
+	if (exists(hash) && !Glib::str_has_suffix(msg, "event=stopped"))
+		m_torrents[hash]->set_tracker_reply("Announcing");
 }
 
 void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply, int peers)
 {
-	Glib::ustring tracker = reply.substr(27);
-	m_torrents[hash]->set_tracker_reply(tracker, "OK, got " + str(peers) + " peers");
+	if (exists(hash))
+	{
+		Glib::ustring tracker = reply.substr(27);
+		m_torrents[hash]->set_tracker_reply("OK, got " + str(peers) + " peers", tracker);
+	}
 }
 
 void TorrentManager::on_tracker_warning(const sha1_hash& hash, const Glib::ustring& reply)
 {
-	/* tracker_warning doesn't have any info about which tracker who spawned the warning */
-	//m_torrents[hash]->set_tracker_reply(reply);
+	if (exists(hash) && !Glib::str_has_prefix(reply, "Redirecting to \""))
+		m_torrents[hash]->set_tracker_reply(reply);
 }
 
 void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustring& reply, int code, int times)
 {
-	int pos = reply.find(" ", 9);
-	Glib::ustring msg = reply.substr(pos + 1);
-	Glib::ustring tracker = reply.substr(10, pos - 11);
+	if (exists(hash))
+	{
+		int pos = reply.find(" ", 9);
+		Glib::ustring msg = reply.substr(pos + 1);
+		Glib::ustring tracker = reply.substr(10, pos - 11);
 
-	Glib::ustring s;
-	if (code != 200)
-		s = "Failed: ";
+		Glib::ustring s = msg;
 
-	s += msg;
-	if (times > 1)
-		s = s + " (" + str(times) + " times in a row)";
+		if (times > 1)
+			s = s + " (" + str(times) + " times in a row)";
 
-	m_torrents[hash]->set_tracker_reply(tracker, s);
+		m_torrents[hash]->set_tracker_reply(s, tracker);
+	}
 }
 
 void TorrentManager::on_update_queue(const sha1_hash& hash, const Glib::ustring& msg)
@@ -143,6 +147,8 @@ bool TorrentManager::exists(const Glib::ustring& hash_str)
 WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info& info)
 {
 	Torrent::ResumeInfo ri(e, info);
+
+	/* FIXME: Make sure ri.resume["path"] not is empty, this is rare but could happen */
 
 	if (!ri.resume.find_key("upload-limit"))
 		ri.resume["upload-limit"] = 0;
