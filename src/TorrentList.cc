@@ -320,7 +320,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 
 	Glib::ustring name = Glib::Markup::escape_text(torrent->get_name());
 
-	if (!torrent->is_running())
+	if (torrent->is_stopped())
 	{
 		ss << "<span foreground='" << color << "'><b>" << name.c_str() << "</b> (" << suffix_value(torrent->get_info().total_size()) << ")</span>\nStopped";
 		row[columns.name] = ss.str();

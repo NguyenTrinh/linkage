@@ -92,7 +92,7 @@ public:
 	void queue();
 	void unqueue();
 	bool is_queued();
-	bool is_running();
+	bool is_stopped();
 
 	void reannounce(const Glib::ustring& tracker = Glib::ustring());
 

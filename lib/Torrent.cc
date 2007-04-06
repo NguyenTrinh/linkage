@@ -161,19 +161,22 @@ const Torrent::State Torrent::get_state() const
 			return SEEDING;
 
 		unsigned int state = status.state;
-		if (m_prop_handle.get_value().is_paused() && m_is_queued)
+		if (m_prop_handle.get_value().is_paused())
 		{
-			/* Queued torrents can be in check state */
-			if (state == torrent_status::checking_files)
-				return CHECKING;
-			else if (state == torrent_status::queued_for_checking)
-				return CHECK_QUEUE;
+			if (m_is_queued)
+			{
+				/* Queued torrents can be in check state */
+				if (state == torrent_status::checking_files)
+					return CHECKING;
+				else if (state == torrent_status::queued_for_checking)
+					return CHECK_QUEUE;
+				else
+					return QUEUED;
+			}
+			/* libtorrent paused this handle, something bad happened */
 			else
-				return QUEUED;
+				return ERROR;
 		}
-		else if (m_prop_handle.get_value().is_paused()) /* libtorrent paused this handle, something bad happened */
-			return ERROR;
-
 
 		switch (state)
 		{
@@ -184,7 +187,7 @@ const Torrent::State Torrent::get_state() const
 			case torrent_status::connecting_to_tracker:
 				return ANNOUNCING;
 			case torrent_status::downloading:
-					return DOWNLOADING;
+				return DOWNLOADING;
 			case torrent_status::finished:
 				return FINISHED;
 			case torrent_status::seeding:
@@ -285,6 +288,9 @@ void Torrent::set_group(const Glib::ustring& group)
 
 void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker)
 {
+	if (is_stopped())
+		return;
+
 	std::vector<announce_entry> trackers = m_prop_handle.get_value().trackers();
 	if (tracker.empty())
 	{
@@ -378,14 +384,14 @@ bool Torrent::is_queued()
 	return m_is_queued;
 }
 
-bool Torrent::is_running()
+bool Torrent::is_stopped()
 {
-	m_prop_handle.get_value().is_valid();
+	return !m_prop_handle.get_value().is_valid();
 }
 
 void Torrent::reannounce(const Glib::ustring& tracker)
 {
-	if (!is_running())
+	if (is_stopped())
 		return;
 
 	if (m_announcing)

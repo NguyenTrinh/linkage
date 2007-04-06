@@ -284,7 +284,7 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	/* Check if torrent is up an running, if so return */
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(info.info_hash());
 
-	if (torrent && torrent->is_running())
+	if (torrent && !torrent->is_stopped())
 		return info.info_hash();
 
 	file = file + ".resume";
@@ -318,7 +318,7 @@ void SessionManager::recheck_torrent(const sha1_hash& hash)
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (torrent)
 	{
-		if (torrent->is_running())
+		if (!torrent->is_stopped())
 			stop_torrent(hash);
 
 		torrent_info info = torrent->get_info();
@@ -336,7 +336,7 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 		Glib::ustring hash_str = str(hash);
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
-		if (!torrent->is_running())
+		if (torrent->is_stopped())
 			return;
 
 		if (torrent->is_queued())
@@ -356,7 +356,7 @@ void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 {
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
-	if (torrent->is_running())
+	if (!torrent->is_stopped())
 		remove_torrent(torrent->get_handle());
 
 	if (erase_content)

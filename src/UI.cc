@@ -820,7 +820,7 @@ void UI::on_start()
 	{
 		sha1_hash hash = *iter;
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		if (!torrent->is_running())
+		if (torrent->is_stopped())
 		{
 			Engine::get_session_manager()->resume_torrent(hash);
 			button_tracker->set_sensitive(true);
@@ -986,7 +986,7 @@ void UI::on_torrent_list_selection_changed()
 		spinbutton_down->set_value((double)torrent->get_down_limit());
 		spinbutton_up->set_value((double)torrent->get_up_limit());
 
-		button_tracker->set_sensitive(torrent->is_running());
+		button_tracker->set_sensitive(!torrent->is_stopped());
 
 		update_statics(torrent);
 		update(torrent, expander_details->get_expanded());

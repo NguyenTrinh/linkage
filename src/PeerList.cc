@@ -104,7 +104,7 @@ void PeerList::clear()
 void PeerList::update(const WeakPtr<Torrent>& torrent)
 {
 	std::vector<peer_info> peers;
-	if (torrent->is_running())
+	if (!torrent->is_stopped())
 		torrent->get_handle().get_peer_info(peers);
 
 	Glib::ustring sel_addr;
