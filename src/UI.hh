@@ -173,7 +173,7 @@ class UI : public Gtk::Window
 	void on_switch_page(GtkNotebookPage* child, int page);
 
 	void build_tracker_menu(const WeakPtr<Torrent>& torrent);
-	void on_popup_tracker_selected(const Glib::ustring& tracker, int tier);
+	void on_popup_tracker_selected(const Glib::ustring& tracker);
 
 	void add_torrent(const Glib::ustring& file);
 	void on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
