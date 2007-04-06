@@ -16,12 +16,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include "PluginTrayIcon.hh"
-#include "linkage/Engine.hh"
+#include <sstream>
 
 #include <gtkmm/menuitem.h>
 #include <gtkmm/imagemenuitem.h>
 #include <gtkmm/separatormenuitem.h>
+
+#include "PluginTrayIcon.hh"
+#include "linkage/Engine.hh"
 
 TrayPlugin::TrayPlugin()
 {
@@ -51,7 +53,7 @@ void TrayPlugin::on_load()
 	image = new Gtk::Image(pixbuf);
 	
 	eventbox = new Gtk::EventBox();;
-	eventbox->add_events(Gdk::BUTTON_RELEASE_MASK);
+	eventbox->add_events(Gdk::BUTTON_RELEASE_MASK | Gdk::ENTER_NOTIFY_MASK);
 	eventbox->signal_button_release_event().connect(sigc::mem_fun(this, &TrayPlugin::on_button_released));
 	eventbox->add(*image);
 	eventbox->show_all_children();
@@ -77,38 +79,53 @@ void TrayPlugin::on_load()
 	imageitem->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_quit));
 	menu->append(*imageitem);
 
-	Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
+	eventbox->signal_enter_notify_event().connect(sigc::mem_fun(this, &TrayPlugin::on_update_tooltip));
+
 	menu->show_all_children();
 }
 
-bool TrayPlugin::on_button_released(GdkEventButton* e)
+bool TrayPlugin::on_button_released(GdkEventButton* event)
 {
-	if (e->button == 1)
+	if (event->button == 1)
 	{
 		Engine::get_dbus_manager()->send("ToggleVisible");
 	}
-	else if (e->button == 3)
+	else if (event->button == 3)
 	{
-		menu->popup(e->button, e->time);
+		menu->popup(event->button, event->time);
 	}
 }
 
-void TrayPlugin::on_tick()
+bool TrayPlugin::on_update_tooltip(GdkEventCrossing* event)
 {
 	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
-	unsigned int num_active = 0, num_seeds = 0;
+	unsigned int num_active = 0, num_queued = 0, num_seeds = 0;
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin(); iter != torrents.end(); ++iter)
 	{
 		WeakPtr<Torrent> torrent = *iter;
-		if (torrent->get_state() == Torrent::SEEDING)
+		Torrent::State state = torrent->get_state();
+
+		if (state == Torrent::SEEDING)
 			num_seeds++;
-		else if (torrent->get_state() != Torrent::STOPPED)
-			num_active++;
+		else if (state != Torrent::STOPPED)
+		{
+			if (state == Torrent::DOWNLOADING || state == Torrent::ANNOUNCING || state == Torrent::FINISHED)
+				num_active++;
+			else
+				num_queued++;
+		}
 	}
 	
 	session_status status = Engine::get_session_manager()->status();
-	
-	tooltips->set_tip(*eventbox, str(num_active) + " downloads, " + str(num_seeds) + " seeds\nDL: " + suffix_value(status.payload_download_rate) + "/s\tUL:" + suffix_value(status.payload_upload_rate) + "/s");
+
+	std::stringstream ss;
+	ss << num_active << " (" << num_queued << ") downloads, "
+		<< num_seeds << " seeds\nDL: " << suffix_value(status.payload_download_rate)
+		<< "/s\tUL:" << suffix_value(status.payload_upload_rate) + "/s";
+
+	tooltips->set_tip(*eventbox, ss.str());
+
+	return false;
 }
 
 void TrayPlugin::on_quit()
@@ -123,7 +140,7 @@ void TrayPlugin::on_torrents_stop()
 				iter != torrents.end(); ++iter)
 	{
 		WeakPtr<Torrent> torrent = *iter;
-		if (torrent->is_running())
+		if (!torrent->is_stopped())
 			Engine::get_session_manager()->stop_torrent(torrent->get_hash());
 	}
 }
@@ -135,7 +152,7 @@ void TrayPlugin::on_torrents_start()
 				iter != torrents.end(); ++iter)
 	{
 		WeakPtr<Torrent> torrent = *iter;
-		if (!torrent->is_running())
+		if (torrent->is_stopped())
 			Engine::get_session_manager()->resume_torrent(torrent->get_hash());
 	}
 }
