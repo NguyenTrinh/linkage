@@ -37,54 +37,29 @@ Glib::RefPtr<SessionManager> SessionManager::create()
 }
 
 SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
-	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))								
+	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))				
 {
 	if (!LT_012)
 		boost::filesystem::path::default_name_check(boost::filesystem::native);
 
 	set_severity_level(alert::info);
 
-	#if LT_012
-	add_extension(&create_ut_pex_plugin);
-	#endif
+	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &SessionManager::on_torrent_finished));
 
 	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
 
 	on_settings(); //Apply settings on startup
-
-	#ifndef TORRENT_DISABLE_DHT
-	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
-	entry e;
-	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-		decode(file, e);
-
-	/* Seems asio::error has changed, to lazy to look it up atm */
-	#if LT_012
-	#else
-	try
-	{
-	#endif /* LT_012 */
-		start_dht(e);
-		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
-		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
-		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
-	#if LT_012
-	#else
-	}
-	catch (const asio::error& err)
-	{
-		g_warning(("Failed to start DHT: " + Glib::ustring(err.what())).c_str());
-	}
-	#endif /* LT_012 */
-	#endif /* TORRENT_DISABLE_DHT */
 }
 
 SessionManager::~SessionManager()
 {
 	#ifndef TORRENT_DISABLE_DHT
-	entry e = dht_state();
-	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
-	save_entry(file, e);
+	if (Engine::get_settings_manager()->get_bool("Network", "UseDHT"))
+	{
+		entry e = dht_state();
+		Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
+		save_entry(file, e);
+	}
 	#endif
 }
 
@@ -134,13 +109,39 @@ void SessionManager::on_settings()
 			listen_on(std::make_pair(min_port, max_port), ip);
 		else
 			listen_on(std::make_pair(min_port, max_port));
-
-		#ifndef TORRENT_DISABLE_DHT
-		dht_settings settings;
-		settings.service_port = listen_port();
-		set_dht_settings(settings);
-		#endif
 	}
+
+	#ifndef TORRENT_DISABLE_DHT
+	dht_settings settings;
+	settings.service_port = listen_port();
+	set_dht_settings(settings);
+
+	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
+	entry e;
+	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
+		decode(file, e);
+
+	if (sm->get_bool("Network", "UseDHT"))
+	{
+		try
+		{
+			start_dht(e);
+			add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
+			add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
+			add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
+		}
+		catch (asio::error& error)
+		{
+			g_warning("Failed to start DHT");
+		}
+	}
+	else
+		/* FIXME: check if dht is running, if so save state */
+		stop_dht();
+	#endif /* TORRENT_DISABLE_DHT */
+
+	if (sm->get_bool("Network", "UsePEX"))
+		add_extension(&create_ut_pex_plugin);
 
 	int up_rate = sm->get_int("Network", "MaxUpRate")*1024;
 	if (up_rate < 1)
@@ -167,10 +168,14 @@ void SessionManager::on_settings()
 	sset.tracker_completion_timeout = sm->get_int("Network", "TrackerTimeout");
 	sset.tracker_receive_timeout = sm->get_int("Network", "TrackerTimeout");
 	sset.stop_tracker_timeout = sm->get_int("Network", "TrackerTimeout");
-	if (sm->get_bool("Network", "UseProxy"))
+	sset.allow_multiple_connections_per_ip = sm->get_bool("Network", "MultipleConnectionsPerIP");
+	sset.use_dht_as_fallback = sm->get_int("Network", "DHTFallback");
+	sset.file_pool_size = sm->get_int("Files", "MaxOpen");
+	Glib::ustring proxy = sm->get_string("Network", "ProxyIp");
+	if (!proxy.empty())
 	{
+		sset.proxy_ip = proxy;
 		sset.proxy_port = sm->get_int("Network", "ProxyPort");
-		sset.proxy_ip = sm->get_string("Network", "ProxyPort");
 		sset.proxy_login = sm->get_string("Network", "ProxyLogin");
 		sset.proxy_password = sm->get_string("Network", "ProxyPass");
 	}
@@ -215,6 +220,20 @@ bool SessionManager::decode(const Glib::ustring& file,
 	}
 
 	return true;
+}
+
+void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
+{
+	if (Engine::get_settings_manager()->get_bool("Files", "MoveFinished"))
+	{
+		Glib::ustring path = Engine::get_settings_manager()->get_string("Files", "FinishedPath");
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		bool ret = false;
+		if (!torrent->is_stopped())
+			ret = torrent->get_handle().move_storage(path.c_str());
+		if (!ret)
+			g_warning("Failed to move content for %s to %s", torrent->get_name().c_str(), path.c_str());
+	}
 }
 
 sha1_hash SessionManager::open_torrent(const Glib::ustring& file,

@@ -87,7 +87,7 @@ class UI : public Gtk::Window
 	AlignedLabel* label_up;
 	AlignedLabel* label_up_rate;
 	AlignedLabel* label_ratio;
-	AlignedLabel* label_wasted;
+	AlignedLabel* label_copies;
 	Gtk::Button* button_tracker;
 	AlignedLabel* label_tracker;
 	AlignedLabel* label_path;
@@ -95,6 +95,8 @@ class UI : public Gtk::Window
 	AlignedLabel* label_comment;
 	AlignedLabel* label_size;
 	AlignedLabel* label_pieces;
+	AlignedLabel* label_done;
+	AlignedLabel* label_remaining;
 	AlignedLabel* label_next_announce;
 	AlignedLabel* label_files;
 	AlignedLabel* label_response;

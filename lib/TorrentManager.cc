@@ -39,7 +39,7 @@ TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 	am->signal_torrent_finished().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
 	am->signal_file_error().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
 
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(*this, &TorrentManager::check_queue));
+	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(*this, &TorrentManager::on_settings));
 }
 
 TorrentManager::~TorrentManager()
@@ -68,6 +68,25 @@ sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> Torrent
 sigc::signal<void, const sha1_hash&> TorrentManager::signal_removed()
 {
 	return m_signal_removed;
+}
+
+void TorrentManager::on_settings()
+{
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
+	{
+		if (!iter->second->is_stopped())
+		{
+			torrent_handle handle = iter->second->get_handle();
+			float ratio;
+			std::istringstream(sm->get_string("Network", "SeedRatio")) >> ratio;
+			handle.set_ratio(ratio);
+			handle.set_max_uploads(sm->get_int("Network", "MaxTorrentUploads"));
+			handle.set_max_connections(sm->get_int("Network", "MaxTorrentConnections"));
+		}
+	}
+
+	check_queue();
 }
 
 void TorrentManager::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
@@ -113,8 +132,19 @@ void TorrentManager::on_update_queue(const sha1_hash& hash, const Glib::ustring&
 	check_queue();
 }
 
-void TorrentManager::on_handle_changed()
+void TorrentManager::on_handle_changed(Torrent* torrent)
 {
+	if (!torrent->is_stopped())
+	{
+		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+		torrent_handle handle = torrent->get_handle();
+		float ratio;
+		std::istringstream(sm->get_string("Network", "SeedRatio")) >> ratio;
+		handle.set_ratio(ratio);
+		handle.set_max_uploads(sm->get_int("Network", "MaxTorrentUploads"));
+		handle.set_max_connections(sm->get_int("Network", "MaxTorrentConnections"));
+	}
+
 	check_queue();
 }
 
@@ -207,7 +237,8 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	ri.resume["position"] = position;
 
 	Torrent* torrent = new Torrent(ri, false);
-	torrent->property_handle().signal_changed().connect(sigc::mem_fun(this, &TorrentManager::on_handle_changed));
+	torrent->property_handle().signal_changed().connect(sigc::bind(
+		sigc::mem_fun(this, &TorrentManager::on_handle_changed), torrent));
 
 	sha1_hash hash = info.info_hash();
 	m_torrents[hash] = torrent;

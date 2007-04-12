@@ -65,8 +65,9 @@ PeerList::PeerList()
 	col = append_column("Progress", *Gtk::manage(prender));
 	get_column(col - 1)->add_attribute(*prender, "value", col);
 	append_column("Client", columns.client);
+	append_column("State", columns.flags);
 
-	for(unsigned int i = 1; i < 7; i++)
+	for(unsigned int i = 1; i < 8; i++)
 	{
 		column = get_column(i);
 		column->set_sort_column_id(i + 1);
@@ -123,9 +124,6 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 
 	for (unsigned int i = 0; i < peers.size(); i++)
 	{
-		if (peers[i].flags & (peer_info::handshake | peer_info::connecting | peer_info::queued))
-			continue;
-
 		Gtk::TreeModel::Row row = *(model->append());
 
 		#ifdef HAVE_LIBGEOIP
@@ -164,6 +162,42 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		if (client.find("Micro", 0) == 0)
 			client.replace(0, 5, "\u00b5");
 		row[columns.client] = client;
+
+		Glib::ustring flags;
+		if (peers[i].flags & peer_info::connecting)
+			flags = "Connecting";
+		else if (peers[i].flags & peer_info::handshake)
+			flags = "Handshake";
+		else if	(peers[i].flags & peer_info::queued)
+			flags = "Queued";
+		else
+		{
+			if (peers[i].flags & peer_info::interesting)
+			{
+				if (!flags.empty())
+					flags += ", ";
+				flags += "Interesting";
+			}
+			if (peers[i].flags & peer_info::choked)
+			{
+				if (!flags.empty())
+					flags += ", ";
+				flags += "Choked";
+			}
+			if (peers[i].flags & peer_info::remote_interested)
+			{
+				if (!flags.empty())
+					flags += ", ";
+				flags += "Remote interested";
+			}
+			if (peers[i].flags & peer_info::remote_choked)
+			{
+				if (!flags.empty())
+					flags += ", ";
+				flags += "Remote choked";
+			}
+		}
+		row[columns.flags] = flags;
 	}
 
 	#ifdef HAVE_LIBGEOIP

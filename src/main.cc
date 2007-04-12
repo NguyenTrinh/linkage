@@ -75,11 +75,16 @@ int main(int argc, char *argv[])
 bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files)
 {
 	Glib::OptionGroup options(PACKAGE_NAME, "Command line options");
-	bool version = false;
+	bool version = false, quit = false;
 	Glib::OptionEntry e_version;
 	e_version.set_long_name("version") ;
 	e_version.set_description("Show version and quit");
 	options.add_entry(e_version, version);
+  Glib::OptionEntry e_quit;
+  e_quit.set_long_name("quit");
+  e_quit.set_description("Tell the running instance to quit");
+  options.add_entry(e_quit, quit);
+ 
 	Glib::OptionContext context("[FILE...] \n\nA BitTorrent client for GTK+\n");
 	context.set_main_group(options);
 	try
@@ -99,6 +104,12 @@ bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files)
 		return true;
 	}
 
+  if (quit)
+  {
+    Engine::get_dbus_manager()->send("Quit");
+    return true;
+  }
+ 
 	for (int i = 1; i < argc; i++)
 	{
 		Glib::ustring file = argv[i];

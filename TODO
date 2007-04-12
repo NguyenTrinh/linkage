@@ -7,3 +7,4 @@
 * Labels: replace wasted with seen copies, add total done to files tab
 * Add option to trunkate long torrent names
 * Make it possible to add user-defined trackers
+* Add sort on time remaining

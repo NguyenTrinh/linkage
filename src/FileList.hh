@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef FILELIST_HH
 #define FILELIST_HH
 
+//#include <gtkmm/menu.h>
+//#include <gtkmm/checkmenuitem.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 
@@ -29,6 +31,7 @@ using namespace libtorrent;
 
 class FileList : public Gtk::TreeView
 {
+	enum Priority { P_NORMAL = 1, P_HIGH, P_MAX = 7};
 	class ModelColumns : public Gtk::TreeModelColumnRecord
 	{
 	public:
@@ -51,11 +54,15 @@ class FileList : public Gtk::TreeView
 	
 	ModelColumns columns;
 	Glib::RefPtr<Gtk::ListStore> model;
-	
+
+	//Gtk::Menu* menu;
+	//Gtk::CheckMenuItem* checkitem;
+
+	//bool on_button_press_event(GdkEventButton *event);
+
+	//void on_set_priority(Priority p);
+	//void on_menu_filter_toggled();
 	void on_filter_toggled(const Glib::ustring& path);
-	bool on_foreach(const Gtk::TreeIter& iter,
-									const WeakPtr<Torrent>& torrent,
-									const std::vector<float>& fp);
 	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<size_type>& column);
 	
 	sha1_hash current_hash;

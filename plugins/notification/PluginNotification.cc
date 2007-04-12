@@ -16,55 +16,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <gtkmm/statusicon.h>
+
 #include "linkage/Engine.hh"
 #include "PluginNotification.hh"
 
-
-int notify_send(const char *summary, const char *body)
-{
-	NotifyNotification *notify;
-	static const gchar *type = NULL;
-	static gchar *icon_str = NULL;
-	static glong expire_timeout = NOTIFY_EXPIRES_DEFAULT;
-	static NotifyUrgency urgency = NOTIFY_URGENCY_NORMAL;
-
-	if (!notify_init("linkage"))
-		return 0;
-
-	notify = notify_notification_new(summary, body, icon_str, NULL);
-	notify_notification_set_category(notify, type);
-	notify_notification_set_urgency(notify, urgency);
-	notify_notification_set_timeout(notify, expire_timeout);
-
-	notify_notification_show(notify, NULL);
-
-	g_object_unref(G_OBJECT(notify));
-
-	notify_uninit();
-
-	return 1;
-}
-
-NotifyPlugin::NotifyPlugin()
+NotifyPlugin::NotifyPlugin() : 
+	Plugin("NotifyPlugin",
+					"Displays notifications trough libnotify",
+					"1",
+					"Christian Lundgren",
+					"http://code.google.com/p/linkage")
 {
 }
 
 NotifyPlugin::~NotifyPlugin()
 {
-}
-
-Glib::ustring NotifyPlugin::get_name()
-{
-	return "NotifyPlugin";
-}
-
-Glib::ustring NotifyPlugin::get_description()
-{
-	return "Displays notifications trough libnotify";
+	notify_uninit();
 }
 
 void NotifyPlugin::on_load()
 {
+	notify_init("linkage");
+
 	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &NotifyPlugin::on_invalid_bencoding));
 	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &NotifyPlugin::on_missing_file));
 	Engine::get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &NotifyPlugin::on_duplicate_torrent));
@@ -75,12 +49,45 @@ void NotifyPlugin::on_load()
 	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &NotifyPlugin::on_fastresume_rejected));
 }
 
-bool NotifyPlugin::notify(const Glib::ustring& title,
+void NotifyPlugin::notify(const Glib::ustring& title,
 													const Glib::ustring& message,
 													NotifyType type)
 {
-	//FIXME: add NotifyType support
-	return notify_send(title.c_str(), message.c_str());
+	NotifyUrgency urgency;
+	gchar* icon = NULL;
+	switch (type)
+	{
+		case NOTIFY_ERROR:
+			icon = "dialog-error";
+			urgency = NOTIFY_URGENCY_CRITICAL;
+			break;
+		case NOTIFY_WARNING:
+			icon = "dialog-warning";
+			urgency = NOTIFY_URGENCY_NORMAL;
+			break;
+		case NOTIFY_INFO:
+		default:
+			icon = "dialog-information";
+			urgency = NOTIFY_URGENCY_LOW;
+			break;
+	}
+	
+	glong timeout = NOTIFY_EXPIRES_DEFAULT;
+	NotifyNotification* notify;
+	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
+	if (plugin)
+	{
+		GtkStatusIcon* status_icon = static_cast<GtkStatusIcon*>(plugin->get_user_data());
+		notify = notify_notification_new_with_status_icon(title.c_str(), message.c_str(), icon, status_icon);
+	}
+	else
+		notify = notify_notification_new(title.c_str(), message.c_str(), icon, NULL);
+	notify_notification_set_urgency(notify, urgency);
+	notify_notification_set_timeout(notify, timeout);
+
+	notify_notification_show(notify, NULL);
+
+	g_object_unref(G_OBJECT(notify));
 }
 
 Plugin * CreatePlugin()

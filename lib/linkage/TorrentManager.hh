@@ -47,7 +47,9 @@ private:
 
 	void on_update_queue(const sha1_hash& hash, const Glib::ustring& msg);
 
-	void on_handle_changed();
+	void on_handle_changed(Torrent* torrent);
+
+	void on_settings();
 
 	TorrentManager();
 	

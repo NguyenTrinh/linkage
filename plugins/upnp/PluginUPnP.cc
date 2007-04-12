@@ -23,37 +23,46 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "PluginUPnP.hh"
 
-UPnPPlugin::UPnPPlugin()
+UPnPPlugin::UPnPPlugin() : 
+	Plugin("UPnPPlugin",
+					"Enables port forwarding through uPnP",
+					"1",
+					"Christian Lundgren",
+					"http://code.google.com/p/linkage")
 {
+	m_upnp = NULL;
 }
 
 UPnPPlugin::~UPnPPlugin()
 {
-	/* Hack to make sure we don't leave the search thread behind */
-	m_mutex.lock();
-	while (m_upnp->is_searching())
-		m_cond.wait(m_mutex);
-	m_mutex.unlock();
-
-	for (PortMap::iterator iter = ports.begin(); iter != ports.end(); ++iter)
+	if (m_upnp)
 	{
-		if (iter->second & P_TCP)
-		{
-			if (m_upnp->remove_port_mapping(str(iter->first), "TCP"))
-				std::cout << "Successfully unmapped port: " << iter->first << " (TCP)" << std::endl;
-			else
-				std::cout << "Failed to unmap port: " << iter->first << " (TCP)" << std::endl;
-		}
-		if (iter->second & P_UDP)
-		{
-			if (m_upnp->remove_port_mapping(str(iter->first), "UDP"))
-				std::cout << "Successfully unmapped port: " << iter->first << " (UDP)" << std::endl;
-			else
-				std::cout << "Failed to unmap port: " << iter->first << " (UDP)" << std::endl;
-		}
-	}
+		/* Hack to make sure we don't leave the search thread behind */
+		m_mutex.lock();
+		while (m_upnp->is_searching())
+			m_cond.wait(m_mutex);
+		m_mutex.unlock();
 
-	delete m_upnp;
+		for (PortMap::iterator iter = ports.begin(); iter != ports.end(); ++iter)
+		{
+			if (iter->second & P_TCP)
+			{
+				if (m_upnp->remove_port_mapping(str(iter->first), "TCP"))
+					std::cout << "Successfully unmapped port: " << iter->first << " (TCP)" << std::endl;
+				else
+					std::cout << "Failed to unmap port: " << iter->first << " (TCP)" << std::endl;
+			}
+			if (iter->second & P_UDP)
+			{
+				if (m_upnp->remove_port_mapping(str(iter->first), "UDP"))
+					std::cout << "Successfully unmapped port: " << iter->first << " (UDP)" << std::endl;
+				else
+					std::cout << "Failed to unmap port: " << iter->first << " (UDP)" << std::endl;
+			}
+		}
+
+		delete m_upnp;
+	}
 }
 
 void UPnPPlugin::on_load()

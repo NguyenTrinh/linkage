@@ -58,33 +58,35 @@ public:
 	};
 
 	Glib::PropertyProxy<torrent_handle> property_handle();
-	torrent_handle get_handle() const;
+	torrent_handle get_handle();
 	const std::pair<Glib::ustring, Glib::ustring> get_tracker_reply();
-	const Glib::ustring get_name() const;
-	const Glib::ustring& get_group() const;
-	const Glib::ustring& get_path() const;
-	const unsigned int get_position() const;
-	const std::vector<bool>& get_filter() const;
-	const int get_up_limit() const;
-	const int get_down_limit() const;
-	const sha1_hash get_hash() const;
+	const Glib::ustring get_name();
+	const Glib::ustring& get_group();
+	const Glib::ustring& get_path();
+	const unsigned int get_position();
+	//const std::vector<int>& get_priorities();
+	const std::vector<bool>& get_filter();
+	const int get_up_limit();
+	const int get_down_limit();
+	const sha1_hash get_hash();
 	
-	const size_type get_total_downloaded() const;
-	const size_type get_total_uploaded() const;
+	const size_type get_total_downloaded();
+	const size_type get_total_uploaded();
 	
-	const State get_state() const;
-	const Glib::ustring get_state_string() const;
-	const Glib::ustring get_state_string(State state) const;
+	const State get_state();
+	const Glib::ustring get_state_string();
+	const Glib::ustring get_state_string(State state);
 	
-	const torrent_info& get_info() const;
-	const torrent_status get_status() const;
-	const std::vector<partial_piece_info> get_download_queue() const;
+	const torrent_info& get_info();
+	const torrent_status get_status();
+	const std::vector<partial_piece_info> get_download_queue();
 	const std::vector<float> get_file_progress();
 
 	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring());
 	void set_group(const Glib::ustring& group);
 	void set_position(unsigned int position);
-	void set_filter(std::vector<bool>& filter);
+	//void set_priorities(const std::vector<int>& p);
+	void set_filter(const std::vector<bool>& filter);
 	void filter_file(unsigned int index, bool filter = true);
 	void set_up_limit(int limit);
 	void set_down_limit(int limit);
@@ -116,8 +118,9 @@ private:
 	int m_cur_tier;
 	bool m_announcing;
 
+	//std::vector<int> m_priorities;
 	std::vector<bool> m_filter;
-	
+
 	bool m_is_queued;
 	
 	unsigned int m_position;

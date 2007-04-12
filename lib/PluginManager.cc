@@ -19,36 +19,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/PluginManager.hh"
 #include "linkage/Engine.hh"
 
-PluginInfo::PluginInfo(const Glib::ustring& name, const Glib::ustring& description, const Glib::ustring& file, bool loaded)
+PluginInfo::PluginInfo(const Glib::ustring& name,
+												const Glib::ustring& description,
+												const Glib::ustring& author,
+												const Glib::ustring& website,
+												const Glib::ustring& version,
+												const Glib::ustring& file,
+												bool loaded)
 {
 	m_name = name;
 	m_description = description;
+	m_author = author;
+	m_website = website;
+	m_version = version;
 	m_file = file;
 	m_loaded = loaded;
 }
 
 PluginInfo::~PluginInfo()
 {
-}
-
-const Glib::ustring& PluginInfo::get_name()
-{
-	return m_name;
-}
-
-const Glib::ustring& PluginInfo::get_description()
-{
-	return m_description;
-}
-
-const Glib::ustring& PluginInfo::get_file()
-{
-	return m_file;
-}
-
-bool PluginInfo::get_loaded()
-{
-	return m_loaded;
 }
 
 Glib::RefPtr<PluginManager> PluginManager::create()
@@ -123,8 +112,14 @@ std::list<PluginInfo> PluginManager::list_plugins()
 				Plugin* plugin = CreatePlugin();
 				
 				bool loaded = is_loaded(plugin->get_name());
-				PluginInfo info = PluginInfo(plugin->get_name(), plugin->get_description(), file, loaded);
-				//delete plugin; needed?
+				PluginInfo info = PluginInfo(plugin->get_name(),
+																			plugin->get_description(),
+																			plugin->get_author(),
+																			plugin->get_website(),
+																			plugin->get_version(),
+																			file,
+																			loaded);
+				delete plugin;
 				list.push_back(info);
 			}
 		}
@@ -194,11 +189,23 @@ bool PluginManager::is_loaded(const Glib::ustring& name)
 	for (std::list<Plugin*>::iterator iter = loaded_plugins.begin(); 
 					iter != loaded_plugins.end(); ++iter)
 	{
-		Plugin* loaded_plugin = *iter;
-		if (name == loaded_plugin->get_name())
+		Plugin* plugin = *iter;
+		if (name == plugin->get_name())
 			return true;
 	}
 	return false;
+}
+
+WeakPtr<Plugin> PluginManager::get_plugin(const Glib::ustring& name)
+{
+	for (std::list<Plugin*>::iterator iter = loaded_plugins.begin(); 
+					iter != loaded_plugins.end(); ++iter)
+	{
+		Plugin* plugin = *iter;
+		if (name == plugin->get_name())
+			return WeakPtr<Plugin>(plugin);
+	}
+	return  WeakPtr<Plugin>();
 }
 
 void PluginManager::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent)
