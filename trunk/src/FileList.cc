@@ -17,6 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <vector>
+
+#include <gtkmm/menuitem.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrendererprogress.h>
 #include <gtkmm/cellrenderertoggle.h>
@@ -59,6 +61,26 @@ FileList::FileList()
 		column->set_sort_column_id(i);
 		column->set_resizable(true);
 	}
+
+	/*menu = Gtk::manage(new Gtk::Menu());
+	Gtk::Menu* submenu_priority = Gtk::manage(new Gtk::Menu());
+	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Maximum"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_MAX));
+	submenu_priority->append(*item);
+	item = Gtk::manage(new Gtk::MenuItem("High"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_HIGH));
+	submenu_priority->append(*item);
+	item = Gtk::manage(new Gtk::MenuItem("Normal"));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_NORMAL));
+	submenu_priority->append(*item);
+	item = Gtk::manage(new Gtk::MenuItem("Priority"));
+	item->set_submenu(*submenu_priority);
+	menu->append(*item);
+	checkitem = Gtk::manage(new Gtk::CheckMenuItem("Filter"));
+	check->signal_toggled().connect(this, &FileList::on_menu_filter_toggled);
+	check->set_inconsistent(true);
+	menu->append(*checkitem);
+	menu->show_all_children();*/
 }
 
 FileList::~FileList()
@@ -69,6 +91,86 @@ void FileList::clear()
 {
 	model->clear();
 }
+
+/*bool FileList::on_button_press_event(GdkEventButton *event)
+{
+	if (event->button == 3)
+	{
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(current_hash);
+		menu->set_sensitive(!torrent->is_stopped());
+
+		Gtk::TreeSelection::ListHandle_Path paths = get_selection().get_selected_rows();
+		bool ret = false;
+		if (paths.empty())
+		{
+			ret = TreeView::on_button_press_event(event);
+			paths = get_selection().get_selected_rows();
+		}
+
+		bool all_false = true;
+		bool all_true = true;
+		Gtk::TreeSelection::ListHandle_Path::iterator iter = paths.begin();
+		while (iter != paths.end())
+		{
+			Gtk::TreeRow row = *(model->get_iter(*iter));
+			all_false = (!row[columns.filter] && all_false);
+			all_true = (row[columns.filter] && all_true);
+			iter++;
+		}
+		if (!all_true && !all_false)
+			checkitem->set_inconsistent(true);
+		else if (all_true)
+			checkitem->set_active(true);
+		else if (all_false)
+			checkitem->set_active(false);
+
+		menu->popup(event->button, event->time);
+
+		return ret;
+	}
+	else
+		return TreeView::on_button_press_event(event);
+}
+
+void FileList::on_set_priority(Priority p)
+{
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(current_hash);
+
+	if (torrent)
+	{
+		std::vector<int> priorities =	torrent->get_priorities();
+		Gtk::TreeSelection::ListHandle_Path paths = get_selection().get_selected_rows();
+		Gtk::TreeSelection::ListHandle_Path::iterator iter = paths.begin();
+		while (iter != paths.end())
+		{
+			Gtk::TreeRow row = *(model->get_iter(*iter));
+			priorities[row[columns.index]] = (int)p;
+			iter++;
+		}
+		torrent->set_priorities(priorities);
+	}
+}
+
+void FileList::on_menu_filter_toggled()
+{
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(current_hash);
+
+	if (torrent)
+	{
+		bool filter = checkitem->get_active();
+		std::vector<int> priorities =	torrent->get_priorities();
+		Gtk::TreeSelection::ListHandle_Path paths = get_selection().get_selected_rows();
+		Gtk::TreeSelection::ListHandle_Path::iterator iter = paths.begin();
+		while (iter != paths.end())
+		{
+			Gtk::TreeRow row = *(model->get_iter(*iter));
+			row[columns.filter] = filter;
+			priorities[row[columns.index]] = filter ? 0 : 1;
+			iter++;
+		}
+		torrent->set_priorities(priorities);
+	}
+}*/
 
 void FileList::on_filter_toggled(const Glib::ustring& path)
 {

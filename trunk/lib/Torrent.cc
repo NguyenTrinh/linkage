@@ -41,22 +41,20 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	m_up_limit = e["upload-limit"].integer();
 	m_down_limit = e["download-limit"].integer();
 
-	/*
-		A note for the curious, the "filter" key in the resume file
-		stores the indices of the files that are filtered
-	*/
-	std::list<entry> fl;
+	std::list<entry> f;
 	try
 	{
-		fl = e["filter"].list();
+		f = e["filter"].list();
 	}
 	catch (std::exception& e) {}
 
 	m_filter.assign(m_info.num_files(), false);
-	for (std::list<entry>::iterator iter = fl.begin(); iter != fl.end(); ++iter)
+	std::list<entry>::iterator iter = f.begin();
+	while (iter != f.end())
 	{
 		entry e = *iter;
 		m_filter[e.integer()] = true;
+		iter++;
 	}
 
 	std::vector<announce_entry> trackers = m_info.trackers();
@@ -75,22 +73,22 @@ Glib::PropertyProxy<torrent_handle> Torrent::property_handle()
 	return m_prop_handle.get_proxy();
 }
 
-torrent_handle Torrent::get_handle() const
+torrent_handle Torrent::get_handle()
 {
 	return m_prop_handle.get_value();
 }
 
-const Glib::ustring Torrent::get_name() const
+const Glib::ustring Torrent::get_name()
 {
 	return m_info.name();
 }
 
-const Glib::ustring& Torrent::get_group() const
+const Glib::ustring& Torrent::get_group()
 {
 	return m_group;
 }
 
-const Glib::ustring& Torrent::get_path() const
+const Glib::ustring& Torrent::get_path()
 {
 	return m_path;
 }
@@ -110,32 +108,32 @@ const std::pair<Glib::ustring, Glib::ustring> Torrent::get_tracker_reply()
 	return *iter;
 }
 
-const unsigned int Torrent::get_position() const
+const unsigned int Torrent::get_position()
 {
 	return m_position;
 }
 
-const std::vector<bool>& Torrent::get_filter() const
+const std::vector<bool>& Torrent::get_filter()
 {
 	return m_filter;
 }
 
-const int Torrent::get_up_limit() const
+const int Torrent::get_up_limit()
 {
 	return m_up_limit;
 }
 
-const int Torrent::get_down_limit() const
+const int Torrent::get_down_limit()
 {
 	return m_down_limit;
 }
 
-const sha1_hash Torrent::get_hash() const
+const sha1_hash Torrent::get_hash()
 {
 	return m_info.info_hash();
 }
 
-const size_type Torrent::get_total_downloaded() const
+const size_type Torrent::get_total_downloaded()
 {
 	size_type total = m_downloaded;
 	if (m_prop_handle.get_value().is_valid())
@@ -143,7 +141,7 @@ const size_type Torrent::get_total_downloaded() const
 	return total;
 }
 
-const size_type Torrent::get_total_uploaded() const
+const size_type Torrent::get_total_uploaded()
 {
 	size_type total = m_uploaded;
 	if (m_prop_handle.get_value().is_valid())
@@ -151,7 +149,7 @@ const size_type Torrent::get_total_uploaded() const
 	return total;
 }
 
-const Torrent::State Torrent::get_state() const
+const Torrent::State Torrent::get_state()
 {
 	if (m_prop_handle.get_value().is_valid())
 	{
@@ -200,12 +198,12 @@ const Torrent::State Torrent::get_state() const
 		return STOPPED;
 }
 
-const Glib::ustring Torrent::get_state_string() const
+const Glib::ustring Torrent::get_state_string()
 {
 	return get_state_string(get_state());
 }
 
-const Glib::ustring Torrent::get_state_string(State state) const
+const Glib::ustring Torrent::get_state_string(State state)
 {
 	switch (state)
 	{
@@ -233,12 +231,12 @@ const Glib::ustring Torrent::get_state_string(State state) const
 	}
 }
 
-const torrent_info& Torrent::get_info() const
+const torrent_info& Torrent::get_info()
 {
 	return m_info;
 }
 
-const torrent_status Torrent::get_status() const
+const torrent_status Torrent::get_status()
 {
 	if (m_prop_handle.get_value().is_valid())
 		return m_prop_handle.get_value().status();
@@ -246,7 +244,7 @@ const torrent_status Torrent::get_status() const
 		return torrent_status();
 }
 
-const std::vector<partial_piece_info> Torrent::get_download_queue() const
+const std::vector<partial_piece_info> Torrent::get_download_queue()
 {
 	std::vector<partial_piece_info> queue;
 	if (m_prop_handle.get_value().is_valid())
@@ -328,7 +326,7 @@ void Torrent::set_position(unsigned int position)
 	Engine::get_torrent_manager()->set_torrent_position(m_info.info_hash(), diff);
 }
 
-void Torrent::set_filter(std::vector<bool>& filter)
+void Torrent::set_filter(const std::vector<bool>& filter)
 {
 	if (filter != m_filter)
 		m_filter.assign(filter.begin(), filter.end());
@@ -340,10 +338,7 @@ void Torrent::set_filter(std::vector<bool>& filter)
 
 void Torrent::filter_file(unsigned int index, bool filter)
 {
-	torrent_info info = m_prop_handle.get_value().get_torrent_info();
-
 	m_filter[index] = filter;
-
 	set_filter(m_filter);
 }
 

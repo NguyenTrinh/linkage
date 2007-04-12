@@ -75,6 +75,7 @@ class TorrentList : public Gtk::TreeView
 	void on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position);
 	void on_removed(const sha1_hash& hash);
 
+	Glib::ustring format_name(const WeakPtr<Torrent>& torrent);
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 
 	bool on_button_press_event(GdkEventButton *event);

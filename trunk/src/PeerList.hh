@@ -46,6 +46,7 @@ class PeerList : public Gtk::TreeView
 			add(up_rate);
 			add(progress);
 			add(client);
+			add(flags);
 		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > flag;
 		Gtk::TreeModelColumn<Glib::ustring> address;
@@ -55,6 +56,7 @@ class PeerList : public Gtk::TreeView
 		Gtk::TreeModelColumn<float> up_rate;
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> client;
+		Gtk::TreeModelColumn<Glib::ustring> flags;
 	};
 
 	ModelColumns columns;

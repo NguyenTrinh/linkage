@@ -328,7 +328,7 @@ UI::UI()
 	table_transfer->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::SHRINK);
 	label = manage(new AlignedLabel("Share ratio:"));
 	table_transfer->attach(*label, 4, 5, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Wasted:"));
+	label = manage(new AlignedLabel("Seen copies:"));
 	table_transfer->attach(*label, 6, 7, 1, 2, Gtk::FILL, Gtk::SHRINK);
 	label_down_rate = manage(new AlignedLabel());
 	table_transfer->attach(*label_down_rate, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
@@ -346,8 +346,8 @@ UI::UI()
 	table_transfer->attach(*label_up, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 	label_ratio = manage(new AlignedLabel());
 	table_transfer->attach(*label_ratio, 5, 6, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_wasted = manage(new AlignedLabel());
-	table_transfer->attach(*label_wasted, 7, 8, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	label_copies = manage(new AlignedLabel());
+	table_transfer->attach(*label_copies, 7, 8, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 
 	transfer_box->pack_start(*table_transfer, false, false, 0);
 
@@ -360,26 +360,34 @@ UI::UI()
 
 	Gtk::VBox* files_box = manage(new Gtk::VBox());
 
-	Gtk::Table* table_files = manage(new Gtk::Table(2, 6));
+	Gtk::Table* table_files = manage(new Gtk::Table(2, 10));
 	table_files->set_spacings(10);
 	table_files->set_border_width(5);
 	label = manage(new AlignedLabel("Files:"));
 	table_files->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
 	label = manage(new AlignedLabel("Total size:"));
 	table_files->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Pieces:"));
+	label = manage(new AlignedLabel("Done:"));
 	table_files->attach(*label, 4, 5, 0, 1, Gtk::FILL, Gtk::SHRINK);
+	label = manage(new AlignedLabel("Remaining:"));
+	table_files->attach(*label, 6, 7, 0, 1, Gtk::FILL, Gtk::SHRINK);
+	label = manage(new AlignedLabel("Pieces:"));
+	table_files->attach(*label, 8, 9, 0, 1, Gtk::FILL, Gtk::SHRINK);
 	label = manage(new AlignedLabel("Saving as:"));
 	table_files->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
 	label_files = manage(new AlignedLabel());
 	table_files->attach(*label_files, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 	label_size = manage(new AlignedLabel());
 	table_files->attach(*label_size, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	label_done = manage(new AlignedLabel());
+	table_files->attach(*label_done, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	label_remaining = manage(new AlignedLabel());
+	table_files->attach(*label_remaining, 7, 8, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 	label_pieces = manage(new AlignedLabel());
-	table_files->attach(*label_pieces, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label_pieces, 9, 10, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 	label_path = manage(new AlignedLabel());
 	label_path->set_ellipsize(Pango::ELLIPSIZE_END);
-	table_files->attach(*label_path, 1, 6, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+	table_files->attach(*label_path, 1, 10, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 
 	files_box->pack_start(*table_files, false, false, 0);
 
@@ -597,13 +605,18 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 				if (down)
 					ratio = (1.0f*up)/(1.0f*down);
 				label_ratio->set_text(str(ratio, 3));
-				label_wasted->set_text(suffix_value(stats.total_failed_bytes));
+				if (stats.distributed_copies != -1)
+					label_copies->set_text(str(stats.distributed_copies, 3));
+				else
+					label_copies->set_text("-");
 				if (update_lists)
 					peer_list->update(torrent);
 				break;
 			case PAGE_FILES:
 				if (update_lists)
 					file_list->update(torrent);
+				label_done->set_text(suffix_value(stats.total_done));
+				label_remaining->set_text(suffix_value(stats.total_wanted - stats.total_wanted_done));
 				break;
 
 		}
@@ -658,7 +671,7 @@ void UI::add_torrent(const Glib::ustring& file)
 	Glib::ustring save_path;
 	Glib::ustring name = file.substr(file.rfind("/") + 1, file.size());
 	path_chooser->set_title("Select path for " + name);
-	if (!Engine::get_settings_manager()->get_bool("Files", "UseDefPath"))
+	if (!Engine::get_settings_manager()->get_bool("Files", "UseDefaultPath"))
 		if (path_chooser->run() == Gtk::RESPONSE_OK)
 		{
 			save_path = path_chooser->get_filename();
@@ -670,7 +683,7 @@ void UI::add_torrent(const Glib::ustring& file)
 			return;
 		}
 	else
-		save_path = Engine::get_settings_manager()->get_string("Files", "DefPath");
+		save_path = Engine::get_settings_manager()->get_string("Files", "DefaultPath");
 
 	sha1_hash hash = Engine::get_session_manager()->open_torrent(file, save_path);
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
@@ -1097,10 +1110,9 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 
 		for (std::list<Glib::ustring>::iterator li = uri_list.begin(); li != uri_list.end(); ++li)
 		{
-			Glib::ustring file = *li;
-			if (Glib::str_has_prefix(file, "file://"))
-				file.erase(0, 7); /* Get rid of leading file:// */
-			add_torrent(file);
+			gchar* f = g_filename_from_uri(li->c_str(), NULL, NULL);
+			if (f)
+				add_torrent(f);
 		}
 	}
 	else if (Glib::str_has_prefix(data, "http://"))

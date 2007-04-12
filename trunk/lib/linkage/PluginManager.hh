@@ -27,16 +27,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class PluginInfo
 {
-	Glib::ustring m_name, m_description, m_file;
+	Glib::ustring m_name, m_description, m_author, m_website, m_version, m_file;
 	bool m_loaded;
 	
 public:
-	const Glib::ustring& get_name();
-	const Glib::ustring& get_description();
-	const Glib::ustring& get_file();
-	bool get_loaded();
+	const Glib::ustring& get_name() { return m_name; }
+	const Glib::ustring& get_description() { return m_description; }
+	const Glib::ustring& get_author() { return m_author; }
+	const Glib::ustring& get_website() { return m_website; }
+	const Glib::ustring& get_version() { return m_version; }
+	const Glib::ustring& get_file() { return m_file; }
+	bool get_loaded() { return m_loaded; }
 	
-	PluginInfo(const Glib::ustring& name, const Glib::ustring& description, const Glib::ustring& file, bool loaded);
+	PluginInfo(const Glib::ustring& name,
+							const Glib::ustring& description,
+							const Glib::ustring& author,
+							const Glib::ustring& website,
+							const Glib::ustring& version,
+							const Glib::ustring& file,
+							bool loaded);
 	~PluginInfo();
 };
 
@@ -46,8 +55,6 @@ class PluginManager : public RefCounter<PluginManager>
 	
 	void load_plugin(const Glib::ustring& file);
 	void unload_plugin(Plugin* plugin);
-	
-	bool is_loaded(const Glib::ustring& name);
 	
 	Glib::ustring get_module(const Glib::ustring& name);
 	
@@ -70,7 +77,10 @@ public:
 	
 	sigc::signal<void, Plugin*> signal_plugin_load();
 	sigc::signal<void, Plugin*> signal_plugin_unload();
-	
+
+	bool is_loaded(const Glib::ustring& name);
+	WeakPtr<Plugin> get_plugin(const Glib::ustring& name);
+
 	std::list<PluginInfo> list_plugins();
 	
 	sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> signal_add_widget();

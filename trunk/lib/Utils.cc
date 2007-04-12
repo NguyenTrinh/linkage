@@ -80,6 +80,9 @@ Glib::ustring get_eta(size_type size, float rate)
 {
 	if (!rate || !size)
 		return "\u221E";
+	else if (rate < 0 || size < 0)
+		return "";
+
 	size_type seconds = (size_type)round(size/rate);
 	return format_time(seconds);
 }

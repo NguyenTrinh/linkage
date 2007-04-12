@@ -26,13 +26,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <libnotify/notify.h>
 #include <glib.h>
 
-int notify_send(const char *summary, const char *body);
-
 class NotifyPlugin : public Plugin
 {
 	enum NotifyType { NOTIFY_INFO, NOTIFY_WARNING, NOTIFY_ERROR };
 
-	bool notify(const Glib::ustring& title,
+	void notify(const Glib::ustring& title,
 							const Glib::ustring& message,
 							NotifyType type);
 
@@ -46,11 +44,9 @@ class NotifyPlugin : public Plugin
 	void on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg);
 
 public:
-	Glib::ustring get_name();
-	Glib::ustring get_description();
-
-	PluginParent get_parent() { return Plugin::PARENT_NONE; };
-	Gtk::Widget* get_widget() { return NULL; };
+	PluginParent get_parent() { return Plugin::PARENT_NONE; }
+	Gtk::Widget* get_widget() { return NULL; }
+	Gtk::Widget* get_config_widget() { return NULL; }
 
 	void on_load();
 

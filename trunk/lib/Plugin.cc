@@ -23,14 +23,22 @@ Plugin::Plugin()
 {
 	m_name = "Generic plugin";
 	m_description = "Generic plugin description";
-	m_version = 0;
+	m_version = "0.0";
+	m_author = "Linkage";
+	m_website = "http://code.google.com/p/linkage";
 }
 
-Plugin::Plugin(const Glib::ustring& name, const Glib::ustring& description, unsigned int version)
+Plugin::Plugin(const Glib::ustring& name,
+								const Glib::ustring& description,
+								const Glib::ustring& version,
+								const Glib::ustring& author,
+								const Glib::ustring& website)
 {
 	m_name = name;
 	m_description = description;
 	m_version = version;
+	m_author = author;
+	m_website = website;
 }
 
 Plugin::~Plugin()
@@ -53,17 +61,28 @@ sigc::signal<void, Plugin*> Plugin::signal_unloading()
 	return m_signal_unloading;
 }
 
-Glib::ustring Plugin::get_name()
+const Glib::ustring& Plugin::get_name()
 {
 	return m_name;
 }
 
-Glib::ustring Plugin::get_description()
+const Glib::ustring& Plugin::get_description()
 {
 	return m_description;
 }
 
-unsigned int Plugin::get_version()
+const Glib::ustring& Plugin::get_version()
 {
 	return m_version;
 }
+
+const Glib::ustring& Plugin::get_author()
+{
+	return m_author;
+}
+
+const Glib::ustring& Plugin::get_website()
+{
+	return m_website;
+}
+

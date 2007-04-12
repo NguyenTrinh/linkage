@@ -19,37 +19,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef PLUGIN_TRAYICON_HH
 #define PLUGIN_TRAYICON_HH
 
-#include <gdkmm/types.h>
-#include <gtkmm/image.h>
-#include <gtkmm/eventbox.h>
-#include <gtkmm/tooltips.h>
+#include <gtkmm/statusicon.h>
 #include <gtkmm/menu.h>
-#include <gtkmm/stock.h>
 
-#include "eggtrayicon.h"
 #include "linkage/Plugin.hh"
 
 class TrayPlugin : public Plugin
 {
-	EggTrayIcon *tray_icon;
-	Gtk::Widget* widget;
-	Gtk::EventBox* eventbox;
-	Gtk::Tooltips* tooltips;
-	Gtk::Image* image;
+	Glib::RefPtr<Gtk::StatusIcon> icon;
 	Gtk::Menu* menu;
 
-	bool on_button_released(GdkEventButton* event);
-	bool on_update_tooltip(GdkEventCrossing* event);
+	static void on_activate(GtkStatusIcon* status_icon, gpointer data);
+	static void on_popup(GtkStatusIcon* status_icon, guint button, guint time, gpointer data);
+
+	void on_tick();
 	void on_quit();
 	void on_torrents_stop();
 	void on_torrents_start();
 	
 public:
-	Glib::ustring get_name();
-	Glib::ustring get_description();
-	
-	PluginParent get_parent() { return Plugin::PARENT_NONE; };
-	Gtk::Widget* get_widget() { return NULL; };
+	gpointer get_user_data() { return icon->gobj(); }
+	PluginParent get_parent() { return Plugin::PARENT_NONE; }
+	Gtk::Widget* get_widget() { return NULL; }
+	Gtk::Widget* get_config_widget() { return NULL; }
 	
 	void on_load();
 	

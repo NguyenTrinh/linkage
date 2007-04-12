@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2007	Christian Lundgren
+Copyright (C) 2006	Christian Lundgren
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -16,33 +16,25 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#ifndef PLUGIN_UPNP_HH
-#define PLUGIN_UPNP_HH
+#ifndef ALIGNED_FRAME_HH
+#define ALIGNED_FRAME_HH
 
-#include "linkage/Plugin.hh"
-#include "UPnPManager.hh"
+#include <gtkmm/label.h>
+#include <gtkmm/alignment.h>
+#include <gtkmm/frame.h>
 
-class UPnPPlugin : public Plugin
+class AlignedFrame : public Gtk::Frame
 {
-	Glib::Cond m_cond;
-	Glib::Mutex m_mutex;
-
-	enum MappedProtocol { P_NONE = 0x0, P_TCP = 0x1, P_UDP = 0x2 };
-	UPnPManager* m_upnp;
-	typedef std::map<unsigned int, int> PortMap;
-	PortMap ports;
-	void on_settings();
-	void update_mappings();
-
+	Gtk::Alignment* m_alignment;
+	Gtk::Label* m_label;
 public:
-	PluginParent get_parent() { return Plugin::PARENT_NONE; }
-	Gtk::Widget* get_widget() { return NULL; }
-	Gtk::Widget* get_config_widget() { return NULL; }
+	AlignedFrame();
+	AlignedFrame(const Glib::ustring& text);
 
-	void on_load();
-	
-	UPnPPlugin();
-	virtual ~UPnPPlugin();
+	void set_label(const Glib::ustring& text);
+	void add(Gtk::Widget& widget);
+
+	virtual ~AlignedFrame();
 };
 
-#endif /* PLUGIN_UPNP_HH */
+#endif /* ALIGNED_FRAME_HH */

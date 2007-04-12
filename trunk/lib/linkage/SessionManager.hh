@@ -43,6 +43,8 @@ class SessionManager : public RefCounter<SessionManager>, public session
 	bool decode(const Glib::ustring& file, entry& e);
 	bool decode(const Glib::ustring& file, entry& e, std::vector<char>& buffer);
 
+	void on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg);
+
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
 	sigc::signal<void, const Glib::ustring&, const sha1_hash&> m_signal_duplicate_torrent;

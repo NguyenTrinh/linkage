@@ -238,6 +238,72 @@ void TorrentList::set_sort_order(Gtk::SortType order)
 	model->set_sort_column_id(current_col_id, order);
 }
 
+Glib::ustring TorrentList::format_name(const WeakPtr<Torrent>& torrent)
+{
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	Torrent::State state = torrent->get_state();
+	Glib::ustring color;
+	switch (state)
+	{
+		case Torrent::CHECK_QUEUE:
+			color = sm->get_string("UI", "ColorCheckQueue");
+			break;
+		case Torrent::CHECKING:
+			color = sm->get_string("UI", "ColorChecking");
+			break;
+		case Torrent::ANNOUNCING:
+			color = sm->get_string("UI", "ColorAnnouncing");
+			break;
+		case Torrent::DOWNLOADING:
+			color = sm->get_string("UI", "ColorDownloading");
+			break;
+		case Torrent::FINISHED:
+			color = sm->get_string("UI", "ColorFinished");
+			break;
+		case Torrent::SEEDING:
+			color = sm->get_string("UI", "ColorSeeding");
+			break;
+		case Torrent::ALLOCATING:
+			color = sm->get_string("UI", "ColorAllocating");
+			break;
+		case Torrent::STOPPED:
+			color = sm->get_string("UI", "ColorStopped");
+			break;
+		case Torrent::QUEUED:
+			color = sm->get_string("UI", "ColorQueued");
+			break;
+		case Torrent::ERROR:
+			color = sm->get_string("UI", "ColorError");
+			break;
+	}
+	std::stringstream ss;
+	Glib::ustring name = torrent->get_name();
+	int name_max = sm->get_int("UI", "MaxNameWidth");
+	if (sm->get_bool("UI", "TrunkateNames") && name.size() > name_max)
+		name = name.substr(0, name_max) + "...";
+	name = Glib::Markup::escape_text(name);
+
+	ss << "<span foreground='" << color << "'><b>" << name.c_str() << "</b> ("
+			<< suffix_value(torrent->get_info().total_size()) << ")</span>\n";
+
+	torrent_status status = torrent->get_status();
+	if (state == Torrent::DOWNLOADING || state == Torrent::SEEDING || state == Torrent::FINISHED)
+	{
+		ss << status.num_seeds;
+		bool got_scrape = (status.num_complete != -1 && status.num_incomplete != -1);
+		if (got_scrape)
+			ss << " (" << status.num_complete << ")";
+		ss << " connected seeds, " << (status.num_peers - status.num_seeds);
+		if (got_scrape)
+			ss << " (" << status.num_incomplete << ")";
+		ss << " peers";
+	}
+	else
+		ss << torrent->get_state_string(state);
+
+	return ss.str();
+}
+
 void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
 {
 	Gtk::TreeRow row = *iter;
@@ -280,36 +346,14 @@ sigc::signal<void, GdkEventButton*> TorrentList::signal_right_click()
 
 void TorrentList::update(const WeakPtr<Torrent>& torrent)
 {
-	Gtk::TreeRow row = *get_iter(torrent->get_hash());
+	Gtk::TreeIter iter = get_iter(torrent->get_hash());
+	if (!iter)
+		return;
+
+	Gtk::TreeRow row = *iter;	
+
+	row[columns.name] = format_name(torrent);
 	row[columns.position] = torrent->get_position();
-
-	Glib::ustring color;
-	switch (torrent->get_state())
-	{
-		case Torrent::ERROR:
-			color = "#C22C22";
-			break;
-		case Torrent::STOPPED:
-			color = "#999999";
-			break;
-		case Torrent::CHECK_QUEUE:
-		case Torrent::QUEUED:
-			color = "#5C5C5C";
-			break;
-		case Torrent::SEEDING:
-			color = "#4F96FF";
-			break;
-		case Torrent::CHECKING:
-			color = "#FF7F50";
-			break;
-		case Torrent::DOWNLOADING:
-		default:
-			color = "#000000";
-			break;
-	}
-
-	std::stringstream ss;
-
 	row[columns.state] = torrent->get_state_string();
 
 	size_type up = torrent->get_total_uploaded();
@@ -318,12 +362,8 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	row[columns.down] = down;
 	row[columns.up] = up;
 
-	Glib::ustring name = Glib::Markup::escape_text(torrent->get_name());
-
 	if (torrent->is_stopped())
 	{
-		ss << "<span foreground='" << color << "'><b>" << name.c_str() << "</b> (" << suffix_value(torrent->get_info().total_size()) << ")</span>\nStopped";
-		row[columns.name] = ss.str();
 		row[columns.down_rate] = 0;
 		row[columns.up_rate] = 0;
 		row[columns.seeds] = 0;
@@ -337,7 +377,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 
 	if (torrent->get_state() == Torrent::SEEDING)
 	{
-		size_type size = status.total_wanted_done - up;
+		size_type size = down - up;
 		if (down != 0)
 		{
 			float ratio = (1.0f*up)/(1.0f*down);
@@ -370,23 +410,8 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	else
 	{
 		row[columns.progress] = double(status.progress*100);
-		row[columns.eta] = str(double(status.progress*100), 2) + " % " + get_eta(status.total_wanted-status.total_wanted_done, status.download_payload_rate);
+		row[columns.eta] = str(double(status.progress*100), 2) + "% " + get_eta(status.total_wanted - status.total_wanted_done, status.download_payload_rate);
 	}
-
-	Torrent::State state = torrent->get_state();
-
-	ss << "<span foreground='" << color << "'><b>" << name.c_str() <<
-		"</b> (" << suffix_value(torrent->get_info().total_size()) << ")" <<
-		"</span>\n";
-	if (state == Torrent::DOWNLOADING)
-		ss << status.num_seeds << " connected seeds, " <<
-					status.num_peers - status.num_seeds << " peers";
-	else if (state == Torrent::SEEDING || state == Torrent::FINISHED)
-		ss << status.num_peers - status.num_seeds << " connected peers";
-	else
-		ss << torrent->get_state_string(state);
-
-	row[columns.name] = ss.str();
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
 	row[columns.seeds] = status.num_seeds;

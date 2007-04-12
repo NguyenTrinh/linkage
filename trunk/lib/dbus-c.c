@@ -49,6 +49,7 @@ DBusGConnection* init(int* p, void (*cb_func)(unsigned int, const char*))
 			dbus_error_free(&error);
 		}
 		dbus_bus_add_match(connection, "type='signal',interface='org.linkage'", &error);
+		/* FIXME: Add introspectable stuff */
 		dbus_connection_add_filter(connection, signal_filter, cb_func, NULL);
 	}
 
@@ -113,7 +114,7 @@ DBusHandlerResult signal_filter(DBusGConnection* connection, DBusGMessage* messa
 	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-void c_send(DBusGConnection* connection,const char* interface, const char* msg)
+void c_send(DBusGConnection* connection, const char* interface, const char* msg)
 {
 	DBusGMessage *message;
 	GError error;

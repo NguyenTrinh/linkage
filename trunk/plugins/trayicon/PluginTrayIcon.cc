@@ -17,7 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <sstream>
+#include <iostream>
 
+#include <gtkmm/stock.h>
 #include <gtkmm/menuitem.h>
 #include <gtkmm/imagemenuitem.h>
 #include <gtkmm/separatormenuitem.h>
@@ -25,47 +27,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "PluginTrayIcon.hh"
 #include "linkage/Engine.hh"
 
-TrayPlugin::TrayPlugin()
+TrayPlugin::TrayPlugin() : 
+	Plugin("TrayPlugin",
+					"Displays a tray icon",
+					"1",
+					"Christian Lundgren",
+					"http://code.google.com/p/linkage")
 {
+	menu = NULL;
 }
 
 TrayPlugin::~TrayPlugin()
 {
-	delete menu;
-	delete image;
-	delete eventbox;
-	delete tooltips;
-}
-
-Glib::ustring TrayPlugin::get_name()
-{
-	return "TrayPlugin";
-}
-
-Glib::ustring TrayPlugin::get_description()
-{
-	return "Displays a tray icon";
+	if (menu)
+		delete menu;
 }
 	
 void TrayPlugin::on_load()
 {
-	Glib::RefPtr<Gdk::Pixbuf> pixbuf = Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg", 24, 24, true);
-	image = new Gtk::Image(pixbuf);
-	
-	eventbox = new Gtk::EventBox();;
-	eventbox->add_events(Gdk::BUTTON_RELEASE_MASK | Gdk::ENTER_NOTIFY_MASK);
-	eventbox->signal_button_release_event().connect(sigc::mem_fun(this, &TrayPlugin::on_button_released));
-	eventbox->add(*image);
-	eventbox->show_all_children();
-
-	tooltips = new Gtk::Tooltips();
-
-	Gtk::Widget* widget = dynamic_cast<Gtk::Widget*>(eventbox);
-
-	tray_icon = egg_tray_icon_new("TrayPlugin");
-	gtk_container_add(GTK_CONTAINER(tray_icon), widget->gobj());
-	gtk_widget_show_all(GTK_WIDGET(tray_icon));
-	
 	menu = new Gtk::Menu();
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Start torrents"));
 	item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_start));
@@ -79,24 +58,28 @@ void TrayPlugin::on_load()
 	imageitem->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_quit));
 	menu->append(*imageitem);
 
-	eventbox->signal_enter_notify_event().connect(sigc::mem_fun(this, &TrayPlugin::on_update_tooltip));
-
 	menu->show_all_children();
+
+	icon = Gtk::StatusIcon::create_from_file(PIXMAP_DIR "/linkage.svg");
+	GtkStatusIcon* gobj = icon->gobj();
+	g_signal_connect(G_OBJECT(gobj), "activate", G_CALLBACK(TrayPlugin::on_activate), NULL);
+	g_signal_connect(G_OBJECT(gobj), "popup-menu", G_CALLBACK(TrayPlugin::on_popup), menu);
+
+	Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
 }
 
-bool TrayPlugin::on_button_released(GdkEventButton* event)
+void TrayPlugin::on_activate(GtkStatusIcon* status_icon, gpointer data)
 {
-	if (event->button == 1)
-	{
-		Engine::get_dbus_manager()->send("ToggleVisible");
-	}
-	else if (event->button == 3)
-	{
-		menu->popup(event->button, event->time);
-	}
+	Engine::get_dbus_manager()->send("ToggleVisible");
 }
 
-bool TrayPlugin::on_update_tooltip(GdkEventCrossing* event)
+void TrayPlugin::on_popup(GtkStatusIcon* status_icon, guint button, guint time, gpointer data)
+{
+	Gtk::Menu* menu = static_cast<Gtk::Menu*>(data);
+	menu->popup(button, time);
+}
+
+void TrayPlugin::on_tick()
 {
 	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
 	unsigned int num_active = 0, num_queued = 0, num_seeds = 0;
@@ -123,9 +106,7 @@ bool TrayPlugin::on_update_tooltip(GdkEventCrossing* event)
 		<< num_seeds << " seeds\nDL: " << suffix_value(status.payload_download_rate)
 		<< "/s\tUL:" << suffix_value(status.payload_upload_rate) + "/s";
 
-	tooltips->set_tip(*eventbox, ss.str());
-
-	return false;
+	icon->set_tooltip(ss.str());
 }
 
 void TrayPlugin::on_quit()

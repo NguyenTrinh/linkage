@@ -3,9 +3,9 @@ pixmapdir = \"$(prefix)/share/pixmaps\"
 
 trayicon_LTLIBRARIES = trayicon.la
 
-noinst_HEADERS = PluginTrayIcon.hh eggtrayicon.h
+noinst_HEADERS = PluginTrayIcon.hh
 
-trayicon_la_SOURCES = PluginTrayIcon.cc eggtrayicon.c
+trayicon_la_SOURCES = PluginTrayIcon.cc
 
 trayicon_la_CXXFLAGS = -I../../lib $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) -DPIXMAP_DIR="$(pixmapdir)"
 
