@@ -176,7 +176,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 			{
 				if (!flags.empty())
 					flags += ", ";
-				flags += "Interesting";
+				flags += "Interested";
 			}
 			if (peers[i].flags & peer_info::choked)
 			{
