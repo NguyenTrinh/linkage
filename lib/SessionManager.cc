@@ -140,8 +140,10 @@ void SessionManager::on_settings()
 		stop_dht();
 	#endif /* TORRENT_DISABLE_DHT */
 
+	#ifdef #LT_012
 	if (sm->get_bool("Network", "UsePEX"))
 		add_extension(&create_ut_pex_plugin);
+	#endif
 
 	int up_rate = sm->get_int("Network", "MaxUpRate")*1024;
 	if (up_rate < 1)
@@ -168,9 +170,11 @@ void SessionManager::on_settings()
 	sset.tracker_completion_timeout = sm->get_int("Network", "TrackerTimeout");
 	sset.tracker_receive_timeout = sm->get_int("Network", "TrackerTimeout");
 	sset.stop_tracker_timeout = sm->get_int("Network", "TrackerTimeout");
+	#ifdef #LT_012
 	sset.allow_multiple_connections_per_ip = sm->get_bool("Network", "MultipleConnectionsPerIP");
 	sset.use_dht_as_fallback = sm->get_int("Network", "DHTFallback");
 	sset.file_pool_size = sm->get_int("Files", "MaxOpen");
+	#endif
 	Glib::ustring proxy = sm->get_string("Network", "ProxyIp");
 	if (!proxy.empty())
 	{
