@@ -105,16 +105,23 @@ void SessionManager::on_settings()
 	int port = listen_port();
 	if (!is_listening() || port < min_port || port > max_port)
 	{
-		if (get_ip(iface.c_str(), ip))
-			listen_on(std::make_pair(min_port, max_port), ip);
-		else
-			listen_on(std::make_pair(min_port, max_port));
+		try
+		{
+			if (get_ip(iface.c_str(), ip))
+				listen_on(std::make_pair(min_port, max_port), ip);
+			else
+				listen_on(std::make_pair(min_port, max_port));
+		}
+		catch (std::exception& e)
+		{
+			g_warning("Listen failed: %s", e.what().c_str());
+		}
 	}
 
 	#ifndef TORRENT_DISABLE_DHT
 	dht_settings settings;
 	settings.service_port = listen_port();
-	set_dht_settings(settings);
+	
 
 	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
 	entry e;
@@ -125,6 +132,7 @@ void SessionManager::on_settings()
 	{
 		try
 		{
+			set_dht_settings(settings);
 			start_dht(e);
 			add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
 			add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
