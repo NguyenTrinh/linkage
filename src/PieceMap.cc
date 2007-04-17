@@ -56,17 +56,17 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 
 	std::list<Part> parts;
 	double scale = 1.0;
-	if (m_map.size() >= get_allocation().get_width() - (get_style()->get_xthickness() * 2))
+	if (m_map.size() >= fw - (get_style()->get_xthickness() * 2))
 		parts = more_pieces();
 	else
 	{
 		parts = more_pixels();
-		scale = (double)(get_allocation().get_width() - (get_style()->get_xthickness() * 2))/m_map.size();
+		scale = fw - (double)(get_style()->get_xthickness() * 2)/m_map.size();
 	}
 		
 	Glib::RefPtr<Gdk::GC> gc = Gdk::GC::create(window);
 	
-	int ph = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
+	int ph = fh - (get_style()->get_ythickness() * 2);
 	for (std::list<Part>::iterator iter = parts.begin(); iter != parts.end(); ++iter)
 	{
 		Part& p = *iter;
@@ -88,9 +88,7 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 			b = USHRT_MAX;
 		c.set_rgb(r, g, b);
 		colormap->alloc_color(c);
-
 		gc->set_foreground(c);
-
 		get_window()->draw_rectangle(gc, true, px, get_style()->get_ythickness(), pw, ph);
 		colormap->free_color(c);
 	}

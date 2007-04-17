@@ -185,7 +185,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 	else
 	{
 		parts = more_pixels(bar_width, bar_height);
-		scale = double(bar_width)/num;
+		scale = (double)bar_width/num;
 	}
 
 	gc->set_foreground(widget.get_style()->get_bg(Gtk::STATE_NORMAL));
@@ -209,11 +209,9 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 			b = USHRT_MAX;
 		c.set_rgb(r, g, b);
 		colormap->alloc_color(c);
-
 		gc->set_foreground(c);
-
 		cwin->draw_rectangle(gc, true, px, bar_y, pw, bar_height);
-		colormap->free_color(c);
+		//colormap->free_color(c);
 	}
 }
 

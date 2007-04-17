@@ -318,13 +318,17 @@ bool TorrentList::on_button_press_event(GdkEventButton* event)
 	Gtk::TreePath path;
 	Gtk::TreeViewColumn* column;
 	int cell_x, cell_y;
-
-	/* Don't reset a multi selection */
-	if (event->button == 1 || get_selection()->get_selected_rows().size() <= 1)
-		TreeView::on_button_press_event(event);
-
-	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y) && event->button == 1)
+	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y))
 		return false;
+
+	if (event->button == 1)
+		TreeView::on_button_press_event(event);
+	/* Don't reset a multi selection */
+	else if (get_selection()->count_selected_rows() <= 1)
+		TreeView::on_button_press_event(event);
+	/* Unless we right clicked an unselected row */
+	else if (!get_selection()->is_selected(path))
+		TreeView::on_button_press_event(event);
 
 	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
 		m_signal_double_click.emit(event);
