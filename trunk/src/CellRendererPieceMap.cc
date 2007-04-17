@@ -211,7 +211,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		colormap->alloc_color(c);
 		gc->set_foreground(c);
 		cwin->draw_rectangle(gc, true, px, bar_y, pw, bar_height);
-		//colormap->free_color(c);
+		colormap->free_color(c);
 	}
 }
 
