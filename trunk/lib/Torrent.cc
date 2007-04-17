@@ -269,6 +269,8 @@ void Torrent::set_handle(const torrent_handle& handle)
 	m_prop_handle = handle;
 
 	set_filter(m_filter);
+	set_up_limit(m_up_limit);
+	set_down_limit(m_down_limit);
 
 	/* Reset all replies on stop */
 	if (!handle.is_valid())
@@ -310,7 +312,7 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 				m_cur_tier = (trackers[j].tier + 1) % trackers.size();
 	}
 
-	if (Glib::str_has_prefix(reply, "OK, got "))
+	if (Glib::str_has_prefix(reply, "OK, got ") || (m_cur_tier + 1) == trackers.size())
 	{
 		m_announcing = false;
 		m_cur_tier = 0;
@@ -346,14 +348,24 @@ void Torrent::set_up_limit(int limit)
 {
 	m_up_limit = limit;
 	if (m_prop_handle.get_value().is_valid())
-		m_prop_handle.get_value().set_upload_limit(m_up_limit*1024);
+	{
+		if (m_up_limit == 0)
+			m_prop_handle.get_value().set_upload_limit(-1);
+		else
+			m_prop_handle.get_value().set_upload_limit(m_up_limit*1024);
+	}
 }
 
 void Torrent::set_down_limit(int limit)
 {
 	m_down_limit = limit;
 	if (m_prop_handle.get_value().is_valid())
-		m_prop_handle.get_value().set_download_limit(m_down_limit*1024);
+		{
+		if (m_down_limit == 0)
+			m_prop_handle.get_value().set_download_limit(-1);
+		else
+			m_prop_handle.get_value().set_download_limit(m_down_limit*1024);
+	}
 }
 
 void Torrent::queue()
