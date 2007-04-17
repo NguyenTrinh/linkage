@@ -58,7 +58,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	table->attach(*trunkate_names, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
 	auto_expand = manage(new Gtk::CheckButton("Auto expand details"));
 	table->attach(*auto_expand, 0, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	update_interval = manage(new AlignedSpinButton(1.0, 6.0));
+	update_interval = manage(new AlignedSpinButton(1.0, 60.0));
 	table->attach(*update_interval, 1, 2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 	name_width = manage(new AlignedSpinButton(1.0, 100.0));
 	table->attach(*name_width, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
@@ -183,7 +183,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
 	label = manage(new AlignedLabel("Maximum uploads:"));
 	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Seed until ratio reaches:"));
+	label = manage(new AlignedLabel("Desired ratio:"));
 	table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
 	max_torrent_connections = manage(new AlignedSpinButton(0.0, 10000.0));
 	table->attach(*max_torrent_connections, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);

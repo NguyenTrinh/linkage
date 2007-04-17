@@ -8,3 +8,4 @@
 * Add option to trunkate long torrent names
 * Make it possible to add user-defined trackers
 * Add sort on time remaining
+* Fix colors in CellrendererPiecemap (looks like the brighter colors aren't alloc'ed)

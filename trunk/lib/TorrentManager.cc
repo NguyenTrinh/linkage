@@ -75,15 +75,7 @@ void TorrentManager::on_settings()
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
-		if (!iter->second->is_stopped())
-		{
-			torrent_handle handle = iter->second->get_handle();
-			float ratio;
-			std::istringstream(sm->get_string("Network", "SeedRatio")) >> ratio;
-			handle.set_ratio(ratio);
-			handle.set_max_uploads(sm->get_int("Network", "MaxTorrentUploads"));
-			handle.set_max_connections(sm->get_int("Network", "MaxTorrentConnections"));
-		}
+		on_handle_changed(iter->second);
 	}
 
 	check_queue();
