@@ -308,11 +308,18 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 	{
 		m_replies[tracker] = reply;
 		for (int j = 0; j < trackers.size(); j++)
+		{
 			if (trackers[j].url == tracker)
+			{
 				m_cur_tier = (trackers[j].tier + 1) % trackers.size();
+				break;
+			}
+		}
 	}
 
-	if (Glib::str_has_prefix(reply, "OK, got ") || (m_cur_tier + 1) == trackers.size())
+	/* Either a tracker responded and the announce cycle stops or all trackers failed */
+	if (Glib::str_has_prefix(reply, "OK, got ") ||
+			(m_cur_tier == (trackers.size() - 1) && reply != "Announcing"))
 	{
 		m_announcing = false;
 		m_cur_tier = 0;
