@@ -124,7 +124,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	enable_dht = manage(new Gtk::CheckButton("Enable DHT"));
 	table->attach(*enable_dht, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK);
 	dht_fallback = manage(new Gtk::CheckButton("Only as fallback"));
-	table->attach(*dht_fallback, 1, 2, 3, 4, Gtk::FILL, Gtk::SHRINK);
+	table->attach(*dht_fallback, 1, 3, 3, 4, Gtk::FILL, Gtk::SHRINK);
 	enable_pex = manage(new Gtk::CheckButton("Enable PEX"));
 	table->attach(*enable_pex, 0, 1, 4, 5, Gtk::FILL, Gtk::SHRINK);
 	multiple_connections = manage(new Gtk::CheckButton("Allow multiple connections per IP"));
