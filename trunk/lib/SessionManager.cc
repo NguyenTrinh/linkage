@@ -114,7 +114,7 @@ void SessionManager::on_settings()
 		}
 		catch (std::exception& e)
 		{
-			g_warning("Listen failed: %s", e.what().c_str());
+			g_warning("Listen failed: %s", e.what());
 		}
 	}
 
