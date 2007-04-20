@@ -165,6 +165,8 @@ UPnPManager::UPnPManager()
 
 UPnPManager::~UPnPManager()
 {
+	self = NULL;
+
 	for (DeviceMap::iterator iter = m_devices.begin();
 				iter != m_devices.end(); ++iter)
 	{
