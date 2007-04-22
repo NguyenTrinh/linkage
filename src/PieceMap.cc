@@ -38,6 +38,7 @@ void PieceMap::on_realize()
 bool PieceMap::on_expose_event(GdkEventExpose* event)
 {
 	Gdk::Color base = get_style()->get_bg(Gtk::STATE_SELECTED);
+	Gdk::Color bg = get_style()->get_bg(Gtk::STATE_NORMAL);
 
 	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_default_colormap();
 
@@ -77,20 +78,18 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 			break;
 
 		Gdk::Color c = base;
+		/* FIXME: Not so great for themes with a background that has a rgb part equal 00 */
 		unsigned int r = (unsigned int)(c.get_red()*p.fac);
 		unsigned int g = (unsigned int)(c.get_green()*p.fac);
 		unsigned int b = (unsigned int)(c.get_blue()*p.fac);
-		if (r > USHRT_MAX)
-			r = USHRT_MAX;
-		if (g > USHRT_MAX)
-			g = USHRT_MAX;
-		if (b > USHRT_MAX)
-			b = USHRT_MAX;
+		/* FIXME: this perhaps could be handled (and shown!) in a better way */
+		if (r > USHRT_MAX || g > USHRT_MAX || b > USHRT_MAX)
+			continue;
+
 		c.set_rgb(r, g, b);
-		colormap->alloc_color(c);
+		colormap->alloc_color(c, false, true);
 		gc->set_foreground(c);
 		get_window()->draw_rectangle(gc, true, px, get_style()->get_ythickness(), pw, ph);
-		colormap->free_color(c);
 	}
 
 	return true;
