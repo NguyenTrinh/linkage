@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-
+#include <iostream>
 #include <list>
 #include <vector>
 
@@ -147,6 +147,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 																				Gtk::CellRendererState flags)
 {
 	Gdk::Color base = widget.get_style()->get_bg(Gtk::STATE_SELECTED);
+	Gdk::Color bg = widget.get_style()->get_bg(Gtk::STATE_NORMAL);
 
 	Glib::RefPtr<Gdk::Colormap> colormap = widget.get_screen()->get_default_colormap();
 
@@ -188,7 +189,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		scale = (double)bar_width/num;
 	}
 
-	gc->set_foreground(widget.get_style()->get_bg(Gtk::STATE_NORMAL));
+	gc->set_foreground(bg);
 	cwin->draw_rectangle(gc, true, bar_x, bar_y, bar_width, bar_height);
 
 	for (std::list<Part>::iterator iter = parts.begin(); iter != parts.end(); ++iter)
@@ -201,17 +202,13 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		unsigned int r = (unsigned int)(c.get_red()*p.fac);
 		unsigned int g = (unsigned int)(c.get_green()*p.fac);
 		unsigned int b = (unsigned int)(c.get_blue()*p.fac);
-		if (r > USHRT_MAX)
-			r = USHRT_MAX;
-		if (g > USHRT_MAX)
-			g = USHRT_MAX;
-		if (b > USHRT_MAX)
-			b = USHRT_MAX;
+		if (r > USHRT_MAX || g > USHRT_MAX || b > USHRT_MAX)
+			continue;
+
 		c.set_rgb(r, g, b);
-		colormap->alloc_color(c);
+		colormap->alloc_color(c, false, true);
 		gc->set_foreground(c);
 		cwin->draw_rectangle(gc, true, px, bar_y, pw, bar_height);
-		colormap->free_color(c);
 	}
 }
 
