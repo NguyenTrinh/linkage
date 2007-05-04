@@ -69,6 +69,8 @@ class UPnPManager : public sigc::trackable
 		Upnp_SID m_sid;
 		bool m_wan;
 
+		//std::list<Glib::ustring> m_mapped;
+
 	public:
 		Service(IXML_Element *element, const Glib::ustring& URLBase);
 		~Service();
@@ -83,6 +85,9 @@ class UPnPManager : public sigc::trackable
 		void set_sid(const char* sid) { memcpy(m_sid, sid, sizeof(Upnp_SID)); }
 		bool is_wan() { return m_wan; }
 
+		//std::list<Glib::ustring>::iterator ports_begin() { return m_mapped.begin(); }
+		//std::list<Glib::ustring>::iterator ports_end() { return m_mapped.end(); }
+
 		typedef std::vector<std::pair<Glib::ustring, Glib::ustring> > ArgList;
 		bool send(const Glib::ustring& action, const ArgList& args);
 	};
@@ -94,6 +99,7 @@ class UPnPManager : public sigc::trackable
 	Glib::Mutex m_mutex;
 	bool m_searching;
 	sigc::signal<void> m_signal_search_complete;
+	sigc::signal<void> m_signal_update_mappings;
 
 	DeviceMap m_devices;
 	ServiceMap m_services;
@@ -118,10 +124,12 @@ class UPnPManager : public sigc::trackable
 	static IXML_Element* get_next_sibling(IXML_Element* element);
 	static Glib::ustring get_value(IXML_Element *element, const DOMString tag);
 	static Glib::ustring get_value(IXML_Element *element);
+
 public:
 	void search();
 	bool is_searching();
 	sigc::signal<void> signal_search_complete();
+	sigc::signal<void> signal_update_mappings();
 
 	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);
 	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address);

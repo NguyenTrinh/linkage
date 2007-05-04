@@ -50,6 +50,11 @@ UPnPManager::Device::Device(IXML_Element* root,
 	{
 		Service* service = new Service(element, url);
 		m_services[service->get_event_url()] = service;
+		if (service->is_wan())
+		{
+			UPnPManager::self->subscribe(service);
+			std::cout << "Found WANIPConnection service" << std::endl;
+		}
 	}
 	
 	elementList =	get_first_child(root, "deviceList");
@@ -98,12 +103,6 @@ UPnPManager::Service::Service(IXML_Element *element, const Glib::ustring& URLBas
 	delete url;
 
 	m_wan = (m_type == sWANCON);
-
-	if (m_wan)
-	{
-		UPnPManager::self->subscribe(this);
-		std::cout << "Found WANIPConnection service" << std::endl;
-	}
 }
 
 UPnPManager::Service::~Service()
@@ -112,6 +111,18 @@ UPnPManager::Service::~Service()
 
 bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::Service::ArgList& args)
 {
+/*	if (action == "AddPortMapping")
+	{
+		if (std::find(ports_begin(), ports_end(), args[1].second) == ports_end())
+			m_mapped.push_back(args[1].second);
+	}
+	else if (action == "DeletePortMapping")
+	{
+		std::list<Glib::ustring>::iterator iter = std::find(ports_begin(), ports_end(), args[1].second);
+		if (iter != ports_end())
+			m_mapped.erase(iter);
+	}*/
+
 	IXML_Document *doc = NULL;
 	if (!args.empty())
 	{
@@ -191,6 +202,11 @@ sigc::signal<void> UPnPManager::signal_search_complete()
 	return m_signal_search_complete;
 }
 
+sigc::signal<void> UPnPManager::signal_update_mappings()
+{
+	return m_signal_update_mappings;
+}
+
 void UPnPManager::search()
 {
 	if (m_searching)
@@ -262,9 +278,72 @@ int UPnPManager::upnp_cb(Upnp_EventType type, void* event, void* cookie)
 					UPnPManager::self->refresh_port_mappings();
 				}
 			}
+			else
+			{
+				std::cerr << "Lost subscription to " << e->PublisherUrl << std::endl;
+				ServiceMap::iterator iter =	UPnPManager::self->m_services.find(e->PublisherUrl);
+				if (iter != UPnPManager::self->m_services.end())
+				{
+					Service* service = iter->second;
+					UPnPManager::self->m_services.erase(iter);
+					delete service;
+				}
+				else
+					std::cerr << "Invalid service " << e->PublisherUrl << std::endl;
+			}
+			break;
+		}
+		case UPNP_EVENT_RECEIVED:
+		{
+			/* Check if our mappings has been removed */
+			
+			/* This doesn't work very well, should test more
+			Service::ArgList args(8);
+			
+			args[0].first = "NewRemoteHost";
+			args[0].second = "";
+			args[1].first = "NewExternalPort";
+			args[1].second = "";
+			args[2].first = "NewProtocol";
+			args[2].second = "";
+			args[3].first = "NewInternalPort";
+			args[3].second = "";
+			args[4].first = "NewInternalClient";
+			args[4].second = UpnpGetServerIpAddress();
+			args[5].first = "NewEnabled";
+			args[5].second = "1";
+			args[6].first = "NewPortMappingDescription";
+			args[6].second = PACKAGE_NAME "/" PACKAGE_VERSION;
+			args[7].first = "NewLeaseDuration";
+			args[7].second = "0";
+
+			bool ret = true;
+			for (ServiceMap::iterator iter = UPnPManager::self->m_services.begin(); 
+						iter != UPnPManager::self->m_services.end() && ret; ++iter)
+			{
+				Service* service = iter->second;
+				for (std::list<Glib::ustring>::iterator piter = service->ports_begin();
+							piter != service->ports_end(); ++piter)
+				{
+					args[1].second = *piter;
+					args[3].second = *piter;
+					args[2].second = "TCP";
+					ret = iter->second->send("GetSpecificPortMappingEntry", args);
+					args[2].second = "UDP";
+					ret = ret && iter->second->send("GetSpecificPortMappingEntry", args);
+					if (!ret)
+						break;
+				}
+				if (!ret)
+				{
+					std::cout << "Refreshing mappings...\n";
+					UPnPManager::self->refresh_port_mappings();
+				}
+			}*/
 			break;
 		}
 		default:
+			std::cout << "Uncatched event: " << type << std::endl;
 			break;
 	}
 
@@ -330,6 +409,8 @@ void UPnPManager::subscribe(Service* service)
 		service->set_timeout(timeout);
 
 		m_services[service->get_event_url()] = service;
+		
+		refresh_port_mappings();
 	}
 	else
 		std::cerr << "Error subscribing to " <<	service->get_event_url() << ": " << UpnpGetErrorMessage(ret) << std::endl;
@@ -348,7 +429,7 @@ void UPnPManager::unsubscribe(Service* service)
 
 void UPnPManager::refresh_port_mappings()
 {
-	/* FIXME: implement this */
+	m_signal_update_mappings.emit();
 }
 
 bool UPnPManager::add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol)

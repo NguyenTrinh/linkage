@@ -69,7 +69,8 @@ void UPnPPlugin::on_load()
 {
 	/* FIXME: Pass ip and min_port to manager */
 	m_upnp = new UPnPManager();
-	m_upnp->signal_search_complete().connect(sigc::mem_fun(this, &UPnPPlugin::update_mappings));
+	m_upnp->signal_update_mappings().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), true));
+	m_upnp->signal_search_complete().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), false));
 
 	Glib::Thread* search = Glib::Thread::create(sigc::mem_fun(m_upnp, &UPnPManager::search), false);
 
@@ -83,10 +84,10 @@ void UPnPPlugin::on_settings()
 		ports[port] = P_NONE;
 
 	if (!m_upnp->is_searching())
-		update_mappings();
+		update_mappings(false);
 }
 
-void UPnPPlugin::update_mappings()
+void UPnPPlugin::update_mappings(bool refresh)
 {
 	/* FIXME: Remove old mappings */
 	Glib::ustring iface = Engine::get_settings_manager()->get_string("Network", "Interface");
@@ -99,7 +100,7 @@ void UPnPPlugin::update_mappings()
 	for (PortMap::iterator iter = ports.begin(); iter != ports.end(); ++iter)
 	{
 		port = iter->first;
-		if (iter->second & (P_TCP | P_UDP))
+		if (iter->second & (P_TCP | P_UDP) && !refresh)
 			continue;
 
 		if (get_ip(iface.c_str(), ip))
@@ -118,13 +119,13 @@ void UPnPPlugin::update_mappings()
 		}
 
 		if (ports[port] & P_TCP)
-			std::cout << "Successfully mapped " << port << " (TCP)" << std::endl;
+			std::cout << "Successfully mapped port: " << port << " (TCP)" << std::endl;
 		else
-			std::cout << "Failed to map " << port << " (TCP)" << std::endl;
+			std::cout << "Failed to map port: " << port << " (TCP)" << std::endl;
 		if (ports[port] & P_UDP)
-			std::cout << "Successfully mapped " << port << " (UDP)" << std::endl;
+			std::cout << "Successfully mapped port: " << port << " (UDP)" << std::endl;
 		else
-			std::cout << "Failed to map " << port << " (UDP)" << std::endl;
+			std::cout << "Failed to map port: " << port << " (UDP)" << std::endl;
 	}
 	m_mutex.lock();
 	m_cond.signal();
@@ -135,3 +136,4 @@ Plugin* CreatePlugin()
 {
 	 return new UPnPPlugin();
 }
+
