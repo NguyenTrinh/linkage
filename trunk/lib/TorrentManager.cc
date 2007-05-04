@@ -135,6 +135,8 @@ void TorrentManager::on_handle_changed(Torrent* torrent)
 		handle.set_ratio(ratio);
 		handle.set_max_uploads(sm->get_int("Network", "MaxTorrentUploads"));
 		handle.set_max_connections(sm->get_int("Network", "MaxTorrentConnections"));
+		/* FIXME: Make this configurable */
+		handle.resolve_countries(true);
 	}
 
 	check_queue();

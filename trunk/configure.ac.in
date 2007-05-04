@@ -15,10 +15,6 @@ AC_DEFINE([LINKAGE_VERSION_MAJOR], [linkage_major_version()], [Major version])
 AC_DEFINE([LINKAGE_VERSION_MINOR], [linkage_minor_version()], [Minor version])
 AC_DEFINE([LINKAGE_VERSION_MICRO], [linkage_micro_version()], [Micro version])
 
-builtin([include],[m4/geoip.m4])
-
-CHECK_GEOIP()
-
 PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.10)
 AC_SUBST(GTKMM_CFLAGS)
 AC_SUBST(GTKMM_LIBS)
@@ -27,7 +23,7 @@ PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= 2.10)
 AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
 
-PKG_CHECK_MODULES(LIBTORRENT, libtorrent >= 0.11)
+PKG_CHECK_MODULES(LIBTORRENT, libtorrent >= 0.12)
 AC_SUBST(LIBTORRENT_CFLAGS)
 AC_SUBST(LIBTORRENT_LIBS)
 

@@ -18,15 +18,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "config.h"
 
-#define LT_012 (LIBTORRENT_VERSION_MINOR == 12)
-
 #include "linkage/SessionManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
-#if LT_012
 #include <libtorrent/extensions/ut_pex.hpp>
-#endif
 
 #include <glib/gstdio.h>
 #include <glibmm/fileutils.h>
@@ -39,9 +35,6 @@ Glib::RefPtr<SessionManager> SessionManager::create()
 SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
 	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))				
 {
-	if (!LT_012)
-		boost::filesystem::path::default_name_check(boost::filesystem::native);
-
 	set_severity_level(alert::info);
 
 	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &SessionManager::on_torrent_finished));
@@ -148,10 +141,8 @@ void SessionManager::on_settings()
 		stop_dht();
 	#endif /* TORRENT_DISABLE_DHT */
 
-	#ifdef LT_012
 	if (sm->get_bool("Network", "UsePEX"))
 		add_extension(&create_ut_pex_plugin);
-	#endif
 
 	int up_rate = sm->get_int("Network", "MaxUpRate")*1024;
 	if (up_rate < 1)

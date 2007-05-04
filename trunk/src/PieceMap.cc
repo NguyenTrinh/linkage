@@ -87,7 +87,7 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 			continue;
 
 		c.set_rgb(r, g, b);
-		colormap->alloc_color(c, false, true);
+		colormap->alloc_color(c);
 		gc->set_foreground(c);
 		get_window()->draw_rectangle(gc, true, px, get_style()->get_ythickness(), pw, ph);
 	}

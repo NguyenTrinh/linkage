@@ -206,7 +206,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 			continue;
 
 		c.set_rgb(r, g, b);
-		colormap->alloc_color(c, false, true);
+		colormap->alloc_color(c);
 		gc->set_foreground(c);
 		cwin->draw_rectangle(gc, true, px, bar_y, pw, bar_height);
 	}
