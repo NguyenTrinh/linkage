@@ -36,12 +36,8 @@ PeerList::PeerList()
 	Gtk::TreeViewColumn* column = Gtk::manage(new Gtk::TreeViewColumn("Address"));
 	column->set_sort_column_id(columns.address);
 	column->set_resizable(true);
-	#ifdef HAVE_LIBGEOIP
-		column->pack_start(columns.flag, false);
-		column->pack_start(columns.address);
-	#else
-		column->pack_start(columns.address);
-	#endif
+	column->pack_start(columns.flag, false);
+	column->pack_start(columns.address);
 	append_column(*column);
 
 	int col = append_column("Down", columns.down);
@@ -118,28 +114,36 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 
 	clear();
 
-	#ifdef HAVE_LIBGEOIP
-		GeoIP* gi = GeoIP_new(GEOIP_STANDARD);
-	#endif
-
 	for (unsigned int i = 0; i < peers.size(); i++)
 	{
 		Gtk::TreeModel::Row row = *(model->append());
 
-		#ifdef HAVE_LIBGEOIP
-			Glib::ustring addr = peers[i].ip.address().to_string();
-			const char *country_code = 0;
-			country_code = GeoIP_country_code_by_addr(gi, addr.c_str());
-			if (country_code != NULL)
+		Glib::ustring addr = peers[i].ip.address().to_string();
+		Glib::ustring country = std::string(peers[i].country);
+		if (!country.empty() && country != "00" && country != "--" && country != "!!")
+		{
+			Glib::ustring flag = Glib::build_filename(FLAG_DIR, country.lowercase() + ".png");
+			try
 			{
-				Glib::ustring flag = Glib::build_filename(FLAG_DIR, Glib::ustring(country_code).lowercase() + ".png");
-				try
+				row[columns.flag] = Gdk::Pixbuf::create_from_file(flag);
+		 	}
+		 	catch (Glib::Error& e)
+		 	{
+		 		try
 				{
-					row[columns.flag] = Gdk::Pixbuf::create_from_file(flag);
+					row[columns.flag] = Gdk::Pixbuf::create_from_file(Glib::build_filename(FLAG_DIR, "unknown.png"));
 			 	}
 			 	catch (Glib::Error& e) {}
-			}
-		#endif
+		 	}
+		}
+		else 
+		{
+			try
+			{
+				row[columns.flag] = Gdk::Pixbuf::create_from_file(Glib::build_filename(FLAG_DIR, "unknown.png"));
+		 	}
+		 	catch (Glib::Error& e) {}
+		}
 
 		row[columns.address] = peers[i].ip.address().to_string() + ":" + str(peers[i].ip.port());
 		if (row[columns.address] == sel_addr)
@@ -199,8 +203,4 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		}
 		row[columns.flags] = flags;
 	}
-
-	#ifdef HAVE_LIBGEOIP
-		GeoIP_delete(gi);
-	#endif
 }

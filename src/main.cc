@@ -32,6 +32,8 @@ void send_files(const std::list<Glib::ustring>& files);
 
 int main(int argc, char *argv[])
 {
+	boost::filesystem::path::default_name_check(boost::filesystem::native);
+
 	if(!Glib::thread_supported()) 
 		Glib::thread_init();
 

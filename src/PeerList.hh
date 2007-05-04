@@ -22,12 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 
-#ifdef HAVE_LIBGEOIP
-#include <gdkmm/pixbuf.h>
-
-#include <GeoIP.h> 
-#endif /* HAVE_LIBGEOIP */
-
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 
