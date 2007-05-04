@@ -191,10 +191,6 @@ void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, c
 	cell_text->property_text() = suffix_value(row[column]);
 }
 
-/* 
-	FIXME: this doens't correctly display the progress bar on some finished files (1 pixel row missing at the end)
-	It's probably a bug in *PieceMap, best shown here though.
-*/
 void FileList::update(const WeakPtr<Torrent>& torrent)
 {
 	current_hash = torrent->get_hash();

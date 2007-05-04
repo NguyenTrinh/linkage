@@ -141,9 +141,9 @@ void CellRendererPieceMap::get_size_vfunc(Gtk::Widget&,
 
 void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& window,
 																				Gtk::Widget& widget,
-																				const Gdk::Rectangle&,
+																				const Gdk::Rectangle& background_area,
 																				const Gdk::Rectangle& cell_area,
-																				const Gdk::Rectangle&,
+																				const Gdk::Rectangle& expose_area,
 																				Gtk::CellRendererState flags)
 {
 	Gdk::Color base = widget.get_style()->get_bg(Gtk::STATE_SELECTED);
@@ -186,7 +186,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 	else
 	{
 		parts = more_pixels(bar_width, bar_height);
-		scale = (double)bar_width/num;
+		scale = (double)width/num;
 	}
 
 	gc->set_foreground(bg);
@@ -197,6 +197,11 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		Part& p = *iter;
 		int pw = (int)(scale*(p.last - p.first + 1));
 		int px = (int)(scale*p.first) + bar_x;
+		
+		if (px > (expose_area.get_x() + expose_area.get_width()))
+			break;
+		if (px < expose_area.get_x())
+			continue;
 
 		Gdk::Color c = base;
 		unsigned int r = (unsigned int)(c.get_red()*p.fac);
