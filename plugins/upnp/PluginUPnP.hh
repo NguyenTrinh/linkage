@@ -32,7 +32,7 @@ class UPnPPlugin : public Plugin
 	typedef std::map<unsigned int, int> PortMap;
 	PortMap ports;
 	void on_settings();
-	void update_mappings();
+	void update_mappings(bool refresh);
 
 public:
 	PluginParent get_parent() { return Plugin::PARENT_NONE; }
