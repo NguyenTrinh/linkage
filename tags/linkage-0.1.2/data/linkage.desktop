@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Linkage
+Comment=Bittorrent client
+Exec=linkage %F
+Icon=linkage.svg
+Terminal=false
+Type=Application
+Categories=Application;Network;
+MimeType=application/x-bittorrent;
+GenericName=BitTorrent Client
