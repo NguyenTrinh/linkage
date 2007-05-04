@@ -1,9 +1,8 @@
 m4_define(linkage_major_version, 0)
 m4_define(linkage_minor_version, 1)
 m4_define(linkage_micro_version, 2)
-m4_define(linkage_tag, beta1)
 
-m4_define(linkage_version, linkage_major_version().linkage_minor_version().linkage_micro_version()linkage_tag())
+m4_define(linkage_version, linkage_major_version().linkage_minor_version().linkage_micro_version())
 
 AC_INIT([linkage], [linkage_version()])
 AC_CONFIG_SRCDIR(src/main.cc)
