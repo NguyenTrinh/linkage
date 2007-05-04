@@ -1,6 +1,6 @@
 m4_define(linkage_major_version, 0)
 m4_define(linkage_minor_version, 1)
-m4_define(linkage_micro_version, 1)
+m4_define(linkage_micro_version, 2)
 m4_define(linkage_tag, svn)
 m4_define(linkage_tag_revision, r@REVISION@)
 
