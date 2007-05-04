@@ -1,6 +1,6 @@
 SUBDIRS = flags
 
-EXTRA_DIST = linkage.desktop
+EXTRA_DIST = linkage.desktop linkage.svg
 
 desktopdir = $(prefix)/share/applications
 desktop_DATA = linkage.desktop

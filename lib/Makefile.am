@@ -6,15 +6,6 @@ plugindir = \"$(prefix)/share/linkage/plugins\"
 
 liblinkage_1_la_SOURCES = gtkmm_extra/keyfile.cc \
                           gtkmm_extra/private/keyfile_p.h \
-                          Engine.hh \
-                          AlertManager.hh \
-                          Plugin.hh \
-                          PluginManager.hh \
-                          SessionManager.hh \
-                          SettingsManager.hh \
-                          Torrent.hh \
-                          TorrentManager.hh \
-                          Utils.hh \
                           Engine.cc \
                           AlertManager.cc \
                           Plugin.cc \
