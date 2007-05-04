@@ -22,7 +22,7 @@ liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(DB
 
 liblinkage_1_la_CFLAGS = $(CFLAGS) $(DBUSGLIB_CFLAGS)
 
-liblinkage_1_la_LDFLAGS = -export-dynamic -version-info 0:1:0 $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(DBUSGLIB_LIBS)
+liblinkage_1_la_LDFLAGS = -export-dynamic -version-info 0:2:0 $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(DBUSGLIB_LIBS)
 
 keyfileincludedir = $(includedir)/linkage/gtkmm_extra
 keyfileinclude_HEADERS = gtkmm_extra/keyfile.h
