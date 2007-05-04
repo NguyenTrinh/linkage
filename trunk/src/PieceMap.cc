@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-
+#include <iostream>
 #include "PieceMap.hh"
 
 PieceMap::PieceMap()
@@ -62,7 +62,7 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 	else
 	{
 		parts = more_pixels();
-		scale = fw - (double)(get_style()->get_xthickness() * 2)/m_map.size();
+		scale = (double)fw/m_map.size();
 	}
 		
 	Glib::RefPtr<Gdk::GC> gc = Gdk::GC::create(window);
@@ -74,8 +74,11 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 		int pw = (int)(scale*(p.last - p.first + 1));
 		int px = (int)(scale*p.first) + get_style()->get_xthickness();
 
+		/* Don't redraw unnecessary parts */
 		if (px > (x + w))
 			break;
+		if (px < x)
+			continue;
 
 		Gdk::Color c = base;
 		/* FIXME: Not so great for themes with a background that has a rgb part equal 00 */
