@@ -186,7 +186,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 	else
 	{
 		parts = more_pixels(bar_width, bar_height);
-		scale = (double)width/num;
+		scale = (double)bar_width/num;
 	}
 
 	gc->set_foreground(bg);
@@ -198,7 +198,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		int pw = (int)(scale*(p.last - p.first + 1));
 		int px = (int)(scale*p.first) + bar_x;
 		
-		if (px > (expose_area.get_x() + expose_area.get_width()))
+		if (px >= (bar_x + bar_width))
 			break;
 		if (px < expose_area.get_x())
 			continue;
