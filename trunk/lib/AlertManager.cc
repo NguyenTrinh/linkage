@@ -115,7 +115,7 @@ void AlertManager::check_alerts()
 		}
 		else if (tracker_reply_alert* p = dynamic_cast<tracker_reply_alert*>(a.get()))
 		{
-			m_signal_tracker_reply.emit(p->handle.info_hash(), p->msg(), 0 /* FIXME: for LT 0.12: p->num_peers*/);
+			m_signal_tracker_reply.emit(p->handle.info_hash(), p->msg(), p->num_peers);
 		}
 		else if (tracker_announce_alert* p = dynamic_cast<tracker_announce_alert*>(a.get()))
 		{
