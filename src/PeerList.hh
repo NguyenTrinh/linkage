@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 
+#include "libtorrent/peer_id.hpp"
+
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 
@@ -41,6 +43,8 @@ class PeerList : public Gtk::TreeView
 			add(progress);
 			add(client);
 			add(flags);
+			add(has_flag);
+			add(id);
 		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > flag;
 		Gtk::TreeModelColumn<Glib::ustring> address;
@@ -51,6 +55,8 @@ class PeerList : public Gtk::TreeView
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> client;
 		Gtk::TreeModelColumn<Glib::ustring> flags;
+		Gtk::TreeModelColumn<bool> has_flag;
+		Gtk::TreeModelColumn<peer_id> id;
 	};
 
 	ModelColumns columns;

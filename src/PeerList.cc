@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/cellrendererprogress.h>
 
 #include "libtorrent/identify_client.hpp"
-
+#include <iostream>
 #include "PeerList.hh"
 #include "linkage/Utils.hh"
 
@@ -104,28 +104,71 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	if (!torrent->is_stopped())
 		torrent->get_handle().get_peer_info(peers);
 
-	Glib::ustring sel_addr;
-	Gtk::TreeIter iter = get_selection()->get_selected();
-	if (iter)
+	if (peers.empty()) {
+		clear();
+		return;
+	}
+		
+	/* Sorting messes up iteration */
+	int id;
+	Gtk::SortType order;
+	model->get_sort_column_id(id, order);
+	model->set_sort_column(columns.client, Gtk::SORT_ASCENDING);
+
+	Gtk::TreeNodeChildren children = model->children();
+	if (children.size() != peers.size())
 	{
-		Gtk::TreeRow row = *iter;
-		sel_addr = row[columns.address];
+		model->clear();
+		for (int i = 0; i < peers.size(); i++)
+		{
+			Gtk::TreeRow row = *(model->append());
+			row[columns.id] = peers[i].pid;
+			row[columns.has_flag] = false;
+			Glib::ustring client = identify_client(peers[i].pid);
+			/* Cosmetic fix, replace Micro with µ if found */
+			if (client.find("Micro", 0) == 0)
+				client.replace(0, 5, "\u00b5");
+			row[columns.client] = client;
+		}
 	}
 
-	clear();
-
-	for (unsigned int i = 0; i < peers.size(); i++)
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
-		Gtk::TreeModel::Row row = *(model->append());
+		Gtk::TreeRow row = *iter;
 
-		Glib::ustring addr = peers[i].ip.address().to_string();
-		Glib::ustring country = std::string(peers[i].country);
+		peer_info peer;
+		bool keep = false;
+		for (int i = 0; i < peers.size(); i++)
+		{
+			if (peers[i].pid == row[columns.id])
+			{
+				peer = peers[i];
+				peers.erase(peers.begin() + i);
+				keep = true;
+				break;
+			}
+		}
+		
+		if (!keep)
+		{
+			Gtk::TreeIter remove_iter = iter;
+			--iter;
+			model->erase(remove_iter);
+			continue;
+		}
+		
+		char c[3];
+		c[0] = peer.country[0];
+		c[1] = peer.country[1];
+		c[2] = '\0';
+		Glib::ustring country = c;
 		if (!country.empty() && country != "00" && country != "--" && country != "!!")
 		{
 			Glib::ustring flag = Glib::build_filename(FLAG_DIR, country.lowercase() + ".png");
 			try
 			{
 				row[columns.flag] = Gdk::Pixbuf::create_from_file(flag);
+				row[columns.has_flag] = true;
 		 	}
 		 	catch (Glib::Error& e)
 		 	{
@@ -136,7 +179,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 			 	catch (Glib::Error& e) {}
 		 	}
 		}
-		else 
+		else if (!row[columns.has_flag])
 		{
 			try
 			{
@@ -145,56 +188,49 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		 	catch (Glib::Error& e) {}
 		}
 
-		row[columns.address] = peers[i].ip.address().to_string() + ":" + str(peers[i].ip.port());
-		if (row[columns.address] == sel_addr)
-			get_selection()->select(row);
-		row[columns.down] = peers[i].total_download;
-		row[columns.up] = peers[i].total_upload;
-		row[columns.down_rate] = peers[i].payload_down_speed;
-		row[columns.up_rate] = peers[i].payload_up_speed;
+		Glib::ustring address = peer.ip.address().to_string();
+		row[columns.address] = address + ":" + str(peer.ip.port());
+		row[columns.down] = peer.total_download;
+		row[columns.up] = peer.total_upload;
+		row[columns.down_rate] = peer.payload_down_speed;
+		row[columns.up_rate] = peer.payload_up_speed;
 		unsigned int completed = 0;
-		for (unsigned int j = 0; j < peers[i].pieces.size(); j++)
+		for (unsigned int j = 0; j < peer.pieces.size(); j++)
 		{
-			if (peers[i].pieces[j])
+			if (peer.pieces[j])
 				completed++;
 		}
-		double progress = (double)completed/peers[i].pieces.size();
+		double progress = (double)completed/peer.pieces.size();
 		row[columns.progress] = progress*100;
 
-		Glib::ustring client = identify_client(peers[i].pid);
-		/* Cosmetic fix, replace Micro with µ if found */
-		if (client.find("Micro", 0) == 0)
-			client.replace(0, 5, "\u00b5");
-		row[columns.client] = client;
-
 		Glib::ustring flags;
-		if (peers[i].flags & peer_info::connecting)
+		if (peer.flags & peer_info::connecting)
 			flags = "Connecting";
-		else if (peers[i].flags & peer_info::handshake)
+		else if (peer.flags & peer_info::handshake)
 			flags = "Handshake";
-		else if	(peers[i].flags & peer_info::queued)
+		else if	(peer.flags & peer_info::queued)
 			flags = "Queued";
 		else
 		{
-			if (peers[i].flags & peer_info::interesting)
+			if (peer.flags & peer_info::interesting)
 			{
 				if (!flags.empty())
 					flags += ", ";
 				flags += "Interested";
 			}
-			if (peers[i].flags & peer_info::choked)
+			if (peer.flags & peer_info::choked)
 			{
 				if (!flags.empty())
 					flags += ", ";
 				flags += "Choked";
 			}
-			if (peers[i].flags & peer_info::remote_interested)
+			if (peer.flags & peer_info::remote_interested)
 			{
 				if (!flags.empty())
 					flags += ", ";
 				flags += "Remote interested";
 			}
-			if (peers[i].flags & peer_info::remote_choked)
+			if (peer.flags & peer_info::remote_choked)
 			{
 				if (!flags.empty())
 					flags += ", ";
@@ -203,4 +239,5 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		}
 		row[columns.flags] = flags;
 	}
+	model->set_sort_column(id, order);
 }
