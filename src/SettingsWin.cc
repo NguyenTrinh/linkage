@@ -492,7 +492,7 @@ void SettingsWin::on_hide()
 				iter != rows.end(); ++iter)
 	{
 		GroupRow* row = *iter;
-		Glib::ustring name = Glib::Markup::escape_text(row->get_name());
+		Glib::ustring name = row->get_name();
 
 		std::list<Glib::ustring> info;
 		std::list<Group::Filter> filters = row->get_filters();
