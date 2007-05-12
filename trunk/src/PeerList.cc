@@ -132,7 +132,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		}
 	}
 
-	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); )
 	{
 		Gtk::TreeRow row = *iter;
 
@@ -151,12 +151,12 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		
 		if (!keep)
 		{
-			Gtk::TreeIter remove_iter = iter;
-			--iter;
-			model->erase(remove_iter);
+			iter = model->erase(iter);
 			continue;
 		}
-		
+		else
+			 ++iter;
+
 		char c[3];
 		c[0] = peer.country[0];
 		c[1] = peer.country[1];
