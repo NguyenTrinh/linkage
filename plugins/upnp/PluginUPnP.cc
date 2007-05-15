@@ -30,19 +30,19 @@ UPnPPlugin::UPnPPlugin() :
 					"Christian Lundgren",
 					"http://code.google.com/p/linkage")
 {
-	m_upnp = NULL;
 }
 
 UPnPPlugin::~UPnPPlugin()
 {
+	m_update.disconnect();
+	m_search.disconnect();
 	if (m_upnp)
 	{
 		/* Hack to make sure we don't leave the search thread behind */
 		m_mutex.lock();
-		while (m_upnp->is_searching())
+		while (m_upnp->is_searching() || m_mapping)
 			m_cond.wait(m_mutex);
 		m_mutex.unlock();
-
 		for (PortMap::iterator iter = ports.begin(); iter != ports.end(); ++iter)
 		{
 			if (iter->second & P_TCP)
@@ -60,19 +60,19 @@ UPnPPlugin::~UPnPPlugin()
 					std::cout << "Failed to unmap port: " << iter->first << " (UDP)" << std::endl;
 			}
 		}
-
-		delete m_upnp;
 	}
 }
 
 void UPnPPlugin::on_load()
 {
-	/* FIXME: Pass ip and min_port to manager */
-	m_upnp = new UPnPManager();
-	m_upnp->signal_update_mappings().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), true));
-	m_upnp->signal_search_complete().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), false));
+	m_mapping = false;
 
-	Glib::Thread* search = Glib::Thread::create(sigc::mem_fun(m_upnp, &UPnPManager::search), false);
+	/* FIXME: Pass ip and min_port to manager */
+	m_upnp = UPnPManager::instance();
+	m_update = m_upnp->signal_update_mappings().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), true));
+	m_search = m_upnp->signal_search_complete().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), false));
+
+	Glib::Thread* search = Glib::Thread::create(sigc::mem_fun(m_upnp.operator->(), &UPnPManager::search), false);
 
 	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UPnPPlugin::on_settings));
 }
@@ -89,6 +89,8 @@ void UPnPPlugin::on_settings()
 
 void UPnPPlugin::update_mappings(bool refresh)
 {
+	m_mapping = true;
+
 	/* FIXME: Remove old mappings */
 	Glib::ustring iface = Engine::get_settings_manager()->get_string("Network", "Interface");
 	ip_address ip;
@@ -127,6 +129,7 @@ void UPnPPlugin::update_mappings(bool refresh)
 		else
 			std::cout << "Failed to map port: " << port << " (UDP)" << std::endl;
 	}
+	m_mapping = false;
 	m_mutex.lock();
 	m_cond.signal();
 	m_mutex.unlock();

@@ -27,8 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "UPnPManager.hh"
 #include <iostream>
 
-UPnPManager* UPnPManager::self = NULL;
-
 const char* sIGD = "urn:schemas-upnp-org:device:InternetGatewayDevice:1";
 const char* sWANCON = "urn:schemas-upnp-org:service:WANIPConnection:1";
 
@@ -123,7 +121,7 @@ bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::
 			m_mapped.erase(iter);
 	}*/
 
-	IXML_Document *doc = NULL;
+	IXML_Document* doc = NULL;
 	if (!args.empty())
 	{
 		for (unsigned int i = 0; i < args.size(); ++i)
@@ -151,18 +149,30 @@ bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::
 	int ret = UpnpSendAction(UPnPManager::self->m_handle, m_control_url.c_str(), m_type.c_str(),	NULL, doc, &ret_doc);
 	if (ret != UPNP_E_SUCCESS)
 		std::cerr << "Failed to send UPnP action: " << UpnpGetErrorMessage(ret) << " URL: " << m_control_url << std::endl;
+	if (ret_doc)
+		ixmlDocument_free(ret_doc);
 
 	ixmlDocument_free(doc);
-	ixmlDocument_free(ret_doc);
 
 	return (ret == UPNP_E_SUCCESS);
 }
 
-UPnPManager::UPnPManager()
-{
-	if (self == NULL)
-		self = this;
+Glib::RefPtr<UPnPManager> UPnPManager::self = Glib::RefPtr<UPnPManager>();
 
+Glib::RefPtr<UPnPManager> UPnPManager::instance()
+{
+	static bool creating = false;
+	if (!self && !creating)
+	{
+		creating = true;
+		self = Glib::RefPtr<UPnPManager>(new UPnPManager());
+		creating = false;
+	}
+	return self;
+}
+
+UPnPManager::UPnPManager() : RefCounter<UPnPManager>(this)
+{
 	/* FIXME: Get Interface from settings manager and use that ip */
 	if (UpnpInit(NULL, 0) != UPNP_E_SUCCESS)
 		std::cerr << "Failed to intialize uPnP" << std::endl;
@@ -176,8 +186,6 @@ UPnPManager::UPnPManager()
 
 UPnPManager::~UPnPManager()
 {
-	self = NULL;
-
 	for (DeviceMap::iterator iter = m_devices.begin();
 				iter != m_devices.end(); ++iter)
 	{
