@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <glibmm/thread.h>
-
+#include <gtkmm/main.h>
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
@@ -30,12 +30,14 @@ UPnPPlugin::UPnPPlugin() :
 					"Christian Lundgren",
 					"http://code.google.com/p/linkage")
 {
+	m_upnp = NULL;
 }
 
 UPnPPlugin::~UPnPPlugin()
 {
 	m_update.disconnect();
 	m_search.disconnect();
+
 	if (m_upnp)
 	{
 		/* Hack to make sure we don't leave the search thread behind */
@@ -60,6 +62,7 @@ UPnPPlugin::~UPnPPlugin()
 					std::cout << "Failed to unmap port: " << iter->first << " (UDP)" << std::endl;
 			}
 		}
+		delete m_upnp;
 	}
 }
 
@@ -68,11 +71,11 @@ void UPnPPlugin::on_load()
 	m_mapping = false;
 
 	/* FIXME: Pass ip and min_port to manager */
-	m_upnp = UPnPManager::instance();
+	m_upnp = new UPnPManager();
 	m_update = m_upnp->signal_update_mappings().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), true));
 	m_search = m_upnp->signal_search_complete().connect(sigc::bind(sigc::mem_fun(this, &UPnPPlugin::update_mappings), false));
 
-	Glib::Thread* search = Glib::Thread::create(sigc::mem_fun(m_upnp.operator->(), &UPnPManager::search), false);
+	Glib::Thread* search = Glib::Thread::create(sigc::mem_fun(m_upnp, &UPnPManager::search), false);
 
 	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UPnPPlugin::on_settings));
 }
