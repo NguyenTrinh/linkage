@@ -25,11 +25,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <map>
 #include <vector>
 
-#include <glibmm/ustring.h>
-#include <glibmm/thread.h>
 #include "upnp/upnp.h"
 
-class UPnPManager : public sigc::trackable
+#include <glibmm/ustring.h>
+#include <glibmm/thread.h>
+#include <glibmm/refptr.h>
+
+#include "linkage/RefCounter.hh"
+
+class UPnPManager : public RefCounter<UPnPManager>
 {
 	class Device;
 	class Service;
@@ -93,7 +97,7 @@ class UPnPManager : public sigc::trackable
 	};
 
 	/* According to aMule using the cookie in the callback is unreliable */
-	static UPnPManager* self;
+	static Glib::RefPtr<UPnPManager> self;
 
 	Glib::Cond m_cond;
 	Glib::Mutex m_mutex;
@@ -125,6 +129,8 @@ class UPnPManager : public sigc::trackable
 	static Glib::ustring get_value(IXML_Element *element, const DOMString tag);
 	static Glib::ustring get_value(IXML_Element *element);
 
+	UPnPManager();
+
 public:
 	void search();
 	bool is_searching();
@@ -135,7 +141,7 @@ public:
 	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address);
 	bool remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);
 
-	UPnPManager();
+	static Glib::RefPtr<UPnPManager> instance();
 	~UPnPManager();
 };
 
