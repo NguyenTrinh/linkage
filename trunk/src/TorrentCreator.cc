@@ -204,7 +204,7 @@ void TorrentCreator::on_button_save()
 			double progress = (double)i/info.num_pieces();
 			progress_hashing->set_fraction(progress);
 			while (Gtk::Main::events_pending())
-			 Gtk::Main::iteration(false);
+				Gtk::Main::iteration(false);
 			st.read(&buf[0], i, 0, info.piece_size(i));
 			hasher h(&buf[0], info.piece_size(i));
 			info.set_hash(i, h.final());
