@@ -30,7 +30,7 @@ class UPnPPlugin : public Plugin
 	sigc::connection m_search, m_update;
 
 	enum MappedProtocol { P_NONE = 0x0, P_TCP = 0x1, P_UDP = 0x2 };
-	Glib::RefPtr<UPnPManager> m_upnp;
+	UPnPManager* m_upnp;
 	typedef std::map<unsigned int, int> PortMap;
 	PortMap ports;
 	void on_settings();

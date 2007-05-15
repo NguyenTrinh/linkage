@@ -50,8 +50,8 @@ UPnPManager::Device::Device(IXML_Element* root,
 		m_services[service->get_event_url()] = service;
 		if (service->is_wan())
 		{
-			UPnPManager::self->subscribe(service);
 			std::cout << "Found WANIPConnection service" << std::endl;
+			UPnPManager::self->subscribe(service);
 		}
 	}
 	
@@ -157,22 +157,13 @@ bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::
 	return (ret == UPNP_E_SUCCESS);
 }
 
-Glib::RefPtr<UPnPManager> UPnPManager::self = Glib::RefPtr<UPnPManager>();
-
-Glib::RefPtr<UPnPManager> UPnPManager::instance()
-{
-	static bool creating = false;
-	if (!self && !creating)
-	{
-		creating = true;
-		self = Glib::RefPtr<UPnPManager>(new UPnPManager());
-		creating = false;
-	}
-	return self;
-}
+UPnPManager* UPnPManager::self = NULL;
 
 UPnPManager::UPnPManager() : RefCounter<UPnPManager>(this)
 {
+	if (!self)
+		self = this;
+
 	/* FIXME: Get Interface from settings manager and use that ip */
 	if (UpnpInit(NULL, 0) != UPNP_E_SUCCESS)
 		std::cerr << "Failed to intialize uPnP" << std::endl;
@@ -203,6 +194,8 @@ UPnPManager::~UPnPManager()
 	m_services.clear();
 
 	UpnpFinish();
+
+	self = NULL;
 }
 
 sigc::signal<void> UPnPManager::signal_search_complete()
@@ -283,7 +276,7 @@ int UPnPManager::upnp_cb(Upnp_EventType type, void* event, void* cookie)
 					Service* service = iter->second;
 					service->set_timeout(timeout);
 					service->set_sid(sid);
-					UPnPManager::self->refresh_port_mappings();
+					//UPnPManager::self->refresh_port_mappings();
 				}
 			}
 			else
@@ -417,7 +410,6 @@ void UPnPManager::subscribe(Service* service)
 		service->set_timeout(timeout);
 
 		m_services[service->get_event_url()] = service;
-		
 		refresh_port_mappings();
 	}
 	else

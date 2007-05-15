@@ -97,7 +97,7 @@ class UPnPManager : public RefCounter<UPnPManager>
 	};
 
 	/* According to aMule using the cookie in the callback is unreliable */
-	static Glib::RefPtr<UPnPManager> self;
+	static UPnPManager* self;
 
 	Glib::Cond m_cond;
 	Glib::Mutex m_mutex;
@@ -129,8 +129,6 @@ class UPnPManager : public RefCounter<UPnPManager>
 	static Glib::ustring get_value(IXML_Element *element, const DOMString tag);
 	static Glib::ustring get_value(IXML_Element *element);
 
-	UPnPManager();
-
 public:
 	void search();
 	bool is_searching();
@@ -141,7 +139,7 @@ public:
 	bool add_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol, const Glib::ustring& address);
 	bool remove_port_mapping(const Glib::ustring& port, const Glib::ustring& protocol);
 
-	static Glib::RefPtr<UPnPManager> instance();
+	UPnPManager();
 	~UPnPManager();
 };
 
