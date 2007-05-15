@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <vector>
+#include <iostream>
 
 #include "linkage/Engine.hh"
 #include "linkage/TorrentManager.hh"
@@ -74,9 +75,7 @@ void TorrentManager::on_settings()
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
-	{
-		on_handle_changed(iter->second);
-	}
+		set_torrent_settings(iter->second);
 
 	check_queue();
 }
@@ -126,6 +125,13 @@ void TorrentManager::on_update_queue(const sha1_hash& hash, const Glib::ustring&
 
 void TorrentManager::on_handle_changed(Torrent* torrent)
 {
+	set_torrent_settings(torrent);
+
+	check_queue();
+}
+
+void TorrentManager::set_torrent_settings(Torrent* torrent)
+{
 	if (!torrent->is_stopped())
 	{
 		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
@@ -138,8 +144,6 @@ void TorrentManager::on_handle_changed(Torrent* torrent)
 		/* FIXME: Make this configurable */
 		handle.resolve_countries(true);
 	}
-
-	check_queue();
 }
 
 void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
@@ -150,6 +154,7 @@ void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
 		if (position == m_torrents[hash]->get_position() && iter->first != hash)
 			iter->second->set_position(position + diff);
 	}
+
 	check_queue();
 }
 
@@ -238,8 +243,6 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	m_torrents[hash] = torrent;
 
 	m_signal_added.emit(hash, torrent->get_name(), torrent->get_position());
-
-	check_queue();
 
 	return WeakPtr<Torrent>(torrent);
 }
