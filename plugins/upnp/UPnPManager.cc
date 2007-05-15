@@ -91,12 +91,12 @@ UPnPManager::Service::Service(IXML_Element *element, const Glib::ustring& URLBas
 	m_timeout = 3;
 
 	char* url = new char[URLBase.length() + m_control_url.length() + 1];
-	if(UpnpResolveURL(URLBase.c_str(),	m_control_url.c_str(), url) == UPNP_E_SUCCESS)
+	if (UpnpResolveURL(URLBase.c_str(),	m_control_url.c_str(), url) == UPNP_E_SUCCESS)
 		m_control_url = url;
 	delete url;
 
 	url = new char[URLBase.length() + m_event_url.length() + 1];
-	if(UpnpResolveURL(URLBase.c_str(),	m_event_url.c_str(), url) == UPNP_E_SUCCESS)
+	if (UpnpResolveURL(URLBase.c_str(),	m_event_url.c_str(), url) == UPNP_E_SUCCESS)
 		m_event_url = url;
 	delete url;
 
@@ -148,7 +148,7 @@ bool UPnPManager::Service::send(const Glib::ustring& action, const UPnPManager::
 	IXML_Document* ret_doc = NULL;
 	int ret = UpnpSendAction(UPnPManager::self->m_handle, m_control_url.c_str(), m_type.c_str(),	NULL, doc, &ret_doc);
 	if (ret != UPNP_E_SUCCESS)
-		std::cerr << "Failed to send UPnP action: " << UpnpGetErrorMessage(ret) << " URL: " << m_control_url << std::endl;
+		std::cerr << "Failed to send UPnP action: " << UpnpGetErrorMessage(ret) << std::endl;
 	if (ret_doc)
 		ixmlDocument_free(ret_doc);
 
