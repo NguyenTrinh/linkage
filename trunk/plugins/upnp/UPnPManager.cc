@@ -90,6 +90,7 @@ UPnPManager::Service::Service(IXML_Element *element, const Glib::ustring& URLBas
 	m_event_url = UPnPManager::get_value(element, "eventSubURL");
 	m_timeout = 3;
 
+	/* FIXME: make sure url really is valid */
 	char* url = new char[URLBase.length() + m_control_url.length() + 1];
 	if (UpnpResolveURL(URLBase.c_str(),	m_control_url.c_str(), url) == UPNP_E_SUCCESS)
 		m_control_url = url;
