@@ -417,8 +417,6 @@ UI::UI()
 	file_chooser = new OpenDialog(this);
 	path_chooser = new SaveDialog(this);
 
-	Engine::get_session_manager()->resume_session();
-
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	resize(sm->get_int("UI", "WinWidth"), sm->get_int("UI", "WinHeight"));

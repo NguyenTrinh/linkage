@@ -34,7 +34,7 @@ sigc::signal<void> Engine::m_signal_tick	= sigc::signal<void>();
 Engine::Engine() : RefCounter<Engine>::RefCounter(this)
 {
 	/* FIXME: update interval on_settings() */
-	int interval = ssm->get_int("UI", "Interval")*1000;
+	int interval = get_settings_manager()->get_int("UI", "Interval")*1000;
 	Glib::signal_timeout().connect(sigc::mem_fun(this, &Engine::on_timeout), interval);
 }
 
