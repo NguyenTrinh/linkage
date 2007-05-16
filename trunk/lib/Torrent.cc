@@ -475,7 +475,6 @@ const entry Torrent::get_resume_entry(bool running)
 			in.open(file.c_str(), std::ios_base::binary);
 			in.unsetf(std::ios_base::skipws);
 			entry er = bdecode(std::istream_iterator<char>(in), std::istream_iterator<char>());
-			in.close();
 			resume_entry = er.dict();
 		}
 		catch (std::exception& e)
@@ -484,6 +483,7 @@ const entry Torrent::get_resume_entry(bool running)
 
 			resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
 		}
+		in.close();
 	}
 
 	resume_entry["path"] = m_path;

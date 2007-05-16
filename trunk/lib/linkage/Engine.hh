@@ -16,6 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#ifndef ENGINE_HH
+#define ENGINE_HH
+
 #include <glibmm/refptr.h>
 
 #include "linkage/AlertManager.hh"
@@ -59,3 +62,6 @@ public:
 	
 	~Engine();
 };
+
+#endif /* ENGINE_HH */
+

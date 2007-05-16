@@ -24,9 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/main.h>
 
 #include "linkage/Engine.hh"
+
 #include "UI.hh"
 
-/* FIXME: use add_gtk_option_group */
 bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files);
 void send_files(const std::list<Glib::ustring>& files);
 
@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
+		Engine::get_session_manager()->resume_session();
+
 		UI* ui = new UI();
 		ui->show();
 		if (file_args)

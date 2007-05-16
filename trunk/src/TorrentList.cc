@@ -65,11 +65,17 @@ TorrentList::TorrentList()
 
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	/* FIXME: Add option to trunkate names */
 	Gtk::SortType sort_order = Gtk::SortType(sm->get_int("UI", "SortOrder"));
 	model->set_sort_column_id(sm->get_int("UI", "SortColumn"), sort_order);
 
 	Glib::RefPtr<TorrentManager> tm = Engine::get_torrent_manager();
+	TorrentManager::TorrentList torrents = tm->get_torrents();
+	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
+				iter != torrents.end(); ++iter)
+	{
+		WeakPtr<Torrent> torrent = *iter;
+		on_added(torrent->get_hash(), torrent->get_name(), torrent->get_position());
+	}
 	tm->signal_added().connect(sigc::mem_fun(*this, &TorrentList::on_added));
 	tm->signal_removed().connect(sigc::mem_fun(*this, &TorrentList::on_removed));
 }
