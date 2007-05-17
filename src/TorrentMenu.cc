@@ -64,10 +64,10 @@ TorrentMenu::TorrentMenu()
 	append(*item);
 	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	Gtk::Menu* submenu_remove = Gtk::manage(new Gtk::Menu());
-	item = Gtk::manage(new Gtk::MenuItem("Remove torrent"));
+	item = Gtk::manage(new Gtk::MenuItem("Torrent"));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_remove, &sigc::signal<void, bool>::emit), false));
 	submenu_remove->append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Remove torrent + content"));
+	item = Gtk::manage(new Gtk::MenuItem("Torrent and content"));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_remove, &sigc::signal<void, bool>::emit), true));
 	submenu_remove->append(*item);
 	image = manage(new Gtk::Image(Gtk::Stock::REMOVE, Gtk::ICON_SIZE_MENU));

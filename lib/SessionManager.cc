@@ -54,6 +54,14 @@ SessionManager::~SessionManager()
 		save_entry(file, e);
 	}
 	#endif
+
+	for (std::list<Glib::Thread*>::iterator iter = m_threads.begin();
+				iter != m_threads.end(); ++iter)
+	{
+		Glib::Thread* thread = *iter;
+		thread->join();
+	}
+	m_threads.clear();
 }
 
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
@@ -383,24 +391,12 @@ void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 
 	if (erase_content)
 	{
-		Glib::ustring root = torrent->get_path();
-		torrent_info info = torrent->get_info();
-
-		for (torrent_info::file_iterator iter = info.begin_files();
-					iter != info.end_files(); ++iter)
-		{
-			file_entry fe = *iter;
-			Glib::ustring file = fe.path.string();
-			g_remove(Glib::build_filename(root, file).c_str());
-
-			/* Try to remove parent dir */
-			if (file.find("/") != Glib::ustring::npos)
-				g_remove(Glib::build_filename(root, Glib::path_get_dirname(file)).c_str());
-		}
-
-		/* Multi file torrents have their own root folder */
-		if (info.num_files() > 1)
-			g_remove(Glib::build_filename(root, info.name()).c_str());
+		sigc::slot<void> thread_slot =	sigc::bind(
+			sigc::mem_fun(this, &SessionManager::erase_content), 
+			torrent->get_path(), 
+			torrent->get_info());
+		Glib::Thread* thread = Glib::Thread::create(thread_slot, true);
+		m_threads.push_back(thread);
 	}
 
 	Engine::get_torrent_manager()->remove_torrent(hash);
@@ -409,3 +405,23 @@ void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 	g_unlink(file.c_str());
 	g_unlink((file + ".resume").c_str());
 }
+
+void SessionManager::erase_content(const Glib::ustring& path, const torrent_info& info)
+{
+	for (torrent_info::file_iterator iter = info.begin_files();
+				iter != info.end_files(); ++iter)
+	{
+		file_entry fe = *iter;
+		Glib::ustring file = fe.path.string();
+		g_remove(Glib::build_filename(path, file).c_str());
+
+		/* Try to remove parent dir */
+		if (file.find("/") != Glib::ustring::npos)
+			g_remove(Glib::build_filename(path, Glib::path_get_dirname(file)).c_str());
+	}
+
+	/* Multi file torrents have their own root folder */
+	if (info.num_files() > 1)
+		g_remove(Glib::build_filename(path, info.name()).c_str());
+}
+
