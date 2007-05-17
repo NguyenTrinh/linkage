@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <iterator>
 #include <exception>
 #include <iostream>
+#include <list>
+
+#include <glibmm/thread.h>
 
 #include "libtorrent/entry.hpp"
 #include "libtorrent/bencode.hpp"
@@ -33,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Torrent.hh"
 #include "linkage/Utils.hh"
 #include "linkage/RefCounter.hh"
+#include "linkage/WeakPtr.hh"
 
 using namespace libtorrent;
 
@@ -43,7 +47,11 @@ class SessionManager : public RefCounter<SessionManager>, public session
 	bool decode(const Glib::ustring& file, entry& e);
 	bool decode(const Glib::ustring& file, entry& e, std::vector<char>& buffer);
 
+	void erase_content(const Glib::ustring& path, const torrent_info& info);
+
 	void on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg);
+
+	std::list<Glib::Thread*> m_threads;
 
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;

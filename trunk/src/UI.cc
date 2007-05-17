@@ -812,7 +812,17 @@ void UI::on_remove(bool erase_content)
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		sha1_hash hash = *iter;
-		Engine::get_session_manager()->erase_torrent(hash, erase_content);
+
+		Glib::ustring name = Engine::get_torrent_manager()->get_torrent(hash)->get_name();
+		Gtk::MessageDialog dialog(*this, "Removing " + name, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
+		Glib::ustring msg = "Are you sure you wish to remove " + name;
+		if (erase_content)
+			msg += " and all of it's content";
+		msg += "?";
+		dialog.set_secondary_text(msg);
+
+		if (dialog.run() == Gtk::RESPONSE_OK)
+			Engine::get_session_manager()->erase_torrent(hash, erase_content);
 	}
 
 	if (!list.empty())
