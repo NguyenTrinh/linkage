@@ -32,6 +32,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/messagedialog.h>
 #include <gdkmm/cursor.h>
 #include <gtkmm/menutoolbutton.h>
+#include <gtkmm/paned.h>
+
+#include <libglademm.h>
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
@@ -70,6 +73,7 @@ class UI : public Gtk::Window
 {
 	Glib::RefPtr<Gtk::ActionGroup> action_group;
 	Glib::RefPtr<Gtk::UIManager> manager;
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::MenuToolButton* tb_sort;
 
@@ -82,35 +86,38 @@ class UI : public Gtk::Window
 	Gtk::Button* button_up;
 	Gtk::Button* button_down;
 
-	AlignedLabel* label_down;
-	AlignedLabel* label_down_rate;
-	AlignedLabel* label_up;
-	AlignedLabel* label_up_rate;
-	AlignedLabel* label_ratio;
-	AlignedLabel* label_copies;
+	Gtk::Label* label_down;
+	Gtk::Label* label_down_rate;
+	Gtk::Label* label_up;
+	Gtk::Label* label_up_rate;
+	Gtk::Label* label_ratio;
+	Gtk::Label* label_copies;
 	Gtk::Button* button_tracker;
-	AlignedLabel* label_tracker;
-	AlignedLabel* label_path;
-	AlignedLabel* label_creator;
-	AlignedLabel* label_comment;
-	AlignedLabel* label_size;
-	AlignedLabel* label_pieces;
-	AlignedLabel* label_done;
-	AlignedLabel* label_remaining;
-	AlignedLabel* label_next_announce;
-	AlignedLabel* label_files;
-	AlignedLabel* label_response;
-	AlignedLabel* label_private;
-	AlignedLabel* label_date;
+	Gtk::Label* label_tracker;
+	Gtk::Label* label_path;
+	Gtk::Label* label_creator;
+	Gtk::Label* label_comment;
+	Gtk::Label* label_size;
+	Gtk::Label* label_pieces;
+	Gtk::Label* label_done;
+	Gtk::Label* label_remaining;
+	Gtk::Label* label_next_announce;
+	Gtk::Label* label_files;
+	Gtk::Label* label_response;
+	Gtk::Label* label_private;
+	Gtk::Label* label_date;
 
 	Gtk::Menu* menu_trackers;
+
+	Gtk::VPaned* main_vpane;
+	Gtk::HPaned* main_hpane;
 
 	Gtk::Expander* expander_details;
 	Gtk::Notebook* notebook_main;
 	Gtk::Notebook* notebook_details;
 
-	AlignedSpinButton* spinbutton_down;
-	AlignedSpinButton* spinbutton_up;
+	Gtk::SpinButton* spinbutton_down;
+	Gtk::SpinButton* spinbutton_up;
 
 	OpenDialog* file_chooser;
 	SaveDialog* path_chooser;
@@ -211,7 +218,7 @@ class UI : public Gtk::Window
 	void on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
 
 public:
-	UI();
+	UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~UI();
 };
 

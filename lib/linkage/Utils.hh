@@ -33,8 +33,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <list>
 #include <math.h>
 #include <sstream>
+#include <string>
 #include <glibmm/ustring.h>
 #include <glibmm/miscutils.h>
+#include <libglademm.h>
 
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/entry.hpp"
@@ -49,6 +51,7 @@ Glib::ustring suffix_value(float value);
 Glib::ustring str(int value);
 Glib::ustring str(unsigned int value);
 Glib::ustring str(size_type value);
+Glib::ustring str(size_t value);
 Glib::ustring str(float value, int precision);
 Glib::ustring str(const sha1_hash& hash);
 Glib::ustring get_eta(size_type size, float rate);
@@ -66,5 +69,7 @@ Glib::ustring get_data_dir();
 
 void save_entry(const sha1_hash& hash, const entry& e, const Glib::ustring& suffix = Glib::ustring());
 void save_entry(const Glib::ustring& file, const entry& e);
+
+Glib::RefPtr<Gnome::Glade::Xml> load_glade_file(const std::string &file);
 
 #endif /* UTILS_HH */

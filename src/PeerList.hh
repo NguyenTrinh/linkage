@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
+#include <libglademm.h>
 
 #include "libtorrent/peer_id.hpp"
 
@@ -72,7 +73,7 @@ public:
 	void clear();
 	void update(const WeakPtr<Torrent>& torrent);
 	
-	PeerList();
+	PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~PeerList();
 };
 

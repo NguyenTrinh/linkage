@@ -61,6 +61,13 @@ Glib::ustring str(size_type value)
 	return tc.str();
 }
 
+Glib::ustring str(size_t value)
+{
+	std::stringstream tc;
+	tc << value;
+	return tc.str();
+}
+
 Glib::ustring str(float value, int precision)
 {
 	std::stringstream tc;
@@ -199,4 +206,19 @@ void save_entry(const Glib::ustring& file, const entry& e)
 	out.unsetf(std::ios_base::skipws);
 	bencode(std::ostream_iterator<char>(out), e);
 	out.close();
+}
+
+// loads a glade file
+Glib::RefPtr<Gnome::Glade::Xml> load_glade_file(const std::string &file)
+{
+	Glib::RefPtr<Gnome::Glade::Xml> xml;
+	try
+	{
+		xml = Gnome::Glade::Xml::create(file);
+	}
+	catch(const Gnome::Glade::XmlError& ex)
+	{
+		std::cerr << ex.what() << std::endl;
+	}
+	return xml;
 }

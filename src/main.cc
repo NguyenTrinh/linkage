@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <list>
 
 #include <gtkmm/main.h>
+#include <libglademm.h>
 
 #include "linkage/Engine.hh"
+#include "linkage/Utils.hh"
 
 #include "UI.hh"
 
@@ -64,7 +66,10 @@ int main(int argc, char *argv[])
 	{
 		Engine::get_session_manager()->resume_session();
 
-		UI* ui = new UI();
+		UI* ui = 0;
+		Glib::RefPtr<Gnome::Glade::Xml> xml = load_glade_file(DATA_DIR "/linkage.glade");
+		xml->get_widget_derived("main_window", ui);
+
 		ui->show();
 		if (file_args)
 			send_files(files);

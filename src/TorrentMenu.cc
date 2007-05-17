@@ -28,7 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "TorrentMenu.hh"
 #include "AlignedLabel.hh"
 
-TorrentMenu::TorrentMenu()
+TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::Menu(cobject)
 {
 	/* FIXME: add pretty icons */
 	Gtk::Image* image = manage(new Gtk::Image(Gtk::Stock::OPEN, Gtk::ICON_SIZE_MENU));

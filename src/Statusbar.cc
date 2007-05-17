@@ -23,7 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "Statusbar.hh"
 
-Statusbar::Statusbar()
+Statusbar::Statusbar(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::Statusbar(cobject)
 {
 	Gtk::Frame* frame = manage(new Gtk::Frame());
 	Gtk::HBox* box = manage(new Gtk::HBox());

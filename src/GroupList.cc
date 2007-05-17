@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SettingsManager.hh"
 #include "GroupList.hh"
 
-GroupList::GroupList()
+GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::VBox(cobject),
+	glade_xml(refGlade)
 {
 	m_all = manage(new Gtk::RadioButton("All"));
 	m_all->signal_toggled().connect(sigc::mem_fun(this, &GroupList::on_all_toggled));

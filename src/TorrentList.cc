@@ -27,7 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 
-TorrentList::TorrentList()
+TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::TreeView(cobject),
+	glade_xml(refGlade)
 {
 	model = Gtk::ListStore::create(columns);
 	filter = Gtk::TreeModelFilter::create(model);

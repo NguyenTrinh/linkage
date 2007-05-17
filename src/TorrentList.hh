@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treemodelfilter.h>
+#include <libglademm/xml.h>
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
@@ -68,6 +69,8 @@ class TorrentList : public Gtk::TreeView
 	Glib::RefPtr<Gtk::ListStore> model;
 	Glib::RefPtr<Gtk::TreeModelFilter> filter;
 	
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
+
 	Group m_active_group;
 
 	Gtk::TreeIter get_iter(const sha1_hash& hash);
@@ -119,7 +122,7 @@ public:
 	sigc::signal<void, GdkEventButton*> signal_double_click();
 	sigc::signal<void, GdkEventButton*> signal_right_click();
 
-	TorrentList();
+	TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~TorrentList();
 };
 

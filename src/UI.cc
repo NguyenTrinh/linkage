@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <string.h>
 #include <glib/gstdio.h>
 
+#include <iostream>
+
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/menubar.h>
@@ -37,165 +39,251 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/paned.h>
 #include <gtkmm/aboutdialog.h>
 
+#include <libglademm.h>
+
 #include "UI.hh"
 #include "linkage/Engine.hh"
 
-Glib::ustring ui_info = "<ui>"
-												"	<menubar name='MenuBar'>"
-												"		<menu action='FileMenu'>"
-												"			<menuitem action='New'/>"
-												"			<menuitem action='Open'/>"
-												"			<separator/>"
-												"			<menuitem action='Quit'/>"
-												"		</menu>"
-												"		<menu action='ViewMenu'>"
-												"			<menuitem action='Details'/>"
-												"			<separator/>"
-												"			<menuitem action='Preferences'/>"
-												"		</menu>"
-												"		<menu action='HelpMenu'>"
-												"			<menuitem action='About'/>"
-												"		</menu>"
-												"	</menubar>"
-												"	<toolbar name='ToolBar'>"
-												"		<toolitem action='Add'/>"
-												"		<toolitem action='Remove'/>"
-												"		<separator/>"
-												"		<toolitem action='Start'/>"
-												"		<toolitem action='Stop'/>"
-												"		<separator/>"
-												"		<toolitem action='Up'/>"
-												"		<toolitem action='Down'/>"
-												"	</toolbar>"
-												"</ui>";
+// Glib::ustring ui_info = "<ui>"
+// 												"	<menubar name='MenuBar'>"
+// 												"		<menu action='FileMenu'>"
+// 												"			<menuitem action='New'/>"
+// 												"			<menuitem action='Open'/>"
+// 												"			<separator/>"
+// 												"			<menuitem action='Quit'/>"
+// 												"		</menu>"
+// 												"		<menu action='ViewMenu'>"
+// 												"			<menuitem action='Details'/>"
+// 												"			<separator/>"
+// 												"			<menuitem action='Preferences'/>"
+// 												"		</menu>"
+// 												"		<menu action='HelpMenu'>"
+// 												"			<menuitem action='About'/>"
+// 												"		</menu>"
+// 												"	</menubar>"
+// 												"	<toolbar name='ToolBar'>"
+// 												"		<toolitem action='Add'/>"
+// 												"		<toolitem action='Remove'/>"
+// 												"		<separator/>"
+// 												"		<toolitem action='Start'/>"
+// 												"		<toolitem action='Stop'/>"
+// 												"		<separator/>"
+// 												"		<toolitem action='Up'/>"
+// 												"		<toolitem action='Down'/>"
+// 												"	</toolbar>"
+// 												"</ui>";
 
 
-UI::UI()
+UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::Window(cobject),
+	glade_xml(refGlade)
 {
-	set_title("Linkage");
 	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 
 	settings_win = new SettingsWin(this);
 	torrent_win = new TorrentCreator(this);
-
+	
 	menu_trackers = manage(new Gtk::Menu());
+	// get the widgets we work with
+	glade_xml->get_widget_derived("torrent_list", torrent_list);
+	glade_xml->get_widget_derived("vbox_groups", group_list);
+	glade_xml->get_widget_derived("statusbar", statusbar);
+	glade_xml->get_widget_derived("piecemap", piecemap);
+	glade_xml->get_widget_derived("file_list", file_list);
+	glade_xml->get_widget_derived("peer_list", peer_list);
+	glade_xml->get_widget_derived("torrent_menu", torrent_menu);
 
-	action_group = Gtk::ActionGroup::create();
+	glade_xml->get_widget("main_vpane", main_vpane);
+	glade_xml->get_widget("main_hpane", main_hpane);
 
-	action_group->add(Gtk::Action::create("FileMenu", "_File"));
-	action_group->add(Gtk::Action::create("ViewMenu", "_View"));
-	action_group->add(Gtk::Action::create("HelpMenu", "_Help"));
+	glade_xml->get_widget("notebook_details", notebook_details);
+	glade_xml->get_widget("expander_details", expander_details);
+	glade_xml->get_widget("button_tracker", button_tracker);
+	glade_xml->get_widget("label_tracker", label_tracker);
+	glade_xml->get_widget("label_private", label_private);
+	glade_xml->get_widget("label_response", label_response);
+	glade_xml->get_widget("label_next_announce", label_next_announce);
+	glade_xml->get_widget("label_creator", label_creator);
+	glade_xml->get_widget("label_next_announce", label_next_announce);
+	glade_xml->get_widget("label_comment", label_comment);
+	glade_xml->get_widget("label_date", label_date);
+	glade_xml->get_widget("label_down", label_down);
+	glade_xml->get_widget("label_down_rate", label_down_rate);
+	glade_xml->get_widget("label_up", label_up);
+	glade_xml->get_widget("label_up_rate", label_up_rate);
+	glade_xml->get_widget("spinbutton_down", spinbutton_down);
+	glade_xml->get_widget("spinbutton_up", spinbutton_up);
+	glade_xml->get_widget("label_copies", label_copies);
+	glade_xml->get_widget("label_ratio", label_ratio);
 
-	action_group->add(Gtk::Action::create("New", Gtk::Stock::NEW, "_New", "Create a new torrent file"),
-										Gtk::AccelKey("<control>N"),
-										sigc::mem_fun(torrent_win, &TorrentCreator::show));
-	action_group->add(Gtk::Action::create("Open", Gtk::Stock::OPEN, "_Open", "Open a torrent file"),
-										Gtk::AccelKey("<control>O"),
-										sigc::mem_fun(this, &UI::on_add));
-	action_group->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT, "_Quit", "Quit"),
-										Gtk::AccelKey("<control>Q"),
-										sigc::mem_fun(this, &UI::on_quit));
-	action_group->add(Gtk::Action::create("Details", Gtk::Stock::DIALOG_INFO, "_Details", "Show detailed information"),
-										sigc::mem_fun(this, &UI::on_info));
-	action_group->add(Gtk::Action::create("Preferences", Gtk::Stock::PREFERENCES, "Prefere_nces", "Configure linkage"),
-										sigc::mem_fun(this, &UI::on_prefs));
-	action_group->add(Gtk::Action::create("About", Gtk::Stock::ABOUT, "_About", "About"),
-										sigc::mem_fun(this, &UI::on_about));
+	glade_xml->get_widget("label_files", label_files);
+	glade_xml->get_widget("label_size", label_size);
+	glade_xml->get_widget("label_done", label_done);
+	glade_xml->get_widget("label_pieces", label_pieces);
+	glade_xml->get_widget("label_remaining", label_remaining);
 
-	action_group->add(Gtk::Action::create("Add", Gtk::Stock::ADD, "Add", "Add torrent"),
-										sigc::mem_fun(this, &UI::on_add));
-	action_group->add(Gtk::Action::create("Remove", Gtk::Stock::REMOVE, "Remove", "Remove selected torrents"),
-										sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
-	action_group->add(Gtk::Action::create("Start", Gtk::Stock::APPLY, "Start", "Start selected torrents"),
-										sigc::mem_fun(this, &UI::on_start));
-	action_group->add(Gtk::Action::create("Stop", Gtk::Stock::STOP, "Stop", "Stop selected torrents"),
-										sigc::mem_fun(this, &UI::on_stop));
-	action_group->add(Gtk::Action::create("Up", Gtk::Stock::GO_UP, "Up", "Move selected torrents up"),
-										sigc::mem_fun(this, &UI::on_up));
-	action_group->add(Gtk::Action::create("Down", Gtk::Stock::GO_DOWN, "Down", "Move selected torrents down"),
-										sigc::mem_fun(this, &UI::on_down));
+	glade_xml->get_widget("label_path", label_path);
+	
+// 	action_group = Gtk::ActionGroup::create();
 
-	manager = Gtk::UIManager::create();
-	manager->insert_action_group(action_group);
-	add_accel_group(manager->get_accel_group());
-	manager->add_ui_from_string(ui_info);
+// 	action_group->add(Gtk::Action::create("FileMenu", "_File"));
+// 	action_group->add(Gtk::Action::create("ViewMenu", "_View"));
+// 	action_group->add(Gtk::Action::create("HelpMenu", "_Help"));
 
-	Gtk::VBox* main_vbox = manage(new Gtk::VBox);
-	add(*main_vbox);
+// 	action_group->add(Gtk::Action::create("New", Gtk::Stock::NEW, "_New", "Create a new torrent file"),
+// 										Gtk::AccelKey("<control>N"),
+// 										sigc::mem_fun(torrent_win, &TorrentCreator::show));
+// 	action_group->add(Gtk::Action::create("Open", Gtk::Stock::OPEN, "_Open", "Open a torrent file"),
+// 										Gtk::AccelKey("<control>O"),
+// 										sigc::mem_fun(this, &UI::on_add));
+// 	action_group->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT, "_Quit", "Quit"),
+// 										Gtk::AccelKey("<control>Q"),
+// 										sigc::mem_fun(this, &UI::on_quit));
+// 	action_group->add(Gtk::Action::create("Details", Gtk::Stock::DIALOG_INFO, "_Details", "Show detailed information"),
+// 										sigc::mem_fun(this, &UI::on_info));
+// 	action_group->add(Gtk::Action::create("Preferences", Gtk::Stock::PREFERENCES, "Prefere_nces", "Configure linkage"),
+// 										sigc::mem_fun(this, &UI::on_prefs));
+// 	action_group->add(Gtk::Action::create("About", Gtk::Stock::ABOUT, "_About", "About"),
+// 										sigc::mem_fun(this, &UI::on_about));
 
-	Gtk::Widget* menubar = manager->get_widget("/MenuBar");
-	main_vbox->pack_start(*menubar, false, false, 0);
+// 	action_group->add(Gtk::Action::create("Add", Gtk::Stock::ADD, "Add", "Add torrent"),
+// 										sigc::mem_fun(this, &UI::on_add));
+// 	action_group->add(Gtk::Action::create("Remove", Gtk::Stock::REMOVE, "Remove", "Remove selected torrents"),
+// 										sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
+// 	action_group->add(Gtk::Action::create("Start", Gtk::Stock::APPLY, "Start", "Start selected torrents"),
+// 										sigc::mem_fun(this, &UI::on_start));
+// 	action_group->add(Gtk::Action::create("Stop", Gtk::Stock::STOP, "Stop", "Stop selected torrents"),
+// 										sigc::mem_fun(this, &UI::on_stop));
+// 	action_group->add(Gtk::Action::create("Up", Gtk::Stock::GO_UP, "Up", "Move selected torrents up"),
+// 										sigc::mem_fun(this, &UI::on_up));
+// 	action_group->add(Gtk::Action::create("Down", Gtk::Stock::GO_DOWN, "Down", "Move selected torrents down"),
+// 										sigc::mem_fun(this, &UI::on_down));
 
-	Gtk::Toolbar* toolbar = dynamic_cast<Gtk::Toolbar*>(manager->get_widget("/ToolBar"));
+// 	manager = Gtk::UIManager::create();
+// 	manager->insert_action_group(action_group);
+// 	add_accel_group(manager->get_accel_group());
+// 	manager->add_ui_from_string(ui_info);
 
-	switch (Engine::get_settings_manager()->get_int("UI", "SortOrder"))
-	{
-		case 1:
-			tb_sort = manage(new Gtk::MenuToolButton(Gtk::Stock::SORT_DESCENDING));
-			break;
-		case 0:
-		default:
-			tb_sort = manage(new Gtk::MenuToolButton(Gtk::Stock::SORT_ASCENDING));
-			break;
-	}
-	Gtk::Menu* tb_sort_menu = manage(new Gtk::Menu());
-	Gtk::MenuItem* item = manage(new Gtk::MenuItem("Position"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Name"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_NAME));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Status"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_STATUS));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Downloaded"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_DOWNLOADED));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Uploaded"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_UPLOADED));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Download rate"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_DOWNRATE));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Upload rate"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_UPRATE));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Seeds"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_SEEDS));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Peers"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_PEERS));
-	tb_sort_menu->append(*item);
-	item = manage(new Gtk::MenuItem("Progress"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_sort_item_selected), TorrentList::COL_PROGRESS));
-	tb_sort_menu->append(*item);
-	tb_sort_menu->show_all_children();
-	tb_sort->set_menu(*tb_sort_menu);
-	tb_sort->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
-	toolbar->append(*manage(new Gtk::SeparatorToolItem()));
-	toolbar->append(*tb_sort);
+ 	// attach menu and toolbar signal handlers coz glademm sux:(
+ 	glade_xml->connect_clicked
+ 		("mnu_file_new", sigc::mem_fun(torrent_win, &TorrentCreator::show));
+ 	glade_xml->connect_clicked
+ 		("mnu_file_open", sigc::mem_fun(this, &UI::on_add));
+	glade_xml->connect_clicked
+		("mnu_file_quit", sigc::mem_fun(this, &UI::on_quit));
+	glade_xml->connect_clicked
+		("mnu_view_details", sigc::mem_fun(this, &UI::on_info));
+	glade_xml->connect_clicked
+		("mnu_view_prefs", sigc::mem_fun(this, &UI::on_prefs));
+ 	glade_xml->connect_clicked
+ 		("mnu_help_about", sigc::mem_fun(this, &UI::on_about));
+ 	glade_xml->connect_clicked
+ 		("toolb_add", sigc::mem_fun(this, &UI::on_add));
+ 	glade_xml->connect_clicked
+		("toolb_remove", sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
+ 	glade_xml->connect_clicked
+ 		("toolb_start", sigc::mem_fun(this, &UI::on_start));
+ 	glade_xml->connect_clicked
+ 		("toolb_stop", sigc::mem_fun(this, &UI::on_stop));
+ 	glade_xml->connect_clicked
+ 		("toolb_up", sigc::mem_fun(this, &UI::on_up));
+ 	glade_xml->connect_clicked
+		("toolb_down", sigc::mem_fun(this, &UI::on_down));
+	glade_xml->connect_clicked
+		("toolb_sort", sigc::mem_fun(this, &UI::on_sort));
 
-	main_vbox->pack_start(*toolbar, false, false, 0);
 
-	notebook_main = manage(new Gtk::Notebook());
-	notebook_main->set_show_tabs(false);
-	Gtk::ScrolledWindow* scrollwin = manage(new Gtk::ScrolledWindow());
-	scrollwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-	torrent_list = new TorrentList();
+	// attach sort menu to button
+	Gtk::MenuToolButton* btn = 0;
+	Gtk::Menu* menu = 0;
+	glade_xml->get_widget("toolb_sort", btn);
+	glade_xml->get_widget("sort_menu", menu);
+	//btn->set_menu(*menu);
+	// 	btn->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
+	
+	// set the sort image
+	if (Engine::get_settings_manager()->get_int("UI", "SortOrder") != 0)
+		btn->set_stock_id(Gtk::Stock::SORT_DESCENDING);
+
+// 	Gtk::VBox* main_vbox = manage(new Gtk::VBox);
+// 	add(*main_vbox);
+
+// 	Gtk::Widget* menubar = manager->get_widget("/MenuBar");
+// 	main_vbox->pack_start(*menubar, false, false, 0);
+
+// 	Gtk::Toolbar* toolbar = dynamic_cast<Gtk::Toolbar*>(manager->get_widget("/ToolBar"));
+
+// 	switch (Engine::get_settings_manager()->get_int("UI", "SortOrder"))
+// 	{
+// 		case 1:
+// 			tb_sort = manage(new Gtk::MenuToolButton(Gtk::Stock::SORT_DESCENDING));
+// 			break;
+// 		case 0:
+// 		default:
+// 			tb_sort = manage(new Gtk::MenuToolButton(Gtk::Stock::SORT_ASCENDING));
+// 			break;
+// 	}
+// 	Gtk::Menu* tb_sort_menu = manage(new Gtk::Menu());
+// 	Gtk::MenuItem* item = manage(new Gtk::MenuItem("Position"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Name"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_NAME));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Status"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_STATUS));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Downloaded"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_DOWNLOADED));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Uploaded"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_UPLOADED));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Download rate"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_DOWNRATE));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Upload rate"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_UPRATE));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Seeds"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_SEEDS));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Peers"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_PEERS));
+// 	tb_sort_menu->append(*item);
+// 	item = manage(new Gtk::MenuItem("Progress"));
+// 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+// 			this, &UI::on_sort_item_selected), TorrentList::COL_PROGRESS));
+// 	tb_sort_menu->append(*item);
+// 	tb_sort_menu->show_all_children();
+// 	tb_sort->set_menu(*tb_sort_menu);
+// 	tb_sort->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
+// 	toolbar->append(*manage(new Gtk::SeparatorToolItem()));
+// 	toolbar->append(*tb_sort);
+
+// 	main_vbox->pack_start(*toolbar, false, false, 0);
+
+// 	notebook_main = manage(new Gtk::Notebook());
+// 	notebook_main->set_show_tabs(false);
+// 	Gtk::ScrolledWindow* scrollwin = manage(new Gtk::ScrolledWindow());
+// 	scrollwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+//	torrent_list = new TorrentList();
+	
+	// torrent list signals
 	torrent_list->signal_changed().connect(sigc::mem_fun(this, &UI::on_torrent_list_selection_changed));
 	torrent_list->signal_double_click().connect(sigc::mem_fun(this, &UI::on_torrent_list_double_clicked));
 	torrent_list->signal_right_click().connect(sigc::mem_fun(this, &UI::on_torrent_list_right_clicked));
 
+	// setup drag and drop
 	std::list<Gtk::TargetEntry> targets;
 	targets.push_back(Gtk::TargetEntry("STRING", Gtk::TargetFlags(0)));
 	targets.push_back(Gtk::TargetEntry("text/plain", Gtk::TargetFlags(0)));
@@ -203,205 +291,205 @@ UI::UI()
 	torrent_list->drag_dest_set(targets, Gtk::DEST_DEFAULT_ALL, Gdk::DragAction(GDK_ACTION_COPY | GDK_ACTION_MOVE));
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received));
 
-	scrollwin->add(*torrent_list);
-	group_list = new GroupList();
+// 	scrollwin->add(*torrent_list);
+// 	group_list = new GroupList();
 	torrent_list->set_filter_set_signal(group_list->signal_filter_set());
 	torrent_list->set_filter_unset_signal(group_list->signal_filter_unset());
-	Gtk::HPaned* hpan = manage(new Gtk::HPaned());
-	hpan->pack1(*group_list, false, true);
-	hpan->pack2(*scrollwin, true, true);
+// 	Gtk::HPaned* hpan = manage(new Gtk::HPaned());
+// 	hpan->pack1(*group_list, false, true);
+// 	hpan->pack2(*scrollwin, true, true);
 
-	notebook_main->append_page(*hpan, "Torrents");
-	Gtk::VPaned* vpan = manage(new Gtk::VPaned());
-	main_vbox->pack_start(*vpan, true, true, 0);
-	vpan->pack1(*notebook_main, true, true);
+// 	notebook_main->append_page(*hpan, "Torrents");
+// 	Gtk::VPaned* vpan = manage(new Gtk::VPaned());
+// 	main_vbox->pack_start(*vpan, true, true, 0);
+// 	vpan->pack1(*notebook_main, true, true);
 
-	expander_details = manage(new Gtk::Expander("<b>Details</b>"));
-	expander_details->set_use_markup(true);
+// 	expander_details = manage(new Gtk::Expander("<b>Details</b>"));
+// 	expander_details->set_use_markup(true);
 	expander_details->property_expanded().signal_changed().connect(sigc::mem_fun(this, &UI::on_details_expanded));
-	vpan->pack2(*expander_details, false, true);
+// 	vpan->pack2(*expander_details, false, true);
 
-	notebook_details = manage(new Gtk::Notebook());
-	connection_switch_page = notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
-	expander_details->add(*notebook_details);
+// 	notebook_details = manage(new Gtk::Notebook());
+ 	connection_switch_page = notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
+// 	expander_details->add(*notebook_details);
 
-	Gtk::VBox* general_box = manage(new Gtk::VBox());
+//	Gtk::VBox* general_box = manage(new Gtk::VBox());
 
-	Gtk::Frame* frame_pieces = manage(new Gtk::Frame());
-	frame_pieces->set_shadow_type(Gtk::SHADOW_NONE);
-	Gtk::Label* label = manage(new AlignedLabel());
-	label->set_use_markup(true);
-	label->set_markup("<b>Pieces</b>");
-	frame_pieces->set_label_widget(*label);
+// 	Gtk::Frame* frame_pieces = manage(new Gtk::Frame());
+// 	frame_pieces->set_shadow_type(Gtk::SHADOW_NONE);
+// 	Gtk::Label* label = manage(new AlignedLabel());
+// 	label->set_use_markup(true);
+// 	label->set_markup("<b>Pieces</b>");
+// 	frame_pieces->set_label_widget(*label);
 
-	piecemap = new PieceMap();
+// 	piecemap = new PieceMap();
 
-	frame_pieces->add(*piecemap);
-	general_box->pack_start(*frame_pieces, false, false, 0);
+// 	frame_pieces->add(*piecemap);
+// 	general_box->pack_start(*frame_pieces, false, false, 0);
 
-	Gtk::Frame* frame_tracker = manage(new Gtk::Frame());
-	frame_tracker->set_shadow_type(Gtk::SHADOW_NONE);
-	label = manage(new AlignedLabel());
-	label->set_use_markup(true);
-	label->set_markup("<b>Tracker</b>");
-	frame_tracker->set_label_widget(*label);
+// 	Gtk::Frame* frame_tracker = manage(new Gtk::Frame());
+// 	frame_tracker->set_shadow_type(Gtk::SHADOW_NONE);
+// 	label = manage(new AlignedLabel());
+// 	label->set_use_markup(true);
+// 	label->set_markup("<b>Tracker</b>");
+// 	frame_tracker->set_label_widget(*label);
 
-	Gtk::Table* table_tracker = manage(new Gtk::Table(2, 4));
-	table_tracker->set_spacings(10);
-	table_tracker->set_border_width(5);
-	label = manage(new AlignedLabel("Tracker:"));
-	table_tracker->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label = manage(new AlignedLabel("Next announce:"));
-	table_tracker->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label = manage(new AlignedLabel("Response:"));
-	table_tracker->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label = manage(new AlignedLabel("Private:"));
-	table_tracker->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	button_tracker = manage(new Gtk::Button());
-	label_tracker = manage(new AlignedLabel());
-	label_tracker->set_use_markup(true);
-	button_tracker->add(*label_tracker);
-	button_tracker->set_relief(Gtk::RELIEF_NONE);
+// 	Gtk::Table* table_tracker = manage(new Gtk::Table(2, 4));
+// 	table_tracker->set_spacings(10);
+// 	table_tracker->set_border_width(5);
+// 	label = manage(new AlignedLabel("Tracker:"));
+// 	table_tracker->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label = manage(new AlignedLabel("Next announce:"));
+// 	table_tracker->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label = manage(new AlignedLabel("Response:"));
+// 	table_tracker->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label = manage(new AlignedLabel("Private:"));
+// 	table_tracker->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	button_tracker = manage(new Gtk::Button());
+// 	label_tracker = manage(new AlignedLabel());
+// 	label_tracker->set_use_markup(true);
+// 	button_tracker->add(*label_tracker);
+// 	button_tracker->set_relief(Gtk::RELIEF_NONE);
 	button_tracker->add_events(Gdk::BUTTON_RELEASE_MASK);
 	button_tracker->signal_button_release_event().connect(sigc::mem_fun(this, &UI::on_tracker_update), false);
 	button_tracker->signal_enter().connect(sigc::mem_fun(this, &UI::on_tracker_enter));
 	button_tracker->signal_leave().connect(sigc::mem_fun(this, &UI::on_tracker_leave));
-	Gtk::HBox* tracker_box = manage(new Gtk::HBox());
-	tracker_box->pack_start(*button_tracker, false, false);
-	table_tracker->attach(*tracker_box, 1, 2, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label_next_announce = manage(new AlignedLabel());
-	table_tracker->attach(*label_next_announce, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label_response = manage(new AlignedLabel());
-	label_response->set_ellipsize(Pango::ELLIPSIZE_END);
-	table_tracker->attach(*label_response, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label_private = manage(new AlignedLabel());
-	table_tracker->attach(*label_private, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	Gtk::HBox* tracker_box = manage(new Gtk::HBox());
+// 	tracker_box->pack_start(*button_tracker, false, false);
+// 	table_tracker->attach(*tracker_box, 1, 2, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label_next_announce = manage(new AlignedLabel());
+// 	table_tracker->attach(*label_next_announce, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label_response = manage(new AlignedLabel());
+// 	label_response->set_ellipsize(Pango::ELLIPSIZE_END);
+// 	table_tracker->attach(*label_response, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label_private = manage(new AlignedLabel());
+// 	table_tracker->attach(*label_private, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	
-	frame_tracker->add(*table_tracker);
-	general_box->pack_start(*frame_tracker, false, false, 0);
+// 	frame_tracker->add(*table_tracker);
+// 	general_box->pack_start(*frame_tracker, false, false, 0);
 
-	Gtk::Frame* frame_origin = manage(new Gtk::Frame());
-	frame_origin->set_shadow_type(Gtk::SHADOW_NONE);
-	label = manage(new AlignedLabel());
-	label->set_use_markup(true);
-	label->set_markup("<b>Origin</b>");
-	frame_origin->set_label_widget(*label);
+// 	Gtk::Frame* frame_origin = manage(new Gtk::Frame());
+// 	frame_origin->set_shadow_type(Gtk::SHADOW_NONE);
+// 	label = manage(new AlignedLabel());
+// 	label->set_use_markup(true);
+// 	label->set_markup("<b>Origin</b>");
+// 	frame_origin->set_label_widget(*label);
 
-	Gtk::Table* table_origin = manage(new Gtk::Table(2, 4));
-	table_origin->set_spacings(10);
-	table_origin->set_border_width(5);
-	label = manage(new AlignedLabel("Creator:"));
-	table_origin->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label = manage(new AlignedLabel("Creation date:"));
-	table_origin->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label = manage(new AlignedLabel("Comment:"));
-	table_origin->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label_creator = manage(new AlignedLabel());
-	table_origin->attach(*label_creator, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label_date = manage(new AlignedLabel());
-	table_origin->attach(*label_date, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	label_comment = manage(new AlignedLabel());
-	label_comment->set_ellipsize(Pango::ELLIPSIZE_END);
-	table_origin->attach(*label_comment, 1, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	Gtk::Table* table_origin = manage(new Gtk::Table(2, 4));
+// 	table_origin->set_spacings(10);
+// 	table_origin->set_border_width(5);
+// 	label = manage(new AlignedLabel("Creator:"));
+// 	table_origin->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label = manage(new AlignedLabel("Creation date:"));
+// 	table_origin->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label = manage(new AlignedLabel("Comment:"));
+// 	table_origin->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label_creator = manage(new AlignedLabel());
+// 	table_origin->attach(*label_creator, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label_date = manage(new AlignedLabel());
+// 	table_origin->attach(*label_date, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
+// 	label_comment = manage(new AlignedLabel());
+// 	label_comment->set_ellipsize(Pango::ELLIPSIZE_END);
+// 	table_origin->attach(*label_comment, 1, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 
-	frame_origin->add(*table_origin);
-	general_box->pack_start(*frame_origin, false, false, 0);
+// 	frame_origin->add(*table_origin);
+// 	general_box->pack_start(*frame_origin, false, false, 0);
 
-	notebook_details->append_page(*general_box, "General");
+// 	notebook_details->append_page(*general_box, "General");
 
-	Gtk::VBox* transfer_box = manage(new Gtk::VBox());
+// 	Gtk::VBox* transfer_box = manage(new Gtk::VBox());
 
-	Gtk::Table* table_transfer = manage(new Gtk::Table(2, 8));
-	table_transfer->set_spacings(10);
-	table_transfer->set_border_width(5);
-	label = manage(new AlignedLabel("Download rate:"));
-	table_transfer->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Download limit:"));
-	table_transfer->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Upload rate:"));
-	table_transfer->attach(*label, 4, 5, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Upload limit:"));
-	table_transfer->attach(*label, 6, 7, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Downloaded:"));
-	table_transfer->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Uploaded:"));
-	table_transfer->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Share ratio:"));
-	table_transfer->attach(*label, 4, 5, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Seen copies:"));
-	table_transfer->attach(*label, 6, 7, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label_down_rate = manage(new AlignedLabel());
-	table_transfer->attach(*label_down_rate, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	spinbutton_down = manage(new AlignedSpinButton(0.0, 1000.0));
+// 	Gtk::Table* table_transfer = manage(new Gtk::Table(2, 8));
+// 	table_transfer->set_spacings(10);
+// 	table_transfer->set_border_width(5);
+// 	label = manage(new AlignedLabel("Download rate:"));
+// 	table_transfer->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Download limit:"));
+// 	table_transfer->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Upload rate:"));
+// 	table_transfer->attach(*label, 4, 5, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Upload limit:"));
+// 	table_transfer->attach(*label, 6, 7, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Downloaded:"));
+// 	table_transfer->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Uploaded:"));
+// 	table_transfer->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Share ratio:"));
+// 	table_transfer->attach(*label, 4, 5, 1, 2, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Seen copies:"));
+// 	table_transfer->attach(*label, 6, 7, 1, 2, Gtk::FILL, Gtk::SHRINK);
+// 	label_down_rate = manage(new AlignedLabel());
+// 	table_transfer->attach(*label_down_rate, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	spinbutton_down = manage(new AlignedSpinButton(0.0, 1000.0));
 	spinbutton_down->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_down));
-	table_transfer->attach(*spinbutton_down, 3, 4, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label_up_rate = manage(new AlignedLabel());
-	table_transfer->attach(*label_up_rate, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	spinbutton_up = manage(new AlignedSpinButton(0.0, 1000.0));
+// 	table_transfer->attach(*spinbutton_down, 3, 4, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label_up_rate = manage(new AlignedLabel());
+// 	table_transfer->attach(*label_up_rate, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	spinbutton_up = manage(new AlignedSpinButton(0.0, 1000.0));
 	spinbutton_up->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_up));
-	table_transfer->attach(*spinbutton_up, 7, 8, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label_down = manage(new AlignedLabel());
-	table_transfer->attach(*label_down, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_up = manage(new AlignedLabel());
-	table_transfer->attach(*label_up, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_ratio = manage(new AlignedLabel());
-	table_transfer->attach(*label_ratio, 5, 6, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_copies = manage(new AlignedLabel());
-	table_transfer->attach(*label_copies, 7, 8, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	table_transfer->attach(*spinbutton_up, 7, 8, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label_down = manage(new AlignedLabel());
+// 	table_transfer->attach(*label_down, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_up = manage(new AlignedLabel());
+// 	table_transfer->attach(*label_up, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_ratio = manage(new AlignedLabel());
+// 	table_transfer->attach(*label_ratio, 5, 6, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_copies = manage(new AlignedLabel());
+// 	table_transfer->attach(*label_copies, 7, 8, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 
-	transfer_box->pack_start(*table_transfer, false, false, 0);
+// 	transfer_box->pack_start(*table_transfer, false, false, 0);
 
-	scrollwin = manage(new Gtk::ScrolledWindow());
-	scrollwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-	peer_list = new PeerList();
-	scrollwin->add(*peer_list);
-	transfer_box->pack_start(*scrollwin, true, true, 0);
-	notebook_details->append_page(*transfer_box, "Transfer");
+// 	Gtk::ScrolledWindow* scrollwin = manage(new Gtk::ScrolledWindow());
+// 	scrollwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+// 	peer_list = new PeerList();
+// 	scrollwin->add(*peer_list);
+// 	transfer_box->pack_start(*scrollwin, true, true, 0);
+// 	notebook_details->append_page(*transfer_box, "Transfer");
 
-	Gtk::VBox* files_box = manage(new Gtk::VBox());
+// 	Gtk::VBox* files_box = manage(new Gtk::VBox());
 
-	Gtk::Table* table_files = manage(new Gtk::Table(2, 10));
-	table_files->set_spacings(10);
-	table_files->set_border_width(5);
-	label = manage(new AlignedLabel("Files:"));
-	table_files->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Total size:"));
-	table_files->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Done:"));
-	table_files->attach(*label, 4, 5, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Remaining:"));
-	table_files->attach(*label, 6, 7, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Pieces:"));
-	table_files->attach(*label, 8, 9, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Saving as:"));
-	table_files->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label_files = manage(new AlignedLabel());
-	table_files->attach(*label_files, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_size = manage(new AlignedLabel());
-	table_files->attach(*label_size, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_done = manage(new AlignedLabel());
-	table_files->attach(*label_done, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_remaining = manage(new AlignedLabel());
-	table_files->attach(*label_remaining, 7, 8, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_pieces = manage(new AlignedLabel());
-	table_files->attach(*label_pieces, 9, 10, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
-	label_path = manage(new AlignedLabel());
-	label_path->set_ellipsize(Pango::ELLIPSIZE_END);
-	table_files->attach(*label_path, 1, 10, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	Gtk::Table* table_files = manage(new Gtk::Table(2, 10));
+// 	table_files->set_spacings(10);
+// 	table_files->set_border_width(5);
+// 	label = manage(new AlignedLabel("Files:"));
+// 	table_files->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Total size:"));
+// 	table_files->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Done:"));
+// 	table_files->attach(*label, 4, 5, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Remaining:"));
+// 	table_files->attach(*label, 6, 7, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Pieces:"));
+// 	table_files->attach(*label, 8, 9, 0, 1, Gtk::FILL, Gtk::SHRINK);
+// 	label = manage(new AlignedLabel("Saving as:"));
+// 	table_files->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
+// 	label_files = manage(new AlignedLabel());
+// 	table_files->attach(*label_files, 1, 2, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_size = manage(new AlignedLabel());
+// 	table_files->attach(*label_size, 3, 4, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_done = manage(new AlignedLabel());
+// 	table_files->attach(*label_done, 5, 6, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_remaining = manage(new AlignedLabel());
+// 	table_files->attach(*label_remaining, 7, 8, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_pieces = manage(new AlignedLabel());
+// 	table_files->attach(*label_pieces, 9, 10, 0, 1, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
+// 	label_path = manage(new AlignedLabel());
+// 	label_path->set_ellipsize(Pango::ELLIPSIZE_END);
+// 	table_files->attach(*label_path, 1, 10, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::SHRINK);
 
-	files_box->pack_start(*table_files, false, false, 0);
+// 	files_box->pack_start(*table_files, false, false, 0);
 
-	scrollwin = manage(new Gtk::ScrolledWindow());
-	scrollwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-	file_list = new FileList();
-	scrollwin->add(*file_list);
-	files_box->pack_start(*scrollwin, true, true, 0);
-	notebook_details->append_page(*files_box, "Files");
+// 	scrollwin = manage(new Gtk::ScrolledWindow());
+// 	scrollwin->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+// 	file_list = new FileList();
+// 	scrollwin->add(*file_list);
+// 	files_box->pack_start(*scrollwin, true, true, 0);
+// 	notebook_details->append_page(*files_box, "Files");
 
-	statusbar = manage(new Statusbar());
-	main_vbox->pack_start(*statusbar, false, false, 0);
+// 	statusbar = manage(new Statusbar());
+// 	main_vbox->pack_start(*statusbar, false, false, 0);
 	
-	torrent_menu = new TorrentMenu();
+// 	torrent_menu = new TorrentMenu();
 	torrent_menu->signal_open().connect(sigc::mem_fun(this, &UI::on_open_location));
 	torrent_menu->signal_info().connect(sigc::mem_fun(this, &UI::on_info));
 	torrent_menu->signal_up().connect(sigc::mem_fun(this, &UI::on_up));
@@ -426,7 +514,8 @@ UI::UI()
 			if we shutdown with expander not expanded */
 	expander_details->set_sensitive(sm->get_bool("UI", "Expanded"));
 	expander_details->set_expanded(sm->get_bool("UI", "Expanded"));
-
+	Gtk::HPaned* hpan;
+	glade_xml->get_widget("main_hpane",hpan);
 	hpan->set_position(sm->get_int("UI", "GroupsWidth"));
 
 	int max_up = sm->get_int("Network", "MaxUpRate");
@@ -479,8 +568,8 @@ UI::~UI()
 	sm->set("UI", "WinHeight", h);
 	sm->set("UI", "Page", notebook_details->get_current_page());
 	sm->set("UI", "Expanded", expander_details->get_expanded());
-	Gtk::HPaned* hpan = dynamic_cast<Gtk::HPaned*>(group_list->get_parent());
-	sm->set("UI", "GroupsWidth",hpan->get_position());
+	//Gtk::HPaned* hpan = dynamic_cast<Gtk::HPaned*>(group_list->get_parent());
+	sm->set("UI", "GroupsWidth",main_hpane->get_position());
 
 	delete torrent_list;
 	delete piecemap;
@@ -627,8 +716,9 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 
 	label_creator->set_text(info.creator());
 	label_comment->set_text(info.comment());
+
 	if (info.creation_date())
-		label_date->set_text(to_simple_string(*info.creation_date()));
+		label_date->set_text(Glib::ustring(to_simple_string(*info.creation_date())) );
 	else
 		label_date->set_text("");
 	label_path->set_text(Glib::build_filename(torrent->get_path(), info.name()));
@@ -977,8 +1067,8 @@ void UI::on_details_expanded()
 	else
 	{
 		/* FIXME: store vpan pointer in UI */
-		Gtk::VPaned* vpan = dynamic_cast<Gtk::VPaned*>(expander_details->get_parent());
-		vpan->set_position(-1);
+		//Gtk::VPaned* vpan = dynamic_cast<Gtk::VPaned*>(expander_details->get_parent());
+		main_vpane->set_position(-1);
 	}
 }
 

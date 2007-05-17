@@ -31,7 +31,7 @@ class Statusbar : public Gtk::Statusbar
 public:
 	void set_status(int connections, float down_rate, float up_rate);
 	
-	Statusbar();
+	Statusbar(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~Statusbar();
 };
 
