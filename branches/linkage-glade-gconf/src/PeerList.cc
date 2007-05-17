@@ -27,7 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "PeerList.hh"
 #include "linkage/Utils.hh"
 
-PeerList::PeerList()
+PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::TreeView(cobject)
 {
 	model = Gtk::ListStore::create(columns);
 

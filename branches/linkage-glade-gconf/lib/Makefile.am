@@ -18,7 +18,7 @@ liblinkage_1_la_SOURCES = gtkmm_extra/keyfile.cc \
                           dbus-c.c \
                           Utils.cc
                           
-liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) -DPLUGIN_DIR="$(plugindir)"
+liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) $(LIBGLADE_CFLAGS) -DPLUGIN_DIR="$(plugindir)"
 
 liblinkage_1_la_CFLAGS = $(CFLAGS) $(DBUSGLIB_CFLAGS)
 

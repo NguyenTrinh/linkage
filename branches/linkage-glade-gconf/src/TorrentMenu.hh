@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define TORRENT_MENU_HH
 
 #include <gtkmm/menu.h>
-
+#include <libglademm.h>
 class TorrentMenu : public Gtk::Menu
 {
 	Gtk::Menu* submenu_groups;
@@ -48,7 +48,7 @@ public:
 	sigc::signal<void, bool> signal_remove();
 	sigc::signal<void> signal_check();
 	
-	TorrentMenu();
+	TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~TorrentMenu();
 };
 

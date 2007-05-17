@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeview.h>
 
 #include "AlignedFrame.hh"
+#include "AlignedLabel.hh"
 #include "AlignedSpinButton.hh"
 #include "GroupView.hh"
 

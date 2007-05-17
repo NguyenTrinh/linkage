@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/box.h>
 #include <gtkmm/radiobutton.h>
+#include <libglademm/xml.h>
 
 #include "linkage/WeakPtr.hh"
 #include "linkage/Torrent.hh"
@@ -32,6 +33,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 class GroupList : public Gtk::VBox
 {
 	typedef std::map<Group*, Gtk::RadioButton*> GroupMap;
+
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::RadioButton* m_all;
 
@@ -51,7 +54,7 @@ public:
 
 	void update();
 
-	GroupList();
+	GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~GroupList();
 };
 
