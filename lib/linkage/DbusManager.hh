@@ -24,8 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/refptr.h>
 
 #include "linkage/RefCounter.hh"
+
 extern "C" {
-#include "linkage/dbus-c.h"
+#include <dbus/dbus-glib.h>
 }
 
 class DbusManager : public RefCounter<DbusManager>
