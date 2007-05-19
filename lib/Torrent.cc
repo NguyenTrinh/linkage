@@ -291,6 +291,7 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 	if (is_stopped())
 		return;
 
+	/* Get trackers from handle, since the list might have changed */
 	std::vector<announce_entry> trackers = m_prop_handle.get_value().trackers();
 	if (tracker.empty())
 	{
@@ -305,25 +306,17 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 		}
 	}
 	else
-	{
 		m_replies[tracker] = reply;
-		for (int j = 0; j < trackers.size(); j++)
-		{
-			if (trackers[j].url == tracker)
-			{
-				m_cur_tier = (trackers[j].tier + 1) % trackers.size();
-				break;
-			}
-		}
-	}
 
-	/* Either a tracker responded and the announce cycle stops or all trackers failed */
-	if (Glib::str_has_prefix(reply, "OK, got ") ||
-			(m_cur_tier == (trackers.size() - 1) && reply != "Announcing"))
+	/* A tracker responded and the announce cycle stops */
+	if (Glib::str_has_prefix(reply, "OK, got "))
 	{
 		m_announcing = false;
 		m_cur_tier = 0;
 	}
+	/* All trackers failed, cycle stops */
+	else if (m_cur_tier == 0 && reply != "Announcing")
+		m_announcing = false;
 	else
 		m_announcing = true;
 }
@@ -462,8 +455,6 @@ const entry Torrent::get_resume_entry(bool running)
 		catch (std::exception& e)
 		{
 			g_warning(e.what());
-
-			resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
 		}
 	}
 	else
@@ -480,10 +471,15 @@ const entry Torrent::get_resume_entry(bool running)
 		catch (std::exception& e)
 		{
 			g_warning(e.what());
-
-			resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
 		}
 		in.close();
+	}
+
+	if (resume_entry.empty())
+	{
+		resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
+		resume_entry["file-format"] = "libtorrent resume file";
+		resume_entry["file-version"] = 1;
 	}
 
 	resume_entry["path"] = m_path;
