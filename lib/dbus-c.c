@@ -17,6 +17,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include "linkage/dbus-c.h"
+#include <stdio.h>
+
+const char* INTROSPECT = "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN\"\n"
+"\"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
+"<node>\n"
+"  <interface name=\"org.freedesktop.DBus.Introspectable\">\n"
+"    <method name=\"Introspect\">\n"
+"      <arg name=\"data\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"  </interface>\n"
+"  <interface name=\"org.linkage\">\n"
+"    <method name=\"Open\">\n"
+"      <arg direction=\"in\" type=\"s\"/>\n"
+"    </method>\n"
+"    <method name=\"Quit\">\n"
+"    </method>\n"
+"    <method name=\"ToggleVisible\">\n"
+"    </method>\n"
+"  </interface>\n"
+"</node>\n";
 
 DBusGConnection* init(int* p, void (*cb_func)(unsigned int, const char*))
 {
@@ -48,15 +68,23 @@ DBusGConnection* init(int* p, void (*cb_func)(unsigned int, const char*))
 			g_warning("Error requesting D-BUS name: (%s)", error.message);
 			dbus_error_free(&error);
 		}
-		dbus_bus_add_match(connection, "type='signal',interface='org.linkage'", &error);
-		/* FIXME: Add introspectable stuff */
-		dbus_connection_add_filter(connection, signal_filter, cb_func, NULL);
+		//dbus_bus_add_match(connection, "type='signal',interface='org.linkage'", &error);
+		
+		DBusObjectPathVTable vtable  = {
+			NULL,
+			message_handler,
+			NULL,
+			NULL,
+			NULL,
+			NULL 
+		};
+		dbus_connection_register_object_path(connection, "/org/linkage", &vtable, cb_func);
 	}
 
 	return connection;
 }
 
-DBusHandlerResult signal_filter(DBusGConnection* connection, DBusGMessage* message, void* user_data)
+DBusHandlerResult message_handler(DBusGConnection* connection, DBusGMessage* message, void* user_data)
 {
 	void (*cb_func)() = user_data;
 	
@@ -65,7 +93,14 @@ DBusHandlerResult signal_filter(DBusGConnection* connection, DBusGMessage* messa
 		(*cb_func)(ACTION_QUIT, NULL);
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_signal(message, "org.linkage", "Open")) 
+	else if (dbus_message_is_method_call(message, DBUS_INTERFACE_INTROSPECTABLE, "Introspect"))
+	{
+		DBusGMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_STRING, &INTROSPECT, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	else if (dbus_message_is_method_call(message, "org.linkage", "Open")) 
 	{
 		GError error;
 		char *file;
@@ -73,6 +108,10 @@ DBusHandlerResult signal_filter(DBusGConnection* connection, DBusGMessage* messa
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &file, DBUS_TYPE_INVALID))
 		{
 			(*cb_func)(ACTION_OPEN, file);
+			DBusGMessage* reply = dbus_message_new_method_return(message);
+			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
 		} 
 		else 
 		{
@@ -81,13 +120,17 @@ DBusHandlerResult signal_filter(DBusGConnection* connection, DBusGMessage* messa
 		}
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_signal(message, "org.linkage", "Quit")) 
+	else if (dbus_message_is_method_call(message, "org.linkage", "Quit")) 
 	{
 		GError error;
 		dbus_error_init (&error);
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_INVALID))
 		{
 			(*cb_func)(ACTION_QUIT, NULL);
+			DBusGMessage* reply = dbus_message_new_method_return(message);
+			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
 		} 
 		else 
 		{
@@ -96,13 +139,17 @@ DBusHandlerResult signal_filter(DBusGConnection* connection, DBusGMessage* messa
 		}
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_signal(message, "org.linkage", "ToggleVisible")) 
+	else if (dbus_message_is_method_call(message, "org.linkage", "ToggleVisible")) 
 	{
 		GError error;
 		dbus_error_init (&error);
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_INVALID))
 		{
 			(*cb_func)(ACTION_TOGGLE_VISIBLE, NULL);
+			DBusGMessage* reply = dbus_message_new_method_return(message);
+			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
 		} 
 		else 
 		{
@@ -119,7 +166,7 @@ void c_send(DBusGConnection* connection, const char* interface, const char* msg)
 	DBusGMessage *message;
 	GError error;
 	
-	message = (DBusGMessage*)dbus_message_new_signal("/org/linkage/Open", "org.linkage", interface);
+	message = (DBusGMessage*)dbus_message_new_method_call("org.linkage", "/org/linkage", "org.linkage", interface);
 	if (msg != NULL)
 		dbus_message_append_args(message, DBUS_TYPE_STRING, &msg, DBUS_TYPE_INVALID);
 	else

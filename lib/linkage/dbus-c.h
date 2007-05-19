@@ -19,9 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glib.h>
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-protocol.h>
+#include <dbus/dbus.h>
 
 enum DbusAction { ACTION_QUIT, ACTION_OPEN, ACTION_TOGGLE_VISIBLE };
 
 DBusGConnection* init(int* p, void (*cb_func)(unsigned int, const char*));
-DBusHandlerResult signal_filter(DBusGConnection *connection, DBusGMessage *message, void *user_data);
+DBusHandlerResult message_handler(DBusGConnection *connection, DBusGMessage *message, void *user_data);
 void c_send(DBusGConnection *connection, const char* interface, const char* msg);
