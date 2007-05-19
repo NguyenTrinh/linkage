@@ -216,7 +216,6 @@ void PluginManager::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::P
 void PluginManager::on_settings()
 {
 	std::list<Glib::ustring> plugins;
-
  	plugins = Engine::get_settings_manager()->get_string_list("UI", "Plugins");
 
 	/* Load all new */
@@ -224,7 +223,7 @@ void PluginManager::on_settings()
 				iter != plugins.end(); ++iter)
 	{
 		Glib::ustring name = *iter;
-		
+
 		if (!is_loaded(name))
 		{
 			Glib::ustring file = get_module(name);
@@ -237,17 +236,17 @@ void PluginManager::on_settings()
 	for (std::list<Plugin*>::iterator piter = loaded_plugins.begin(); 
 					piter != loaded_plugins.end(); ++piter)
 	{
-		Plugin* loaded_plugin = *piter;
-		Plugin* unload = loaded_plugin;
-		for (std::list<Glib::ustring>::iterator iter = plugins.begin();
-					iter != plugins.end(); ++iter)
+		Plugin* plugin = *piter;
+		std::list<Glib::ustring>::iterator iter = plugins.begin();
+		while (iter != plugins.end())
 		{
 			Glib::ustring name = *iter;
-			if (name == loaded_plugin->get_name())
-				unload = 0;
+			if (name == plugin->get_name())
+				break;
+			++iter;
 		}
-		if (unload)
-			unload_list.push_back(unload);
+		if (iter == plugins.end())
+			unload_list.push_back(plugin);
 	}
 	
 	for (std::list<Plugin*>::iterator piter = unload_list.begin(); 
