@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include "linkage/dbus-c.h"
-
+#include "stdio.h"
 const char* xml_introspect = 
 "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN\"\n"
 "\"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
@@ -38,9 +38,11 @@ const char* xml_introspect =
 "  </interface>\n"
 "</node>\n";
 
-int init(DBusGConnection* connection, void (*cb_func)(unsigned int, const char*))
+DBusGConnection* init(gboolean* p, void (*cb_func)(unsigned int, const char*))
 {
 	GError error;
+	DBusGConnection* connection;
+
 	dbus_error_init(&error);
 	connection = (DBusGConnection*)dbus_bus_get(DBUS_BUS_SESSION, &error);
 	if (!connection) 
@@ -51,16 +53,16 @@ int init(DBusGConnection* connection, void (*cb_func)(unsigned int, const char*)
 	}
 	dbus_connection_setup_with_g_main(connection, NULL);
 
-	int p = !dbus_bus_name_has_owner(connection, "org.linkage", &error);
+	*p = !dbus_bus_name_has_owner(connection, "org.linkage", &error);
 	if (dbus_error_is_set(&error))
 	{
 		g_warning("Error querying D-BUS: (%s)", error.message);
 		dbus_error_free(&error);
 	}
 
-	if (p)
+	if (*p)
 	{
-		int ret = dbus_bus_request_name(connection, "org.linkage", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
+		dbus_bus_request_name(connection, "org.linkage", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
 		if (dbus_error_is_set(&error))
 		{
 			g_warning("Error requesting D-BUS name: (%s)", error.message);
@@ -78,7 +80,7 @@ int init(DBusGConnection* connection, void (*cb_func)(unsigned int, const char*)
 		dbus_connection_register_object_path(connection, "/org/linkage", &vtable, cb_func);
 	}
 
-	return p;
+	return connection;
 }
 
 DBusHandlerResult message_handler(DBusGConnection* connection, DBusGMessage* message, void* user_data)
