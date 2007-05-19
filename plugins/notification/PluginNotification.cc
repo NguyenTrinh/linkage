@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "config.h"
+
 #include <gtkmm/statusicon.h>
 
 #include "linkage/Engine.hh"
@@ -32,12 +34,13 @@ NotifyPlugin::NotifyPlugin() :
 
 NotifyPlugin::~NotifyPlugin()
 {
-	notify_uninit();
+	if (notify_is_initted())
+		notify_uninit();
 }
 
 void NotifyPlugin::on_load()
 {
-	notify_init("linkage");
+	notify_init(PACKAGE_NAME);
 
 	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &NotifyPlugin::on_invalid_bencoding));
 	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &NotifyPlugin::on_missing_file));
@@ -53,6 +56,9 @@ void NotifyPlugin::notify(const Glib::ustring& title,
 													const Glib::ustring& message,
 													NotifyType type)
 {
+	if (!notify_is_initted())
+		notify_init(PACKAGE_NAME);
+
 	NotifyUrgency urgency;
 	gchar* icon = NULL;
 	switch (type)
@@ -73,21 +79,22 @@ void NotifyPlugin::notify(const Glib::ustring& title,
 	}
 	
 	glong timeout = NOTIFY_EXPIRES_DEFAULT;
-	NotifyNotification* notify;
+	NotifyNotification* notification = NULL;
 	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
 	if (plugin)
 	{
 		GtkStatusIcon* status_icon = static_cast<GtkStatusIcon*>(plugin->get_user_data());
-		notify = notify_notification_new_with_status_icon(title.c_str(), message.c_str(), icon, status_icon);
+		if (status_icon)
+			notification = notify_notification_new_with_status_icon(title.c_str(), message.c_str(), icon, status_icon);
 	}
-	else
-		notify = notify_notification_new(title.c_str(), message.c_str(), icon, NULL);
-	notify_notification_set_urgency(notify, urgency);
-	notify_notification_set_timeout(notify, timeout);
+	if (!plugin || !notification)
+		notification = notify_notification_new(title.c_str(), message.c_str(), icon, NULL);
+	notify_notification_set_urgency(notification, urgency);
+	notify_notification_set_timeout(notification, timeout);
 
-	notify_notification_show(notify, NULL);
+	notify_notification_show(notification, NULL);
 
-	g_object_unref(G_OBJECT(notify));
+	g_object_unref(G_OBJECT(notification));
 }
 
 Plugin * CreatePlugin()
