@@ -5,19 +5,19 @@ lib_LTLIBRARIES = liblinkage-1.la
 plugindir = \"$(prefix)/share/linkage/plugins\"
 
 liblinkage_1_la_SOURCES = gtkmm_extra/keyfile.cc \
-                          gtkmm_extra/private/keyfile_p.h \
-                          Engine.cc \
-                          AlertManager.cc \
-                          Plugin.cc \
-                          PluginManager.cc \
-                          SessionManager.cc \
-                          SettingsManager.cc \
-                          Torrent.cc \
-                          TorrentManager.cc \
-                          DbusManager.cc \
-                          dbus-c.c \
-                          Utils.cc
-                          
+													gtkmm_extra/private/keyfile_p.h \
+													AlertManager.cc \
+													DbusManager.cc \
+													dbus-c.c \
+													Engine.cc \
+													Plugin.cc \
+													PluginManager.cc \
+													SessionManager.cc \
+													SettingsManager.cc \
+													Torrent.cc \
+													TorrentManager.cc \
+													Utils.cc
+													
 liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) -DPLUGIN_DIR="$(plugindir)"
 
 liblinkage_1_la_CFLAGS = $(CFLAGS) $(DBUSGLIB_CFLAGS)

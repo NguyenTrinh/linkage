@@ -1,7 +1,6 @@
 linkageincludedir = $(includedir)/linkage
 
 linkageinclude_HEADERS = AlertManager.hh \
-													dbus-c.h \
 													DbusManager.hh \
 													Engine.hh \
 													Plugin.hh \
@@ -14,3 +13,4 @@ linkageinclude_HEADERS = AlertManager.hh \
 													Utils.hh \
 													WeakPtr.hh
 
+noinst_HEADERS = dbus-c.h
