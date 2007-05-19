@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 /* FIXME: This is sooo ugly... */
 #include "linkage/Engine.hh"
-
+#include <iostream>
 extern "C" {
 #include "linkage/dbus-c.h"
 }
@@ -48,7 +48,10 @@ Glib::RefPtr<DbusManager> DbusManager::create()
 
 DbusManager::DbusManager() : RefCounter<DbusManager>::RefCounter(this)
 {
-	primary = (bool)init(m_connection, &DbusManager::callback_handler);
+	gboolean p = FALSE;
+	m_connection = init(&p, &DbusManager::callback_handler);
+	primary = p;
+	std::cout << m_connection << std::endl;
 }
 
 

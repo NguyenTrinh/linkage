@@ -23,6 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 enum DbusAction { ACTION_QUIT, ACTION_OPEN, ACTION_TOGGLE_VISIBLE };
 
-int init(DBusGConnection* connection, void (*cb_func)(unsigned int, const char*));
+DBusGConnection* init(gboolean* p, void (*cb_func)(unsigned int, const char*));
 DBusHandlerResult message_handler(DBusGConnection *connection, DBusGMessage *message, void *user_data);
 void c_send(DBusGConnection *connection, const char* interface, const char* msg);
