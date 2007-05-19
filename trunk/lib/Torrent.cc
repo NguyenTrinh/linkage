@@ -158,7 +158,7 @@ const Torrent::State Torrent::get_state()
 		if (status.total_done == m_info.total_size())
 			return SEEDING;
 
-		unsigned int state = status.state;
+		torrent_status::state_t state = status.state;
 		if (m_prop_handle.get_value().is_paused())
 		{
 			if (m_is_queued)
