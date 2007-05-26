@@ -47,7 +47,7 @@ Glib::ustring str(int value)
 	return tc.str();
 }
 
-Glib::ustring str(unsigned int value)
+Glib::ustring str(std::size_t value)
 {
 	std::stringstream tc;
 	tc << value;

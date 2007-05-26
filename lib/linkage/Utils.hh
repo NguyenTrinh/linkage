@@ -47,7 +47,7 @@ Glib::ustring suffix_value(size_type value);
 Glib::ustring suffix_value(float value);
 
 Glib::ustring str(int value);
-Glib::ustring str(unsigned int value);
+Glib::ustring str(std::size_t value);
 Glib::ustring str(size_type value);
 Glib::ustring str(float value, int precision);
 Glib::ustring str(const sha1_hash& hash);
