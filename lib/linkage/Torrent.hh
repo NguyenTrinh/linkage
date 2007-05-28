@@ -38,7 +38,7 @@ typedef std::list<sha1_hash> HashList;
 class Torrent : public Glib::Object
 {
 public:
-	enum State { 
+	enum State {
 							 CHECK_QUEUE,
 							 CHECKING,
 							 ANNOUNCING,
@@ -50,7 +50,7 @@ public:
 							 QUEUED,
 							 ERROR
 						 };
-	struct ResumeInfo 
+	struct ResumeInfo
 	{
 		entry resume;
 		torrent_info info;
@@ -69,14 +69,16 @@ public:
 	const int get_up_limit();
 	const int get_down_limit();
 	const sha1_hash get_hash();
-	
+
 	const size_type get_total_downloaded();
 	const size_type get_total_uploaded();
-	
+
+	bool get_completed();
+
 	const State get_state();
 	const Glib::ustring get_state_string();
 	const Glib::ustring get_state_string(State state);
-	
+
 	const torrent_info& get_info();
 	const torrent_status get_status();
 	const std::vector<partial_piece_info> get_download_queue();
@@ -90,7 +92,13 @@ public:
 	void filter_file(unsigned int index, bool filter = true);
 	void set_up_limit(int limit);
 	void set_down_limit(int limit);
-	
+
+	/* This is safe to have public since this isn't the same data the tracker gets */
+	void set_total_downloaded(size_type bytes);
+	void set_total_uploaded(size_type bytes);
+
+	void set_completed(bool completed = true);
+
 	void queue();
 	void unqueue();
 	bool is_queued();
@@ -99,10 +107,10 @@ public:
 	void reannounce(const Glib::ustring& tracker = Glib::ustring());
 
 	const entry get_resume_entry(bool running = false);
-	
+
 	/* FIXME: Friend access only? */
 	void set_handle(const torrent_handle& handle);
-	
+
 	Torrent(const ResumeInfo& ri, bool queued = false);
 	~Torrent();
 
@@ -112,7 +120,7 @@ private:
 
 	Glib::Property<torrent_handle> m_prop_handle;
 	torrent_info m_info;
-	
+
 	typedef std::map<Glib::ustring, Glib::ustring> ReplyMap;
 	ReplyMap m_replies;
 	int m_cur_tier;
@@ -122,10 +130,12 @@ private:
 	std::vector<bool> m_filter;
 
 	bool m_is_queued;
-	
+
 	unsigned int m_position;
 	Glib::ustring m_group, m_path;
 	int m_up_limit, m_down_limit;
+
+	bool m_completed;
 };
 
 #endif /* TORRENT_HH */

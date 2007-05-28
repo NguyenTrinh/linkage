@@ -30,7 +30,7 @@ Glib::RefPtr<TorrentManager> TorrentManager::create()
 TorrentManager::TorrentManager() : RefCounter<TorrentManager>::RefCounter(this)
 {
 	m_session_manager = Engine::get_session_manager();
-	
+
 	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
 
 	am->signal_tracker_announce().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_announce));
@@ -191,6 +191,9 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	if (!ri.resume.find_key("uploaded"))
 		ri.resume["uploaded"] = 0;
 
+	if (!ri.resume.find_key("completed"))
+		ri.resume["completed"] = 0;
+
 	/*
 		Make sure we don't have two torrents with the same position,
 		or a gap in the queue i.e. 1,2,4,5 -> 1,2,3,4.
@@ -212,7 +215,7 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	int last_position = 0;
 	for (unsigned int i = 0; i < torrents.size(); i++)
 	{
-		should_change = (position == torrents[i]->get_position()); 
+		should_change = (position == torrents[i]->get_position());
 										//|| ((++last_position) != torrents[i]->get_position());
 		if (should_change)
 			break;
@@ -274,7 +277,7 @@ void TorrentManager::remove_torrent(const sha1_hash& hash)
 torrent_handle TorrentManager::get_handle(const sha1_hash& hash)
 {
 	torrent_handle handle;
-	
+
 	if (exists(hash))
 		handle = m_torrents[hash]->get_handle();
 
