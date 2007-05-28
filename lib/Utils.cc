@@ -40,6 +40,22 @@ Glib::ustring suffix_value(size_type value)
 	return tc.str();
 }
 
+Glib::ustring str(size_t value)
+{
+	std::stringstream tc;
+	tc << value;
+	return tc.str();
+}
+
+#if SIZEOF_UNSIGNED_INT != SIZEOF_SIZE_T
+Glib::ustring str(unsigned int value)
+{
+	std::stringstream tc;
+	tc << value;
+	return tc.str();
+}
+#endif
+
 Glib::ustring str(int value)
 {
 	std::stringstream tc;
@@ -47,21 +63,7 @@ Glib::ustring str(int value)
 	return tc.str();
 }
 
-Glib::ustring str(unsigned int value)
-{
-	std::stringstream tc;
-	tc << value;
-	return tc.str();
-}
-
 Glib::ustring str(size_type value)
-{
-	std::stringstream tc;
-	tc << value;
-	return tc.str();
-}
-
-Glib::ustring str(unsigned long value)
 {
 	std::stringstream tc;
 	tc << value;
