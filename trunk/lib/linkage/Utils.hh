@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef UTILS_HH
 #define UTILS_HH
 
+#include "config.h"
+
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -46,10 +48,12 @@ using namespace libtorrent;
 Glib::ustring suffix_value(size_type value);
 Glib::ustring suffix_value(float value);
 
-Glib::ustring str(int value);
+Glib::ustring str(size_t value);
+#if SIZEOF_UNSIGNED_INT != SIZEOF_SIZE_T
 Glib::ustring str(unsigned int value);
+#endif
+Glib::ustring str(int value);
 Glib::ustring str(size_type value);
-Glib::ustring str(unsigned long value);
 Glib::ustring str(float value, int precision);
 Glib::ustring str(const sha1_hash& hash);
 Glib::ustring get_eta(size_type size, float rate);
