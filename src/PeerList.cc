@@ -16,14 +16,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include "config.h"
-
+#include <gtkmm/main.h>
 #include <gtkmm/treeselection.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrendererprogress.h>
 
 #include "libtorrent/identify_client.hpp"
-#include <iostream>
+
 #include "PeerList.hh"
 #include "linkage/Utils.hh"
 
@@ -69,6 +68,8 @@ PeerList::PeerList()
 		column->set_sort_column_id(i + 1);
 		column->set_resizable(true);
 	}
+
+	m_state = STATE_IDLE;
 }
 
 PeerList::~PeerList()
@@ -93,70 +94,76 @@ void PeerList::format_rates(Gtk::CellRenderer* cell,
 	cell_text->property_text() = suffix_value(row[column]) + "/s";
 }
 
-void PeerList::clear()
-{
-	model->clear();
-}
-
 void PeerList::update(const WeakPtr<Torrent>& torrent)
 {
+	/* FIXME: thread loop, tell old thread to exit and do cond/wait */
+	if (m_state == STATE_BUSY)
+		return;
+	else
+		m_state = STATE_BUSY;
+
 	std::vector<peer_info> peers;
 	if (!torrent->is_stopped())
 		torrent->get_handle().get_peer_info(peers);
 
 	if (peers.empty()) {
-		clear();
+		model->clear();
+		m_state = STATE_IDLE;
 		return;
 	}
-		
-	/* Sorting messes up iteration */
-	int id;
-	Gtk::SortType order;
-	model->get_sort_column_id(id, order);
-	model->set_sort_column(columns.client, Gtk::SORT_ASCENDING);
 
-	Gtk::TreeNodeChildren children = model->children();
-	if (children.size() != peers.size())
+	PeerMap peer_map;
+	for (unsigned int i = 0; i < peers.size(); i++)
 	{
-		model->clear();
-		for (int i = 0; i < peers.size(); i++)
-		{
-			Gtk::TreeRow row = *(model->append());
-			row[columns.id] = peers[i].pid;
-			row[columns.has_flag] = false;
-			Glib::ustring client = identify_client(peers[i].pid);
-			/* Cosmetic fix, replace Micro with µ if found */
-			if (client.find("Micro", 0) == 0)
-				client.replace(0, 5, "\u00b5");
-			row[columns.client] = client;
-		}
+		peer_map[peers[i].pid] = peers[i];
 	}
 
-	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); )
+	Gtk::TreeNodeChildren children = model->children();
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end();)
 	{
+		peer_info peer;
 		Gtk::TreeRow row = *iter;
 
-		peer_info peer;
-		bool keep = false;
-		for (int i = 0; i < peers.size(); i++)
-		{
-			if (peers[i].pid == row[columns.id])
-			{
-				peer = peers[i];
-				peers.erase(peers.begin() + i);
-				keep = true;
-				break;
-			}
-		}
-		
-		if (!keep)
+		PeerMap::iterator peer_iter = peer_map.find(row[columns.id]);
+		if (peer_iter == peer_map.end())
 		{
 			iter = model->erase(iter);
 			continue;
 		}
 		else
-			 ++iter;
+		{
+			peer = peer_iter->second;
+			peer_map.erase(peer_iter);
 
+			iter++;
+		}
+
+		/* Give the UI some love, since this loop is pretty slow with many peers */
+		while (Gtk::Main::events_pending())
+			Gtk::Main::iteration(false);
+
+		set_peer_details(row, peer);
+	}
+
+	/* Add all new (remaining) peers */
+	for (PeerMap::iterator iter = peer_map.begin(); iter != peer_map.end(); ++iter)
+	{
+		Gtk::TreeRow row = *(model->append());
+		set_peer_details(row, iter->second);
+	}
+
+	m_state = STATE_IDLE;
+}
+
+void PeerList::set_peer_details(Gtk::TreeRow& row, const peer_info& peer)
+{
+	row[columns.id] = peer.pid;
+
+	Glib::ustring address = peer.ip.address().to_string();
+	row[columns.address] = address + ":" + str(peer.ip.port());
+
+	if (!row[columns.has_flag])
+	{
 		char c[3];
 		c[0] = peer.country[0];
 		c[1] = peer.country[1];
@@ -169,31 +176,20 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 			{
 				row[columns.flag] = Gdk::Pixbuf::create_from_file(flag);
 				row[columns.has_flag] = true;
-		 	}
-		 	catch (Glib::Error& e)
-		 	{
-		 		try
-				{
-					row[columns.flag] = Gdk::Pixbuf::create_from_file(Glib::build_filename(FLAG_DIR, "unknown.png"));
-			 	}
-			 	catch (Glib::Error& e) {}
-		 	}
-		}
-		else if (!row[columns.has_flag])
-		{
-			try
+			}
+			catch (Glib::Error& e)
 			{
-				row[columns.flag] = Gdk::Pixbuf::create_from_file(Glib::build_filename(FLAG_DIR, "unknown.png"));
-		 	}
-		 	catch (Glib::Error& e) {}
+				g_warning(e.what().c_str());
+			}
 		}
+	}
 
-		Glib::ustring address = peer.ip.address().to_string();
-		row[columns.address] = address + ":" + str(peer.ip.port());
-		row[columns.down] = peer.total_download;
-		row[columns.up] = peer.total_upload;
-		row[columns.down_rate] = peer.payload_down_speed;
-		row[columns.up_rate] = peer.payload_up_speed;
+	row[columns.down] = peer.total_download;
+	row[columns.up] = peer.total_upload;
+	row[columns.down_rate] = peer.payload_down_speed;
+	row[columns.up_rate] = peer.payload_up_speed;
+	if (!peer.seed)
+	{
 		unsigned int completed = 0;
 		for (unsigned int j = 0; j < peer.pieces.size(); j++)
 		{
@@ -202,42 +198,49 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		}
 		double progress = (double)completed/peer.pieces.size();
 		row[columns.progress] = progress*100;
-
-		Glib::ustring flags;
-		if (peer.flags & peer_info::connecting)
-			flags = "Connecting";
-		else if (peer.flags & peer_info::handshake)
-			flags = "Handshake";
-		else if	(peer.flags & peer_info::queued)
-			flags = "Queued";
-		else
-		{
-			if (peer.flags & peer_info::interesting)
-			{
-				if (!flags.empty())
-					flags += ", ";
-				flags += "Interested";
-			}
-			if (peer.flags & peer_info::choked)
-			{
-				if (!flags.empty())
-					flags += ", ";
-				flags += "Choked";
-			}
-			if (peer.flags & peer_info::remote_interested)
-			{
-				if (!flags.empty())
-					flags += ", ";
-				flags += "Remote interested";
-			}
-			if (peer.flags & peer_info::remote_choked)
-			{
-				if (!flags.empty())
-					flags += ", ";
-				flags += "Remote choked";
-			}
-		}
-		row[columns.flags] = flags;
 	}
-	model->set_sort_column(id, order);
+	else
+		row[columns.progress] = 100;
+
+	Glib::ustring client = identify_client(peer.pid);
+	/* Cosmetic fix, replace Micro with µ if found */
+	if (client.find("Micro", 0) == 0)
+		client.replace(0, 5, "\u00b5");
+	row[columns.client] = client;
+
+	std::stringstream flags;
+	if (peer.flags & peer_info::connecting)
+		flags << "Connecting";
+	else if (peer.flags & peer_info::handshake)
+		flags << "Handshake";
+	else if	(peer.flags & peer_info::queued)
+		flags << "Queued";
+	else
+	{
+		if (peer.flags & peer_info::interesting)
+		{
+			if (flags.tellp())
+				flags << ", ";
+			flags << "Interested";
+		}
+		if (peer.flags & peer_info::choked)
+		{
+			if (flags.tellp())
+				flags << ", ";
+			flags << "Choked";
+		}
+		if (peer.flags & peer_info::remote_interested)
+		{
+			if (flags.tellp())
+				flags << ", ";
+			flags << "Remote interested";
+		}
+		if (peer.flags & peer_info::remote_choked)
+		{
+			if (flags.tellp())
+				flags << ", ";
+			flags << "Remote choked";
+		}
+	}
+	row[columns.flags] = flags.str();
 }

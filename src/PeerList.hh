@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class PeerList : public Gtk::TreeView
 {
+	typedef std::map<peer_id, peer_info> PeerMap;
+
 	class ModelColumns : public Gtk::TreeModelColumnRecord
 	{
 	public:
@@ -61,17 +63,20 @@ class PeerList : public Gtk::TreeView
 
 	ModelColumns columns;
 	Glib::RefPtr<Gtk::ListStore> model;
-	
+
+	enum State { STATE_IDLE, STATE_BUSY };
+	State m_state;
+
 	void format_data(Gtk::CellRenderer* cell,
 									const Gtk::TreeIter& iter,
 									const Gtk::TreeModelColumn<size_type>& column);
 	void format_rates(Gtk::CellRenderer* cell,
 									const Gtk::TreeIter& iter,
 									const Gtk::TreeModelColumn<float>& column);
+	void set_peer_details(Gtk::TreeRow& row, const peer_info& peer);
 public:
-	void clear();
 	void update(const WeakPtr<Torrent>& torrent);
-	
+
 	PeerList();
 	virtual ~PeerList();
 };

@@ -276,7 +276,7 @@ UI::UI()
 	table_tracker->attach(*label_response, 1, 2, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
 	label_private = manage(new AlignedLabel());
 	table_tracker->attach(*label_private, 3, 4, 1, 2, Gtk::EXPAND|Gtk::FILL, Gtk::EXPAND|Gtk::FILL);
-	
+
 	frame_tracker->add(*table_tracker);
 	general_box->pack_start(*frame_tracker, false, false, 0);
 
@@ -400,7 +400,7 @@ UI::UI()
 
 	statusbar = manage(new Statusbar());
 	main_vbox->pack_start(*statusbar, false, false, 0);
-	
+
 	torrent_menu = new TorrentMenu();
 	torrent_menu->signal_open().connect(sigc::mem_fun(this, &UI::on_open_location));
 	torrent_menu->signal_info().connect(sigc::mem_fun(this, &UI::on_info));
@@ -1125,9 +1125,9 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	}
 	else if (Glib::str_has_prefix(data, "http://"))
 	{
-		/* TODO: Add a progress bar */	
+		/* TODO: Add a progress bar */
 		notify("Downloading torrent", "downloading " + data);
- 
+
 		CURL *curl;
 		CURLcode res;
 		char err[CURL_ERROR_SIZE];
