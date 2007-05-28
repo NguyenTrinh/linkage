@@ -33,7 +33,7 @@ Glib::RefPtr<SessionManager> SessionManager::create()
 }
 
 SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
-	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))				
+	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))
 {
 	set_severity_level(alert::info);
 
@@ -122,7 +122,7 @@ void SessionManager::on_settings()
 	#ifndef TORRENT_DISABLE_DHT
 	dht_settings settings;
 	settings.service_port = listen_port();
-	
+
 
 	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
 	entry e;
@@ -311,9 +311,9 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 		return INVALID_HASH;
 
 	torrent_info info = torrent_info(e);
+
 	/* Check if torrent is up an running, if so return */
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(info.info_hash());
-
 	if (torrent && !torrent->is_stopped())
 		return info.info_hash();
 
@@ -322,6 +322,7 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	decode(file, er);
 
 	bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
+	/* FIXME: make sure that path is not empty */
 	Glib::ustring save_path = er.dict()["path"].string();
 
 	if (torrent) //Torrent was resumed from stopped state
@@ -392,8 +393,8 @@ void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 	if (erase_content)
 	{
 		sigc::slot<void> thread_slot =	sigc::bind(
-			sigc::mem_fun(this, &SessionManager::erase_content), 
-			torrent->get_path(), 
+			sigc::mem_fun(this, &SessionManager::erase_content),
+			torrent->get_path(),
 			torrent->get_info());
 		Glib::Thread* thread = Glib::Thread::create(thread_slot, true);
 		m_threads.push_back(thread);

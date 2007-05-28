@@ -41,6 +41,8 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	m_up_limit = e["upload-limit"].integer();
 	m_down_limit = e["download-limit"].integer();
 
+	m_completed = (bool)e["completed"].integer();
+
 	std::list<entry> f;
 	try
 	{
@@ -147,6 +149,11 @@ const size_type Torrent::get_total_uploaded()
 	if (m_prop_handle.get_value().is_valid())
 		total += m_prop_handle.get_value().status().total_upload;
 	return total;
+}
+
+bool Torrent::get_completed()
+{
+	return m_completed;
 }
 
 const Torrent::State Torrent::get_state()
@@ -368,6 +375,21 @@ void Torrent::set_down_limit(int limit)
 	}
 }
 
+void Torrent::set_total_downloaded(size_type bytes)
+{
+	m_downloaded = bytes;
+}
+
+void Torrent::set_total_uploaded(size_type bytes)
+{
+	m_uploaded = bytes;
+}
+
+void Torrent::set_completed(bool completed)
+{
+	m_completed = completed;
+}
+
 void Torrent::queue()
 {
 	if (m_prop_handle.get_value().is_valid())
@@ -489,6 +511,7 @@ const entry Torrent::get_resume_entry(bool running)
 	resume_entry["uploaded"] = m_uploaded;
 	resume_entry["download-limit"] = m_down_limit;
 	resume_entry["upload-limit"] = m_up_limit;
+	resume_entry["completed"] = m_completed;
 	entry::list_type el;
 	for (unsigned int i = 0; i < m_filter.size(); i++)
 		if (m_filter[i])

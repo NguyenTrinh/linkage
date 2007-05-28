@@ -35,43 +35,43 @@ AlertManager::~AlertManager()
 {
 }
 
-sigc::signal<void, const Glib::ustring&> 
+sigc::signal<void, const Glib::ustring&>
 AlertManager::signal_listen_failed()
 {
 	return m_signal_listen_failed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int>
 AlertManager::signal_tracker_failed()
 {
 	return m_signal_tracker_failed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&, int>
 AlertManager::signal_tracker_reply()
 {
 	return m_signal_tracker_reply;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&>
 AlertManager::signal_tracker_warning()
 {
 	return m_signal_tracker_warning;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&>
 AlertManager::signal_tracker_announce()
 {
 	return m_signal_tracker_announce;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&>
 AlertManager::signal_torrent_finished()
 {
 	return m_signal_torrent_finished;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&>
 AlertManager::signal_file_error()
 {
 	return m_signal_file_error;
@@ -82,19 +82,19 @@ sigc::signal<void, const sha1_hash&, const Glib::ustring&> AlertManager::signal_
 	return m_signal_fastresume_rejected;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&, int>
 AlertManager::signal_hash_failed()
 {
 	return m_signal_hash_failed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&> 
+sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&>
 AlertManager::signal_peer_ban()
 {
 	return m_signal_peer_ban;
 }
 
-	
+
 void AlertManager::check_alerts()
 {
 	std::auto_ptr<alert> a = Engine::get_session_manager()->pop_alert();
@@ -123,7 +123,13 @@ void AlertManager::check_alerts()
 		}
 		else if (torrent_finished_alert* p = dynamic_cast<torrent_finished_alert*>(a.get()))
 		{
-			m_signal_torrent_finished.emit(p->handle.info_hash(), p->msg());
+			sha1_hash hash = p->handle.info_hash();
+			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+			if (torrent && !torrent->get_completed())
+			{
+				torrent->set_completed(true);
+				m_signal_torrent_finished.emit(p->handle.info_hash(), p->msg());
+			}
 		}
 		else if (file_error_alert* p = dynamic_cast<file_error_alert*>(a.get()))
 		{
@@ -131,7 +137,12 @@ void AlertManager::check_alerts()
 		}
 		else if (fastresume_rejected_alert* p = dynamic_cast<fastresume_rejected_alert*>(a.get()))
 		{
-			m_signal_fastresume_rejected.emit(p->handle.info_hash(), p->msg());
+			sha1_hash hash = p->handle.info_hash();
+			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+			if (torrent)
+				torrent->set_completed(false);
+
+			m_signal_fastresume_rejected.emit(hash, p->msg());
 		}
 		else if (hash_failed_alert* p = dynamic_cast<hash_failed_alert*>(a.get()))
 		{
