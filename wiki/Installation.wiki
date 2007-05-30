@@ -1,5 +1,5 @@
+#summary Installation instructions
 #labels Featured
-#Installation instructions
 
 = Fedora Core 7 =
 
@@ -20,7 +20,6 @@ libboost-filesystem-dev libboost-filesystem1.33.1 libboost-regex-dev \
 libboost-regex1.33.1 libboost-signals-dev libboost-signals1.33.1 \
 libboost-thread-dev libboost-thread1.33.1 libboost-dev
 }}}
-
 
 
 
