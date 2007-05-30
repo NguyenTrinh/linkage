@@ -1,4 +1,4 @@
-#summary Direction for future versions of Linkage
+#summary Directions for future releases
 #labels Phase-Implementation,Featured
 
 = Introduction =
