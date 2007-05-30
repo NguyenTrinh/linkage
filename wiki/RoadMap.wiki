@@ -3,7 +3,7 @@
 
 = Introduction =
 
-Latest release is 0.1.2 available from the [http://code.google.com/p/linkage/downloads/list Downloads] page.
+Latest release is 0.1.2 available from the [http://code.google.com/p/linkage/downloads/list downloads] page.
 
 = Planned releases =
   * *0.1.4*
