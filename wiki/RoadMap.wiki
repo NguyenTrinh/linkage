@@ -9,7 +9,8 @@ Latest release is 0.1.2 available from the [http://code.google.com/p/linkage/dow
   * *0.1.4*
     * Use gconf and libglade.
     * Use libtorrent's upnp implementation instead of libupnp.
-    * Add zith's new GroupList.
+    * New group list with combobox/treeview.
     * Scheduler plugin.
+    * Add features to the "select download path" dialog, make it "smarter" (remember previous paths).
   * *0.1.6* Clean up and review code, Optimize code, RSS plugin.
   * *0.1.8* Avahi support?
