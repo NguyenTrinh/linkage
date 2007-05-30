@@ -1,0 +1,26 @@
+#labels Featured
+#Installation instructions
+
+= Fedora Core 7 =
+
+Packages are available for both linkage and rb_libtorrent, all you have to do is run the following as root.
+{{{
+yum -y install boost gtkmm24 libnotify curl dbus-glib libupnp
+rpm -ivh http://linkage.googlecode.com/files/rb_libtorrent-0.12-1.fc7.i386.rpm
+rpm -ivh http://linkage.googlecode.com/files/linkage-0.1.2-1.fc7.i386.rpm
+}}}
+
+= Ubuntu Feisty 7.04 =
+
+Currently there are no packages for rb_libtorrent nor linkage for Ubuntu. So if you want to install linkage you have to build them both from source. Libtorrent can be downloaded [http://sourceforge.net/project/downloading.php?group_id=79942&filename=libtorrent-0.12.tar.gz here], linkage source code is available from the [http://code.google.com/p/linkage/downloads/list download page] or from [http://code.google.com/p/linkage/source SVN].
+
+{{{
+sudo apt-get install libboost-date-time-dev libboost-date-time1.33.1 \
+libboost-filesystem-dev libboost-filesystem1.33.1 libboost-regex-dev \
+libboost-regex1.33.1 libboost-signals-dev libboost-signals1.33.1 \
+libboost-thread-dev libboost-thread1.33.1 libboost-dev
+}}}
+
+
+
+
