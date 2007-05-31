@@ -49,8 +49,8 @@ AC_COMPILE_CHECK_SIZEOF(size_t)
 AC_COMPILE_CHECK_SIZEOF(unsigned int)
 
 GLIBMM_ROOT="`$PKG_CONFIG --variable=includedir glibmm-2.4`"
-AC_CHECK_FILE($GLIBMM_ROOT/glibmm-2.4/glibmm.h, keyfile=true)
-AM_CONDITIONAL(HAVE_KEYFILE, test x$keyfile = xtrue)
+AC_CHECK_FILE($GLIBMM_ROOT/glibmm-2.4/glibmm/keyfile.h, AC_DEFINE([HAVE_GLIBMM_KEYFILE_H], [], [presence of keyfile.h]), keyfile=false)
+AM_CONDITIONAL(HAVE_KEYFILE, test x$keyfile = x)
 
 AC_PROG_CC()
 AC_PROG_CXX()
