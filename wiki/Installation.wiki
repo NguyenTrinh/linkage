@@ -40,10 +40,10 @@ sudo make install
 }}}
 
 {{{
-sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev libupnp-dev libdbus-glib-1-dev
+sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev libupnp-dev \
+libdbus-glib-1-dev libgtkmm-2.4-1c2a libnotify1 libcurl3 libupnp0 libdbus-glib-1-2
 cd linkage-0.1.2
 ./configure --prefix=/usr
 make
 sudo make install
 }}}
-
