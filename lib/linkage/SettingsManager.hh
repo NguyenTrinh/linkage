@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef HAVE_GLIBMM_KEYFILE_H
 #include <gtkmm_extra/keyfile.h>
 #else
-#error HAVE_KEYFILE
 #include <glibmm/keyfile.h>
 #endif
 
