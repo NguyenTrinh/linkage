@@ -121,9 +121,11 @@ Glib::ustring format_time(size_type seconds)
 	}
 	else
 	{
-		Glib::ustring day_str = "days";
+		Glib::ustring day_str;
 		if (days == 1)
 			day_str = "day";
+		else
+			 day_str = "days";
 		tc << days << day_str << ", " << std::setw(2) << std::setfill('0') << hours << ":";
 		tc << std::setw(2) << std::setfill('0') << minutes << ":" ;
 		tc << std::setw(2) << std::setfill('0') << seconds;
