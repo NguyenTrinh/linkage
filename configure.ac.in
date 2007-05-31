@@ -48,6 +48,9 @@ builtin([include],[m4/sizeof.m4])
 AC_COMPILE_CHECK_SIZEOF(size_t)
 AC_COMPILE_CHECK_SIZEOF(unsigned int)
 
+AC_CHECK_HEADERS(glibmm/keyfile.h, keyfile=true)
+AM_CONDITIONAL(HAVE_KEYFILE, test x$keyfile = xtrue)
+
 AC_PROG_CC()
 AC_PROG_CXX()
 AC_DISABLE_STATIC()

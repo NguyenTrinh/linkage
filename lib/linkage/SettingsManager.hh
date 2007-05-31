@@ -20,7 +20,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <sigc++/signal.h>
 #include <glibmm/ustring.h>
+
+#ifndef HAVE_GLIBMM_KEYFILE_H
 #include <gtkmm_extra/keyfile.h>
+#else
+#error HAVE_KEYFILE
+#include <glibmm/keyfile.h>
+#endif
+
 #include "linkage/RefCounter.hh"
 
 typedef Glib::ArrayHandle<Glib::ustring> UStringArray;
