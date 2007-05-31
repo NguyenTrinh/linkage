@@ -25,7 +25,7 @@ make install
 = Ubuntu Feisty 7.04 =
 
 == Source install ==
-Currently there are no packages for rb_libtorrent nor linkage for Ubuntu. So if you want to install linkage you have to build them both from source. Libtorrent can be downloaded [http://sourceforge.net/project/downloading.php?group_id=79942&filename=libtorrent-0.12.tar.gz here]. To build linkage on Ubuntu you must use the [http://code.google.com/p/linkage/source SVN] version (rev 221 or higher).
+Currently there are no packages for rb_libtorrent nor linkage for Ubuntu. So if you want to install linkage you have to build them both from source. Libtorrent can be downloaded [http://sourceforge.net/project/downloading.php?group_id=79942&filename=libtorrent-0.12.tar.gz here]. To build linkage on Ubuntu you must use the [http://code.google.com/p/linkage/source SVN] version (rev 223 or higher).
 
 {{{
 sudo apt-get install build-essential
