@@ -56,9 +56,9 @@ class SessionManager : public RefCounter<SessionManager>, public session
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
 	sigc::signal<void, const Glib::ustring&, const sha1_hash&> m_signal_duplicate_torrent;
-	
+
 	SessionManager();
-	
+
 public:
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_invalid_bencoding();
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_missing_file();

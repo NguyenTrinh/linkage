@@ -274,8 +274,12 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	}
 	else
 	{
-		m_signal_duplicate_torrent.emit("Torrent already exists in session as " +
-			torrent->get_name(), hash);
+		std::vector<announce_entry> trackers = info.trackers();
+		for (unsigned int i = 0; i < trackers.size(); i++)
+		{
+			torrent->add_tracker(trackers[i].url);
+		}
+		m_signal_duplicate_torrent.emit("Merged " + info.name() + " with " + torrent->get_name(), hash);
 		return hash;
 	}
 

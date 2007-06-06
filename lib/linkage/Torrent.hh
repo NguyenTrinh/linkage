@@ -99,6 +99,8 @@ public:
 
 	void set_completed(bool completed = true);
 
+	void add_tracker(const Glib::ustring& url);
+
 	void queue();
 	void unqueue();
 	bool is_queued();
@@ -136,6 +138,8 @@ private:
 	int m_up_limit, m_down_limit;
 
 	bool m_completed;
+
+	std::vector<announce_entry> m_trackers;
 };
 
 #endif /* TORRENT_HH */
