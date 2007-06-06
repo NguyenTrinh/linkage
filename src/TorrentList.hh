@@ -67,7 +67,7 @@ class TorrentList : public Gtk::TreeView
 
 	Glib::RefPtr<Gtk::ListStore> model;
 	Glib::RefPtr<Gtk::TreeModelFilter> filter;
-	
+
 	Group m_active_group;
 
 	Gtk::TreeIter get_iter(const sha1_hash& hash);
@@ -75,11 +75,11 @@ class TorrentList : public Gtk::TreeView
 	void on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position);
 	void on_removed(const sha1_hash& hash);
 
-	Glib::ustring format_name(const WeakPtr<Torrent>& torrent);
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
+	void format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 
 	bool on_button_press_event(GdkEventButton *event);
-	
+
 	bool on_filter(const Gtk::TreeModel::const_iterator& iter);
 	void on_filter_set(const Group& group);
 	void on_filter_unset();
@@ -103,7 +103,7 @@ public:
 		COL_ETA,
 		COL_HASH
 	};
-	
+
 	void set_filter_set_signal(sigc::signal<void, const Group&> signal);
 	void set_filter_unset_signal(sigc::signal<void> signal);
 

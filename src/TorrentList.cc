@@ -58,10 +58,12 @@ TorrentList::TorrentList()
 			column->clear_attributes(*name_render);
 			column->add_attribute(*name_render, "markup", COL_NAME);
 			column->set_expand(true);
+			column->set_cell_data_func(*name_render, sigc::mem_fun(this, &TorrentList::format_name));
 		}
 		column->set_resizable(true);
 	}
 	set_headers_visible(false);
+	set_search_column(columns.name);
 
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
@@ -147,7 +149,7 @@ void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, uns
 {
 	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("UI", "Selected");
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	
+
 	Gtk::TreeIter iter = model->append();
 	Gtk::TreeRow new_row = *iter;
 	new_row[columns.hash] = hash;
@@ -244,8 +246,13 @@ void TorrentList::set_sort_order(Gtk::SortType order)
 	model->set_sort_column_id(current_col_id, order);
 }
 
-Glib::ustring TorrentList::format_name(const WeakPtr<Torrent>& torrent)
+void TorrentList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
 {
+	Gtk::TreeRow row = *iter;
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
+	if (!torrent)
+		return;
+
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	Torrent::State state = torrent->get_state();
 	Glib::ustring color;
@@ -307,7 +314,9 @@ Glib::ustring TorrentList::format_name(const WeakPtr<Torrent>& torrent)
 	else
 		ss << torrent->get_state_string(state);
 
-	return ss.str();
+	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
+
+	cell_t->property_markup() = ss.str();
 }
 
 void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
@@ -360,15 +369,15 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	if (!iter)
 		return;
 
-	Gtk::TreeRow row = *iter;	
+	Gtk::TreeRow row = *iter;
 
-	row[columns.name] = format_name(torrent);
+	row[columns.name] = torrent->get_name();
 	row[columns.position] = torrent->get_position();
 	row[columns.state] = torrent->get_state_string();
 
 	size_type up = torrent->get_total_uploaded();
 	size_type down = torrent->get_total_downloaded();
-	
+
 	row[columns.down] = down;
 	row[columns.up] = up;
 
