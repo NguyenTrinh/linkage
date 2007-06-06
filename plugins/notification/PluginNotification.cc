@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "PluginNotification.hh"
 
-NotifyPlugin::NotifyPlugin() : 
+NotifyPlugin::NotifyPlugin() :
 	Plugin("NotifyPlugin",
 					"Displays notifications trough libnotify",
 					"1",
@@ -77,7 +77,7 @@ void NotifyPlugin::notify(const Glib::ustring& title,
 			urgency = NOTIFY_URGENCY_LOW;
 			break;
 	}
-	
+
 	glong timeout = NOTIFY_EXPIRES_DEFAULT;
 	NotifyNotification* notification = NULL;
 	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
@@ -114,7 +114,7 @@ void NotifyPlugin::on_missing_file(const Glib::ustring& msg, const Glib::ustring
 
 void NotifyPlugin::on_duplicate_torrent(const Glib::ustring& msg, const sha1_hash& hash)
 {
-	notify("Duplicate torrent", msg, NOTIFY_ERROR);
+	notify("Duplicate torrent", msg, NOTIFY_WARNING);
 }
 
 void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
