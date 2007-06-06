@@ -15,6 +15,7 @@ rpm -ivh http://linkage.googlecode.com/files/linkage-0.1.2-1.fc7.i386.rpm
 If you want the latest SVN version install the dependencies and rb_libtorrent as above, then do the following.
 {{{
 yum -y install subversion libtool autoconf automake
+rpm -ivh http://linkage.googlecode.com/files/rb_libtorrent-devel-0.12-1.fc7.i386.rpm
 svn checkout http://linkage.googlecode.com/svn/trunk/ linkage
 cd linkage
 ./autogen.sh --prefix=/usr
@@ -34,6 +35,7 @@ sudo apt-get install build-essential
 sudo apt-get install libboost-date-time-dev libboost-date-time1.33.1 \
 libboost-filesystem-dev libboost-filesystem1.33.1 libboost-regex-dev \
 libboost-regex1.33.1 libboost-signals-dev libboost-signals1.33.1 \
+libboost-iostreams-dev libboost-iostreams1.33.1 \
 libboost-thread-dev libboost-thread1.33.1 libboost-dev
 cd libtorrent-0.12
 ./configure --prefix=/usr
@@ -51,5 +53,4 @@ cd linkage
 make
 sudo make install
 }}}
-
 
