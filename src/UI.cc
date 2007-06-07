@@ -831,6 +831,8 @@ void UI::on_remove(bool erase_content)
 			if (dialog.run() == Gtk::RESPONSE_OK)
 				Engine::get_session_manager()->erase_torrent(hash, erase_content);
 		}
+		else
+			Engine::get_session_manager()->erase_torrent(hash, erase_content);
 	}
 
 	if (!list.empty())
