@@ -14,7 +14,7 @@ rpm -ivh http://linkage.googlecode.com/files/linkage-0.1.2-1.fc7.i386.rpm
 == Subversion install ==
 If you want the latest SVN version install the dependencies and rb_libtorrent as above, then do the following.
 {{{
-yum -y install subversion libtool autoconf automake
+yum -y install subversion libtool autoconf automake boost-devel gtkmm24-devel libnotify-devel curl-devel dbus-glib-devel libupnp-devel gcc
 rpm -ivh http://linkage.googlecode.com/files/rb_libtorrent-devel-0.12-1.fc7.i386.rpm
 svn checkout http://linkage.googlecode.com/svn/trunk/ linkage
 cd linkage
@@ -53,4 +53,3 @@ cd linkage
 make
 sudo make install
 }}}
-
