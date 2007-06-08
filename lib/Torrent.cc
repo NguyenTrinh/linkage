@@ -152,16 +152,16 @@ const sha1_hash Torrent::get_hash()
 const size_type Torrent::get_total_downloaded()
 {
 	size_type total = m_downloaded;
-	if (m_prop_handle.get_value().is_valid())
-		total += m_prop_handle.get_value().status().total_download;
+	if (!is_stopped())
+		total += get_handle().status().total_download;
 	return total;
 }
 
 const size_type Torrent::get_total_uploaded()
 {
 	size_type total = m_uploaded;
-	if (m_prop_handle.get_value().is_valid())
-		total += m_prop_handle.get_value().status().total_upload;
+	if (!is_stopped())
+		total += get_handle().status().total_upload;
 	return total;
 }
 
@@ -172,15 +172,15 @@ bool Torrent::get_completed()
 
 const Torrent::State Torrent::get_state()
 {
-	if (m_prop_handle.get_value().is_valid())
+	if (!is_stopped())
 	{
-		torrent_status status = m_prop_handle.get_value().status();
+		torrent_status status = get_handle().status();
 		/* libtorrent only says it's seeding after it's announced to the tracker */
 		if (status.total_done == m_info.total_size())
 			return SEEDING;
 
 		torrent_status::state_t state = status.state;
-		if (m_prop_handle.get_value().is_paused())
+		if (get_handle().is_paused())
 		{
 			if (m_is_queued)
 			{
@@ -259,8 +259,8 @@ const torrent_info& Torrent::get_info()
 
 const torrent_status Torrent::get_status()
 {
-	if (m_prop_handle.get_value().is_valid())
-		return m_prop_handle.get_value().status();
+	if (!is_stopped())
+		return get_handle().status();
 	else
 		return torrent_status();
 }
@@ -268,8 +268,8 @@ const torrent_status Torrent::get_status()
 const std::vector<partial_piece_info> Torrent::get_download_queue()
 {
 	std::vector<partial_piece_info> queue;
-	if (m_prop_handle.get_value().is_valid())
-		m_prop_handle.get_value().get_download_queue(queue);
+	if (!is_stopped())
+		get_handle().get_download_queue(queue);
 
 	return queue;
 }
@@ -277,8 +277,8 @@ const std::vector<partial_piece_info> Torrent::get_download_queue()
 const std::vector<float> Torrent::get_file_progress()
 {
 	std::vector<float> fp;
-	if (m_prop_handle.get_value().is_valid())
-		m_prop_handle.get_value().file_progress(fp);
+	if (!is_stopped())
+		get_handle().file_progress(fp);
 	else
 		fp.assign(m_info.num_files(), 0);
 
@@ -315,7 +315,7 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 		return;
 
 	/* Get trackers from handle, since the list might have changed */
-	std::vector<announce_entry> trackers = m_prop_handle.get_value().trackers();
+	std::vector<announce_entry> trackers = get_handle().trackers();
 	if (tracker.empty())
 	{
 		for (int j = 0; j < trackers.size(); j++)
@@ -357,8 +357,8 @@ void Torrent::set_filter(const std::vector<bool>& filter)
 		m_filter.assign(filter.begin(), filter.end());
 
 	/* TODO: Thread this? It completly freezes UI on large files.. */
-	if (m_prop_handle.get_value().is_valid())
-		m_prop_handle.get_value().filter_files(m_filter);
+	if (!is_stopped())
+		get_handle().filter_files(m_filter);
 }
 
 void Torrent::filter_file(unsigned int index, bool filter)
@@ -370,24 +370,24 @@ void Torrent::filter_file(unsigned int index, bool filter)
 void Torrent::set_up_limit(int limit)
 {
 	m_up_limit = limit;
-	if (m_prop_handle.get_value().is_valid())
+	if (!is_stopped())
 	{
 		if (m_up_limit <= 0)
-			m_prop_handle.get_value().set_upload_limit(-1);
+			get_handle().set_upload_limit(-1);
 		else
-			m_prop_handle.get_value().set_upload_limit(m_up_limit*1024);
+			get_handle().set_upload_limit(m_up_limit*1024);
 	}
 }
 
 void Torrent::set_down_limit(int limit)
 {
 	m_down_limit = limit;
-	if (m_prop_handle.get_value().is_valid())
+	if (!is_stopped())
 		{
-		if (m_down_limit == 0)
-			m_prop_handle.get_value().set_download_limit(-1);
+		if (m_down_limit <= 0)
+			get_handle().set_download_limit(-1);
 		else
-			m_prop_handle.get_value().set_download_limit(m_down_limit*1024);
+			get_handle().set_download_limit(m_down_limit*1024);
 	}
 }
 
@@ -413,7 +413,7 @@ void Torrent::add_tracker(const Glib::ustring& url)
 	{
 		/* Check if someone else changed the trackers */
 		bool diff = false;
-		std::vector<announce_entry> trackers = m_prop_handle.get_value().trackers();
+		std::vector<announce_entry> trackers = get_handle().trackers();
 		if (m_trackers.size() < trackers.size())
 			diff = true;
 		else if (m_trackers.size() == trackers.size())
@@ -451,18 +451,18 @@ void Torrent::add_tracker(const Glib::ustring& url)
 
 void Torrent::queue()
 {
-	if (m_prop_handle.get_value().is_valid())
+	if (!is_stopped())
 	{
-		m_prop_handle.get_value().pause();
+		get_handle().pause();
 		m_is_queued = true;
 	}
 }
 
 void Torrent::unqueue()
 {
-	if (m_prop_handle.get_value().is_valid())
+	if (!is_stopped())
 	{
-		m_prop_handle.get_value().resume();
+		get_handle().resume();
 		m_is_queued = false;
 	}
 }
@@ -474,7 +474,7 @@ bool Torrent::is_queued()
 
 bool Torrent::is_stopped()
 {
-	return !m_prop_handle.get_value().is_valid();
+	return !get_handle().is_valid();
 }
 
 void Torrent::reannounce(const Glib::ustring& tracker)
@@ -487,7 +487,7 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 	else
 		m_announcing = true;
 
-	std::vector<announce_entry> trackers = m_prop_handle.get_value().trackers();
+	std::vector<announce_entry> trackers = get_handle().trackers();
 	if (!tracker.empty())
 	{
 		for (int i = 0; i < trackers.size(); i++)
@@ -508,30 +508,30 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 				trackers[i].tier++;
 		}
 
-		m_prop_handle.get_value().replace_trackers(trackers);
+		get_handle().replace_trackers(trackers);
 	}
 
 	m_cur_tier = 0;
-	m_prop_handle.get_value().force_reannounce();
+	get_handle().force_reannounce();
 }
 
 const entry Torrent::get_resume_entry(bool running)
 {
 	entry::dictionary_type resume_entry;
 
-	if (m_prop_handle.get_value().is_valid())
+	if (!is_stopped())
 	{
-		if (!m_prop_handle.get_value().is_paused())
+		if (!get_handle().is_paused())
 		{
 			/* FIXME: This gives torrent State::Error (for a brief moment) */
-			m_prop_handle.get_value().pause();
-			m_downloaded += m_prop_handle.get_value().status().total_download;
-			m_uploaded += m_prop_handle.get_value().status().total_upload;
+			get_handle().pause();
+			m_downloaded += get_handle().status().total_download;
+			m_uploaded += get_handle().status().total_upload;
 		}
 
 		try
 		{
-			resume_entry = m_prop_handle.get_value().write_resume_data().dict();
+			resume_entry = get_handle().write_resume_data().dict();
 		}
 		catch (std::exception& e)
 		{
