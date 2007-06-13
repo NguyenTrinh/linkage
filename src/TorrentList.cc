@@ -39,9 +39,13 @@ TorrentList::TorrentList()
 
 	append_column("#", columns.position);
 	append_column("Name", columns.name);
+	Gtk::TreeViewColumn* column = get_column(COL_NAME);
+	Gtk::CellRenderer* name_render = column->get_first_cell_renderer();
+	column->set_expand(true);
+	column->set_cell_data_func(*name_render, sigc::mem_fun(this, &TorrentList::format_name));
 	CellRendererProgressText* renderer = manage(new CellRendererProgressText());
 	append_column("Progress", *renderer);
-	Gtk::TreeViewColumn* column = get_column(COL_PROGRESS);
+	column = get_column(COL_PROGRESS);
 	column->add_attribute(*renderer, "value", COL_PROGRESS);
 	column->add_attribute(*renderer, "text", COL_ETA);
 	column->add_attribute(*renderer, "text-left", COL_DOWNRATE);
@@ -52,14 +56,6 @@ TorrentList::TorrentList()
 	{
 		Gtk::TreeView::Column* column = get_column(i);
 		column->set_sort_column_id(i);
-		if (i == COL_NAME)
-		{
-			Gtk::CellRenderer* name_render = column->get_first_cell_renderer();
-			column->clear_attributes(*name_render);
-			column->add_attribute(*name_render, "markup", COL_NAME);
-			column->set_expand(true);
-			column->set_cell_data_func(*name_render, sigc::mem_fun(this, &TorrentList::format_name));
-		}
 		column->set_resizable(true);
 	}
 	set_headers_visible(false);
