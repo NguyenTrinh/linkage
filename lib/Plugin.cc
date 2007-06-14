@@ -17,28 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include "linkage/Plugin.hh"
-#include "linkage/Utils.hh"
 
 Plugin::Plugin()
 {
-	m_name = "Generic plugin";
-	m_description = "Generic plugin description";
-	m_version = "0.0";
-	m_author = "Linkage";
-	m_website = "http://code.google.com/p/linkage";
-}
-
-Plugin::Plugin(const Glib::ustring& name,
-								const Glib::ustring& description,
-								const Glib::ustring& version,
-								const Glib::ustring& author,
-								const Glib::ustring& website)
-{
-	m_name = name;
-	m_description = description;
-	m_version = version;
-	m_author = author;
-	m_website = website;
 }
 
 Plugin::~Plugin()
@@ -46,43 +27,19 @@ Plugin::~Plugin()
 	m_signal_unloading.emit(this);
 }
 
-sigc::signal<void, Plugin*, Gtk::Widget*, Plugin::PluginParent> Plugin::signal_add_widget()
-{
-	return m_signal_add_widget;
-}
-
-void Plugin::add_widget(Gtk::Widget* widget, Plugin::PluginParent parent)
-{
-	m_signal_add_widget.emit(this, widget, parent);
-}
-
 sigc::signal<void, Plugin*> Plugin::signal_unloading()
 {
 	return m_signal_unloading;
 }
 
-const Glib::ustring& Plugin::get_name()
+Plugin::Info Plugin::get_info()
 {
-	return m_name;
-}
-
-const Glib::ustring& Plugin::get_description()
-{
-	return m_description;
-}
-
-const Glib::ustring& Plugin::get_version()
-{
-	return m_version;
-}
-
-const Glib::ustring& Plugin::get_author()
-{
-	return m_author;
-}
-
-const Glib::ustring& Plugin::get_website()
-{
-	return m_website;
+	return Info("Generic plugin",
+		"Generic plugin description",
+		"0.0",
+		"Linkage",
+		"http://code.google.com/p/linkage",
+		false,
+		PARENT_NONE);
 }
 

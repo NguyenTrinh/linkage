@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/DbusManager.hh"
 #include "linkage/RefCounter.hh"
+#include "linkage/Interface.hh"
 
 class Engine : public RefCounter<Engine>
 {
@@ -37,7 +38,8 @@ class Engine : public RefCounter<Engine>
 	static Glib::RefPtr<AlertManager> am;
 	static Glib::RefPtr<PluginManager> pm;
 	static Glib::RefPtr<DbusManager> dbm;
-	
+	static Interface* m_interface;
+
 	static Glib::RefPtr<Engine> self;
 	
 	static sigc::signal<void> m_signal_tick;
@@ -54,7 +56,9 @@ public:
 	static Glib::RefPtr<SettingsManager>	get_settings_manager();
 	static Glib::RefPtr<TorrentManager>	get_torrent_manager();
 	static Glib::RefPtr<DbusManager>	get_dbus_manager();
-	
+	static WeakPtr<Interface> get_interface();
+	static void register_interface(Interface* interface);
+
 	static sigc::signal<void> signal_tick();
 
 	static bool is_primary();

@@ -20,31 +20,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define PLUGIN_UPNP_HH
 
 #include "linkage/Plugin.hh"
-#include "UPnPManager.hh"
+
+#include "libgssdp/gssdp.h"
+#include "libgupnp/gupnp.h"
 
 class UPnPPlugin : public Plugin
 {
-	Glib::Cond m_cond;
-	Glib::Mutex m_mutex;
-	bool m_mapping;
-	sigc::connection m_search, m_update;
+	GUPnPControlPoint* m_cp;
+	GUPnPContext* m_context;
 
-	enum MappedProtocol { P_NONE = 0x0, P_TCP = 0x1, P_UDP = 0x2 };
-	UPnPManager* m_upnp;
-	typedef std::map<unsigned int, int> PortMap;
-	PortMap ports;
-	void on_settings();
-	void update_mappings(bool refresh);
+	static void on_device_found(GUPnPControlPoint* cp, GUPnPDeviceProxy* proxy, gpointer data);
+	static void on_device_lost(GUPnPControlPoint* cp, GUPnPDeviceProxy* proxy, gpointer data);
+	static void on_service_found(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data);
+	static void on_service_lost(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data);
+
+	static void on_subscription_lost(GUPnPServiceProxy *proxy, gpointer error, gpointer data);
+
+	void on_wan_service_found(GUPnPServiceProxy* proxy);
+	static void on_action_done(GUPnPServiceProxy *proxy, GUPnPServiceProxyAction *action, gpointer data);
 
 public:
-	PluginParent get_parent() { return Plugin::PARENT_NONE; }
-	Gtk::Widget* get_widget() { return NULL; }
 	Gtk::Widget* get_config_widget() { return NULL; }
 
-	void on_load();
+	Plugin::Info get_info();
 	
 	UPnPPlugin();
 	virtual ~UPnPPlugin();
 };
 
 #endif /* PLUGIN_UPNP_HH */
+

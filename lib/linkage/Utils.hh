@@ -29,9 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <arpa/inet.h>
 #include <net/if.h>
 
-#define inaddrr(x) (*(struct in_addr *) &ifr->x[sizeof sa.sin_port])
-#define IFRSIZE	 ((int)(size * sizeof (struct ifreq)))
-
 #include <list>
 #include <math.h>
 #include <sstream>
@@ -40,8 +37,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/entry.hpp"
-
-typedef char ip_address[15+1];
 
 using namespace libtorrent;
 
@@ -64,7 +59,7 @@ sha1_hash info_hash(const std::string& chars);
 
 std::list<Glib::ustring> get_interfaces();
 
-bool get_ip(const char *iface, ip_address ip);
+Glib::ustring get_ip(const Glib::ustring& iface);
 
 Glib::ustring get_config_dir();
 Glib::ustring get_data_dir();

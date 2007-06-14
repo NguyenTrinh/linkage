@@ -29,6 +29,8 @@ Glib::RefPtr<AlertManager> Engine::am			= Glib::RefPtr<AlertManager>();
 Glib::RefPtr<PluginManager> Engine::pm		= Glib::RefPtr<PluginManager>();
 Glib::RefPtr<DbusManager> Engine::dbm			= Glib::RefPtr<DbusManager>();
 
+Interface* Engine::m_interface = NULL;
+
 sigc::signal<void> Engine::m_signal_tick	= sigc::signal<void>();
 
 Engine::Engine() : RefCounter<Engine>::RefCounter(this)
@@ -122,3 +124,15 @@ Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
 
 	return dbm;
 }
+
+WeakPtr<Interface> Engine::get_interface()
+{
+	return WeakPtr<Interface>(m_interface);
+}
+
+void Engine::register_interface(Interface* interface)
+{
+	if (!m_interface && interface)
+		m_interface = interface;
+}
+

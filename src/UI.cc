@@ -72,6 +72,10 @@ Glib::ustring ui_info = "<ui>"
 
 UI::UI()
 {
+	Engine::register_interface(this);
+	/* FIXME: Move somewhere more proper, it's just here to wake up manager and plugins */
+	Engine::get_plugin_manager();
+
 	set_title("Linkage");
 	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 
@@ -440,10 +444,6 @@ UI::UI()
 
 	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
 
-	Engine::get_plugin_manager()->signal_plugin_load().connect(sigc::mem_fun(this, &UI::on_plugin_load));
-	Engine::get_plugin_manager()->signal_plugin_unload().connect(sigc::mem_fun(this, &UI::on_plugin_unload));
-	Engine::get_plugin_manager()->signal_add_widget().connect(sigc::mem_fun(this, &UI::on_add_widget));
-
 	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &UI::on_invalid_bencoding));
 	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &UI::on_missing_file));
 	Engine::get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &UI::on_duplicate_torrent));
@@ -494,40 +494,18 @@ UI::~UI()
 	delete path_chooser;
 }
 
-void UI::on_plugin_load(Plugin* plugin)
+Gtk::Container* UI::get_container(Plugin::PluginParent parent)
 {
-}
-
-void UI::on_plugin_unload(Plugin* plugin)
-{
-	Gtk::Widget* widget = plugin->get_widget();
-	Plugin::PluginParent parent = plugin->get_parent();
 	switch (parent)
 	{
-		case Plugin::PARENT_MAIN:
-			notebook_main->remove_page(*widget);
-			break;
 		case Plugin::PARENT_DETAILS:
-			notebook_details->remove_page(*widget);
-			break;
-	}
-}
-
-void UI::on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent)
-{
-	//FIXME: Add PARENT_MENU, PARENT_TOOLBAR
-	Glib::ustring name = plugin->get_name();
-	switch (parent)
-	{
+			return dynamic_cast<Gtk::Container*>(notebook_details);
 		case Plugin::PARENT_MAIN:
-			notebook_main->append_page(*widget, name);
-			notebook_main->set_show_tabs((notebook_main->get_n_pages() > 1));
-			widget->show();
-			break;
-		case Plugin::PARENT_DETAILS:
-			notebook_details->append_page(*widget, name);
-			widget->show();
-			break;
+			return dynamic_cast<Gtk::Container*>(notebook_main);
+		case Plugin::PARENT_TOOLBAR:
+			return dynamic_cast<Gtk::Container*>(manager->get_widget("/ToolBar"));
+		case Plugin::PARENT_MENU:
+			return dynamic_cast<Gtk::Container*>(torrent_menu);
 	}
 }
 

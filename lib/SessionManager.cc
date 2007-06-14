@@ -97,8 +97,6 @@ void SessionManager::on_settings()
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	Glib::ustring iface = sm->get_string("Network", "Interface");
-	ip_address ip;
 	int min_port = sm->get_int("Network", "MinPort");
 	int max_port = sm->get_int("Network", "MaxPort");
 
@@ -108,8 +106,9 @@ void SessionManager::on_settings()
 	{
 		try
 		{
-			if (get_ip(iface.c_str(), ip))
-				listen_on(std::make_pair(min_port, max_port), ip);
+			Glib::ustring ip = get_ip(sm->get_string("Network", "Interface"));
+			if (!ip.empty())
+				listen_on(std::make_pair(min_port, max_port), ip.c_str());
 			else
 				listen_on(std::make_pair(min_port, max_port));
 		}

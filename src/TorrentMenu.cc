@@ -62,6 +62,14 @@ TorrentMenu::TorrentMenu()
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Group"));
 	item->set_submenu(*submenu_groups);
 	append(*item);
+	Gtk::Menu* submenu_advanced = Gtk::manage(new Gtk::Menu());
+	item = Gtk::manage(new Gtk::MenuItem("Set content location"));
+	submenu_advanced->append(*item);
+	item = Gtk::manage(new Gtk::MenuItem("Move content"));
+	submenu_advanced->append(*item);
+	item = Gtk::manage(new Gtk::MenuItem("Advanced"));
+	item->set_submenu(*submenu_advanced);
+	append(*item);
 	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	Gtk::Menu* submenu_remove = Gtk::manage(new Gtk::Menu());
 	item = Gtk::manage(new Gtk::MenuItem("Torrent"));

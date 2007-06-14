@@ -20,7 +20,8 @@ liblinkage_1_la_SOURCES = AlertManager.cc \
 													SettingsManager.cc \
 													Torrent.cc \
 													TorrentManager.cc \
-													Utils.cc $(keyfile_src)
+													Utils.cc \
+													Interface.cc $(keyfile_src)
 													
 liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) -DPLUGIN_DIR="$(plugindir)"
 

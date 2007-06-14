@@ -23,22 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "PluginNotification.hh"
 
-NotifyPlugin::NotifyPlugin() :
-	Plugin("NotifyPlugin",
-					"Displays notifications trough libnotify",
-					"1",
-					"Christian Lundgren",
-					"http://code.google.com/p/linkage")
-{
-}
-
-NotifyPlugin::~NotifyPlugin()
-{
-	if (notify_is_initted())
-		notify_uninit();
-}
-
-void NotifyPlugin::on_load()
+NotifyPlugin::NotifyPlugin()	
 {
 	notify_init(PACKAGE_NAME);
 
@@ -52,13 +37,26 @@ void NotifyPlugin::on_load()
 	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &NotifyPlugin::on_fastresume_rejected));
 }
 
+NotifyPlugin::~NotifyPlugin()
+{
+	notify_uninit();
+}
+
+Plugin::Info NotifyPlugin::get_info()
+{
+	return Plugin::Info("NotifyPlugin",
+		"Displays notifications trough libnotify",
+		"1",
+		"Christian Lundgren",
+		"http://code.google.com/p/linkage",
+		false,
+		Plugin::PARENT_NONE);
+}
+
 void NotifyPlugin::notify(const Glib::ustring& title,
 													const Glib::ustring& message,
 													NotifyType type)
 {
-	if (!notify_is_initted())
-		notify_init(PACKAGE_NAME);
-
 	NotifyUrgency urgency;
 	gchar* icon = NULL;
 	switch (type)
@@ -97,9 +95,20 @@ void NotifyPlugin::notify(const Glib::ustring& title,
 	g_object_unref(G_OBJECT(notification));
 }
 
-Plugin * CreatePlugin()
+Plugin* create_plugin()
 {
 	 return new NotifyPlugin();
+}
+
+Plugin::Info plugin_info()
+{
+	return Plugin::Info("NotifyPlugin",
+		"Displays notifications trough libnotify",
+		"1",
+		"Christian Lundgren",
+		"http://code.google.com/p/linkage",
+		false,
+		Plugin::PARENT_NONE);
 }
 
 void NotifyPlugin::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)

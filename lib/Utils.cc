@@ -154,39 +154,31 @@ std::list<Glib::ustring> get_interfaces()
 
 	for (int i = 0; (ifs[i].if_index != 0) || (ifs[i].if_name != NULL); i++)
 	{
-		ip_address ip;
-		if (get_ip(ifs[i].if_name, ip))
+		if (!get_ip(ifs[i].if_name).empty())
 			list.push_back(ifs[i].if_name);
 	}
+
 	if_freenameindex(ifs);
 
 	return list;
 }
 
 /* http://www.linuxquestions.org/questions/showthread.php?t=425637 */
-bool get_ip(const char *iface, ip_address ip)
+Glib::ustring get_ip(const Glib::ustring& iface)
 {
-	struct	ifreq				*ifr;
-	struct	ifreq				ifrr;
-	struct	sockaddr_in	sa;
-	struct	sockaddr		ifaddr;
-	int			sockfd;
+	int sockfd;
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+		return "";
 
-	if((sockfd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP))==-1)
-	 return false;
+	struct ifreq ifr;
+	ifr.ifr_addr.sa_family = AF_INET;
 
-	ifr = &ifrr;
+	strncpy(ifr.ifr_name, iface.c_str(), sizeof(ifr.ifr_name));
 
-	ifrr.ifr_addr.sa_family = AF_INET;
-
-	strncpy(ifrr.ifr_name, iface, sizeof(ifrr.ifr_name));
-
-	if (ioctl(sockfd, SIOCGIFADDR, ifr) < 0)
-		return false;
-
-	ifaddr = ifrr.ifr_addr;
-	strncpy(ip,inet_ntoa(inaddrr(ifr_addr.sa_data)),sizeof(ip_address));
-	return true;
+	if (ioctl(sockfd, SIOCGIFADDR, &ifr) < 0)
+		return "";
+	
+	return ifr.ifr_addr.sa_data;
 }
 
 Glib::ustring get_config_dir()
