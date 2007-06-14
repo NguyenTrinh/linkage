@@ -11,6 +11,7 @@ linkageinclude_HEADERS = AlertManager.hh \
 													Torrent.hh \
 													TorrentManager.hh \
 													Utils.hh \
-													WeakPtr.hh
+													WeakPtr.hh \
+													Interface.hh \
+													dbus-c.h
 
-noinst_HEADERS = dbus-c.h

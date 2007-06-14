@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 #include "linkage/Plugin.hh"
+#include "linkage/Interface.hh"
 
 #include "AlignedLabel.hh"
 #include "AlignedSpinButton.hh"
@@ -66,7 +67,7 @@ public:
 	virtual ~SaveDialog();
 };
 
-class UI : public Gtk::Window
+class UI : public Gtk::Window, public Interface
 {
 	Glib::RefPtr<Gtk::ActionGroup> action_group;
 	Glib::RefPtr<Gtk::UIManager> manager;
@@ -187,10 +188,6 @@ class UI : public Gtk::Window
 	void notify(const Glib::ustring& title,
 							const Glib::ustring& msg);
 
-	void on_plugin_load(Plugin* plugin);
-	void on_plugin_unload(Plugin* plugin);
-	void on_add_widget(Plugin* plugin, Gtk::Widget* widget, Plugin::PluginParent parent);
-
 	void on_toggle_visible();
 
 	void on_settings();
@@ -211,6 +208,8 @@ class UI : public Gtk::Window
 	void on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
 
 public:
+	Gtk::Container* get_container(Plugin::PluginParent parent);
+
 	UI();
 	~UI();
 };

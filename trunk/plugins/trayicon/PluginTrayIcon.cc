@@ -27,23 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "PluginTrayIcon.hh"
 #include "linkage/Engine.hh"
 
-TrayPlugin::TrayPlugin() : 
-	Plugin("TrayPlugin",
-					"Displays a tray icon",
-					"1",
-					"Christian Lundgren",
-					"http://code.google.com/p/linkage")
-{
-	menu = NULL;
-}
-
-TrayPlugin::~TrayPlugin()
-{
-	if (menu)
-		delete menu;
-}
-	
-void TrayPlugin::on_load()
+TrayPlugin::TrayPlugin()
 {
 	menu = new Gtk::Menu();
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Start torrents"));
@@ -66,6 +50,22 @@ void TrayPlugin::on_load()
 	g_signal_connect(G_OBJECT(gobj), "popup-menu", G_CALLBACK(TrayPlugin::on_popup), menu);
 
 	Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
+}
+
+TrayPlugin::~TrayPlugin()
+{
+	delete menu;
+}
+	
+Plugin::Info TrayPlugin::get_info()
+{
+	return Plugin::Info("TrayPlugin",
+		"Displays a tray icon",
+		"1",
+		"Christian Lundgren",
+		"http://code.google.com/p/linkage",
+		false,
+		Plugin::PARENT_NONE);
 }
 
 void TrayPlugin::on_activate(GtkStatusIcon* status_icon, gpointer data)
@@ -138,7 +138,19 @@ void TrayPlugin::on_torrents_start()
 	}
 }
 
-Plugin* CreatePlugin()
+Plugin* create_plugin()
 {
 	 return new TrayPlugin();
 }
+
+Plugin::Info plugin_info()
+{
+	return Plugin::Info("TrayPlugin",
+		"Displays a tray icon",
+		"1",
+		"Christian Lundgren",
+		"http://code.google.com/p/linkage",
+		false,
+		Plugin::PARENT_NONE);
+}
+

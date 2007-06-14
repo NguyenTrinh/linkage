@@ -44,11 +44,7 @@ class NotifyPlugin : public Plugin
 	void on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg);
 
 public:
-	PluginParent get_parent() { return Plugin::PARENT_NONE; }
-	Gtk::Widget* get_widget() { return NULL; }
-	Gtk::Widget* get_config_widget() { return NULL; }
-
-	void on_load();
+	Plugin::Info get_info();
 
 	NotifyPlugin();
 	~NotifyPlugin();

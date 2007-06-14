@@ -24,52 +24,53 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class Plugin : public sigc::trackable
 {
-public:
-	enum PluginParent { PARENT_NONE, PARENT_MAIN, PARENT_DETAILS, PARENT_MENU, PARENT_TOOLBAR };
-	
-	sigc::signal<void, Plugin*> signal_unloading();	
-	sigc::signal<void, Plugin*, Gtk::Widget*, PluginParent> signal_add_widget();
-	
 private:	
 	sigc::signal<void, Plugin*> m_signal_unloading;
-	sigc::signal<void, Plugin*, Gtk::Widget*, PluginParent> m_signal_add_widget;
 
-protected:
-	Glib::ustring m_name, m_description, m_version, m_author, m_website;
-	void add_widget(Gtk::Widget* widget, PluginParent parent);
-	
 public:
-	/* FIXME: Does everything need to be pure virtual? */
-	
-	/* Returns the name of the plugin that will be displayed in the UI*/
-	virtual const Glib::ustring& get_name();
-	/* Returns a description of the plugin that will be displayed in the settings UI*/
-	virtual const Glib::ustring& get_description();
-	/* Returns the version of the plugin that will be displayed in the settings UI*/
-	virtual const Glib::ustring& get_version();
-	virtual const Glib::ustring& get_author();
-	virtual const Glib::ustring& get_website();
+	enum PluginParent { PARENT_NONE, PARENT_MAIN, PARENT_DETAILS, PARENT_MENU, PARENT_TOOLBAR };
+
+	struct Info
+	{
+		Glib::ustring name;
+		Glib::ustring description;
+		Glib::ustring version;
+		Glib::ustring author;
+		Glib::ustring website;
+		bool has_options;
+		PluginParent parent;
+
+		Info(const Glib::ustring& n,
+			const Glib::ustring& d,
+			const Glib::ustring& v,
+			const Glib::ustring& a,
+			const Glib::ustring& w,
+			bool h,
+			PluginParent p) :
+				name(n),
+				description(d),
+				version(v),
+				author(a),
+				website(w),
+				has_options(h),
+				parent(p) {}
+	};
+
+	sigc::signal<void, Plugin*> signal_unloading();
+
+	/*
+		Do _not_ override with return plugin_info(), since that function might
+		be bound to another plugin. Should return an equal struct of plugin_info()
+	*/
+	virtual Plugin::Info get_info();
 
 	/* This can be used to pass data to another plugin or whatever */
-	/* FIXME: Use dbus manager instead, allow plugin to register signals/interfaces */
-	virtual gpointer get_user_data() { return NULL; }
+	/* FIXME: Use dbus manager as well, allow plugin to register signals/interfaces */
+	virtual gpointer get_user_data(gpointer arg = NULL) { return NULL; }
 
-	/* This is called immedeately after the plugin is loaded, 
-		put initialization stuff here not in the constructor*/
-	virtual void on_load() = 0;
-	
-	/* Returns the parent if plugin has a widget to pack in to main win*/
-	// FIXME: Do a signal_add_widget() instead, in case the plugin wants more then one widget
-	virtual PluginParent get_parent() = 0;
-	virtual Gtk::Widget* get_widget() = 0;
-	virtual Gtk::Widget* get_config_widget() = 0;
-												 
+	virtual Gtk::Widget* get_config_widget() { return NULL; }
+
 	Plugin();
-	Plugin(const Glib::ustring& name,
-					const Glib::ustring& description,
-					const Glib::ustring& version,
-					const Glib::ustring& author,
-					const Glib::ustring& website);
 	virtual ~Plugin();
 };
 
@@ -80,10 +81,13 @@ extern "C" {
 
 /* This is the function each plugin implements for the main app to
 	 create an instance of the plugin child class. */
-extern Plugin* CreatePlugin();
+extern Plugin* create_plugin();
+
+extern Plugin::Info plugin_info();
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* PLUGIN_HH */
+

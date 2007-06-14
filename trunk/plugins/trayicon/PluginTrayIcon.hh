@@ -38,12 +38,9 @@ class TrayPlugin : public Plugin
 	void on_torrents_start();
 	
 public:
-	gpointer get_user_data() { return icon->gobj(); }
-	PluginParent get_parent() { return Plugin::PARENT_NONE; }
-	Gtk::Widget* get_widget() { return NULL; }
-	Gtk::Widget* get_config_widget() { return NULL; }
+	gpointer get_user_data(gpointer arg = NULL) { return icon->gobj(); }
 	
-	void on_load();
+	Plugin::Info get_info();
 	
 	TrayPlugin();
 	~TrayPlugin();

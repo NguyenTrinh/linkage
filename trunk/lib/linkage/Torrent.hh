@@ -86,6 +86,7 @@ public:
 
 	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring());
 	void set_group(const Glib::ustring& group);
+	void set_path(const Glib::ustring& path);
 	void set_position(unsigned int position);
 	//void set_priorities(const std::vector<int>& p);
 	void set_filter(const std::vector<bool>& filter);

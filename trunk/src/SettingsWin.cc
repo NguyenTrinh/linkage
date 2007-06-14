@@ -601,19 +601,19 @@ void SettingsWin::on_show()
 	/* Plugins */
 	if (model_plugins->children().empty())
 	{
-		std::list<PluginInfo> plugins = Engine::get_plugin_manager()->list_plugins();
+		PluginManager::PluginInfoList plugins = Engine::get_plugin_manager()->list_plugins();
 
-		for (std::list<PluginInfo>::iterator iter = plugins.begin();
+		for (PluginManager::PluginInfoList::iterator iter = plugins.begin();
 				 iter != plugins.end(); ++iter)
 		{
-			PluginInfo& info = *iter;
+			PluginManager::PluginInfo info = *iter;
 			Gtk::TreeRow row = *(model_plugins->append());
-			row[plugin_columns.name] = info.get_name();
-			row[plugin_columns.description] = info.get_description();
-			row[plugin_columns.author] = info.get_author();
-			row[plugin_columns.website] = info.get_website();
-			row[plugin_columns.file] = info.get_file();
-			row[plugin_columns.load] = info.get_loaded();
+			row[plugin_columns.name] = info.name;
+			row[plugin_columns.description] = info.description;
+			row[plugin_columns.author] = info.author;
+			row[plugin_columns.website] = info.website;
+			row[plugin_columns.file] = info.file;
+			row[plugin_columns.load] = info.loaded;
 		}
 	}
 	/* Groups */

@@ -309,6 +309,25 @@ void Torrent::set_group(const Glib::ustring& group)
 	m_group = group;
 }
 
+void Torrent::set_path(const Glib::ustring& path)
+{
+	if (m_path != path)
+	{
+		sha1_hash hash = m_info.info_hash();
+
+		bool stopped = is_stopped();
+		if (!stopped)
+			Engine::get_session_manager()->stop_torrent(hash);
+
+		m_path = path;
+		entry e = get_resume_entry(false);
+		save_entry(hash, e, ".resume");
+
+		if (!stopped)
+			Engine::get_session_manager()->resume_torrent(hash);
+	}
+}
+
 void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker)
 {
 	if (is_stopped())
@@ -559,8 +578,6 @@ const entry Torrent::get_resume_entry(bool running)
 	if (resume_entry.empty())
 	{
 		resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
-		resume_entry["file-format"] = "libtorrent resume file";
-		resume_entry["file-version"] = 1;
 	}
 
 	resume_entry["path"] = m_path;
