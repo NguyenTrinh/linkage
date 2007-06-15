@@ -136,11 +136,9 @@ void TorrentManager::set_torrent_settings(Torrent* torrent)
 	{
 		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 		torrent_handle handle = torrent->get_handle();
-		float ratio;
-		std::istringstream(sm->get_string("Network", "SeedRatio")) >> ratio;
-		handle.set_ratio(ratio);
-		handle.set_max_uploads(sm->get_int("Network", "MaxTorrentUploads"));
-		handle.set_max_connections(sm->get_int("Network", "MaxTorrentConnections"));
+		handle.set_ratio(sm->get_float("network/seed_ratio"));
+		handle.set_max_uploads(sm->get_int("network/max_torrent_uploads"));
+		handle.set_max_connections(sm->get_int("network/max_torrent_connections"));
 		/* FIXME: Make this configurable */
 		handle.resolve_countries(true);
 	}
@@ -325,7 +323,7 @@ void TorrentManager::check_queue()
 {
 	unsigned int last_active = 0;
 	unsigned int num_active = 0;
-	unsigned int max_active = Engine::get_settings_manager()->get_int("Network", "MaxActive");
+	unsigned int max_active = Engine::get_settings_manager()->get_int("network/max_active");
 	std::vector<Torrent*> torrents;
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{

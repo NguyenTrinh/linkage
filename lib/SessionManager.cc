@@ -47,7 +47,7 @@ SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
 SessionManager::~SessionManager()
 {
 	#ifndef TORRENT_DISABLE_DHT
-	if (Engine::get_settings_manager()->get_bool("Network", "UseDHT"))
+	if (Engine::get_settings_manager()->get_bool("network/use_dht"))
 	{
 		entry e = dht_state();
 		Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
@@ -89,10 +89,10 @@ void SessionManager::on_settings()
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	Glib::ustring iface = sm->get_string("Network", "Interface");
+	Glib::ustring iface = sm->get_string("network/interface");
 	ip_address ip;
-	int min_port = sm->get_int("Network", "MinPort");
-	int max_port = sm->get_int("Network", "MaxPort");
+	int min_port = sm->get_int("network/min_port");
+	int max_port = sm->get_int("network/max_port");
 
 	/* Only call listen_on if we really need to */
 	int port = listen_port();
@@ -121,7 +121,7 @@ void SessionManager::on_settings()
 	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 		decode(file, e);
 
-	if (sm->get_bool("Network", "UseDHT"))
+	if (sm->get_bool("network/use_dht"))
 	{
 		try
 		{
@@ -141,46 +141,46 @@ void SessionManager::on_settings()
 		stop_dht();
 	#endif /* TORRENT_DISABLE_DHT */
 
-	if (sm->get_bool("Network", "UsePEX"))
+	if (sm->get_bool("network/use_pex"))
 		add_extension(&create_ut_pex_plugin);
 
-	int up_rate = sm->get_int("Network", "MaxUpRate")*1024;
+	int up_rate = sm->get_int("network/max_up_rate")*1024;
 	if (up_rate < 1)
 		up_rate = -1;
 	set_upload_rate_limit(up_rate);
 
-	int down_rate = sm->get_int("Network", "MaxDownRate")*1024;
+	int down_rate = sm->get_int("network/max_down_rate")*1024;
 	if (down_rate < 1)
 		down_rate = -1;
 	set_download_rate_limit(down_rate);
 
-	int max_uploads = sm->get_int("Network", "MaxUploads");
+	int max_uploads = sm->get_int("network/max_uploads");
 	if (max_uploads == 0)
 		max_uploads = -1;
 	set_max_uploads(max_uploads);
 
-	int max_connections = sm->get_int("Network", "MaxConnections");
+	int max_connections = sm->get_int("network/max_connections");
 	if (max_connections == 0)
 		max_connections = -1;
 	set_max_connections(max_connections);
 
 	session_settings sset;
 	sset.user_agent = PACKAGE_NAME "/" PACKAGE_VERSION " libtorrent/" LIBTORRENT_VERSION;
-	sset.tracker_completion_timeout = sm->get_int("Network", "TrackerTimeout");
-	sset.tracker_receive_timeout = sm->get_int("Network", "TrackerTimeout");
-	sset.stop_tracker_timeout = sm->get_int("Network", "TrackerTimeout");
+	sset.tracker_completion_timeout = sm->get_int("network/tracker_timeout");
+	sset.tracker_receive_timeout = sm->get_int("network/tracker_timeout");
+	sset.stop_tracker_timeout = sm->get_int("network/tracker_timeout");
 	#ifdef LT_012
 	sset.allow_multiple_connections_per_ip = sm->get_bool("Network", "MultipleConnectionsPerIP");
-	sset.use_dht_as_fallback = sm->get_int("Network", "DHTFallback");
-	sset.file_pool_size = sm->get_int("Files", "MaxOpen");
+	sset.use_dht_as_fallback = sm->get_int("network/dht_fallback");
+	sset.file_pool_size = sm->get_int("files/max_open");
 	#endif
-	Glib::ustring proxy = sm->get_string("Network", "ProxyIp");
+	Glib::ustring proxy = sm->get_string("network/proxy/ip");
 	if (!proxy.empty())
 	{
 		sset.proxy_ip = proxy;
-		sset.proxy_port = sm->get_int("Network", "ProxyPort");
-		sset.proxy_login = sm->get_string("Network", "ProxyLogin");
-		sset.proxy_password = sm->get_string("Network", "ProxyPass");
+		sset.proxy_port = sm->get_int("network/proxy/port");
+		sset.proxy_login = sm->get_string("network/proxy/login");
+		sset.proxy_password = sm->get_string("network/proxy/pass");
 	}
 	set_settings(sset);
 }
@@ -227,9 +227,9 @@ bool SessionManager::decode(const Glib::ustring& file,
 
 void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 {
-	if (Engine::get_settings_manager()->get_bool("Files", "MoveFinished"))
+	if (Engine::get_settings_manager()->get_bool("files/move_finished"))
 	{
-		Glib::ustring path = Engine::get_settings_manager()->get_string("Files", "FinishedPath");
+		Glib::ustring path = Engine::get_settings_manager()->get_string("files/finished_path");
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		bool ret = false;
 		if (!torrent->is_stopped())
@@ -256,7 +256,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	if (!torrent)
 	{
 		torrent_handle handle = add_torrent(info, save_path.c_str(), entry(),
-			!Engine::get_settings_manager()->get_bool("Files", "Allocate"));
+			!Engine::get_settings_manager()->get_bool("files/allocate"));
 		entry::dictionary_type de;
 		de["path"] = save_path;
 
@@ -313,7 +313,7 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	/* If this fails we need to handle it better below */
 	decode(file, er);
 
-	bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
+	bool allocate = Engine::get_settings_manager()->get_bool("files/allocate");
 	Glib::ustring save_path = er.dict()["path"].string();
 
 	if (torrent) //Torrent was resumed from stopped state
@@ -345,7 +345,7 @@ void SessionManager::recheck_torrent(const sha1_hash& hash)
 
 		torrent_info info = torrent->get_info();
 		Glib::ustring path = torrent->get_path();
-		bool allocate = Engine::get_settings_manager()->get_bool("Files", "Allocate");
+		bool allocate = Engine::get_settings_manager()->get_bool("files/allocate");
 		torrent_handle handle = add_torrent(info, path.c_str(), entry(), !allocate);
 		torrent->set_handle(handle);
 	}

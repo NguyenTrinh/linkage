@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2007	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/radiobuttongroup.h>
 #include <gtkmm/box.h>
+#include <libglademm.h>
 
 #include "GroupRow.hh"
 
@@ -37,7 +39,7 @@ public:
 	const std::list<GroupRow*>& children();
 	GroupRow* get_selected();
 
-	GroupView();
+	GroupView(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~GroupView();
 };
 

@@ -217,7 +217,7 @@ void PluginManager::on_settings()
 {
 	std::list<Glib::ustring> plugins;
 
- 	plugins = Engine::get_settings_manager()->get_string_list("UI", "Plugins");
+ 	plugins = Engine::get_settings_manager()->get_string_list("ui/plugins");
 
 	/* Load all new */
 	for (std::list<Glib::ustring>::iterator iter = plugins.begin();
