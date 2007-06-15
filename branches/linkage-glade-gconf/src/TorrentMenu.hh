@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2007	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <libglademm.h>
 class TorrentMenu : public Gtk::Menu
 {
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 	Gtk::Menu* submenu_groups;
 
 	sigc::signal<void> m_signal_open;

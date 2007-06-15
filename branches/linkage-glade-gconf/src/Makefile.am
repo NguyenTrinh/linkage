@@ -4,7 +4,7 @@ flagdir = \"$(prefix)/share/linkage/flags\"
 pixmapdir = \"$(prefix)/share/pixmaps\"
 datadir = \"${prefix}/share/linkage\"
 
-AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS)  $(LIBCURL_CFLAGS) $(DBUSGLIB_CFLAGS) $(GTHREAD_CFLAGS) ${LIBGLADE_CFLAGS} -DFLAG_DIR="$(flagdir)" -DPIXMAP_DIR="$(pixmapdir)" -DDATA_DIR="${datadir}"
+AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS)  $(LIBCURL_CFLAGS) $(DBUSGLIB_CFLAGS) $(GTHREAD_CFLAGS) ${LIBGLADE_CFLAGS} ${GCONFMM_CFLAGS} -DFLAG_DIR="$(flagdir)" -DPIXMAP_DIR="$(pixmapdir)" -DDATA_DIR="${datadir}"
 
 linkage_SOURCES = CellRendererPieceMap.hh \
                   FileList.hh \
@@ -47,4 +47,6 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   main.cc
 
 
-linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(LIBCURL_LIBS) $(DBUSGLIB_LIBS) $(GTHREAD_LIBS) ${LIBGLADE_LIBS} -L../lib -llinkage-1
+linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) \
+	 $(LIBCURL_LIBS) $(DBUSGLIB_LIBS) $(GTHREAD_LIBS) \
+	 ${LIBGLADE_LIBS} ${GCONFMM_LIBS} -L../lib -llinkage-1

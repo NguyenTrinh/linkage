@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2006	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -28,6 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treemodel.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treeview.h>
+#include <libglademm.h>
+#include <libtorrent/entry.hpp>
 
 #include "AlignedFrame.hh"
 #include "AlignedLabel.hh"
@@ -36,26 +39,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class SettingsWin : public Gtk::Window
 {
-	AlignedSpinButton *update_interval, *name_width;
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
+
+	Gtk::SpinButton *update_interval, *name_width;
 	Gtk::CheckButton *auto_expand, *trunkate_names;
 	Gtk::ColorButton *color_downloading, *color_seeding, *color_queued, *color_error;
 	Gtk::ColorButton *color_check_queue, *color_checking, *color_finished;
 	Gtk::ColorButton *color_allocating, *color_announcing, *color_stopped;
 
 	Gtk::ComboBoxText* interfaces;
-	AlignedSpinButton *min_port, *max_port;
-	AlignedSpinButton *tracker_timeout;
+	Gtk::SpinButton *min_port, *max_port;
+	Gtk::SpinButton *tracker_timeout;
 	Gtk::CheckButton *enable_dht, *dht_fallback, *enable_pex, *multiple_connections;
-	AlignedSpinButton *max_connections, *max_uploads, *max_active;
-	AlignedSpinButton *up_rate, *down_rate;
-	AlignedSpinButton *max_torrent_connections, *max_torrent_uploads, *seed_ratio;
-	AlignedSpinButton* proxy_port;
+	Gtk::SpinButton *max_connections, *max_uploads, *max_active;
+	Gtk::SpinButton *up_rate, *down_rate;
+	Gtk::SpinButton *max_torrent_connections, *max_torrent_uploads, *seed_ratio;
+	Gtk::SpinButton	*proxy_port;
 	Gtk::Entry *proxy_ip, *proxy_user, *proxy_pass;
 
 	Gtk::CheckButton *default_path, *move_finished, *allocate;
 	Gtk::FileChooserButton *button_default_path, *button_move_finished;
-	AlignedSpinButton* max_open;
-
+	Gtk::SpinButton *max_open;
+	
 	class PluginModelColumns : public Gtk::TreeModelColumnRecord
 	{
 	public:
@@ -76,10 +81,11 @@ class SettingsWin : public Gtk::Window
 		Gtk::TreeModelColumn<Glib::ustring> file;
 	};
 
+	Gtk::TreeView* treeview_plugins;
 	PluginModelColumns plugin_columns;
 	Glib::RefPtr<Gtk::ListStore> model_plugins;
-	AlignedLabel *label_author, *label_website, *label_file;
-	AlignedFrame* frame_options;
+	Gtk::Label *label_author, *label_website, *label_file;
+	Gtk::Frame* frame_options;
 
 	Gtk::Button *group_add, *group_remove;
 	GroupView* groups_view;
@@ -104,7 +110,7 @@ class SettingsWin : public Gtk::Window
 	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
 										const Gtk::TreeIter& iter);
 public:
-	SettingsWin(Gtk::Window *parent);
+	SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~SettingsWin();
 };
 

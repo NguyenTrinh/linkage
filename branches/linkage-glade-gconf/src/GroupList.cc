@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2007	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -15,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
+
+#include <libtorrent/entry.hpp>
 
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
@@ -39,29 +42,33 @@ GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 GroupList::~GroupList()
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	entry::dictionary_type groups;
 	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
 	{
 		Group* group = iter->first;
 		
-		std::list<Glib::ustring> info;
+		entry::list_type efilters;
 		std::list<Group::Filter> filters = group->get_filters();
 
 		for (std::list<Group::Filter>::iterator giter = filters.begin();
 					giter != filters.end(); ++giter)
 		{
 			Group::Filter f = *giter;
-			info.push_back(f.filter);
-			info.push_back(str(f.eval));
-			info.push_back(str(f.tag));
+			entry::dictionary_type filter;
+			
+			filter["filter"] = entry(f.filter);
+			filter["eval"] = entry(f.eval);
+			filter["tag"] = entry(f.tag);
+			efilters.push_back(entry(filter));
 		}
-
-		sm->set("Groups", group->get_name(), UStringArray(info));
-
+		groups[group->get_name()] = entry(efilters);
+		
 		Gtk::RadioButton* radio = iter->second;
 		remove(*radio);
 		delete radio;
 		delete group;
 	}
+	sm->write_groups_data(entry(groups));
 	m_map.clear();
 }
 
@@ -91,26 +98,28 @@ void GroupList::on_settings()
 	m_map.clear();
 
 	bool all_active = true;
+	// build the group list from the bencoded file
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	std::list<Glib::ustring> keys = sm->get_keys("Groups");
-	for (std::list<Glib::ustring>::iterator iter = keys.begin();
-				iter != keys.end(); ++iter)
+
+	using namespace libtorrent;
+	entry e;
+	sm->get_groups_data(e);
+
+	for (entry::dictionary_type::iterator iter = e.dict().begin();
+			iter != e.dict().end(); ++iter)
 	{
-		std::vector<Glib::ustring> info = sm->get_string_list("Groups", *iter);
-
-		if ((info.size() % 3) != 0)
-			continue;
-
 		std::list<Group::Filter> filters;
-		for (int i = 0; i < info.size(); i+=3)
+
+		for (entry::list_type::const_iterator giter = (*iter).second.list().begin();
+				giter != (*iter).second.list().end(); ++giter)
 		{
-			Glib::ustring filter = info[i];
-			Group::EvalType eval = Group::EvalType(std::atoi(info[i+1].c_str()));
-			Group::TagType tag = Group::TagType(std::atoi(info[i+2].c_str()));
+			Glib::ustring filter = (*giter)["filter"].string();
+			Group::EvalType eval = Group::EvalType((*giter)["eval"].integer());
+			Group::TagType tag = Group::TagType((*giter)["tag"].integer());
 			filters.push_back(Group::Filter(filter, tag, eval));
 		}
 		
-		Group* group = new Group(*iter, filters);
+		Group* group = new Group((*iter).first, filters);
 		Gtk::RadioButtonGroup radio_group = m_all->get_group();
 		Gtk::RadioButton* radio = new Gtk::RadioButton(radio_group, group->get_name());
 		m_map[group] = radio;
