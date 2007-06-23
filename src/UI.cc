@@ -69,6 +69,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->get_widget_derived("torrent_menu", torrent_menu);
 
 	glade_xml->get_widget("main_vpane", main_vpane);
+	main_vpane->set_position(-1);
 	glade_xml->get_widget("main_hpane", main_hpane);
 
 	glade_xml->get_widget("notebook_details", notebook_details);
