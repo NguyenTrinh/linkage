@@ -96,7 +96,7 @@ void UPnPPlugin::update_mappings(bool refresh)
 	m_mapping = true;
 
 	/* FIXME: Remove old mappings */
-	Glib::ustring iface = Engine::get_settings_manager()->get_string("Network", "Interface");
+	Glib::ustring iface = Engine::get_settings_manager()->get_string("network/interface");
 	ip_address ip;
 
 	unsigned int port = Engine::get_session_manager()->listen_port();
