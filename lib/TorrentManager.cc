@@ -53,7 +53,7 @@ TorrentManager::~TorrentManager()
 		Glib::ustring hash_str = str(hash);
 
 		entry e = torrent->get_resume_entry(!torrent->is_stopped());
-		save_entry(hash, e, ".resume");
+		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 		if (!torrent->is_stopped())
 			m_session_manager->remove_torrent(torrent->get_handle());
 

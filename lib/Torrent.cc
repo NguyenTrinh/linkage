@@ -64,6 +64,10 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	}
 }
 
+Torrent::Torrent() : m_prop_handle(*this, "handle")
+{
+}
+
 Torrent::~Torrent()
 {
 }

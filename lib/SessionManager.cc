@@ -282,7 +282,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		Save an almost empty .resume file, so the torrent is resumed next session
 		even if something nasty happens to this session
 	*/
-	save_entry(hash, er, ".resume");
+	save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), er);
 
 	return hash;
 }
@@ -366,7 +366,7 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 
 		entry e = torrent->get_resume_entry();
 
-		save_entry(hash, e, ".resume");
+		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 
 		remove_torrent(torrent->get_handle());
 		/* FIXME: this is pretty stupid, just to get the TorrentManager's attention */

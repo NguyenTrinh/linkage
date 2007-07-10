@@ -38,18 +38,21 @@ typedef std::list<sha1_hash> HashList;
 class Torrent : public Glib::Object
 {
 public:
-	enum State { 
-							 CHECK_QUEUE,
-							 CHECKING,
-							 ANNOUNCING,
-							 DOWNLOADING,
-							 FINISHED,
-							 SEEDING,
-							 ALLOCATING,
-							 STOPPED,
-							 QUEUED,
-							 ERROR
-						 };
+	enum State
+	{
+		NONE = 0x0,
+		ANNOUNCING = 0x1,
+		DOWNLOADING = 0x2,
+		FINISHED = 0x4,
+		SEEDING = 0x8,
+		CHECK_QUEUE = 0x10,
+		CHECKING = 0x20,
+		ALLOCATING = 0x40,
+		STOPPED = 0x80,
+		QUEUED = 0x100,
+		ERROR = 0x200
+	};
+
 	struct ResumeInfo 
 	{
 		entry resume;
@@ -104,6 +107,7 @@ public:
 	void set_handle(const torrent_handle& handle);
 	
 	Torrent(const ResumeInfo& ri, bool queued = false);
+	Torrent();
 	~Torrent();
 
 private:
