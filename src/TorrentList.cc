@@ -32,6 +32,8 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	: Gtk::TreeView(cobject),
 	glade_xml(refGlade)
 {
+	m_cur_state = Torrent::NONE;
+
 	model = Gtk::ListStore::create(columns);
 	filter = Gtk::TreeModelFilter::create(model);
 	filter->set_visible_func(sigc::mem_fun(this, &TorrentList::on_filter));
@@ -120,6 +122,9 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 	if (!torrent)
 		return false;
 
+	if (m_cur_state && m_cur_state != torrent->get_state())
+		return false;
+
 	return (m_active_group) ? m_active_group.eval(torrent) : true;
 }
 
@@ -130,20 +135,10 @@ void TorrentList::on_filter_set(const Group& group)
 	filter->refilter();
 }
 
-void TorrentList::on_filter_unset()
+void TorrentList::on_state_filter_changed(Torrent::State state)
 {
-	m_active_group = Group();
+	m_cur_state = state;
 	filter->refilter();
-}
-
-void TorrentList::set_filter_set_signal(sigc::signal<void, const Group&> signal)
-{
-	signal.connect(sigc::mem_fun(this, &TorrentList::on_filter_set));
-}
-
-void TorrentList::set_filter_unset_signal(sigc::signal<void> signal)
-{
-	signal.connect(sigc::mem_fun(this, &TorrentList::on_filter_unset));
 }
 
 void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position)

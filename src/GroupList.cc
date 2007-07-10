@@ -22,118 +22,81 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
 #include "linkage/SettingsManager.hh"
+
 #include "GroupList.hh"
 
 GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
-	: Gtk::VBox(cobject),
+	: Gtk::TreeView(cobject),
 	glade_xml(refGlade)
 {
-	m_all = manage(new Gtk::RadioButton("All"));
-	m_all->signal_toggled().connect(sigc::mem_fun(this, &GroupList::on_all_toggled));
-	pack_start(*m_all, false, false);
+	model = Gtk::ListStore::create(columns);
 
-	on_settings();
+	set_model(model);
 
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &GroupList::on_settings));
+	append_column("Name", columns.name);
+	append_column("#", columns.num);
+
+	m_cur_state = Torrent::NONE;
+
+	/* Add the "All" filter with an invalid group */
+	Gtk::TreeRow row = *(model->append());
+	row[columns.name] = "All";
+	row[columns.group] = Group();
+
+	get_selection()->signal_changed().connect(sigc::mem_fun(this, &GroupList::on_selection_changed));
 	
 	show_all_children();
 }
 
 GroupList::~GroupList()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	entry::dictionary_type groups;
-	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
-	{
-		Group* group = iter->first;
-		
-		entry::list_type efilters;
-		std::list<Group::Filter> filters = group->get_filters();
-
-		for (std::list<Group::Filter>::iterator giter = filters.begin();
-					giter != filters.end(); ++giter)
-		{
-			Group::Filter f = *giter;
-			entry::dictionary_type filter;
-			
-			filter["filter"] = entry(f.filter);
-			filter["eval"] = entry(f.eval);
-			filter["tag"] = entry(f.tag);
-			efilters.push_back(entry(filter));
-		}
-		groups[group->get_name()] = entry(efilters);
-		
-		Gtk::RadioButton* radio = iter->second;
-		remove(*radio);
-		delete radio;
-		delete group;
-	}
-	sm->write_groups_data(entry(groups));
-	m_map.clear();
 }
 
-void GroupList::on_group_toggled(Group* group)
+void GroupList::on_selection_changed()
 {
-	m_signal_filter_set.emit(*group);
+	Gtk::TreeIter iter = get_selection()->get_selected();
+	if (iter)
+	{
+		Gtk::TreeRow row = *iter;
+		m_signal_filter_set.emit(row[columns.group]);
+	}
 }
 
-void GroupList::on_all_toggled()
+void GroupList::on_state_filter_changed(Torrent::State state)
 {
-	m_signal_filter_unset.emit();
+	m_cur_state = state;
 }
 
-void GroupList::on_settings()
+void GroupList::on_groups_changed(const std::list<Group>& groups)
 {
-	Glib::ustring active_group;
-	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
+	Gtk::TreeIter iter = get_selection()->get_selected();
+	Glib::ustring selected;
+	if (iter)
 	{
-		Gtk::RadioButton* radio = iter->second;
-		Group* group = iter->first;
-		if (radio->get_active())
-			active_group = group->get_name();
-		remove(*radio);
-		delete radio;
-		delete group;
+		Gtk::TreeRow row = *iter;
+		Group group = row[columns.group];
+		selected = group.get_name();
 	}
-	m_map.clear();
 
-	bool all_active = true;
-	// build the group list from the bencoded file
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-
-	using namespace libtorrent;
-	entry e;
-	sm->get_groups_data(e);
-
-	for (entry::dictionary_type::iterator iter = e.dict().begin();
-			iter != e.dict().end(); ++iter)
+	Gtk::TreeNodeChildren children = model->children();
+	for (Gtk::TreeIter i = children.begin(); i != children.end();)
 	{
-		std::list<Group::Filter> filters;
-
-		for (entry::list_type::const_iterator giter = (*iter).second.list().begin();
-				giter != (*iter).second.list().end(); ++giter)
-		{
-			Glib::ustring filter = (*giter)["filter"].string();
-			Group::EvalType eval = Group::EvalType((*giter)["eval"].integer());
-			Group::TagType tag = Group::TagType((*giter)["tag"].integer());
-			filters.push_back(Group::Filter(filter, tag, eval));
-		}
-		
-		Group* group = new Group((*iter).first, filters);
-		Gtk::RadioButtonGroup radio_group = m_all->get_group();
-		Gtk::RadioButton* radio = new Gtk::RadioButton(radio_group, group->get_name());
-		m_map[group] = radio;
-		radio->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &GroupList::on_group_toggled), group));
-		if (active_group == group->get_name())
-		{
-			radio->set_active(true);
-			all_active = false;
-		}
-		pack_start(*radio, false, false);
-		radio->show();
+		Gtk::TreeRow row = *i;
+		Group group = row[columns.group];
+		/* Don't delete "All" */
+		if (group.is_valid())
+			i = model->erase(i);
+		else
+			i++;
 	}
-	if (all_active)
-		m_all->set_active(true);
+
+	for (std::list<Group>::const_iterator i = groups.begin(); i != groups.end(); ++i)
+	{
+		Group group = *i;
+		Gtk::TreeRow row = *(model->append());
+		row[columns.name] = group.get_name();
+		row[columns.group] = group;
+	}
 }
 
 sigc::signal<void, const Group&> GroupList::signal_filter_set()
@@ -141,29 +104,31 @@ sigc::signal<void, const Group&> GroupList::signal_filter_set()
 	return m_signal_filter_set;
 }
 
-sigc::signal<void> GroupList::signal_filter_unset()
-{
-	return m_signal_filter_unset;
-}
-
 void GroupList::update()
 {
+	/* FIXME: group.eval() is duplicated in TorrentList, possible performance hit */
 	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
 
-	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
+	Gtk::TreeNodeChildren children = model->children();
+	for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
 	{
-		Group* group = iter->first;
-		int n = 0;
-		for (TorrentManager::TorrentList::iterator titer = torrents.begin();
-					titer != torrents.end(); ++titer)
+		Gtk::TreeRow row = *i;
+		Group group = row[columns.group];
+		if (group.is_valid())
 		{
-			if (group->eval(*titer))
-				n++;
+			unsigned int n = 0;
+			for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
+			{
+				WeakPtr<Torrent> torrent = *j;
+				if (m_cur_state && m_cur_state != torrent->get_state())
+					continue;
+				if (group.eval(torrent))
+					n++;
+			}
+			row[columns.num] = n;
 		}
-		Gtk::RadioButton* radio = iter->second;
-
-		radio->set_label(group->get_name() + " (" + str(n) + ")");
+		else
+			row[columns.num] = torrents.size();
 	}
-	
-	m_all->set_label("All (" + str(torrents.size()) + ")");
 }
+

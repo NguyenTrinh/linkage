@@ -9,7 +9,7 @@ pixmapdir = $(prefix)/share/pixmaps
 pixmap_DATA = linkage.svg
 
 gladedir = ${prefix}/share/linkage
-glade_DATA = linkage.glade settings.glade
+glade_DATA = linkage.glade settings.glade groups.glade
 
 #
 # Gconf schemas

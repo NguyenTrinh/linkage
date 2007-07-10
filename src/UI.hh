@@ -41,17 +41,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/WeakPtr.hh"
 #include "linkage/Plugin.hh"
 
-#include "AlignedLabel.hh"
-#include "AlignedSpinButton.hh"
 #include "Statusbar.hh"
 #include "PieceMap.hh"
 #include "TorrentList.hh"
 #include "GroupList.hh"
+#include "GroupsWin.hh"
 #include "PeerList.hh"
 #include "FileList.hh"
 #include "SettingsWin.hh"
 #include "TorrentCreator.hh"
 #include "TorrentMenu.hh"
+#include "StateFilter.hh"
 
 class OpenDialog : public Gtk::FileChooserDialog
 {
@@ -128,6 +128,8 @@ class UI : public Gtk::Window
 	PieceMap* piecemap;
 	TorrentList* torrent_list;
 	GroupList* group_list;
+	GroupsWin* groups_win;
+	StateFilter* state_filter;
 	FileList* file_list;
 	PeerList* peer_list;
 

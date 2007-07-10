@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/cellrenderertoggle.h>
 #include <libtorrent/entry.hpp>
 
-#include "AlignedLabel.hh"
 #include "SettingsWin.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
@@ -37,8 +36,6 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	: Gtk::Window(cobject),
 		glade_xml(refGlade)
 {
-	glade_xml->get_widget_derived("groups_view", groups_view);
-
 	glade_xml->get_widget("update_interval", update_interval);
 	glade_xml->get_widget("name_width", name_width);
 	glade_xml->get_widget("auto_expand", auto_expand);
@@ -85,12 +82,9 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	glade_xml->get_widget("max_open", max_open);
 
 	glade_xml->get_widget("treeview_plugins", treeview_plugins);
-	glade_xml->get_widget("label_author", label_author);
-	glade_xml->get_widget("label_website", label_website);
-	glade_xml->get_widget("label_file", label_file);
-
-	glade_xml->get_widget("group_add", group_add);
-	glade_xml->get_widget("group_remove", group_remove);
+	glade_xml->get_widget("plugin_about", about_plugin);
+	glade_xml->get_widget("plugin_configure", configure_plugin);
+	/* FIXME: about and configure support for plugins */
 
 	// connect callbacks
 	Gtk::Button* button;
@@ -132,9 +126,6 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 		column->set_resizable(true);
 	}
 
- 	group_add->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_add));
- 	group_remove->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_remove));
-
 	min_port->signal_value_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_min_port_changed));
 	max_port->signal_value_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_max_port_changed));
 
@@ -156,24 +147,6 @@ bool SettingsWin::on_delete_event(GdkEventAny*)
 void SettingsWin::on_button_close()
 {
 	hide();
-}
-
-void SettingsWin::on_group_add()
-{
-	Glib::ustring number = str(groups_view->get_children().size());
-	GroupRow* row = new GroupRow("Group " + number);
-	groups_view->append(row);
-	if (groups_view->children().size() > 1)
-		group_remove->set_sensitive(true);
-}
-
-void SettingsWin::on_group_remove()
-{
-	GroupRow* row = groups_view->get_selected();
-	if (row)
-		groups_view->erase(row);
-	if (groups_view->children().size() == 1)
-		group_remove->set_sensitive(false);
 }
 
 void SettingsWin::on_min_port_changed()
@@ -198,20 +171,20 @@ void SettingsWin::on_plugin_changed(const Glib::RefPtr<Gtk::TreeSelection>& sele
 	if (!iter)
 		return;
 
-	Gtk::TreeRow row = *iter;
+	/*Gtk::TreeRow row = *iter;
 	label_author->set_text(row[plugin_columns.author]);
 	label_website->set_text(row[plugin_columns.website]);
 	label_file->set_text(row[plugin_columns.file]);
 	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
 	if (plugin)
 	{
-		/* FIXME: save previous plugin settings to settings manager */
+		FIXME: save previous plugin settings to settings manager
 		frame_options->remove();
 		Gtk::Widget* widget = plugin->get_config_widget();
 		if (widget)
 			frame_options->add(*widget);
-		/* FIXME: load plugin settings from settings manager */
-	}
+		 FIXME: load plugin settings from settings manager
+	}*/
 }
 
 Glib::ustring SettingsWin::hex_str(const Gdk::Color& color)
@@ -307,40 +280,7 @@ void SettingsWin::on_hide()
 	sm->set("files/finished_path", button_move_finished->get_filename());
 	sm->set("files/allocate", allocate->get_active());
 	sm->set("files/max_open", (int)max_open->get_value());
-	/* Groups */
-	
-	// bencode the groups
-	entry::dictionary_type groups;  // a std::map<string, entry>
-	
-	//sm->remove_group("Groups");
-	std::list<GroupRow*> rows = groups_view->children();
-	for (std::list<GroupRow*>::iterator iter = rows.begin();
-				iter != rows.end(); ++iter)
-	{
-		GroupRow* row = *iter;
-		Glib::ustring name = row->get_name();
-		
-		entry::list_type efilters;
-		
-		std::list<Group::Filter> filters = row->get_filters();
 
-		for (std::list<Group::Filter>::iterator iter = filters.begin();
-					iter != filters.end(); ++iter)
-		{
-			Group::Filter f = *iter;
-			entry::dictionary_type filter;
-			
-			filter["filter"] = entry(f.filter);
-			filter["eval"] = entry(f.eval);
-			filter["tag"] = entry(f.tag);
-			
-			// append the filter
-			efilters.push_back(entry(filter));
-		}
-		groups[name] = entry(efilters);
-	}
-	// write bencoded groups file
-	Engine::get_settings_manager()->write_groups_data(entry(groups));
 	Engine::get_settings_manager()->update();
 }
 
@@ -446,38 +386,6 @@ void SettingsWin::on_show()
 			row[plugin_columns.load] = info.get_loaded();
 		}
 	}
-	/* Groups */
-	
-	// build the groups list
-	
-	if (groups_view->children().empty())
-	{
-		using namespace libtorrent;
-		entry e;
-		sm->get_groups_data(e);
-		
-		// for each group
-		for (entry::dictionary_type::iterator iter = e.dict().begin();
-					iter != e.dict().end(); ++iter)
-		{			
-			entry efilters = (*iter).second;
-			std::list<Group::Filter> filters;
-			
-			// for each filter
-			entry::list_type const& filts = (*iter).second.list();
-			entry::list_type::const_iterator giter;
-			for (giter = filts.begin();
-						giter != filts.end(); ++giter)
-			{
-				Glib::ustring filter = (*giter)["filter"].string();
-				Group::EvalType eval = Group::EvalType((*giter)["eval"].integer());
-				Group::TagType tag = Group::TagType((*giter)["tag"].integer());
-				filters.push_back(Group::Filter(filter, tag, eval));
-			} // giter done!
-			GroupRow* row = new GroupRow((*iter).first, filters);
-			groups_view->append(row);
-		}
-	}
 
 	Gtk::Window::on_show();
 }
@@ -490,3 +398,4 @@ bool SettingsWin::is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
 	row.get_value(0, data);
 	return (data == "-");
 }
+

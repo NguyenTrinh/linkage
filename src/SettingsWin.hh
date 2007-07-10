@@ -21,21 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define SETTINGS_WIN_HH
 
 #include <gtkmm/window.h>
-#include <gtkmm/alignment.h>
+#include <gtkmm/button.h>
 #include <gtkmm/checkbutton.h>
+#include <gtkmm/spinbutton.h>
 #include <gtkmm/colorbutton.h>
 #include <gtkmm/filechooserbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/treemodel.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treeview.h>
-#include <libglademm.h>
-#include <libtorrent/entry.hpp>
 
-#include "AlignedFrame.hh"
-#include "AlignedLabel.hh"
-#include "AlignedSpinButton.hh"
-#include "GroupView.hh"
+#include <libglademm.h>
 
 class SettingsWin : public Gtk::Window
 {
@@ -84,11 +80,7 @@ class SettingsWin : public Gtk::Window
 	Gtk::TreeView* treeview_plugins;
 	PluginModelColumns plugin_columns;
 	Glib::RefPtr<Gtk::ListStore> model_plugins;
-	Gtk::Label *label_author, *label_website, *label_file;
-	Gtk::Frame* frame_options;
-
-	Gtk::Button *group_add, *group_remove;
-	GroupView* groups_view;
+	Gtk::Button *about_plugin, *configure_plugin;
 
 	void on_plugin_toggled(const Glib::ustring& path);
 	void on_plugin_changed(const Glib::RefPtr<Gtk::TreeSelection>& selection);
@@ -102,9 +94,6 @@ class SettingsWin : public Gtk::Window
 	void on_min_port_changed();
 	void on_max_port_changed();
 
-	void on_group_add();
-	void on_group_remove();
-
 	Glib::ustring hex_str(const Gdk::Color& color);
 
 	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
@@ -115,3 +104,4 @@ public:
 };
 
 #endif /* SETTINGS_WIN_HH */
+

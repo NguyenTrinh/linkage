@@ -22,13 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/menuitem.h>
 #include <gtkmm/imagemenuitem.h>
 #include <gtkmm/separatormenuitem.h>
+#include <gtkmm/label.h>
+
 #include <libtorrent/entry.hpp>
 
 #include "linkage/Engine.hh"
 #include "linkage/SettingsManager.hh"
 
 #include "TorrentMenu.hh"
-#include "AlignedLabel.hh"
 
 TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::Menu(cobject),
@@ -80,7 +81,7 @@ void TorrentMenu::on_settings()
 		delete widget;
 	}
 	
-	AlignedLabel* label = Gtk::manage(new AlignedLabel());
+	Gtk::Label* label = Gtk::manage(new Gtk::Label());
 	label->set_markup("<i>None</i>");
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(*label));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), ""));

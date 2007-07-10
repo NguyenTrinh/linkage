@@ -72,6 +72,7 @@ class TorrentList : public Gtk::TreeView
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Group m_active_group;
+	Torrent::State m_cur_state;
 
 	Gtk::TreeIter get_iter(const sha1_hash& hash);
 
@@ -84,8 +85,6 @@ class TorrentList : public Gtk::TreeView
 	bool on_button_press_event(GdkEventButton *event);
 	
 	bool on_filter(const Gtk::TreeModel::const_iterator& iter);
-	void on_filter_set(const Group& group);
-	void on_filter_unset();
 
 	sigc::signal<void, GdkEventButton*> m_signal_double_click;
 	sigc::signal<void, GdkEventButton*> m_signal_right_click;
@@ -107,8 +106,8 @@ public:
 		COL_HASH
 	};
 	
-	void set_filter_set_signal(sigc::signal<void, const Group&> signal);
-	void set_filter_unset_signal(sigc::signal<void> signal);
+	void on_filter_set(const Group& group);
+	void on_state_filter_changed(Torrent::State state);
 
 	bool is_selected(const sha1_hash& hash);
 	HashList get_selected_list();
