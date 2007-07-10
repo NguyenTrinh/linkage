@@ -67,7 +67,7 @@ bool get_ip(const char *iface, ip_address ip);
 Glib::ustring get_config_dir();
 Glib::ustring get_data_dir();
 
-void save_entry(const sha1_hash& hash, const entry& e, const Glib::ustring& suffix = Glib::ustring());
+bool load_entry(const Glib::ustring& file, entry& e);
 void save_entry(const Glib::ustring& file, const entry& e);
 
 Glib::RefPtr<Gnome::Glade::Xml> load_glade_file(const std::string &file);

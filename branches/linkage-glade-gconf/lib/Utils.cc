@@ -195,10 +195,29 @@ Glib::ustring get_data_dir()
 	return Glib::build_filename(get_config_dir(), "data");
 }
 
-void save_entry(const sha1_hash& hash, const entry& e, const Glib::ustring& suffix)
+bool load_entry(const Glib::ustring& file, entry& e)
+{
+	bool ret = true;
+	std::ifstream in(file.c_str(), std::ios_base::binary);
+	try
+	{
+		in.unsetf(std::ios_base::skipws);
+		e = bdecode(std::istream_iterator<char>(in),
+			std::istream_iterator<char>());
+	}
+	catch (std::exception& err)
+	{
+		ret = false;
+	}
+	in.close();
+
+	return ret;
+}
+
+/*void save_entry(const sha1_hash& hash, const entry& e, const Glib::ustring& suffix)
 {
 	save_entry(Glib::build_filename(get_data_dir(), str(hash)) + suffix, e);
-}
+}*/
 
 void save_entry(const Glib::ustring& file, const entry& e)
 {
