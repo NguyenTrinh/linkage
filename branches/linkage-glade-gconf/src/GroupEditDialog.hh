@@ -17,30 +17,40 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#ifndef GROUP_VIEW_HH
-#define GROUP_VIEW_HH
+#ifndef GROUP_EDIT_DIALOG_HH
+#define GROUP_EDIT_DIALOG_HH
 
 #include <list>
 
-#include <gtkmm/radiobuttongroup.h>
 #include <gtkmm/box.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/dialog.h>
+
 #include <libglademm.h>
 
-#include "GroupRow.hh"
+#include "Group.hh"
+#include "FilterRow.hh"
 
-class GroupView : public Gtk::VBox
+class GroupEditDialog : public Gtk::Dialog
 {
-	std::list<GroupRow*> m_children;
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
+
+	std::list<FilterRow*> m_filters;
+
+	Gtk::VBox* filters_box;
+	Gtk::Entry* name_entry;
+
+	void on_button_add();
+	void on_button_remove();
+
+	void clear();
 
 public:
-	void append(GroupRow* row);
-	void erase(GroupRow* row);
-	GroupRow* get_row(const Glib::ustring& group);
-	const std::list<GroupRow*>& children();
-	GroupRow* get_selected();
+	int run(Glib::ustring& name, std::list<Group::Filter>& filters);
 
-	GroupView(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
-	~GroupView();
+	GroupEditDialog(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
+	virtual ~GroupEditDialog();
 };
 
-#endif /* GROUP_VIEW_HH */
+#endif /* GROUP_EDIT_DIALOG_HH */
+

@@ -55,13 +55,18 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	Glib::RefPtr<Gnome::Glade::Xml> settings_xml = load_glade_file(DATA_DIR "/settings.glade");
 	settings_xml->get_widget_derived("settings_win", settings_win);
+
 	torrent_win = new TorrentCreator(this);
+
+	Glib::RefPtr<Gnome::Glade::Xml> groups_xml = load_glade_file(DATA_DIR "/groups.glade");
+	groups_xml->get_widget_derived("groups_win", groups_win);
 	
 	menu_trackers = manage(new Gtk::Menu());
 	
 	// get the widgets we work with
 	glade_xml->get_widget_derived("torrent_list", torrent_list);
-	glade_xml->get_widget_derived("vbox_groups", group_list);
+	glade_xml->get_widget_derived("state_combobox", state_filter);
+	glade_xml->get_widget_derived("groups_treeview", group_list);
 	glade_xml->get_widget_derived("statusbar", statusbar);
 	glade_xml->get_widget_derived("piecemap", piecemap);
 	glade_xml->get_widget_derived("file_list", file_list);
@@ -111,6 +116,8 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->connect_clicked
 		("mnu_view_details", sigc::mem_fun(this, &UI::on_info));
 	glade_xml->connect_clicked
+		("mnu_edit_groups", sigc::mem_fun(groups_win, &GroupsWin::show));
+	glade_xml->connect_clicked
 		("mnu_view_prefs", sigc::mem_fun(this, &UI::on_prefs));
  	glade_xml->connect_clicked
  		("mnu_help_about", sigc::mem_fun(this, &UI::on_about));
@@ -159,31 +166,31 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
 	glade_xml->connect_clicked
 		("sort_menu_name", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_NAME));
 	glade_xml->connect_clicked
 		("sort_menu_status", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_STATUS));
 	glade_xml->connect_clicked
 		("sort_menu_down", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_DOWNLOADED));
 	glade_xml->connect_clicked
 		("sort_menu_up", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_UPLOADED));
 	glade_xml->connect_clicked
 		("sort_menu_down_rate", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_DOWNRATE));
 	glade_xml->connect_clicked
 		("sort_menu_up_rate", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_UPRATE));
 	glade_xml->connect_clicked
 		("sort_menu_seeds", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_SEEDS));
 	glade_xml->connect_clicked
 		("sort_menu_peers", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_PEERS));
 	glade_xml->connect_clicked
 		("sort_menu_progress", sigc::bind(sigc::mem_fun
-			(this, &UI::on_sort_item_selected), TorrentList::COL_POSITION));
+			(this, &UI::on_sort_item_selected), TorrentList::COL_PROGRESS));
 
 
 
@@ -207,9 +214,15 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	torrent_list->drag_dest_set(targets, Gtk::DEST_DEFAULT_ALL, Gdk::DragAction(GDK_ACTION_COPY | GDK_ACTION_MOVE));
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received));
 
-	torrent_list->set_filter_set_signal(group_list->signal_filter_set());
-	torrent_list->set_filter_unset_signal(group_list->signal_filter_unset());
+	/* setup group and state stuff, this is ugly and should be changed */
+	groups_win->signal_groups_changed().connect(sigc::mem_fun(group_list, &GroupList::on_groups_changed));
+	group_list->signal_filter_set().connect(sigc::mem_fun(torrent_list, &TorrentList::on_filter_set));
+	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(group_list, &GroupList::on_state_filter_changed));
+	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(torrent_list, &TorrentList::on_state_filter_changed));
 
+	// hack to emit groups_changed signal
+	groups_win->notify();
+	
 	expander_details->property_expanded().signal_changed().connect(sigc::mem_fun(this, &UI::on_details_expanded));
 
 	// setup the tracker button
@@ -308,6 +321,7 @@ UI::~UI()
 	delete settings_win;
 	delete torrent_win;
 	delete group_list;
+	delete groups_win;
 	delete torrent_menu;
 	delete file_chooser;
 	delete path_chooser;

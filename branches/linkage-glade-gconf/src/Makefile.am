@@ -24,26 +24,22 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   UI.cc \
                   Group.cc \
                   Group.hh \
-                  AlignedLabel.hh \
-                  AlignedLabel.cc \
-                  AlignedSpinButton.hh \
-                  AlignedSpinButton.cc \
-                  AlignedFrame.hh \
-                  AlignedFrame.cc \
                   Statusbar.hh \
                   Statusbar.cc \
                   CellRendererProgressText.hh \
                   CellRendererProgressText.cc \
                   GroupList.hh \
                   GroupList.cc \
-                  GroupRow.hh \
-                  GroupRow.cc \
-                  GroupView.hh \
-                  GroupView.cc \
+                  GroupsWin.hh \
+                  GroupsWin.cc \
+                  GroupEditDialog.hh \
+                  GroupEditDialog.cc \
+                  FilterRow.hh \
+                  FilterRow.cc \
                   TorrentMenu.hh \
                   TorrentMenu.cc \
-                  ExpanderButton.hh \
-                  ExpanderButton.cc \
+                  StateFilter.hh \
+                  StateFilter.cc \
                   main.cc
 
 

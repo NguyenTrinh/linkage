@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 
-using namespace libtorrent;
-
 class Group
 {
 public:
@@ -31,15 +29,24 @@ public:
 	enum EvalType { EVAL_EQUALS, EVAL_CONTAINS, EVAL_STARTS, EVAL_ENDS };
 	/* FIXME: Add more tags, like size, num_files etc.. */
 	/* FIXME: Add more tags for dynamic filters, like % completed, share ratio etc.. */
-	enum TagType { TAG_NONE, TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
+	enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
+
+	enum OperationType { OP_OR, OP_NOR, OP_AND, OP_NAND };
 
 	struct Filter
 	{
+		/* Note to self, first filter _must_ always be OP_OR or OP_NOR */
+		OperationType operation;
+
 		Glib::ustring filter;
 		TagType tag;
 		EvalType eval;
 
-		Filter(const Glib::ustring& f, TagType t, EvalType e) : filter(f), tag(t), eval(e) {}
+		Filter(const Glib::ustring& f, TagType t, EvalType e, OperationType o) : 
+			filter(f),
+			tag(t),
+			eval(e),
+			operation(o) {}
 	};
 
 	bool eval(const WeakPtr<Torrent>& torrent) const;
@@ -49,7 +56,7 @@ public:
 	
 	operator bool() const
 	{
-		return !m_name.empty();
+		return is_valid();
 	}
 
 	bool operator==(const Group& src) const
@@ -61,6 +68,8 @@ public:
 	{
 		return (m_name != src.m_name);
 	}
+
+	bool is_valid() const;
 
 	Group(const Glib::ustring& name, const std::list<Filter>& filters);
 	Group();

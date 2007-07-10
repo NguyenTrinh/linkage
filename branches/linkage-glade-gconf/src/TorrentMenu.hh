@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/menu.h>
 #include <libglademm.h>
+
 class TorrentMenu : public Gtk::Menu
 {
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
