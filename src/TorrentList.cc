@@ -52,7 +52,7 @@ TorrentList::TorrentList()
 	column->add_attribute(*renderer, "text-right", COL_UPRATE);
 	column->set_cell_data_func(*renderer, sigc::mem_fun(this, &TorrentList::format_rates));
 
-	for(unsigned int i = 0; i < 3; i++)
+	for (unsigned int i = 0; i < 3; i++)
 	{
 		Gtk::TreeView::Column* column = get_column(i);
 		column->set_sort_column_id(i);
@@ -383,14 +383,20 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		row[columns.up_rate] = 0;
 		row[columns.seeds] = 0;
 		row[columns.peers] = 0;
-		row[columns.progress] = 0;
-		row[columns.eta] = "";
-		return;
+		if (!torrent->get_completed())
+		{
+			float progress = 0;
+			if (down)
+				progress = (1.0f*down)/(1.0f*torrent->get_info().total_size())*100;
+			row[columns.progress] = progress;
+			row[columns.eta] = str(progress, 2) + "%";
+			return;
+		}
 	}
 
 	torrent_status status = torrent->get_status();
-
-	if (torrent->get_state() == Torrent::SEEDING)
+	Torrent::State state = torrent->get_state();
+	if (state == Torrent::SEEDING || (state == Torrent::STOPPED && torrent->get_completed()))
 	{
 		size_type size = down - up;
 		if (down != 0)
