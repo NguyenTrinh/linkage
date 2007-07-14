@@ -22,17 +22,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/box.h>
 #include <gtkmm/comboboxtext.h>
-#include <gtkmm/comboboxentrytext.h>
+#include <gtkmm/entry.h>
 
 #include "Group.hh"
 
 class FilterRow : public Gtk::HBox
 {
 	Gtk::ComboBoxText *combo_tag, *combo_eval, *combo_operation;
-	Gtk::ComboBoxEntryText *combotxt_filter;
+	Gtk::Entry *entry_filter;
 
 	void init(bool first);
-	void on_tag_changed();
 
 public:
 	bool has_focus();

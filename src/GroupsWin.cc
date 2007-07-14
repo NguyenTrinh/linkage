@@ -27,6 +27,7 @@ GroupsWin::GroupsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	glade_xml(refGlade)
 {
 	glade_xml->get_widget_derived("edit_dialog", group_edit);
+	group_edit->set_transient_for(*this);
 
 	glade_xml->get_widget("groups_treeview", groups_view);
 
@@ -58,21 +59,21 @@ GroupsWin::GroupsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	edit_button->signal_clicked().connect(sigc::mem_fun(this, &GroupsWin::on_button_edit));
 
 	/* Load groups data from disk */
-	entry e;
+	libtorrent::entry e;
 	if (load_entry(Glib::build_filename(get_config_dir(), "groups"), e))
 	{
 		// for each group
-		for (entry::dictionary_type::iterator i = e.dict().begin();
+		for (libtorrent::entry::dictionary_type::iterator i = e.dict().begin();
 			i != e.dict().end(); ++i)
 		{
-			entry::list_type e_filters = i->second.list();
+			libtorrent::entry::list_type e_filters = i->second.list();
 
 			std::list<Group::Filter> filters;			
 			// for each filter
-			for (entry::list_type::iterator j = e_filters.begin();
+			for (libtorrent::entry::list_type::iterator j = e_filters.begin();
 				j != e_filters.end(); ++j)
 			{
-				entry::dictionary_type e_filter = j->dict();
+				libtorrent::entry::dictionary_type e_filter = j->dict();
 				Glib::ustring filter = e_filter["filter"].string();
 				Group::EvalType eval = Group::EvalType(e_filter["eval"].integer());
 				Group::TagType tag = Group::TagType(e_filter["tag"].integer());
@@ -89,7 +90,7 @@ GroupsWin::GroupsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 
 GroupsWin::~GroupsWin()
 {
-	entry::dictionary_type e_groups;
+	libtorrent::entry::dictionary_type e_groups;
 
 	/* For each group row */
 	Gtk::TreeNodeChildren children = model->children();
@@ -100,26 +101,26 @@ GroupsWin::~GroupsWin()
 		std::list<Group::Filter> filters = row[columns.filters];
 
 		/* For each filter */
-		entry::list_type e_filters;
+		libtorrent::entry::list_type e_filters;
 		for (std::list<Group::Filter>::iterator j = filters.begin();
 			j != filters.end(); ++j)
 		{
 			Group::Filter filter = *j;
-			entry::dictionary_type e_filter;
+			libtorrent::entry::dictionary_type e_filter;
 			
-			e_filter["filter"] = entry(filter.filter);
-			e_filter["eval"] = entry(filter.eval);
-			e_filter["tag"] = entry(filter.tag);
-			e_filter["operation"] = entry(filter.operation);
+			e_filter["filter"] = libtorrent::entry(filter.filter);
+			e_filter["eval"] = libtorrent::entry(filter.eval);
+			e_filter["tag"] = libtorrent::entry(filter.tag);
+			e_filter["operation"] = libtorrent::entry(filter.operation);
 
 			/* Pack each filter in list */
-			e_filters.push_back(entry(e_filter));
+			e_filters.push_back(e_filter);
 		}
 		/* Store filter list in dictionary */
-		e_groups[name] = entry(e_filters);
+		e_groups[name] = e_filters;
 	}
 
-	save_entry(Glib::build_filename(get_config_dir(), "groups"), entry(e_groups));
+	save_entry(Glib::build_filename(get_config_dir(), "groups"), e_groups);
 }
 
 sigc::signal<void, const std::list<Group>& > GroupsWin::signal_groups_changed()
@@ -243,9 +244,6 @@ void GroupsWin::format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& it
 
 			switch (filter.tag)
 			{
-				case Group::TAG_STATE:
-					ss << "state ";
-					break;
 				case Group::TAG_COMMENT:
 					ss << "comment ";
 					break;

@@ -34,7 +34,9 @@ GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	set_model(model);
 
 	append_column("Name", columns.name);
-	append_column("#", columns.num);
+	Gtk::TreeViewColumn* column = get_column(0);
+	Gtk::CellRenderer* renderer = column->get_first_cell_renderer();
+	column->set_cell_data_func(*renderer, sigc::mem_fun(this, &GroupList::format_name));
 
 	m_cur_state = Torrent::NONE;
 
@@ -44,13 +46,30 @@ GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	row[columns.group] = Group();
 
 	get_selection()->signal_changed().connect(sigc::mem_fun(this, &GroupList::on_selection_changed));
-	
+
 	show_all_children();
 }
 
 GroupList::~GroupList()
 {
+	Glib::ustring selected;
+	Gtk::TreeIter iter = get_selection()->get_selected();
+	if (iter)
+	{
+		Gtk::TreeRow row = *iter;
+		selected = row[columns.name];
+	}
+	Engine::get_settings_manager()->set("ui/active_group", selected);
 }
+
+void GroupList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
+{
+	Gtk::TreeRow row = *iter;
+	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
+
+	cell_t->property_text() = row[columns.name] + " (" + str(row[columns.num]) + ")";
+}
+
 
 void GroupList::on_selection_changed()
 {
@@ -69,15 +88,16 @@ void GroupList::on_state_filter_changed(Torrent::State state)
 
 void GroupList::on_groups_changed(const std::list<Group>& groups)
 {
+	// find selected name
 	Gtk::TreeIter iter = get_selection()->get_selected();
 	Glib::ustring selected;
 	if (iter)
 	{
 		Gtk::TreeRow row = *iter;
-		Group group = row[columns.group];
-		selected = group.get_name();
+		selected = row[columns.name];
 	}
 
+	// clear list
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter i = children.begin(); i != children.end();)
 	{
@@ -90,12 +110,41 @@ void GroupList::on_groups_changed(const std::list<Group>& groups)
 			i++;
 	}
 
+	// add new groups
 	for (std::list<Group>::const_iterator i = groups.begin(); i != groups.end(); ++i)
 	{
 		Group group = *i;
 		Gtk::TreeRow row = *(model->append());
 		row[columns.name] = group.get_name();
 		row[columns.group] = group;
+	}
+
+	// select previously selected group if it still exists
+	if (!selected.empty())
+	{
+		children = model->children();
+		for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
+		{
+			Gtk::TreeRow row = *i;
+			Glib::ustring name = row[columns.name];
+			if (name == selected)
+				get_selection()->select(i);
+		}
+	}
+	else
+	{
+		Glib::ustring active = Engine::get_settings_manager()->get_string("ui/active_group");
+		if (!active.empty())
+		{
+			Gtk::TreeNodeChildren children = model->children();
+			for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
+			{
+				Gtk::TreeRow row = *i;
+				Glib::ustring name = row[columns.name];
+				if (name == active)
+					get_selection()->select(i);
+			}
+		}
 	}
 }
 

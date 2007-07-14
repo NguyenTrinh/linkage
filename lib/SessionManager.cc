@@ -27,6 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glib/gstdio.h>
 #include <glibmm/fileutils.h>
 
+// FIXME: Remove using statement
+using namespace libtorrent;
+
 Glib::RefPtr<SessionManager> SessionManager::create()
 {
 	return Glib::RefPtr<SessionManager>(new SessionManager());
@@ -255,12 +258,31 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
 	{
-		torrent_handle handle = add_torrent(info, save_path.c_str(), entry(),
-			!Engine::get_settings_manager()->get_bool("files/allocate"));
-		entry::dictionary_type de;
-		de["path"] = save_path;
+		bool allocate = !Engine::get_settings_manager()->get_bool("files/allocate");
+		torrent_handle handle;
 
-		torrent = Engine::get_torrent_manager()->add_torrent(de, info);
+		// Check if a resume file exists and it's valid
+		bool no_resume = true;
+		Glib::ustring resume_file = Glib::build_filename(get_data_dir(), str(hash) + ".resume");
+		if (Glib::file_test(resume_file, Glib::FILE_TEST_EXISTS))
+		{
+			decode(resume_file, er);
+			if (er.find_key("path") && er["path"].string() == save_path)
+			{
+				handle = add_torrent(info, save_path.c_str(), er, allocate);
+				torrent = Engine::get_torrent_manager()->add_torrent(er, info);
+				no_resume = false;
+			}
+		}
+
+		if (no_resume)
+		{
+			entry::dictionary_type de;
+			de["path"] = save_path;
+			handle = add_torrent(info, save_path.c_str(), entry(), allocate);
+			torrent = Engine::get_torrent_manager()->add_torrent(de, info);
+		}	
+
 		er = torrent->get_resume_entry(true);
 		torrent->set_handle(handle);
 	}

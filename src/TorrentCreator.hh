@@ -22,19 +22,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/window.h>
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/radiobutton.h>
-#include <gtkmm/comboboxtext.h>
+#include <gtkmm/combobox.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/button.h>
 #include <gtkmm/progressbar.h>
 #include <gtkmm/filechooserbutton.h>
 #include <glibmm/fileutils.h>
 
-#include "libtorrent/torrent_info.hpp"
+#include <libglademm.h>
 
-using namespace libtorrent;
+#include "libtorrent/torrent_info.hpp"
 
 class TorrentCreator : public Gtk::Window
 {
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
+
 	class TorrentSaveDialog : public Gtk::FileChooserDialog
 	{
 	public:
@@ -42,28 +44,38 @@ class TorrentCreator : public Gtk::Window
 		virtual ~TorrentSaveDialog();
 	};
 
+	class ModelColumns : public Gtk::TreeModelColumnRecord
+	{
+	public:
+		ModelColumns()
+			{
+				add(size);
+			}
+		Gtk::TreeModelColumn<int> size;
+	};
+	ModelColumns columns;
+
 	Gtk::Entry *entry_tracker, *entry_comment;
-	Gtk::RadioButton *radio_file, *radio_folder;
 	Gtk::FileChooserButton *button_files;
 	Gtk::CheckButton *check_seed, *check_private;
-	Gtk::ComboBoxText *combo_size;
+	Gtk::ComboBox *combo_pieces;
 	Gtk::ProgressBar *progress_hashing;
 	
-	TorrentSaveDialog *save_dialog;
-	
-	Gtk::Button* button_save;
-	
-	void add_files(torrent_info& info, const Glib::ustring& root, const Glib::ustring& child);
+	TorrentSaveDialog* save_dialog;
+
+	void add_files(libtorrent::torrent_info& info, const Glib::ustring& root, const Glib::ustring& child);
 
 	void on_button_save();
-	void on_radio_toggled();
+
+	enum ContentType { CONTENT_FILE, CONTENT_FOLDER };
+	void on_radio_toggled(ContentType type);
 
 	bool on_delete_event(GdkEventAny*);
 	
 public:
 	bool get_finished();
 	
-	TorrentCreator(Gtk::Window *parent);
+	TorrentCreator(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~TorrentCreator();
 };
 

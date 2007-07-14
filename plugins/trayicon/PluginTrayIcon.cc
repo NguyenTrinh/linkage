@@ -99,7 +99,7 @@ void TrayPlugin::on_tick()
 		}
 	}
 	
-	session_status status = Engine::get_session_manager()->status();
+	libtorrent::session_status status = Engine::get_session_manager()->status();
 
 	std::stringstream ss;
 	ss << num_active << " (" << num_queued << ") downloads, "

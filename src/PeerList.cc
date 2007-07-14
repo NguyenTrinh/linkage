@@ -77,8 +77,8 @@ PeerList::~PeerList()
 }
 
 void PeerList::format_data(Gtk::CellRenderer* cell,
-									const Gtk::TreeIter& iter,
-									const Gtk::TreeModelColumn<size_type>& column)
+	const Gtk::TreeIter& iter,
+	const Gtk::TreeModelColumn<libtorrent::size_type>& column)
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
@@ -86,8 +86,8 @@ void PeerList::format_data(Gtk::CellRenderer* cell,
 }
 
 void PeerList::format_rates(Gtk::CellRenderer* cell,
-									const Gtk::TreeIter& iter,
-									const Gtk::TreeModelColumn<float>& column)
+	const Gtk::TreeIter& iter,
+	const Gtk::TreeModelColumn<float>& column)
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
@@ -101,7 +101,7 @@ void PeerList::clear()
 
 void PeerList::update(const WeakPtr<Torrent>& torrent)
 {
-	std::vector<peer_info> peers;
+	std::vector<libtorrent::peer_info> peers;
 	if (!torrent->is_stopped())
 		torrent->get_handle().get_peer_info(peers);
 
@@ -137,7 +137,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	{
 		Gtk::TreeRow row = *iter;
 
-		peer_info peer;
+		libtorrent::peer_info peer;
 		bool keep = false;
 		for (int i = 0; i < peers.size(); i++)
 		{
@@ -205,33 +205,33 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		row[columns.progress] = progress*100;
 
 		Glib::ustring flags;
-		if (peer.flags & peer_info::connecting)
+		if (peer.flags & libtorrent::peer_info::connecting)
 			flags = "Connecting";
-		else if (peer.flags & peer_info::handshake)
+		else if (peer.flags & libtorrent::peer_info::handshake)
 			flags = "Handshake";
-		else if	(peer.flags & peer_info::queued)
+		else if	(peer.flags & libtorrent::peer_info::queued)
 			flags = "Queued";
 		else
 		{
-			if (peer.flags & peer_info::interesting)
+			if (peer.flags & libtorrent::peer_info::interesting)
 			{
 				if (!flags.empty())
 					flags += ", ";
 				flags += "Interested";
 			}
-			if (peer.flags & peer_info::choked)
+			if (peer.flags & libtorrent::peer_info::choked)
 			{
 				if (!flags.empty())
 					flags += ", ";
 				flags += "Choked";
 			}
-			if (peer.flags & peer_info::remote_interested)
+			if (peer.flags & libtorrent::peer_info::remote_interested)
 			{
 				if (!flags.empty())
 					flags += ", ";
 				flags += "Remote interested";
 			}
-			if (peer.flags & peer_info::remote_choked)
+			if (peer.flags & libtorrent::peer_info::remote_choked)
 			{
 				if (!flags.empty())
 					flags += ", ";

@@ -207,18 +207,18 @@ class UI : public Gtk::Window
 
 	void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
 	void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
-	void on_duplicate_torrent(const Glib::ustring& msg, const sha1_hash& hash);
+	void on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash);
 
 	void on_listen_failed(const Glib::ustring& msg);
-	void on_tracker_failed(const sha1_hash& hash, const Glib::ustring& msg, int code, int times);
-	void on_tracker_reply(const sha1_hash& hash, const Glib::ustring& msg, int peers);
-	void on_tracker_warning(const sha1_hash& hash, const Glib::ustring& msg);
-	void on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg);
-	void on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg);
-	void on_file_error(const sha1_hash& hash, const Glib::ustring& msg);
-	void on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg);
-	void on_hash_failed(const sha1_hash& hash, const Glib::ustring& msg, int piece);
-	void on_peer_ban(const sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
+	void on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int code, int times);
+	void on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int peers);
+	void on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_hash_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int piece);
+	void on_peer_ban(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
 
 public:
 	UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);

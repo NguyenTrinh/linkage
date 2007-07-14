@@ -17,6 +17,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "linkage/Engine.hh"
+#include "linkage/SettingsManager.hh"
+
 #include "StateFilter.hh"
 
 StateFilter::StateFilter(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
@@ -46,12 +49,12 @@ StateFilter::StateFilter(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	signal_changed().connect(sigc::mem_fun(this, &StateFilter::on_selection_changed));
 
 	show_all_children();
-	/* FIXME: Load previously selected state */
 }
 
 StateFilter::~StateFilter()
 {
-	/* FIXME: Save currently selected state */
+	int active = get_active_row_number();
+	Engine::get_settings_manager()->set("ui/active_state", active);
 }
 
 sigc::signal<void, Torrent::State> StateFilter::signal_state_filter_changed()
@@ -67,5 +70,11 @@ void StateFilter::on_selection_changed()
 		Gtk::TreeRow row = *iter;
 		m_signal_state_filter_changed.emit(row[columns.state]);
 	}
+}
+
+void StateFilter::reselect()
+{
+	int active = Engine::get_settings_manager()->get_int("ui/active_state");
+	set_active(active);
 }
 

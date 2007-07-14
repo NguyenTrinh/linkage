@@ -36,12 +36,12 @@ class NotifyPlugin : public Plugin
 
 	void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
 	void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
-	void on_duplicate_torrent(const Glib::ustring& msg, const sha1_hash& hash);
+	void on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash);
 
 	void on_listen_failed(const Glib::ustring& msg);
-	void on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg);
-	void on_file_error(const sha1_hash& hash, const Glib::ustring& msg);
-	void on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg);
+	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 
 public:
 	PluginParent get_parent() { return Plugin::PARENT_NONE; }

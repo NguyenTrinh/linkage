@@ -35,8 +35,10 @@ TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	: Gtk::Menu(cobject),
 	glade_xml(refGlade)
 {
-	/* FIXME: add pretty icons */
 	submenu_groups = Gtk::manage(new Gtk::Menu());
+	Gtk::MenuItem* item;
+	glade_xml->get_widget("torrent_menu_groups", item);
+	item->set_submenu(*submenu_groups);
 	
 	glade_xml->connect_clicked
 		("torrent_menu_open", sigc::mem_fun(&m_signal_open, &sigc::signal<void>::emit));
@@ -59,10 +61,6 @@ TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	glade_xml->connect_clicked
 		("torrent_menu_check", sigc::mem_fun(&m_signal_check, &sigc::signal<void>::emit));
 
-	on_settings();
-
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &TorrentMenu::on_settings));
-
 	show_all_children();
 }
 
@@ -70,7 +68,7 @@ TorrentMenu::~TorrentMenu()
 {
 }
 
-void TorrentMenu::on_settings()
+void TorrentMenu::on_groups_changed(const std::list<Group>& groups)
 {
 	std::list<Gtk::Widget*> children = submenu_groups->get_children();
 	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
@@ -88,13 +86,12 @@ void TorrentMenu::on_settings()
 	submenu_groups->append(*item);
 	submenu_groups->append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	
-	libtorrent::entry e;
-	Engine::get_settings_manager()->get_groups_data(e);
-	for (libtorrent::entry::dictionary_type::iterator iter = e.dict().begin();
-			iter != e.dict().end(); ++iter)
+	for (std::list<Group>::const_iterator iter = groups.begin();
+			iter != groups.end(); ++iter)
 	{
-		item = Gtk::manage(new Gtk::MenuItem((*iter).first));
-		item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), (*iter).first));
+		Group group = *iter;
+		item = Gtk::manage(new Gtk::MenuItem(group.get_name()));
+		item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), group.get_name()));
 		submenu_groups->append(*item);
 	}
 

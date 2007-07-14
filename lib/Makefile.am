@@ -17,11 +17,11 @@ liblinkage_1_la_SOURCES = Engine.cc \
                           Utils.cc
                           
 liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) \
-	$(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) $(LIBGLADE_CFLAGS) \
+	$(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) \
 	${GCONFMM_CFLAGS} -DPLUGIN_DIR="$(plugindir)"
 
 liblinkage_1_la_CFLAGS = $(CFLAGS) $(DBUSGLIB_CFLAGS)
 
 liblinkage_1_la_LDFLAGS = -export-dynamic -version-info 0:3:0 $(LDFLAGS) \
-	$(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(DBUSGLIB_LIBS) $(LIBGLADE_LIBS) ${GCONFMM_LIBS}
+	$(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(DBUSGLIB_LIBS) ${GCONFMM_LIBS}
 

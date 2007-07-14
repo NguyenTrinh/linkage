@@ -29,7 +29,7 @@ public:
 	enum EvalType { EVAL_EQUALS, EVAL_CONTAINS, EVAL_STARTS, EVAL_ENDS };
 	/* FIXME: Add more tags, like size, num_files etc.. */
 	/* FIXME: Add more tags for dynamic filters, like % completed, share ratio etc.. */
-	enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT, TAG_STATE };
+	enum TagType { TAG_TRACKER, TAG_NAME, TAG_COMMENT };
 
 	enum OperationType { OP_OR, OP_NOR, OP_AND, OP_NAND };
 

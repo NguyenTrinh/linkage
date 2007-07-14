@@ -41,54 +41,55 @@ AlertManager::signal_listen_failed()
 	return m_signal_listen_failed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int, int> 
 AlertManager::signal_tracker_failed()
 {
 	return m_signal_tracker_failed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int> 
 AlertManager::signal_tracker_reply()
 {
 	return m_signal_tracker_reply;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_tracker_warning()
 {
 	return m_signal_tracker_warning;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_tracker_announce()
 {
 	return m_signal_tracker_announce;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_torrent_finished()
 {
 	return m_signal_torrent_finished;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> 
 AlertManager::signal_file_error()
 {
 	return m_signal_file_error;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&> AlertManager::signal_fastresume_rejected()
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&>
+AlertManager::signal_fastresume_rejected()
 {
 	return m_signal_fastresume_rejected;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int> 
 AlertManager::signal_hash_failed()
 {
 	return m_signal_hash_failed;
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&> 
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, const Glib::ustring&> 
 AlertManager::signal_peer_ban()
 {
 	return m_signal_peer_ban;
@@ -97,6 +98,8 @@ AlertManager::signal_peer_ban()
 	
 void AlertManager::check_alerts()
 {
+	using namespace libtorrent;
+
 	std::auto_ptr<alert> a = Engine::get_session_manager()->pop_alert();
 
 	while (a.get())

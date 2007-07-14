@@ -25,10 +25,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 Glib::ustring suffix_value(float value)
 {
-	return suffix_value((size_type)value);
+	return suffix_value((libtorrent::size_type)value);
 }
 
-Glib::ustring suffix_value(size_type value)
+Glib::ustring suffix_value(libtorrent::size_type value)
 {
 	std::stringstream tc;
 	if (value >= 1073741824)
@@ -54,7 +54,7 @@ Glib::ustring str(unsigned int value)
 	return tc.str();
 }
 
-Glib::ustring str(size_type value)
+Glib::ustring str(libtorrent::size_type value)
 {
 	std::stringstream tc;
 	tc << value;
@@ -75,7 +75,7 @@ Glib::ustring str(float value, int precision)
 	return tc.str();
 }
 
-Glib::ustring str(const sha1_hash& hash)
+Glib::ustring str(const libtorrent::sha1_hash& hash)
 {
 	std::stringstream tc;
 	tc << hash;
@@ -83,18 +83,18 @@ Glib::ustring str(const sha1_hash& hash)
 }
 
 
-Glib::ustring get_eta(size_type size, float rate)
+Glib::ustring get_eta(libtorrent::size_type size, float rate)
 {
 	if (!rate || !size)
 		return "\u221E";
 	else if (rate < 0 || size < 0)
 		return "";
 
-	size_type seconds = (size_type)round(size/rate);
+	libtorrent::size_type seconds = (libtorrent::size_type)round(size/rate);
 	return format_time(seconds);
 }
 
-Glib::ustring format_time(size_type seconds)
+Glib::ustring format_time(libtorrent::size_type seconds)
 {
 	long long int days, hours, minutes;
 	std::lldiv_t div;
@@ -129,9 +129,9 @@ Glib::ustring format_time(size_type seconds)
 	}
 }
 
-sha1_hash info_hash(const std::string& chars)
+libtorrent::sha1_hash info_hash(const std::string& chars)
 {
-	sha1_hash hash;
+	libtorrent::sha1_hash hash;
 
 	for (int i = 0; i < hash.size && (hash.size == chars.size()); i++)
 		hash[i] = chars[i];
@@ -195,14 +195,14 @@ Glib::ustring get_data_dir()
 	return Glib::build_filename(get_config_dir(), "data");
 }
 
-bool load_entry(const Glib::ustring& file, entry& e)
+bool load_entry(const Glib::ustring& file, libtorrent::entry& e)
 {
 	bool ret = true;
 	std::ifstream in(file.c_str(), std::ios_base::binary);
 	try
 	{
 		in.unsetf(std::ios_base::skipws);
-		e = bdecode(std::istream_iterator<char>(in),
+		e = libtorrent::bdecode(std::istream_iterator<char>(in),
 			std::istream_iterator<char>());
 	}
 	catch (std::exception& err)
@@ -214,30 +214,11 @@ bool load_entry(const Glib::ustring& file, entry& e)
 	return ret;
 }
 
-/*void save_entry(const sha1_hash& hash, const entry& e, const Glib::ustring& suffix)
-{
-	save_entry(Glib::build_filename(get_data_dir(), str(hash)) + suffix, e);
-}*/
-
-void save_entry(const Glib::ustring& file, const entry& e)
+void save_entry(const Glib::ustring& file, const libtorrent::entry& e)
 {
 	std::ofstream out(file.c_str(), std::ios_base::binary);
 	out.unsetf(std::ios_base::skipws);
-	bencode(std::ostream_iterator<char>(out), e);
+	libtorrent::bencode(std::ostream_iterator<char>(out), e);
 	out.close();
 }
 
-// loads a glade file
-Glib::RefPtr<Gnome::Glade::Xml> load_glade_file(const std::string &file)
-{
-	Glib::RefPtr<Gnome::Glade::Xml> xml;
-	try
-	{
-		xml = Gnome::Glade::Xml::create(file);
-	}
-	catch(const Gnome::Glade::XmlError& ex)
-	{
-		std::cerr << ex.what() << std::endl;
-	}
-	return xml;
-}
