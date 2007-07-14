@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 UPnPPlugin::UPnPPlugin()
 {
 	GError* error = NULL;
-	Glib::ustring iface = Engine::get_settings_manager()->get_string("Network", "Interface");
+	Glib::ustring iface = Engine::get_settings_manager()->get_string("network/interface");
 	Glib::ustring ip = get_ip(iface);
 
 	m_context = gupnp_context_new(NULL, ip.empty() ? NULL : ip.c_str(), 0, &error);
@@ -94,7 +94,7 @@ void UPnPPlugin::on_subscription_lost(GUPnPServiceProxy *proxy, gpointer error, 
 void UPnPPlugin::on_wan_service_found(GUPnPServiceProxy* proxy)
 {
 	unsigned int port = Engine::get_session_manager()->listen_port();
-	Glib::ustring iface = Engine::get_settings_manager()->get_string("Network", "Interface");
+	Glib::ustring iface = Engine::get_settings_manager()->get_string("network/interface");
 	Glib::ustring ip = get_ip(iface);
 	if (ip.empty())
 		ip = gupnp_context_get_host_ip(m_context);

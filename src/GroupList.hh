@@ -19,40 +19,54 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef GROUP_LIST_HH
 #define GROUP_LIST_HH
 
-#include <map>
-
-#include <gtkmm/box.h>
-#include <gtkmm/radiobutton.h>
-
-#include "linkage/WeakPtr.hh"
-#include "linkage/Torrent.hh"
+#include <gtkmm/treeview.h>
+#include <gtkmm/liststore.h>
+#include <libglademm/xml.h>
 
 #include "Group.hh"
+#include "linkage/Torrent.hh"
 
-class GroupList : public Gtk::VBox
+class GroupList : public Gtk::TreeView
 {
-	typedef std::map<Group*, Gtk::RadioButton*> GroupMap;
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
-	Gtk::RadioButton* m_all;
+	class ModelColumns : public Gtk::TreeModelColumnRecord
+	{
+	public:
+		ModelColumns()
+		{
+			add(name);
+			add(num);
+			add(group);
+		}
+		Gtk::TreeModelColumn<Glib::ustring> name;
+		Gtk::TreeModelColumn<unsigned int> num;
+		Gtk::TreeModelColumn<Group> group;
+	};
+	ModelColumns columns;
+	Glib::RefPtr<Gtk::ListStore> model;
 
-	GroupMap m_map;
-	
 	sigc::signal<void, const Group&> m_signal_filter_set;
-	sigc::signal<void> m_signal_filter_unset;
 
-	void on_all_toggled();
-	void on_group_toggled(Group* group);
+	Torrent::State m_cur_state;
 
-	void on_settings();
+	void format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
+
+	void on_selection_changed();
+
+	void on_state_filter_changed(Torrent::State state);
+	void on_groups_changed(const std::list<Group>& groups);
+
+	friend class UI;
 
 public:
 	sigc::signal<void, const Group&> signal_filter_set();
-	sigc::signal<void> signal_filter_unset();
 
 	void update();
 
-	GroupList();
+	GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~GroupList();
 };
 
 #endif /* GROUP_LIST_HH */
+

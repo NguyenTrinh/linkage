@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
+#include <libglademm.h>
 
 #include "libtorrent/peer_id.hpp"
 
@@ -29,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class PeerList : public Gtk::TreeView
 {
-	typedef std::map<peer_id, peer_info> PeerMap;
+	typedef std::map<libtorrent::peer_id, libtorrent::peer_info> PeerMap;
 
 	class ModelColumns : public Gtk::TreeModelColumnRecord
 	{
@@ -50,15 +51,15 @@ class PeerList : public Gtk::TreeView
 		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > flag;
 		Gtk::TreeModelColumn<Glib::ustring> address;
-		Gtk::TreeModelColumn<size_type> down;
-		Gtk::TreeModelColumn<size_type> up;
+		Gtk::TreeModelColumn<libtorrent::size_type> down;
+		Gtk::TreeModelColumn<libtorrent::size_type> up;
 		Gtk::TreeModelColumn<float> down_rate;
 		Gtk::TreeModelColumn<float> up_rate;
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> client;
 		Gtk::TreeModelColumn<Glib::ustring> flags;
 		Gtk::TreeModelColumn<bool> has_flag;
-		Gtk::TreeModelColumn<peer_id> id;
+		Gtk::TreeModelColumn<libtorrent::peer_id> id;
 	};
 
 	ModelColumns columns;
@@ -68,16 +69,16 @@ class PeerList : public Gtk::TreeView
 	State m_state;
 
 	void format_data(Gtk::CellRenderer* cell,
-									const Gtk::TreeIter& iter,
-									const Gtk::TreeModelColumn<size_type>& column);
+		const Gtk::TreeIter& iter,
+		const Gtk::TreeModelColumn<libtorrent::size_type>& column);
 	void format_rates(Gtk::CellRenderer* cell,
-									const Gtk::TreeIter& iter,
-									const Gtk::TreeModelColumn<float>& column);
-	void set_peer_details(Gtk::TreeRow& row, const peer_info& peer);
+		const Gtk::TreeIter& iter,
+		const Gtk::TreeModelColumn<float>& column);
+	void set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& peer);
 public:
 	void update(const WeakPtr<Torrent>& torrent);
 
-	PeerList();
+	PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~PeerList();
 };
 

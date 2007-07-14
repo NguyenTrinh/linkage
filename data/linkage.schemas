@@ -1,0 +1,640 @@
+<gconfschemafile>
+  <schemalist>
+  
+  	<!-- network -->
+  
+  	<schema>
+      <key>/schemas/apps/linkage/network/min_port</key>
+      <applyto>/apps/linkage/network/min_port</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>6881</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+    
+   	<schema>
+      <key>/schemas/apps/linkage/network/max_port</key>
+      <applyto>/apps/linkage/network/max_port</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>6889</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/max_up_rate</key>
+      <applyto>/apps/linkage/network/max_up_rate</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/max_down_rate</key>
+      <applyto>/apps/linkage/network/max_down_rate</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/max_uploads</key>
+      <applyto>/apps/linkage/network/max_uploads</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/max_connections</key>
+      <applyto>/apps/linkage/network/max_connections</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>1000</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/max_active</key>
+      <applyto>/apps/linkage/network/max_active</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>3</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/tracker_timeout</key>
+      <applyto>/apps/linkage/network/tracker_timeout</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>10</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/interface</key>
+      <applyto>/apps/linkage/network/interface</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/use_dht</key>
+      <applyto>/apps/linkage/network/use_dht</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/dht_fallback</key>
+      <applyto>/apps/linkage/network/dht_fallback</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/use_pex</key>
+      <applyto>/apps/linkage/network/use_pex</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/seed_ratio</key>
+      <applyto>/apps/linkage/network/seed_ratio</applyto>
+      <owner>linkage</owner>
+      <type>float</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/multiple_connections_per_ip</key>
+      <applyto>/apps/linkage/network/multiple_connections_per_ip</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/max_torrent_uploads</key>
+      <applyto>/apps/linkage/network/max_torrent_uploads</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/max_torrent_connections</key>
+      <applyto>/apps/linkage/network/max_torrent_connections</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+
+		<!-- network/proxy -->
+
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/proxy/ip</key>
+      <applyto>/apps/linkage/network/proxy/ip</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+    
+    <schema>
+      <key>/schemas/apps/linkage/network/proxy/port</key>
+      <applyto>/apps/linkage/network/proxy/port</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>8080</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/proxy/login</key>
+      <applyto>/apps/linkage/network/proxy/login</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/network/proxy/pass</key>
+      <applyto>/apps/linkage/network/proxy/pass</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+
+		<!-- ui -->
+
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/interval</key>
+      <applyto>/apps/linkage/ui/interval</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>1</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/win_height</key>
+      <applyto>/apps/linkage/ui/win_height</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>-1</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/win_width</key>
+      <applyto>/apps/linkage/ui/win_width</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>-1</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/groups_width</key>
+      <applyto>/apps/linkage/ui/groups_width</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>128</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/expanded</key>
+      <applyto>/apps/linkage/ui/expanded</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/auto_expand</key>
+      <applyto>/apps/linkage/ui/auto_expand</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/page</key>
+      <applyto>/apps/linkage/ui/page</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+		<schema>
+      <key>/schemas/apps/linkage/ui/active_state</key>
+      <applyto>/apps/linkage/ui/active_state</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+		<schema>
+      <key>/schemas/apps/linkage/ui/active_group</key>
+      <applyto>/apps/linkage/ui/active_group</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+		<schema>
+      <key>/schemas/apps/linkage/ui/plugins</key>
+      <applyto>/apps/linkage/ui/plugins</applyto>
+      <owner>linkage</owner>
+      <type>list</type>
+      <list_type>string</list_type>
+      <default>[TrayPlugin,NotifyPlugin,UPnPPlugin]</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+    
+    
+    <!-- ui/torrent_view -->
+    
+        
+		<schema>
+      <key>/schemas/apps/linkage/ui/torrent_view/selected</key>
+      <applyto>/apps/linkage/ui/torrent_view/selected</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/torrent_view/sort_column</key>
+      <applyto>/apps/linkage/ui/torrent_view/sort_column</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/torrent_view/sort_order</key>
+      <applyto>/apps/linkage/ui/torrent_view/sort_order</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>0</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/torrent_view/trunkate_names</key>
+      <applyto>/apps/linkage/ui/torrent_view/trunkate_names</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/torrent_view/max_name_width</key>
+      <applyto>/apps/linkage/ui/torrent_view/max_name_width</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>40</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+
+		<!-- ui/colors -->
+
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/downloading</key>
+      <applyto>/apps/linkage/ui/colors/downloading</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#000000</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/finished</key>
+      <applyto>/apps/linkage/ui/colors/finished</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#000000</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/seeding</key>
+      <applyto>/apps/linkage/ui/colors/seeding</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#4F96FF</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/announcing</key>
+      <applyto>/apps/linkage/ui/colors/announcing</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#000000</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/stopped</key>
+      <applyto>/apps/linkage/ui/colors/stopped</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#999999</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/queued</key>
+      <applyto>/apps/linkage/ui/colors/queued</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#5C5C5C</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/check_queue</key>
+      <applyto>/apps/linkage/ui/colors/check_queue</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#5C5C5C</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/checking</key>
+      <applyto>/apps/linkage/ui/colors/checking</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#FF7F50</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/allocating</key>
+      <applyto>/apps/linkage/ui/colors/allocating</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#000000</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/ui/colors/error</key>
+      <applyto>/apps/linkage/ui/colors/error</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default>#C22C22</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+
+		<!-- files -->
+
+
+  	<schema>
+      <key>/schemas/apps/linkage/files/use_default_path</key>
+      <applyto>/apps/linkage/files/use_default_path</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/files/default_path</key>
+      <applyto>/apps/linkage/files/default_path</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/files/move_finished</key>
+      <applyto>/apps/linkage/files/move_finished</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/files/finished_path</key>
+      <applyto>/apps/linkage/files/finished_path</applyto>
+      <owner>linkage</owner>
+      <type>string</type>
+      <default></default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/files/allocate</key>
+      <applyto>/apps/linkage/files/allocate</applyto>
+      <owner>linkage</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  	<schema>
+      <key>/schemas/apps/linkage/files/max_open</key>
+      <applyto>/apps/linkage/files/max_open</applyto>
+      <owner>linkage</owner>
+      <type>int</type>
+      <default>20</default>
+      <locale name="C">
+        <short></short>
+        <long></long>
+      </locale>
+    </schema>
+
+  </schemalist>
+</gconfschemafile>

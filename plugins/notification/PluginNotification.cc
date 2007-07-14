@@ -121,7 +121,7 @@ void NotifyPlugin::on_missing_file(const Glib::ustring& msg, const Glib::ustring
 	notify("Missing file", msg, NOTIFY_ERROR);
 }
 
-void NotifyPlugin::on_duplicate_torrent(const Glib::ustring& msg, const sha1_hash& hash)
+void NotifyPlugin::on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash)
 {
 	notify("Duplicate torrent", msg, NOTIFY_WARNING);
 }
@@ -131,18 +131,18 @@ void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
 	notify("Listen failed", msg, NOTIFY_ERROR);
 }
 
-void NotifyPlugin::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
+void NotifyPlugin::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	notify("Torrent finished", torrent->get_name() + " is complete", NOTIFY_INFO);
 }
 
-void NotifyPlugin::on_file_error(const sha1_hash& hash, const Glib::ustring& msg)
+void NotifyPlugin::on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
 	notify("File error", msg, NOTIFY_ERROR);
 }
 
-void NotifyPlugin::on_fastresume_rejected(const sha1_hash& hash, const Glib::ustring& msg)
+void NotifyPlugin::on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
 	notify("Fastresume failed", msg, NOTIFY_WARNING);
 }

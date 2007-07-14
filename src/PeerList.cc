@@ -26,7 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "PeerList.hh"
 #include "linkage/Utils.hh"
 
-PeerList::PeerList()
+PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::TreeView(cobject)
 {
 	model = Gtk::ListStore::create(columns);
 
@@ -77,8 +78,8 @@ PeerList::~PeerList()
 }
 
 void PeerList::format_data(Gtk::CellRenderer* cell,
-									const Gtk::TreeIter& iter,
-									const Gtk::TreeModelColumn<size_type>& column)
+	const Gtk::TreeIter& iter,
+	const Gtk::TreeModelColumn<libtorrent::size_type>& column)
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
@@ -86,8 +87,8 @@ void PeerList::format_data(Gtk::CellRenderer* cell,
 }
 
 void PeerList::format_rates(Gtk::CellRenderer* cell,
-									const Gtk::TreeIter& iter,
-									const Gtk::TreeModelColumn<float>& column)
+	const Gtk::TreeIter& iter,
+	const Gtk::TreeModelColumn<float>& column)
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
@@ -102,7 +103,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	else
 		m_state = STATE_BUSY;
 
-	std::vector<peer_info> peers;
+	std::vector<libtorrent::peer_info> peers;
 	if (!torrent->is_stopped())
 		torrent->get_handle().get_peer_info(peers);
 
@@ -121,7 +122,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end();)
 	{
-		peer_info peer;
+		libtorrent::peer_info peer;
 		Gtk::TreeRow row = *iter;
 
 		PeerMap::iterator peer_iter = peer_map.find(row[columns.id]);
@@ -155,7 +156,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	m_state = STATE_IDLE;
 }
 
-void PeerList::set_peer_details(Gtk::TreeRow& row, const peer_info& peer)
+void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& peer)
 {
 	row[columns.id] = peer.pid;
 
@@ -202,40 +203,40 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const peer_info& peer)
 	else
 		row[columns.progress] = 100;
 
-	Glib::ustring client = identify_client(peer.pid);
+	Glib::ustring client = libtorrent::identify_client(peer.pid);
 	/* Cosmetic fix, replace Micro with µ if found */
 	if (client.find("Micro", 0) == 0)
 		client.replace(0, 5, "\u00b5");
 	row[columns.client] = client;
 
 	std::stringstream flags;
-	if (peer.flags & peer_info::connecting)
+	if (peer.flags & libtorrent::peer_info::connecting)
 		flags << "Connecting";
-	else if (peer.flags & peer_info::handshake)
+	else if (peer.flags & libtorrent::peer_info::handshake)
 		flags << "Handshake";
-	else if	(peer.flags & peer_info::queued)
+	else if	(peer.flags & libtorrent::peer_info::queued)
 		flags << "Queued";
 	else
 	{
-		if (peer.flags & peer_info::interesting)
+		if (peer.flags & libtorrent::peer_info::interesting)
 		{
 			if (flags.tellp())
 				flags << ", ";
 			flags << "Interested";
 		}
-		if (peer.flags & peer_info::choked)
+		if (peer.flags & libtorrent::peer_info::choked)
 		{
 			if (flags.tellp())
 				flags << ", ";
 			flags << "Choked";
 		}
-		if (peer.flags & peer_info::remote_interested)
+		if (peer.flags & libtorrent::peer_info::remote_interested)
 		{
 			if (flags.tellp())
 				flags << ", ";
 			flags << "Remote interested";
 		}
-		if (peer.flags & peer_info::remote_choked)
+		if (peer.flags & libtorrent::peer_info::remote_choked)
 		{
 			if (flags.tellp())
 				flags << ", ";

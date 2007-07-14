@@ -36,9 +36,14 @@ Group::~Group()
 {
 }
 
+bool Group::is_valid() const
+{
+	return !m_name.empty();
+}
+
 bool Group::eval(const WeakPtr<Torrent>& torrent) const
 {
-	torrent_info info = torrent->get_info();
+	libtorrent::torrent_info info = torrent->get_info();
 	
 	if (m_name.empty())
 		return false;
@@ -48,8 +53,10 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 
 	bool ret = false;
 	for (std::list<Filter>::const_iterator iter = m_filters.begin();
-				iter != m_filters.end() && !ret; ++iter)
+		iter != m_filters.end(); ++iter)
 	{
+		bool tmp = false;
+
 		Filter f = *iter;
 		switch (f.eval)
 		{
@@ -57,20 +64,17 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
+						for (unsigned int i = 0; i < info.trackers().size(); i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							ret = (f.filter == tracker);
+							tmp = (f.filter == tracker);
 						}
 						break;
 					case TAG_NAME:
-						ret = (f.filter == info.name());
+						tmp = (f.filter == info.name());
 						break;
 					case TAG_COMMENT:
-						ret = (f.filter == info.comment());
-						break;
-					case TAG_STATE:
-						ret = (f.filter == torrent->get_state_string());
+						tmp = (f.filter == info.comment());
 						break;
 				}
 				break;
@@ -78,20 +82,17 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
+						for (unsigned int i = 0; i < info.trackers().size(); i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							ret = (tracker.find(f.filter) != Glib::ustring::npos);
+							tmp = (tracker.find(f.filter) != Glib::ustring::npos);
 						}
 						break;
 					case TAG_NAME:
-						ret = (info.name().find(f.filter) != Glib::ustring::npos);
+						tmp = (info.name().find(f.filter) != Glib::ustring::npos);
 						break;
 					case TAG_COMMENT:
-						ret = (info.comment().find(f.filter) != Glib::ustring::npos);
-						break;
-					case TAG_STATE:
-						ret = (torrent->get_state_string().find(f.filter) != Glib::ustring::npos);
+						tmp = (info.comment().find(f.filter) != Glib::ustring::npos);
 						break;
 				}
 				break;
@@ -99,20 +100,17 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
+						for (unsigned int i = 0; i < info.trackers().size(); i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							ret = Glib::str_has_prefix(tracker, f.filter);
+							tmp = Glib::str_has_prefix(tracker, f.filter);
 						}
 						break;
 					case TAG_NAME:
-						ret = Glib::str_has_prefix(info.name(), f.filter);
+						tmp = Glib::str_has_prefix(info.name(), f.filter);
 						break;
 					case TAG_COMMENT:
-						ret = Glib::str_has_prefix(info.comment(), f.filter);
-						break;
-					case TAG_STATE:
-						ret = Glib::str_has_prefix(torrent->get_state_string(), f.filter);
+						tmp = Glib::str_has_prefix(info.comment(), f.filter);
 						break;
 				}
 				break;
@@ -120,22 +118,35 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size() && !ret; i++)
+						for (unsigned int i = 0; i < info.trackers().size(); i++)
 						{
 							Glib::ustring tracker = info.trackers()[i].url;
-							ret = Glib::str_has_suffix(tracker, f.filter);
+							tmp = Glib::str_has_suffix(tracker, f.filter);
 						}
 						break;
 					case TAG_NAME:
-						ret = Glib::str_has_suffix(info.name(), f.filter);
+						tmp = Glib::str_has_suffix(info.name(), f.filter);
 						break;
 					case TAG_COMMENT:
-						ret = Glib::str_has_suffix(info.comment(), f.filter);
-						break;
-					case TAG_STATE:
-						ret = Glib::str_has_suffix(torrent->get_state_string(), f.filter);
+						tmp = Glib::str_has_suffix(info.comment(), f.filter);
 						break;
 				}
+				break;
+		}
+
+		switch (f.operation)
+		{
+			case Group::OP_OR:
+				ret = ret | tmp;
+				break;
+			case Group::OP_NOR:
+				ret = ret | ~tmp;
+				break;
+			case Group::OP_AND:
+				ret = ret & tmp;
+				break;
+			case Group::OP_NAND:
+				ret = ret & ~tmp;
 				break;
 		}
 	}
@@ -151,3 +162,4 @@ const std::list<Group::Filter>& Group::get_filters()
 {
 	return m_filters;
 }
+

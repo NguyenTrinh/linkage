@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2006	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -15,70 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-#include <iostream>
+
+#include <fstream>
+
 #include <glibmm/iochannel.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
 
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
-
-Glib::ustring SettingsManager::defaults = 
-"[Network]\n"
-"MinPort=6881\n"
-"MaxPort=6889\n"
-"MaxUpRate=0\n"
-"MaxDownRate=0\n"
-"MaxUploads=0\n"
-"MaxConnections=0\n"
-"MaxActive=3\n"
-"TrackerTimeout=10\n"
-"ProxyIp=\n"
-"ProxyPort=8080\n"
-"ProxyLogin=\n"
-"ProxyPass=\n"
-"Interface=\n"
-"UseDHT=1\n"
-"DHTFallback=1\n"
-"UsePEX=1\n"
-"SeedRatio=0\n"
-"MultipleConnectionsPerIP=0\n"
-"MaxTorrentUploads=0\n"
-"MaxTorrentConnections=0\n"
-"[UI]\n"
-"Interval=1\n"
-"WinHeight=-1\n"
-"WinWidth=-1\n"
-"GroupsWidth=128\n"
-"Expanded=0\n"
-"AutoExpand=0\n"
-"Page=0\n"
-"Selected=\n"
-"SortColumn=0\n"
-"SortOrder=0\n"
-"TrunkateNames=0\n"
-"MaxNameWidth=40\n"
-"Plugins=TrayPlugin;NotifyPlugin;UPnPPlugin;\n"
-"ColorDownloading=#000000\n"
-"ColorFinished=#000000\n"
-"ColorSeeding=#4F96FF\n"
-"ColorAnnouncing=#000000\n"
-"ColorStopped=#999999\n"
-"ColorQueued=#5C5C5C\n"
-"ColorCheckQueue=#5C5C5C\n"
-"ColorChecking=#FF7F50\n"
-"ColorAllocating=#000000\n"
-"ColorError=#C22C22\n"
-"[Files]\n"
-"UseDefaultPath=0\n"
-"DefaultPath=\n"
-"MoveFinished=0\n"
-"FinishedPath=\n"
-"Allocate=1\n"
-"MaxOpen=200\n"
-"[Groups]\n"
-"Downloads=;0;0\n"
-"Seeds=Seeding;0;3;\n";
 
 Glib::RefPtr<SettingsManager> SettingsManager::create()
 {
@@ -87,183 +33,98 @@ Glib::RefPtr<SettingsManager> SettingsManager::create()
 
 SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(this)
 {
-	Glib::ustring file = Glib::build_filename(get_config_dir(), "config");
-
 	/* Create data dir if it doesn't exists */
 	if(g_mkdir_with_parents(get_data_dir().c_str(), 0755) == -1)
 		g_warning(("Could not create directory: " + get_data_dir()).c_str());
-
-	/* Dump default config if file doens't exists */
-	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-	{
-		try
-		{
-			Glib::RefPtr<Glib::IOChannel> out = Glib::IOChannel::create_from_file(file, "w");
-			out->write(defaults);
-			out->close();
-		}
-		catch(Glib::Error& e)
-		{
-			g_warning(("Could not save keyfile: " + e.what()).c_str());
-		}
-	}
-
-	keyfile = new Glib::KeyFile();
-	if (!keyfile->load_from_file(file))
-		g_warning("Could not read keyfile.");
 	
-	fallback = new Glib::KeyFile();
-	fallback->load_from_data(defaults);
+	Gnome::Conf::init();
+	gconf = Gnome::Conf::Client::get_default_client();
+	
+	/// TODO check gconf for the schema to make sure we
+	/// have some defaults
 }
 
-SettingsManager::~SettingsManager()
-{
-	Glib::ustring file = Glib::build_filename(get_config_dir(), "config");
-	try
-	{
-		Glib::RefPtr<Glib::IOChannel> out = Glib::IOChannel::create_from_file(file, "w");
-		out->write(keyfile->to_data());
-		out->close();
-	}
-	catch(Glib::Error& e)
-	{
-		g_warning(("Could not save keyfile: " + e.what()).c_str());
-	}
-	delete keyfile;
-}
+SettingsManager::~SettingsManager() {}
 
 sigc::signal<void> SettingsManager::signal_update_settings()
 {
 	return m_signal_update_settings;
 }
 
-Glib::ustring SettingsManager::get_string(const Glib::ustring& group, const Glib::ustring& key) const
+Glib::ustring SettingsManager::get_string(const Glib::ustring& path) const
 {
-	try
-	{
-		return keyfile->get_string(group, key);
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->get_string(group, key);
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	return gconf->get_string(prefix + path);
 }
 
-int SettingsManager::get_int(const Glib::ustring& group, const Glib::ustring& key) const
+int SettingsManager::get_int(const Glib::ustring& path) const
 {
-	try
-	{
-		return keyfile->get_integer(group, key);
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->get_integer(group, key);
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	return gconf->get_int(prefix + path);
 }
 
-bool SettingsManager::get_bool(const Glib::ustring& group, const Glib::ustring& key) const
+double SettingsManager::get_float(const Glib::ustring& path) const
 {
-	try
-	{
-		return keyfile->get_boolean(group, key);
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->get_boolean(group, key);
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	return gconf->get_float(prefix + path);
 }
 
-UStringArray SettingsManager::get_string_list(const Glib::ustring& group, const Glib::ustring& key) const
+bool SettingsManager::get_bool(const Glib::ustring& path) const
 {
-	try
-	{
-		return keyfile->get_string_list(group, key);
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->get_string_list(group, key);
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	return gconf->get_bool(prefix + path);
 }
 
-IntArray SettingsManager::get_int_list(const Glib::ustring& group, const Glib::ustring& key) const
+UStringArray SettingsManager::get_string_list(const Glib::ustring& path) const
 {
-	try
-	{
-		return keyfile->get_integer_list(group, key);
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->get_integer_list(group, key);
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	return gconf->get_string_list(prefix + path);
 }
 
-UStringArray SettingsManager::get_groups() const
+IntArray SettingsManager::get_int_list(const Glib::ustring& path) const
 {
-	try
-	{
-		return keyfile->get_groups();
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->get_groups();
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	return gconf->get_int_list(prefix + path);
 }
 
-UStringArray SettingsManager::get_keys(const Glib::ustring& group) const
+void SettingsManager::set(const Glib::ustring& path, const Glib::ustring& value)
 {
-	try
-	{
-		return keyfile->get_keys(group);
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->get_keys(group);
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	gconf->set(prefix + path, value);
 }
 
-bool SettingsManager::has_group(const Glib::ustring& group) const
+void SettingsManager::set(const Glib::ustring& path, int value)
 {
-	try
-	{
-		return keyfile->has_group(group);
-	}
-	catch(Glib::Error& e)
-	{
-		return fallback->has_group(group);
-	}
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	gconf->set(prefix + path, value);
 }
 
-void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, const Glib::ustring& value)
+void SettingsManager::set(const Glib::ustring& path, double value)
 {
-	keyfile->set_string(group, key, value);
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	gconf->set(prefix + path, value);
 }
 
-void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, int value)
+void SettingsManager::set(const Glib::ustring& path, bool value)
 {
-	keyfile->set_integer(group, key, value);
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	gconf->set(prefix + path, value);
 }
 
-void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, bool value)
+void SettingsManager::set(const Glib::ustring& path, const Glib::SListHandle<Glib::ustring> &values)
 {
-	keyfile->set_boolean(group, key, value);
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	gconf->set_string_list(prefix + path, values);
 }
 
-void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, UStringArray values)
+void SettingsManager::set(const Glib::ustring& path, const Gnome::Conf::Client::SListHandleInts &values)
 {
-	keyfile->set_string_list(group, key, values);
-}
-
-void SettingsManager::set(const Glib::ustring& group, const Glib::ustring& key, IntArray values)
-{
-	keyfile->set_integer_list(group, key, values);
-}
-
-void SettingsManager::remove_group(const Glib::ustring& group)
-{
-	keyfile->remove_group(group);
+	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
+	gconf->set_int_list(prefix + path, values);
 }
 
 void SettingsManager::update()
 {
 	m_signal_update_settings.emit();
 }
+
