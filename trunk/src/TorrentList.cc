@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2006	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,8 +28,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 
-TorrentList::TorrentList()
+TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::TreeView(cobject),
+	glade_xml(refGlade)
 {
+	m_cur_state = Torrent::NONE;
+
 	model = Gtk::ListStore::create(columns);
 	filter = Gtk::TreeModelFilter::create(model);
 	filter->set_visible_func(sigc::mem_fun(this, &TorrentList::on_filter));
@@ -63,8 +68,8 @@ TorrentList::TorrentList()
 
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	Gtk::SortType sort_order = Gtk::SortType(sm->get_int("UI", "SortOrder"));
-	model->set_sort_column_id(sm->get_int("UI", "SortColumn"), sort_order);
+	Gtk::SortType sort_order = Gtk::SortType(sm->get_int("ui/torrent_view/sort_order"));
+	model->set_sort_column_id(sm->get_int("ui/torrent_view/sort_column"), sort_order);
 
 	Glib::RefPtr<TorrentManager> tm = Engine::get_torrent_manager();
 	TorrentManager::TorrentList torrents = tm->get_torrents();
@@ -86,8 +91,8 @@ TorrentList::~TorrentList()
 	Gtk::SortType order;
 	model->get_sort_column_id(column, order);
 
-	sm->set("UI", "SortOrder", int(order));
-	sm->set("UI", "SortColumn", column);
+	sm->set("ui/torrent_view/sort_order", int(order));
+	sm->set("ui/torrent_view/sort_column", column);
 
 	PathList path_list = get_selection()->get_selected_rows();
 	if (path_list.size() == 1)
@@ -97,7 +102,7 @@ TorrentList::~TorrentList()
 		if (iter)
 		{
 			Gtk::TreeRow row = *iter;
-			sm->set("UI", "Selected", str(row[columns.hash]));
+			sm->set("ui/torrent_view/selected", str(row[columns.hash]));
 		}
 	}
 }
@@ -110,9 +115,12 @@ Glib::SignalProxy0<void> TorrentList::signal_changed()
 bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 {
 	Gtk::TreeRow row = *iter;
-	sha1_hash hash = row[columns.hash];
+	libtorrent::sha1_hash hash = row[columns.hash];
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
+		return false;
+
+	if (m_cur_state && m_cur_state != torrent->get_state())
 		return false;
 
 	return (m_active_group) ? m_active_group.eval(torrent) : true;
@@ -125,25 +133,15 @@ void TorrentList::on_filter_set(const Group& group)
 	filter->refilter();
 }
 
-void TorrentList::on_filter_unset()
+void TorrentList::on_state_filter_changed(Torrent::State state)
 {
-	m_active_group = Group();
+	m_cur_state = state;
 	filter->refilter();
 }
 
-void TorrentList::set_filter_set_signal(sigc::signal<void, const Group&> signal)
+void TorrentList::on_added(const libtorrent::sha1_hash& hash, const Glib::ustring& name, unsigned int position)
 {
-	signal.connect(sigc::mem_fun(this, &TorrentList::on_filter_set));
-}
-
-void TorrentList::set_filter_unset_signal(sigc::signal<void> signal)
-{
-	signal.connect(sigc::mem_fun(this, &TorrentList::on_filter_unset));
-}
-
-void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position)
-{
-	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("UI", "Selected");
+	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("ui/torrent_view/selected");
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
 	Gtk::TreeIter iter = model->append();
@@ -156,13 +154,13 @@ void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, uns
 	update(torrent);
 }
 
-void TorrentList::on_removed(const sha1_hash& hash)
+void TorrentList::on_removed(const libtorrent::sha1_hash& hash)
 {
 	Gtk::TreeIter iter = get_iter(hash);
 	model->erase(iter);
 }
 
-Gtk::TreeIter TorrentList::get_iter(const sha1_hash& hash)
+Gtk::TreeIter TorrentList::get_iter(const libtorrent::sha1_hash& hash)
 {
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
@@ -173,7 +171,7 @@ Gtk::TreeIter TorrentList::get_iter(const sha1_hash& hash)
 	}
 }
 
-bool TorrentList::is_selected(const sha1_hash& hash)
+bool TorrentList::is_selected(const libtorrent::sha1_hash& hash)
 {
 	PathList paths = get_selection()->get_selected_rows();
 	for (PathList::iterator piter = paths.begin(); piter != paths.end(); ++piter)
@@ -255,47 +253,47 @@ void TorrentList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter
 	switch (state)
 	{
 		case Torrent::CHECK_QUEUE:
-			color = sm->get_string("UI", "ColorCheckQueue");
+			color = sm->get_string("ui/colors/check_queue");
 			break;
 		case Torrent::CHECKING:
-			color = sm->get_string("UI", "ColorChecking");
+			color = sm->get_string("ui/colors/checking");
 			break;
 		case Torrent::ANNOUNCING:
-			color = sm->get_string("UI", "ColorAnnouncing");
+			color = sm->get_string("ui/colors/announcing");
 			break;
 		case Torrent::DOWNLOADING:
-			color = sm->get_string("UI", "ColorDownloading");
+			color = sm->get_string("ui/colors/downloading");
 			break;
 		case Torrent::FINISHED:
-			color = sm->get_string("UI", "ColorFinished");
+			color = sm->get_string("ui/colors/finished");
 			break;
 		case Torrent::SEEDING:
-			color = sm->get_string("UI", "ColorSeeding");
+			color = sm->get_string("ui/colors/seeding");
 			break;
 		case Torrent::ALLOCATING:
-			color = sm->get_string("UI", "ColorAllocating");
+			color = sm->get_string("ui/colors/allocating");
 			break;
 		case Torrent::STOPPED:
-			color = sm->get_string("UI", "ColorStopped");
+			color = sm->get_string("ui/colors/stopped");
 			break;
 		case Torrent::QUEUED:
-			color = sm->get_string("UI", "ColorQueued");
+			color = sm->get_string("ui/colors/queued");
 			break;
 		case Torrent::ERROR:
-			color = sm->get_string("UI", "ColorError");
+			color = sm->get_string("ui/colors/error");
 			break;
 	}
 	std::stringstream ss;
 	Glib::ustring name = torrent->get_name();
-	int name_max = sm->get_int("UI", "MaxNameWidth");
-	if (sm->get_bool("UI", "TrunkateNames") && name.size() > name_max)
+	int name_max = sm->get_int("ui/torrent_view/max_name_width");
+	if (sm->get_bool("ui/torrent_view/trunkate_names") && name.size() > name_max)
 		name = name.substr(0, name_max) + "...";
 	name = Glib::Markup::escape_text(name);
 
 	ss << "<span foreground='" << color << "'><b>" << name.c_str() << "</b> ("
 			<< suffix_value(torrent->get_info().total_size()) << ")</span>\n";
 
-	torrent_status status = torrent->get_status();
+	libtorrent::torrent_status status = torrent->get_status();
 	if (state == Torrent::DOWNLOADING || state == Torrent::SEEDING || state == Torrent::FINISHED)
 	{
 		ss << status.num_seeds;
@@ -371,8 +369,8 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	row[columns.position] = torrent->get_position();
 	row[columns.state] = torrent->get_state_string();
 
-	size_type up = torrent->get_total_uploaded();
-	size_type down = torrent->get_total_downloaded();
+	libtorrent::size_type up = torrent->get_total_uploaded();
+	libtorrent::size_type down = torrent->get_total_downloaded();
 
 	row[columns.down] = down;
 	row[columns.up] = up;
@@ -394,11 +392,11 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		}
 	}
 
-	torrent_status status = torrent->get_status();
+	libtorrent::torrent_status status = torrent->get_status();
 	Torrent::State state = torrent->get_state();
 	if (state == Torrent::SEEDING || (state == Torrent::STOPPED && torrent->get_completed()))
 	{
-		size_type size = down - up;
+		libtorrent::size_type size = down - up;
 		if (down != 0)
 		{
 			float ratio = (1.0f*up)/(1.0f*down);

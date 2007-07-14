@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2006	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -24,111 +25,74 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/button.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrenderertoggle.h>
+#include <libtorrent/entry.hpp>
 
-#include "AlignedLabel.hh"
 #include "SettingsWin.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
+#include "linkage/SettingsManager.hh"
 
-SettingsWin::SettingsWin(Gtk::Window* parent)
+SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::Window(cobject),
+		glade_xml(refGlade)
 {
-	set_title("Prefrences");
-	set_transient_for(*parent);
-	set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
-	set_skip_taskbar_hint(true);
-	set_border_width(5);
+	glade_xml->get_widget("update_interval", update_interval);
+	glade_xml->get_widget("name_width", name_width);
+	glade_xml->get_widget("auto_expand", auto_expand);
+	glade_xml->get_widget("trunkate_names", trunkate_names);
+	glade_xml->get_widget("color_downloading", color_downloading);
+	glade_xml->get_widget("color_seeding", color_seeding);
+	glade_xml->get_widget("color_queued", color_queued);
+	glade_xml->get_widget("color_error", color_error);
+	glade_xml->get_widget("color_check_queue", color_check_queue);
+	glade_xml->get_widget("color_checking", color_checking);
+	glade_xml->get_widget("color_finished", color_finished);
+	glade_xml->get_widget("color_allocating", color_allocating);
+	glade_xml->get_widget("color_announcing", color_announcing);
+	glade_xml->get_widget("color_stopped", color_stopped);
 
-	Gtk::VBox* main_box = manage(new Gtk::VBox());
-	main_box->set_spacing(5);
-	Gtk::Notebook* notebook = manage(new Gtk::Notebook());
-	main_box->pack_start(*notebook, true, true);
+	glade_xml->get_widget("min_port", min_port);
+	glade_xml->get_widget("max_port", max_port);
+	glade_xml->get_widget("tracker_timeout", tracker_timeout);
+	glade_xml->get_widget("enable_dht", enable_dht);
+	glade_xml->get_widget("dht_fallback", dht_fallback);
+	glade_xml->get_widget("enable_pex", enable_pex);
+	glade_xml->get_widget("multiple_connections", multiple_connections);
 
-	Gtk::HBox* hbox = manage(new Gtk::HBox());
-	Gtk::Button* button = manage(new Gtk::Button(Gtk::Stock::CLOSE));
+	glade_xml->get_widget("max_connections", max_connections);
+	glade_xml->get_widget("max_uploads", max_uploads);
+	glade_xml->get_widget("max_active", max_active);
+	glade_xml->get_widget("up_rate", up_rate);
+	glade_xml->get_widget("down_rate", down_rate);
+
+	glade_xml->get_widget("max_torrent_connections", max_torrent_connections);
+	glade_xml->get_widget("max_torrent_uploads", max_torrent_uploads);
+	glade_xml->get_widget("seed_ratio", seed_ratio);
+
+	glade_xml->get_widget("proxy_port", proxy_port);
+	glade_xml->get_widget("proxy_ip", proxy_ip);
+	glade_xml->get_widget("proxy_user", proxy_user);
+	glade_xml->get_widget("proxy_pass", proxy_pass);
+
+	glade_xml->get_widget("move_finished", move_finished);
+	glade_xml->get_widget("allocate", allocate);
+	glade_xml->get_widget("use_default_path", default_path);
+	glade_xml->get_widget("button_default_path", button_default_path);
+	glade_xml->get_widget("button_move_finished", button_move_finished);
+	glade_xml->get_widget("max_open", max_open);
+
+	glade_xml->get_widget("treeview_plugins", treeview_plugins);
+	glade_xml->get_widget("plugin_about", about_plugin);
+	glade_xml->get_widget("plugin_configure", configure_plugin);
+	/* FIXME: about and configure support for plugins */
+
+	// connect callbacks
+	Gtk::Button* button;
+	glade_xml->get_widget("button_close", button);
 	button->signal_clicked().connect(sigc::mem_fun(this, &SettingsWin::on_button_close));
-	hbox->pack_end(*button, false, false);
-	main_box->pack_start(*hbox, false, false);
 
-	Gtk::VBox* interface_box = manage(new Gtk::VBox());
-	AlignedFrame* frame = manage(new AlignedFrame("General"));
-	Gtk::Table* table = manage(new Gtk::Table(3, 2));
-	AlignedLabel* label = manage(new AlignedLabel("Update interval:"));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	trunkate_names = manage(new Gtk::CheckButton("Trunkate names, width:"));
-	table->attach(*trunkate_names, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	auto_expand = manage(new Gtk::CheckButton("Auto expand details"));
-	table->attach(*auto_expand, 0, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	update_interval = manage(new AlignedSpinButton(1.0, 60.0));
-	table->attach(*update_interval, 1, 2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-	name_width = manage(new AlignedSpinButton(1.0, 100.0));
-	table->attach(*name_width, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
-	frame->add(*table);
-	interface_box->pack_start(*frame, false, false);
-
-	frame = manage(new AlignedFrame("State colors"));
-	table = manage(new Gtk::Table(5, 4));
-	label = manage(new AlignedLabel("Downloading:"));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Finished:"));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Seeding:"));
-	table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Announcing:"));
-	table->attach(*label, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Stopped:"));
-	table->attach(*label, 0, 1, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	color_downloading = manage(new Gtk::ColorButton());
-	table->attach(*color_downloading, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	color_finished = manage(new Gtk::ColorButton());
-	table->attach(*color_finished, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	color_seeding = manage(new Gtk::ColorButton());
-	table->attach(*color_seeding, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	color_announcing = manage(new Gtk::ColorButton());
-	table->attach(*color_announcing, 1, 2, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	color_stopped = manage(new Gtk::ColorButton());
-	table->attach(*color_stopped, 1, 2, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Queued:"));
-	table->attach(*label, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Queued for checking:"));
-	table->attach(*label, 2, 3, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Checking:"));
-	table->attach(*label, 2, 3, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Allocating:"));
-	table->attach(*label, 2, 3, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Error:"));
-	table->attach(*label, 2, 3, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	color_queued = manage(new Gtk::ColorButton());
-	table->attach(*color_queued, 3, 4, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	color_check_queue = manage(new Gtk::ColorButton());
-	table->attach(*color_check_queue, 3, 4, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	color_checking = manage(new Gtk::ColorButton());
-	table->attach(*color_checking, 3, 4, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	color_allocating = manage(new Gtk::ColorButton());
-	table->attach(*color_allocating, 3, 4, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	color_error = manage(new Gtk::ColorButton());
-	table->attach(*color_error, 3, 4, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	frame->add(*table);
-	interface_box->pack_start(*frame, false, false);
-
-	notebook->append_page(*interface_box, "Interface");
-
-	Gtk::VBox* network_box = manage(new Gtk::VBox());
-	frame = manage(new AlignedFrame("Connection"));
-	table = manage(new Gtk::Table(6, 3));
-	label = manage(new AlignedLabel("Interface:"));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Ports:"));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Tracker timeout:"));
-	table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	enable_dht = manage(new Gtk::CheckButton("Enable DHT"));
-	table->attach(*enable_dht, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	dht_fallback = manage(new Gtk::CheckButton("Only as fallback"));
-	table->attach(*dht_fallback, 1, 3, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	enable_pex = manage(new Gtk::CheckButton("Enable PEX"));
-	table->attach(*enable_pex, 0, 1, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	multiple_connections = manage(new Gtk::CheckButton("Allow multiple connections per IP"));
-	table->attach(*multiple_connections, 0, 3, 5, 6, Gtk::FILL, Gtk::SHRINK);
+	// populate the interfaces combobox
+	// cant be done with glade because ComboBoxText is gtkmm only
 	interfaces = manage(new Gtk::ComboBoxText());
 	interfaces->set_row_separator_func(sigc::mem_fun(this, &SettingsWin::is_separator));
 	interfaces->append_text("None specified");
@@ -139,124 +103,12 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 	{
 		interfaces->append_text(*iter);
 	}
-	table->attach(*interfaces, 1, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	min_port = manage(new AlignedSpinButton(1024.0, 65534.0));
-	min_port->set_value(1024.0);
-	table->attach(*min_port, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	max_port = manage(new AlignedSpinButton(1025.0, 65535.0));
-	max_port->set_value(1025.0);
-	table->attach(*max_port, 2, 3, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
-	tracker_timeout = manage(new AlignedSpinButton(5.0, 60.0));
-	tracker_timeout->set_value(10.0);
-	table->attach(*tracker_timeout, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	frame->add(*table);
-	network_box->pack_start(*frame, false, false);
+	Gtk::Table* table;
+	glade_xml->get_widget("table1", table);
+	table->attach(*interfaces, 1, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);	
 
-	frame = manage(new AlignedFrame("Session"));
-	table = manage(new Gtk::Table(5, 2));
-	label = manage(new AlignedLabel("Maximum connections:"));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Maximum uploads:"));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Maximum upload rate:"));
-	table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Maximum download rate:"));
-	table->attach(*label, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Maximum active downloads:"));
-	table->attach(*label, 0, 1, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	max_connections = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*max_connections, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	max_uploads = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*max_uploads, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	up_rate = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*up_rate, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	down_rate = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*down_rate, 1, 2, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	max_active = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*max_active, 1, 2, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	frame->add(*table);
-	network_box->pack_start(*frame, false, false);
-
-	frame = manage(new AlignedFrame("Torrent"));
-	table = manage(new Gtk::Table(3, 2));
-	label = manage(new AlignedLabel("Maximum connections:"));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Maximum uploads:"));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Desired ratio:"));
-	table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	max_torrent_connections = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*max_torrent_connections, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	max_torrent_uploads = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*max_torrent_uploads, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	seed_ratio = manage(new AlignedSpinButton(0.0, 10000.0));
-	table->attach(*seed_ratio, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	frame->add(*table);
-	network_box->pack_start(*frame, false, false);
-
-	Gtk::Expander* expander_proxy = manage(new Gtk::Expander());
-	label = manage(new AlignedLabel());
-	label->set_markup("<b>Proxy</b>");
-	expander_proxy->set_label_widget(*label);
-	Gtk::Alignment* alignment = manage(new Gtk::Alignment());
-	alignment->property_left_padding() = 12;
-	table = manage(new Gtk::Table(3, 3));
-	label = manage(new AlignedLabel("Proxy:"));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK, 10);
-	label = manage(new AlignedLabel("Username:"));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK, 10);
-	label = manage(new AlignedLabel("Password:"));
-	table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK, 10);
-	proxy_ip = manage(new Gtk::Entry());
-	table->attach(*proxy_ip, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	proxy_port = manage(new AlignedSpinButton(0.0, 65535.0));
-	proxy_port->set_value(8080.0);
-	table->attach(*proxy_port, 2, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	proxy_user = manage(new Gtk::Entry());
-	table->attach(*proxy_user, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	proxy_pass = manage(new Gtk::Entry());
-	proxy_pass->property_visibility() = false;
-	table->attach(*proxy_pass, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	alignment->add(*table);
-	expander_proxy->add(*alignment);
-	network_box->pack_start(*expander_proxy, false, false);
-
-	notebook->append_page(*network_box, "Network");
-
-	Gtk::VBox* files_box = manage(new Gtk::VBox());
-	frame = manage(new AlignedFrame("Folders"));
-	table = manage(new Gtk::Table(2, 2));
-	default_path = manage(new Gtk::CheckButton("Use default path:"));
-	default_path->set_alignment(0, 0.5);
-	table->attach(*default_path, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	move_finished = manage(new Gtk::CheckButton("Move finished:"));
-	move_finished->set_alignment(0, 0.5);
-	table->attach(*move_finished, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	button_default_path = manage(new Gtk::FileChooserButton("Select folder",
-																	Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER));
-	table->attach(*button_default_path, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	button_move_finished = manage(new Gtk::FileChooserButton("Select folder",
-																		Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER));
-	table->attach(*button_move_finished, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	frame->add(*table);
-	files_box->pack_start(*frame, false, false);
-
-	frame = manage(new AlignedFrame("Files"));
-	table = manage(new Gtk::Table(2, 2));
-	allocate = manage(new Gtk::CheckButton("Allocate disk space"));
-	table->attach(*allocate, 0, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Maximum open files:"));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	max_open = manage(new AlignedSpinButton(1.0, 100000.0));
-	table->attach(*max_open, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	frame->add(*table);
-	files_box->pack_start(*frame, false, false);
-
-	notebook->append_page(*files_box, "Files & Folders");
-
-	Gtk::VBox* plugins_box = manage(new Gtk::VBox());
+	// setup the plugins listview
 	model_plugins = Gtk::ListStore::create(plugin_columns);
-	Gtk::TreeView* treeview_plugins = manage(new Gtk::TreeView());
 	treeview_plugins->get_selection()->signal_changed().connect(sigc::bind(
 		sigc::mem_fun(this, &SettingsWin::on_plugin_changed),
 		treeview_plugins->get_selection()));
@@ -273,46 +125,6 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 		column->set_sort_column_id(i);
 		column->set_resizable(true);
 	}
-	plugins_box->pack_start(*treeview_plugins, true, true);
-
-	frame = manage(new AlignedFrame("Plugin"));
-	table = manage(new Gtk::Table(3, 2));
-	label = manage(new AlignedLabel("Author:"));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("Website:"));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label = manage(new AlignedLabel("File:"));
-	table->attach(*label, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	label_author = manage(new AlignedLabel());
-	table->attach(*label_author, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	label_website = manage(new AlignedLabel());
-	table->attach(*label_website, 1, 2, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	label_file = manage(new AlignedLabel());
-	table->attach(*label_file, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	frame->add(*table);
-	plugins_box->pack_start(*frame, false, false);
-
-	frame_options = manage(new AlignedFrame("Options"));
-	plugins_box->pack_start(*frame_options, false, false);
-
-	notebook->append_page(*plugins_box, "Plugins");
-
-	Gtk::HBox* groups_box = manage(new Gtk::HBox());
-	groups_view = manage(new GroupView());
-	groups_box->pack_start(*groups_view, false, false);
-	group_add = manage(new Gtk::Button(Gtk::Stock::ADD));
-	group_add->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_add));
-	group_remove = manage(new Gtk::Button(Gtk::Stock::REMOVE));
-	group_remove->unset_flags(Gtk::CAN_FOCUS);
-	group_remove->signal_clicked().connect(sigc::mem_fun(*this, &SettingsWin::on_group_remove));
-	Gtk::VBox* groups_vbox = manage(new Gtk::VBox());
-	groups_vbox->pack_start(*group_add, false, false);
-	groups_vbox->pack_start(*group_remove, false, false);
-	groups_box->pack_end(*groups_vbox);
-
-	notebook->append_page(*groups_box, "Groups");
-
-	add(*main_box);
 
 	min_port->signal_value_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_min_port_changed));
 	max_port->signal_value_changed().connect(sigc::mem_fun(*this, &SettingsWin::on_max_port_changed));
@@ -322,6 +134,7 @@ SettingsWin::SettingsWin(Gtk::Window* parent)
 
 SettingsWin::~SettingsWin()
 {
+	delete interfaces;
 }
 
 bool SettingsWin::on_delete_event(GdkEventAny*)
@@ -334,24 +147,6 @@ bool SettingsWin::on_delete_event(GdkEventAny*)
 void SettingsWin::on_button_close()
 {
 	hide();
-}
-
-void SettingsWin::on_group_add()
-{
-	Glib::ustring number = str(groups_view->get_children().size());
-	GroupRow* row = new GroupRow("Group " + number);
-	groups_view->append(row);
-	if (groups_view->children().size() > 1)
-		group_remove->set_sensitive(true);
-}
-
-void SettingsWin::on_group_remove()
-{
-	GroupRow* row = groups_view->get_selected();
-	if (row)
-		groups_view->erase(row);
-	if (groups_view->children().size() == 1)
-		group_remove->set_sensitive(false);
 }
 
 void SettingsWin::on_min_port_changed()
@@ -376,20 +171,20 @@ void SettingsWin::on_plugin_changed(const Glib::RefPtr<Gtk::TreeSelection>& sele
 	if (!iter)
 		return;
 
-	Gtk::TreeRow row = *iter;
+	/*Gtk::TreeRow row = *iter;
 	label_author->set_text(row[plugin_columns.author]);
 	label_website->set_text(row[plugin_columns.website]);
 	label_file->set_text(row[plugin_columns.file]);
 	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
 	if (plugin)
 	{
-		/* FIXME: save previous plugin settings to settings manager */
+		FIXME: save previous plugin settings to settings manager
 		frame_options->remove();
 		Gtk::Widget* widget = plugin->get_config_widget();
 		if (widget)
 			frame_options->add(*widget);
-		/* FIXME: load plugin settings from settings manager */
-	}
+		 FIXME: load plugin settings from settings manager
+	}*/
 }
 
 Glib::ustring SettingsWin::hex_str(const Gdk::Color& color)
@@ -412,62 +207,62 @@ void SettingsWin::on_hide()
 
 	/* Network */
 	if (interfaces->get_active_row_number() <= 0)
-		sm->set("Network", "Interface", Glib::ustring(""));
+		sm->set("network/interface", Glib::ustring(""));
 	else
-		sm->set("Network", "Interface", interfaces->get_active_text());
-	sm->set("Network", "MinPort", (int)min_port->get_value());
-	sm->set("Network", "MaxPort", (int)max_port->get_value());
-	sm->set("Network", "TrackerTimeout", (int)tracker_timeout->get_value());
-	sm->set("Network", "UseDHT", enable_dht->get_active());
-	sm->set("Network", "DHTFallback", dht_fallback->get_active());
-	sm->set("Network", "UsePEX", enable_pex->get_active());
-	sm->set("Network", "MultipleConnectionsPerIP", multiple_connections->get_active());
+			sm->set("network/interface", interfaces->get_active_text());
+	sm->set("network/min_port", (int)min_port->get_value());
+	sm->set("network/max_port", (int)max_port->get_value());
+	sm->set("network/tracker_timeout", (int)tracker_timeout->get_value());
+	sm->set("network/use_dht", enable_dht->get_active());
+	sm->set("network/dht_fallback", dht_fallback->get_active());
+	sm->set("network/use_pex", enable_pex->get_active());
+	sm->set("network/multiple_connections_per_ip", multiple_connections->get_active());
 
-	sm->set("Network", "MaxUpRate", (int)up_rate->get_value());
-	sm->set("Network", "MaxDownRate", (int)down_rate->get_value());
+	sm->set("network/max_up_rate", (int)up_rate->get_value());
+	sm->set("network/max_down_rate", (int)down_rate->get_value());
 	int uploads = (int)max_uploads->get_value();
 	if (uploads == 0)
 		uploads = -1;
-	sm->set("Network", "MaxUploads", uploads);
+	sm->set("network/max_uploads", uploads);
 	int connections = (int)max_connections->get_value();
 	if (connections == 1)
 		connections = 2;
 	else if (connections == 0)
 		connections = -1;
-	sm->set("Network", "MaxConnections", connections);
-	sm->set("Network", "MaxActive", (int)max_active->get_value());
+	sm->set("network/max_connections", connections);
+	sm->set("network/max_active", (int)max_active->get_value());
 	
 	uploads = (int)max_torrent_uploads->get_value();
 	if (uploads == 0)
 		uploads = -1;
-	sm->set("Network", "MaxTorrentUploads", uploads);
+	sm->set("network/max_torrent_uploads", uploads);
 	connections = (int)max_torrent_connections->get_value();
 	if (connections == 1)
 		connections = 2;
 	else if (connections == 0)
 		connections = -1;
-	sm->set("Network", "MaxTorrentConnections", connections);
-	sm->set("Network", "SeedRatio", str(seed_ratio->get_value(), 1));
+	sm->set("network/max_torrent_connections", connections);
+	sm->set("network/seed_ratio", seed_ratio->get_value());
 
-	sm->set("Network", "ProxyIp", proxy_ip->get_text());
-	sm->set("Network", "ProxyPort", (int)proxy_port->get_value());
-	sm->set("Network", "ProxyLogin", proxy_user->get_text());
-	sm->set("Network", "ProxyPass", proxy_pass->get_text());
+	sm->set("network/proxy/ip", proxy_ip->get_text());
+	sm->set("network/proxy/port", (int)proxy_port->get_value());
+	sm->set("network/proxy/login", proxy_user->get_text());
+	sm->set("network/proxy/pass", proxy_pass->get_text());
 	/* UI */
-	sm->set("UI", "Interval", (int)update_interval->get_value());
-	sm->set("UI", "AutoExpand", auto_expand->get_active());
-	sm->set("UI", "TrunkateNames", trunkate_names->get_active());
-	sm->set("UI", "MaxNameWidth", (int)name_width->get_value());
-	sm->set("UI", "ColorDownloading", hex_str(color_downloading->get_color()));
-	sm->set("UI", "ColorFinished", hex_str(color_finished->get_color()));
-	sm->set("UI", "ColorSeeding", hex_str(color_seeding->get_color()));
-	sm->set("UI", "ColorAnnouncing", hex_str(color_announcing->get_color()));
-	sm->set("UI", "ColorStopped", hex_str(color_stopped->get_color()));
-	sm->set("UI", "ColorQueued", hex_str(color_queued->get_color()));
-	sm->set("UI", "ColorCheckQueue", hex_str(color_check_queue->get_color()));
-	sm->set("UI", "ColorChecking", hex_str(color_checking->get_color()));
-	sm->set("UI", "ColorAllocating", hex_str(color_allocating->get_color()));
-	sm->set("UI", "ColorError", hex_str(color_error->get_color()));
+	sm->set("ui/interval", (int)update_interval->get_value());
+	sm->set("ui/auto_expand", auto_expand->get_active());
+	sm->set("ui/torrent_view/trunkate_names", trunkate_names->get_active());
+	sm->set("ui/torrent_view/max_name_width", (int)name_width->get_value());
+	sm->set("ui/colors/downloading", hex_str(color_downloading->get_color()));
+	sm->set("ui/colors/finished", hex_str(color_finished->get_color()));
+	sm->set("ui/colors/seeding", hex_str(color_seeding->get_color()));
+	sm->set("ui/colors/announcing", hex_str(color_announcing->get_color()));
+	sm->set("ui/colors/stopped", hex_str(color_stopped->get_color()));
+	sm->set("ui/colors/queued", hex_str(color_queued->get_color()));
+	sm->set("ui/colors/check_queue", hex_str(color_check_queue->get_color()));
+	sm->set("ui/colors/checking", hex_str(color_checking->get_color()));
+	sm->set("ui/colors/allocating", hex_str(color_allocating->get_color()));
+	sm->set("ui/colors/error", hex_str(color_error->get_color()));
 	/* Plugins */
 	Gtk::TreeNodeChildren children = model_plugins->children();
 	std::list<Glib::ustring> plugins;
@@ -477,37 +272,14 @@ void SettingsWin::on_hide()
 		if (row[plugin_columns.load])
 			plugins.push_back(row[plugin_columns.name]);
 	}
-	sm->set("UI", "Plugins", UStringArray(plugins));
+	sm->set("ui/plugins", Glib::SListHandle<Glib::ustring>(plugins));
 	/* Files */
-	sm->set("Files", "UseDefaultPath", default_path->get_active());
-	sm->set("Files", "DefaultPath", button_default_path->get_filename());
-	sm->set("Files", "MoveFinished", move_finished->get_active());
-	sm->set("Files", "FinishedPath", button_move_finished->get_filename());
-	sm->set("Files", "Allocate", allocate->get_active());
-	sm->set("Files", "MaxOpen", (int)max_open->get_value());
-	/* Groups */
-	sm->remove_group("Groups");
-	std::list<GroupRow*> rows = groups_view->children();
-	for (std::list<GroupRow*>::iterator iter = rows.begin();
-				iter != rows.end(); ++iter)
-	{
-		GroupRow* row = *iter;
-		Glib::ustring name = row->get_name();
-
-		std::list<Glib::ustring> info;
-		std::list<Group::Filter> filters = row->get_filters();
-
-		for (std::list<Group::Filter>::iterator iter = filters.begin();
-					iter != filters.end(); ++iter)
-		{
-			Group::Filter f = *iter;
-			info.push_back(f.filter);
-			info.push_back(str(f.eval));
-			info.push_back(str(f.tag));
-		}
-
-		sm->set("Groups", name, UStringArray(info));
-	}
+	sm->set("files/use_default_path", default_path->get_active());
+	sm->set("files/default_path", button_default_path->get_filename());
+	sm->set("files/move_finished", move_finished->get_active());
+	sm->set("files/finished_path", button_move_finished->get_filename());
+	sm->set("files/allocate", allocate->get_active());
+	sm->set("files/max_open", (int)max_open->get_value());
 
 	Engine::get_settings_manager()->update();
 }
@@ -517,87 +289,85 @@ void SettingsWin::on_show()
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	/* Network */
-	Glib::ustring interface = sm->get_string("Network", "Interface");
-	min_port->set_value((double)sm->get_int("Network", "MinPort"));
-	max_port->set_value((double)sm->get_int("Network", "MaxPort"));
-	tracker_timeout->set_value((double)sm->get_int("Network", "TrackerTimeout"));
-	enable_dht->set_active(sm->get_bool("Network", "UseDHT"));
-	dht_fallback->set_active(sm->get_bool("Network", "DHTFallback"));
-	enable_pex->set_active(sm->get_bool("Network", "UsePEX"));
+	Glib::ustring interface = sm->get_string("network/interface");
+	min_port->set_value((double)sm->get_int("network/min_port"));
+	max_port->set_value((double)sm->get_int("network/max_port"));
+	tracker_timeout->set_value((double)sm->get_int("network/tracker_timeout"));
+	enable_dht->set_active(sm->get_bool("network/use_dht"));
+	dht_fallback->set_active(sm->get_bool("network/dht_fallback"));
+	enable_pex->set_active(sm->get_bool("network/use_pex"));
 
-	up_rate->set_value((double)sm->get_int("Network", "MaxUpRate"));
-	down_rate->set_value((double)sm->get_int("Network", "MaxDownRate"));
-	max_uploads->set_value((double)sm->get_int("Network", "MaxUploads"));
-	max_connections->set_value((double)sm->get_int("Network", "MaxConnections"));
-	max_active->set_value((double)sm->get_int("Network", "MaxActive"));
+	up_rate->set_value((double)sm->get_int("network/max_up_rate"));
+	down_rate->set_value((double)sm->get_int("network/max_down_rate"));
+	max_uploads->set_value((double)sm->get_int("network/max_uploads"));
+	max_connections->set_value((double)sm->get_int("network/max_connections"));
+	max_active->set_value((double)sm->get_int("network/max_active"));
 
-	max_torrent_uploads->set_value((double)sm->get_int("Network", "MaxTorrentUploads"));
-	max_torrent_connections->set_value((double)sm->get_int("Network", "MaxTorrentConnections"));
-	double ratio;
-	std::istringstream(sm->get_string("Network", "SeedRatio")) >> ratio;
-	seed_ratio->set_value(ratio);
+	max_torrent_uploads->set_value((double)sm->get_int("network/max_torrent_uploads"));
+	max_torrent_connections->set_value((double)sm->get_int("network/max_torrent_connections"));
+	seed_ratio->set_value(sm->get_float("network/seed_ratio"));
 
-	proxy_ip->set_text(sm->get_string("Network", "ProxyIp"));
-	proxy_port->set_value((double)sm->get_int("Network", "ProxyPort"));
-	proxy_user->set_text(sm->get_string("Network", "ProxyLogin"));
-	proxy_pass->set_text(sm->get_string("Network", "ProxyPass"));
+	proxy_ip->set_text(sm->get_string("network/proxy/ip"));
+	proxy_port->set_value((double)sm->get_int("network/proxy/port"));
+	proxy_user->set_text(sm->get_string("network/proxy/login"));
+	proxy_pass->set_text(sm->get_string("network/proxy/pass"));
 	if (!interface.empty())
 		interfaces->set_active_text(interface);
 	else
 		interfaces->set_active(0);
 	/* UI */
-	update_interval->set_value((double)sm->get_int("UI", "Interval"));
-	auto_expand->set_active(sm->get_bool("UI", "AutoExpand"));
-	trunkate_names->set_active(sm->get_bool("UI", "TrunkateNames"));
-	name_width->set_value((double)sm->get_int("UI", "MaxNameWidth"));
+	update_interval->set_value((double)sm->get_int("ui/interval"));
+	auto_expand->set_active(sm->get_bool("ui/auto_expand"));
+	trunkate_names->set_active(sm->get_bool("ui/torrent_view/trunkate_names"));
+	name_width->set_value((double)sm->get_int("ui/torrent_view/max_name_width"));
 	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_default_colormap();
-	Gdk::Color color = Gdk::Color(sm->get_string("UI", "ColorDownloading"));
+	Gdk::Color color = Gdk::Color(sm->get_string("ui/colors/downloading"));
 	colormap->alloc_color(color);
 	color_downloading->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorFinished"));
+	color = Gdk::Color(sm->get_string("ui/colors/finished"));
 	colormap->alloc_color(color);
 	color_finished->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorSeeding"));
+	color = Gdk::Color(sm->get_string("ui/colors/seeding"));
 	colormap->alloc_color(color);
 	color_seeding->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorAnnouncing"));
+	color = Gdk::Color(sm->get_string("ui/colors/announcing"));
 	colormap->alloc_color(color);
 	color_announcing->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorStopped"));
+	color = Gdk::Color(sm->get_string("ui/colors/stopped"));
 	colormap->alloc_color(color);
 	color_stopped->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorQueued"));
+	color = Gdk::Color(sm->get_string("ui/colors/queued"));
 	colormap->alloc_color(color);
 	color_queued->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorCheckQueue"));
+	color = Gdk::Color(sm->get_string("ui/colors/check_queue"));
 	colormap->alloc_color(color);
 	color_check_queue->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorChecking"));
+	color = Gdk::Color(sm->get_string("ui/colors/checking"));
 	colormap->alloc_color(color);
 	color_checking->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorAllocating"));
+	color = Gdk::Color(sm->get_string("ui/colors/allocating"));
 	colormap->alloc_color(color);
 	color_allocating->set_color(color);
 	colormap->free_color(color);
-	color = Gdk::Color(sm->get_string("UI", "ColorError"));
+	color = Gdk::Color(sm->get_string("ui/colors/error"));
 	colormap->alloc_color(color);
 	color_error->set_color(color);
 	colormap->free_color(color);
 	/* Files */
-	default_path->set_active(sm->get_bool("Files", "UseDefaultPath"));
-	button_default_path->set_filename(sm->get_string("Files", "DefaultPath"));
-	move_finished->set_active(sm->get_bool("Files", "MoveFinished"));
-	button_move_finished->set_filename(sm->get_string("Files", "FinishedPath"));
-	allocate->set_active(sm->get_bool("Files", "Allocate"));
-	max_open->set_value((double)sm->get_int("Files", "MaxOpen"));
+	default_path->set_active(sm->get_bool("files/use_default_path"));
+	button_default_path->set_filename(sm->get_string("files/default_path"));
+	move_finished->set_active(sm->get_bool("files/move_finished"));
+	button_move_finished->set_filename(sm->get_string("files/finished_path"));
+	allocate->set_active(sm->get_bool("files/allocate"));
+	max_open->set_value((double)sm->get_int("files/max_open"));
 	/* Plugins */
 	if (model_plugins->children().empty())
 	{
@@ -616,30 +386,6 @@ void SettingsWin::on_show()
 			row[plugin_columns.load] = info.loaded;
 		}
 	}
-	/* Groups */
-	if (groups_view->children().empty())
-	{
-		std::list<Glib::ustring> groups = sm->get_keys("Groups");
-		for (std::list<Glib::ustring>::iterator iter = groups.begin();
-					iter != groups.end(); ++iter)
-		{
-			std::vector<Glib::ustring> info = sm->get_string_list("Groups", *iter);
-
-			if ((info.size() % 3) != 0)
-				continue;
-
-			std::list<Group::Filter> filters;
-			for (int i = 0; i < info.size(); i+=3)
-			{
-				Glib::ustring filter = info[i];
-				Group::EvalType eval = Group::EvalType(std::atoi(info[i+1].c_str()));
-				Group::TagType tag = Group::TagType(std::atoi(info[i+2].c_str()));
-				filters.push_back(Group::Filter(filter, tag, eval));
-			}
-			GroupRow* row = new GroupRow(*iter, filters);
-			groups_view->append(row);
-		}
-	}
 
 	Gtk::Window::on_show();
 }
@@ -652,3 +398,4 @@ bool SettingsWin::is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
 	row.get_value(0, data);
 	return (data == "-");
 }
+

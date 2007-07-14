@@ -19,6 +19,14 @@ PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.10)
 AC_SUBST(GTKMM_CFLAGS)
 AC_SUBST(GTKMM_LIBS)
 
+PKG_CHECK_MODULES(LIBGLADE, libglademm-2.4 >= 2.6)
+AC_SUBST(LIBGLADE_CFLAGS)
+AC_SUBST(LIBGLADE_LIBS)
+
+PKG_CHECK_MODULES(GCONFMM, gconfmm-2.6 >= 2.6)
+AC_SUBST(GCONFMM_CFLAGS)
+AC_SUBST(GCONFMM_LIBS)
+
 PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= 2.10)
 AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
@@ -48,9 +56,14 @@ builtin([include],[m4/sizeof.m4])
 AC_COMPILE_CHECK_SIZEOF(size_t)
 AC_COMPILE_CHECK_SIZEOF(unsigned int)
 
-GLIBMM_ROOT="`$PKG_CONFIG --variable=includedir glibmm-2.4`"
-AC_CHECK_FILE($GLIBMM_ROOT/glibmm-2.4/glibmm/keyfile.h, AC_DEFINE([HAVE_GLIBMM_KEYFILE_H], [], [presence of keyfile.h]), keyfile=false)
-AM_CONDITIONAL(HAVE_KEYFILE, test x$keyfile = x)
+dnl Checking for gconftool-2
+AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
+
+if test "x$GCONFTOOL" = xno; then
+  AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf])
+fi
+
+AM_GCONF_SOURCE_2
 
 AC_PROG_CC()
 AC_PROG_CXX()
@@ -58,5 +71,5 @@ AC_DISABLE_STATIC()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
 
-AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile plugins/upnp/Makefile  data/Makefile data/flags/Makefile)
+AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile plugins/upnp/Makefile data/Makefile data/flags/Makefile)
 

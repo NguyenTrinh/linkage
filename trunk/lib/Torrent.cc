@@ -29,7 +29,7 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 
 	m_info = ri.info;
 
-	entry::dictionary_type e = ri.resume.dict();
+	libtorrent::entry::dictionary_type e = ri.resume.dict();
 	m_downloaded = e["downloaded"].integer();
 	m_uploaded = e["uploaded"].integer();
 
@@ -43,7 +43,7 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 
 	m_completed = (bool)e["completed"].integer();
 
-	std::list<entry> f;
+	std::list<libtorrent::entry> f;
 	try
 	{
 		f = e["filter"].list();
@@ -51,22 +51,22 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	catch (std::exception& e) {}
 
 	m_filter.assign(m_info.num_files(), false);
-	std::list<entry>::iterator iter = f.begin();
+	std::list<libtorrent::entry>::iterator iter = f.begin();
 	while (iter != f.end())
 	{
-		entry e = *iter;
+		libtorrent::entry e = *iter;
 		m_filter[e.integer()] = true;
 		iter++;
 	}
 
 	if (ri.resume.find_key("trackers"))
 	{
-		entry::dictionary_type td = e["trackers"].dict();
-		for (entry::dictionary_type::iterator iter = td.begin();
-					iter != td.end(); ++iter)
+		libtorrent::entry::dictionary_type td = e["trackers"].dict();
+		for (libtorrent::entry::dictionary_type::iterator iter = td.begin();
+			iter != td.end(); ++iter)
 		{
 			Glib::ustring url = iter->first;
-			announce_entry a(iter->first);
+			libtorrent::announce_entry a(iter->first);
 			a.tier = iter->second.integer();
 			m_trackers.push_back(a);
 		}
@@ -80,16 +80,20 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	}
 }
 
+Torrent::Torrent() : m_prop_handle(*this, "handle")
+{
+}
+
 Torrent::~Torrent()
 {
 }
 
-Glib::PropertyProxy<torrent_handle> Torrent::property_handle()
+Glib::PropertyProxy<libtorrent::torrent_handle> Torrent::property_handle()
 {
 	return m_prop_handle.get_proxy();
 }
 
-torrent_handle Torrent::get_handle()
+libtorrent::torrent_handle Torrent::get_handle()
 {
 	return m_prop_handle.get_value();
 }
@@ -144,22 +148,22 @@ const int Torrent::get_down_limit()
 	return m_down_limit;
 }
 
-const sha1_hash Torrent::get_hash()
+const libtorrent::sha1_hash Torrent::get_hash()
 {
 	return m_info.info_hash();
 }
 
-const size_type Torrent::get_total_downloaded()
+const libtorrent::size_type Torrent::get_total_downloaded()
 {
-	size_type total = m_downloaded;
+	libtorrent::size_type total = m_downloaded;
 	if (!is_stopped())
 		total += get_handle().status().total_download;
 	return total;
 }
 
-const size_type Torrent::get_total_uploaded()
+const libtorrent::size_type Torrent::get_total_uploaded()
 {
-	size_type total = m_uploaded;
+	libtorrent::size_type total = m_uploaded;
 	if (!is_stopped())
 		total += get_handle().status().total_upload;
 	return total;
@@ -174,20 +178,21 @@ const Torrent::State Torrent::get_state()
 {
 	if (!is_stopped())
 	{
-		torrent_status status = get_handle().status();
+		libtorrent::torrent_status status = get_handle().status();
+
 		/* libtorrent only says it's seeding after it's announced to the tracker */
 		if (status.total_done == m_info.total_size())
 			return SEEDING;
 
-		torrent_status::state_t state = status.state;
+		libtorrent::torrent_status::state_t state = status.state;
 		if (get_handle().is_paused())
 		{
 			if (m_is_queued)
 			{
 				/* Queued torrents can be in check state */
-				if (state == torrent_status::checking_files)
+				if (state == libtorrent::torrent_status::checking_files)
 					return CHECKING;
-				else if (state == torrent_status::queued_for_checking)
+				else if (state == libtorrent::torrent_status::queued_for_checking)
 					return CHECK_QUEUE;
 				else
 					return QUEUED;
@@ -199,19 +204,19 @@ const Torrent::State Torrent::get_state()
 
 		switch (state)
 		{
-			case torrent_status::queued_for_checking:
+			case libtorrent::torrent_status::queued_for_checking:
 				return CHECK_QUEUE;
-			case torrent_status::checking_files:
+			case libtorrent::torrent_status::checking_files:
 				return CHECKING;
-			case torrent_status::connecting_to_tracker:
+			case libtorrent::torrent_status::connecting_to_tracker:
 				return ANNOUNCING;
-			case torrent_status::downloading:
+			case libtorrent::torrent_status::downloading:
 				return DOWNLOADING;
-			case torrent_status::finished:
+			case libtorrent::torrent_status::finished:
 				return FINISHED;
-			case torrent_status::seeding:
+			case libtorrent::torrent_status::seeding:
 				return SEEDING;
-			case torrent_status::allocating:
+			case libtorrent::torrent_status::allocating:
 				return ALLOCATING;
 		}
 	}
@@ -252,22 +257,22 @@ const Glib::ustring Torrent::get_state_string(State state)
 	}
 }
 
-const torrent_info& Torrent::get_info()
+const libtorrent::torrent_info& Torrent::get_info()
 {
 	return m_info;
 }
 
-const torrent_status Torrent::get_status()
+const libtorrent::torrent_status Torrent::get_status()
 {
 	if (!is_stopped())
 		return get_handle().status();
 	else
-		return torrent_status();
+		return libtorrent::torrent_status();
 }
 
-const std::vector<partial_piece_info> Torrent::get_download_queue()
+const std::vector<libtorrent::partial_piece_info> Torrent::get_download_queue()
 {
-	std::vector<partial_piece_info> queue;
+	std::vector<libtorrent::partial_piece_info> queue;
 	if (!is_stopped())
 		get_handle().get_download_queue(queue);
 
@@ -285,7 +290,7 @@ const std::vector<float> Torrent::get_file_progress()
 	return fp;
 }
 
-void Torrent::set_handle(const torrent_handle& handle)
+void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 {
 	m_prop_handle = handle;
 
@@ -313,15 +318,15 @@ void Torrent::set_path(const Glib::ustring& path)
 {
 	if (m_path != path)
 	{
-		sha1_hash hash = m_info.info_hash();
+		libtorrent::sha1_hash hash = m_info.info_hash();
 
 		bool stopped = is_stopped();
 		if (!stopped)
 			Engine::get_session_manager()->stop_torrent(hash);
 
 		m_path = path;
-		entry e = get_resume_entry(false);
-		save_entry(hash, e, ".resume");
+		libtorrent::entry e = get_resume_entry(false);
+		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 
 		if (!stopped)
 			Engine::get_session_manager()->resume_torrent(hash);
@@ -333,8 +338,10 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 	if (is_stopped())
 		return;
 
+
 	/* Get trackers from handle, since the list might have changed */
-	std::vector<announce_entry> trackers = get_handle().trackers();
+	std::vector<libtorrent::announce_entry> trackers = get_handle().trackers();
+
 	if (tracker.empty())
 	{
 		for (int j = 0; j < trackers.size(); j++)
@@ -410,12 +417,12 @@ void Torrent::set_down_limit(int limit)
 	}
 }
 
-void Torrent::set_total_downloaded(size_type bytes)
+void Torrent::set_total_downloaded(libtorrent::size_type bytes)
 {
 	m_downloaded = bytes;
 }
 
-void Torrent::set_total_uploaded(size_type bytes)
+void Torrent::set_total_uploaded(libtorrent::size_type bytes)
 {
 	m_uploaded = bytes;
 }
@@ -432,7 +439,7 @@ void Torrent::add_tracker(const Glib::ustring& url)
 	{
 		/* Check if someone else changed the trackers */
 		bool diff = false;
-		std::vector<announce_entry> trackers = get_handle().trackers();
+		std::vector<libtorrent::announce_entry> trackers = get_handle().trackers();
 		if (m_trackers.size() < trackers.size())
 			diff = true;
 		else if (m_trackers.size() == trackers.size())
@@ -460,7 +467,7 @@ void Torrent::add_tracker(const Glib::ustring& url)
 			m_trackers = trackers;
 	}
 
-	announce_entry a(url);
+	libtorrent::announce_entry a(url);
 	a.tier = m_trackers.size();
 	m_trackers.push_back(a);
 
@@ -506,7 +513,7 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 	else
 		m_announcing = true;
 
-	std::vector<announce_entry> trackers = get_handle().trackers();
+	std::vector<libtorrent::announce_entry> trackers = get_handle().trackers();
 	if (!tracker.empty())
 	{
 		for (int i = 0; i < trackers.size(); i++)
@@ -514,7 +521,7 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 			if (trackers[i].url == tracker)
 			{
 				m_cur_tier = trackers[i].tier;
-				announce_entry a(tracker);
+				libtorrent::announce_entry a(tracker);
 				a.tier = 0;
 				trackers.erase(trackers.begin() + i);
 				trackers.insert(trackers.begin(), a);
@@ -534,9 +541,9 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 	get_handle().force_reannounce();
 }
 
-const entry Torrent::get_resume_entry(bool running)
+const libtorrent::entry Torrent::get_resume_entry(bool running)
 {
-	entry::dictionary_type resume_entry;
+	libtorrent::entry::dictionary_type resume_entry;
 
 	if (!is_stopped())
 	{
@@ -565,7 +572,7 @@ const entry Torrent::get_resume_entry(bool running)
 		{
 			in.open(file.c_str(), std::ios_base::binary);
 			in.unsetf(std::ios_base::skipws);
-			entry er = bdecode(std::istream_iterator<char>(in), std::istream_iterator<char>());
+			libtorrent::entry er = libtorrent::bdecode(std::istream_iterator<char>(in), std::istream_iterator<char>());
 			resume_entry = er.dict();
 		}
 		catch (std::exception& e)
@@ -588,7 +595,7 @@ const entry Torrent::get_resume_entry(bool running)
 	resume_entry["download-limit"] = m_down_limit;
 	resume_entry["upload-limit"] = m_up_limit;
 	resume_entry["completed"] = m_completed;
-	entry::list_type el;
+	libtorrent::entry::list_type el;
 	for (unsigned int i = 0; i < m_filter.size(); i++)
 		if (m_filter[i])
 			el.push_back(i);
@@ -596,7 +603,7 @@ const entry Torrent::get_resume_entry(bool running)
 	if (!m_group.empty())
 		resume_entry["group"] = m_group;
 
-	entry::dictionary_type td;
+	libtorrent::entry::dictionary_type td;
 	for (unsigned int i = 0; i < m_trackers.size(); i++)
 		td[m_trackers[i].url] = m_trackers[i].tier;
 	resume_entry["trackers"] = td;

@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/drawingarea.h>
 #include <gdkmm/window.h>
+#include <libglademm.h>
 
 struct Part
 {
@@ -51,7 +52,7 @@ class PieceMap : public Gtk::DrawingArea
 public:
 	void set_map(const std::vector<bool>& map);
 
-	PieceMap();
+	PieceMap(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~PieceMap();
 };
 	

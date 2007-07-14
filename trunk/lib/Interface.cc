@@ -26,7 +26,7 @@ Interface::~Interface()
 {
 }
 
-std::list<sha1_hash> Interface::get_selected_list()
+std::list<libtorrent::sha1_hash> Interface::get_selected_list()
 {
 	return HashList();
 }

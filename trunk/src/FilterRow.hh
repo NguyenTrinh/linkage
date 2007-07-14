@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2006	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -16,25 +17,30 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#ifndef ALIGNED_FRAME_HH
-#define ALIGNED_FRAME_HH
+#ifndef FILTER_ROW_HH
+#define FILTER_ROW_HH
 
-#include <gtkmm/label.h>
-#include <gtkmm/alignment.h>
-#include <gtkmm/frame.h>
+#include <gtkmm/box.h>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/entry.h>
 
-class AlignedFrame : public Gtk::Frame
+#include "Group.hh"
+
+class FilterRow : public Gtk::HBox
 {
-	Gtk::Alignment* m_alignment;
-	Gtk::Label* m_label;
+	Gtk::ComboBoxText *combo_tag, *combo_eval, *combo_operation;
+	Gtk::Entry *entry_filter;
+
+	void init(bool first);
+
 public:
-	AlignedFrame();
-	AlignedFrame(const Glib::ustring& text);
+	bool has_focus();
+	Group::Filter get_filter();
 
-	void set_label(const Glib::ustring& text);
-	void add(Gtk::Widget& widget);
-
-	virtual ~AlignedFrame();
+	FilterRow(bool first);
+	FilterRow(bool first, const Group::Filter& filter);
+	~FilterRow();
 };
 
-#endif /* ALIGNED_FRAME_HH */
+#endif /* FILTER_ROW_HH */
+

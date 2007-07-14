@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treemodelfilter.h>
+#include <libglademm/xml.h>
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
@@ -54,26 +55,29 @@ class TorrentList : public Gtk::TreeView
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> state;
-		Gtk::TreeModelColumn<size_type> down;
-		Gtk::TreeModelColumn<size_type> up;
+		Gtk::TreeModelColumn<libtorrent::size_type> down;
+		Gtk::TreeModelColumn<libtorrent::size_type> up;
 		Gtk::TreeModelColumn<float> down_rate;
 		Gtk::TreeModelColumn<float> up_rate;
 		Gtk::TreeModelColumn<unsigned int> seeds;
 		Gtk::TreeModelColumn<unsigned int> peers;
 		Gtk::TreeModelColumn<Glib::ustring> eta;
-		Gtk::TreeModelColumn<sha1_hash> hash;
+		Gtk::TreeModelColumn<libtorrent::sha1_hash> hash;
 	};
 	ModelColumns columns;
 
 	Glib::RefPtr<Gtk::ListStore> model;
 	Glib::RefPtr<Gtk::TreeModelFilter> filter;
 
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
+
 	Group m_active_group;
+	Torrent::State m_cur_state;
 
-	Gtk::TreeIter get_iter(const sha1_hash& hash);
+	Gtk::TreeIter get_iter(const libtorrent::sha1_hash& hash);
 
-	void on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position);
-	void on_removed(const sha1_hash& hash);
+	void on_added(const libtorrent::sha1_hash& hash, const Glib::ustring& name, unsigned int position);
+	void on_removed(const libtorrent::sha1_hash& hash);
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	void format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
@@ -81,11 +85,14 @@ class TorrentList : public Gtk::TreeView
 	bool on_button_press_event(GdkEventButton *event);
 
 	bool on_filter(const Gtk::TreeModel::const_iterator& iter);
-	void on_filter_set(const Group& group);
-	void on_filter_unset();
 
 	sigc::signal<void, GdkEventButton*> m_signal_double_click;
 	sigc::signal<void, GdkEventButton*> m_signal_right_click;
+
+	void on_filter_set(const Group& group);
+	void on_state_filter_changed(Torrent::State state);
+
+	friend class UI;
 
 public:
 	enum Column
@@ -104,10 +111,7 @@ public:
 		COL_HASH
 	};
 
-	void set_filter_set_signal(sigc::signal<void, const Group&> signal);
-	void set_filter_unset_signal(sigc::signal<void> signal);
-
-	bool is_selected(const sha1_hash& hash);
+	bool is_selected(const libtorrent::sha1_hash& hash);
 	HashList get_selected_list();
 
 	void set_sort_column(Column col_id);
@@ -119,7 +123,7 @@ public:
 	sigc::signal<void, GdkEventButton*> signal_double_click();
 	sigc::signal<void, GdkEventButton*> signal_right_click();
 
-	TorrentList();
+	TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~TorrentList();
 };
 

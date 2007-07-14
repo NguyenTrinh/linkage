@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2007	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,9 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define TORRENT_MENU_HH
 
 #include <gtkmm/menu.h>
+#include <libglademm.h>
+
+#include "Group.hh"
 
 class TorrentMenu : public Gtk::Menu
 {
+	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 	Gtk::Menu* submenu_groups;
 
 	sigc::signal<void> m_signal_open;
@@ -35,7 +40,9 @@ class TorrentMenu : public Gtk::Menu
 	sigc::signal<void, bool> m_signal_remove;
 	sigc::signal<void> m_signal_check;
 
-	void on_settings();
+	void on_groups_changed(const std::list<Group>& groups);
+
+	friend class UI;
 
 public:
 	sigc::signal<void> signal_open();
@@ -48,7 +55,7 @@ public:
 	sigc::signal<void, bool> signal_remove();
 	sigc::signal<void> signal_check();
 	
-	TorrentMenu();
+	TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~TorrentMenu();
 };
 

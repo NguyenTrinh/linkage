@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2006	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,50 +22,36 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <sigc++/signal.h>
 #include <glibmm/ustring.h>
 
-#ifndef HAVE_GLIBMM_KEYFILE_H
-#include <gtkmm_extra/keyfile.h>
-#else
-#include <glibmm/keyfile.h>
-#endif
+#include <gconfmm.h>
 
 #include "linkage/RefCounter.hh"
 
-typedef Glib::ArrayHandle<Glib::ustring> UStringArray;
-typedef Glib::ArrayHandle<int> IntArray;
-typedef Glib::ArrayHandle<bool> BoolArray;
-
-enum { NUM_DEFAULT_GROUPS = 4 };
+typedef Gnome::Conf::SListHandle_ValueString UStringArray;
+typedef Gnome::Conf::SListHandle_ValueInt IntArray;
+typedef Gnome::Conf::SListHandle_ValueBool BoolArray;
 
 class SettingsManager : public RefCounter<SettingsManager>
 {
-	Glib::KeyFile* keyfile;
-	Glib::KeyFile* fallback;
-
-	sigc::signal<void> m_signal_update_settings;
-	
-	static Glib::ustring defaults;
-	
 	SettingsManager();
 
+	Glib::RefPtr<Gnome::Conf::Client> gconf;
+	
+	sigc::signal<void> m_signal_update_settings;
+	
 public: 
-	Glib::ustring get_string(const Glib::ustring& group, const Glib::ustring& key) const;
-	int get_int(const Glib::ustring& group, const Glib::ustring& key) const;
-	bool get_bool(const Glib::ustring& group, const Glib::ustring& key) const;
-	UStringArray get_string_list(const Glib::ustring& group, const Glib::ustring& key) const;
-	IntArray get_int_list(const Glib::ustring& group, const Glib::ustring& key) const;
+	Glib::ustring get_string(const Glib::ustring& path) const;
+	int get_int(const Glib::ustring& path) const;
+	double get_float(const Glib::ustring& path) const;
+	bool get_bool(const Glib::ustring& path) const;
+	UStringArray get_string_list(const Glib::ustring& path) const;
+	IntArray get_int_list(const Glib::ustring& path) const;
 	
-	void set(const Glib::ustring& group, const Glib::ustring& key, const Glib::ustring& value);
-	void set(const Glib::ustring& group, const Glib::ustring& key, int value);
-	void set(const Glib::ustring& group, const Glib::ustring& key, bool value);
-	void set(const Glib::ustring& group, const Glib::ustring& key, UStringArray values);
-	void set(const Glib::ustring& group, const Glib::ustring& key, IntArray values);
-
-	void remove_group(const Glib::ustring& group);
-	
-	UStringArray get_groups() const;
-	UStringArray get_keys(const Glib::ustring& group) const;
-	
-	bool has_group(const Glib::ustring& group) const;
+	void set(const Glib::ustring& path, const Glib::ustring& value);
+	void set(const Glib::ustring& path, const int value);
+	void set(const Glib::ustring& path, const double value);
+	void set(const Glib::ustring& path, const bool value);
+	void set(const Glib::ustring& path, const Glib::SListHandle<Glib::ustring> &values);
+	void set(const Glib::ustring& path, const Gnome::Conf::Client::SListHandleInts &values);
 	
 	sigc::signal<void> signal_update_settings();
 	

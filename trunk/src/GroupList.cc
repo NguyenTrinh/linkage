@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2007	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -16,113 +17,135 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <libtorrent/entry.hpp>
+
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
 #include "linkage/SettingsManager.hh"
+
 #include "GroupList.hh"
 
-GroupList::GroupList()
+GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::TreeView(cobject),
+	glade_xml(refGlade)
 {
-	m_all = manage(new Gtk::RadioButton("All"));
-	m_all->signal_toggled().connect(sigc::mem_fun(this, &GroupList::on_all_toggled));
-	pack_start(*m_all, false, false);
+	model = Gtk::ListStore::create(columns);
 
-	on_settings();
+	set_model(model);
 
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &GroupList::on_settings));
-	
+	append_column("Name", columns.name);
+	Gtk::TreeViewColumn* column = get_column(0);
+	Gtk::CellRenderer* renderer = column->get_first_cell_renderer();
+	column->set_cell_data_func(*renderer, sigc::mem_fun(this, &GroupList::format_name));
+
+	m_cur_state = Torrent::NONE;
+
+	/* Add the "All" filter with an invalid group */
+	Gtk::TreeRow row = *(model->append());
+	row[columns.name] = "All";
+	row[columns.group] = Group();
+
+	get_selection()->signal_changed().connect(sigc::mem_fun(this, &GroupList::on_selection_changed));
+
 	show_all_children();
 }
 
 GroupList::~GroupList()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
+	Glib::ustring selected;
+	Gtk::TreeIter iter = get_selection()->get_selected();
+	if (iter)
 	{
-		Group* group = iter->first;
-		
-		std::list<Glib::ustring> info;
-		std::list<Group::Filter> filters = group->get_filters();
-
-		for (std::list<Group::Filter>::iterator giter = filters.begin();
-					giter != filters.end(); ++giter)
-		{
-			Group::Filter f = *giter;
-			info.push_back(f.filter);
-			info.push_back(str(f.eval));
-			info.push_back(str(f.tag));
-		}
-
-		sm->set("Groups", group->get_name(), UStringArray(info));
-
-		Gtk::RadioButton* radio = iter->second;
-		remove(*radio);
-		delete radio;
-		delete group;
+		Gtk::TreeRow row = *iter;
+		selected = row[columns.name];
 	}
-	m_map.clear();
+	Engine::get_settings_manager()->set("ui/active_group", selected);
 }
 
-void GroupList::on_group_toggled(Group* group)
+void GroupList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
 {
-	m_signal_filter_set.emit(*group);
+	Gtk::TreeRow row = *iter;
+	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
+
+	cell_t->property_text() = row[columns.name] + " (" + str(row[columns.num]) + ")";
 }
 
-void GroupList::on_all_toggled()
+
+void GroupList::on_selection_changed()
 {
-	m_signal_filter_unset.emit();
+	Gtk::TreeIter iter = get_selection()->get_selected();
+	if (iter)
+	{
+		Gtk::TreeRow row = *iter;
+		m_signal_filter_set.emit(row[columns.group]);
+	}
 }
 
-void GroupList::on_settings()
+void GroupList::on_state_filter_changed(Torrent::State state)
 {
-	Glib::ustring active_group;
-	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
+	m_cur_state = state;
+}
+
+void GroupList::on_groups_changed(const std::list<Group>& groups)
+{
+	// find selected name
+	Gtk::TreeIter iter = get_selection()->get_selected();
+	Glib::ustring selected;
+	if (iter)
 	{
-		Gtk::RadioButton* radio = iter->second;
-		Group* group = iter->first;
-		if (radio->get_active())
-			active_group = group->get_name();
-		remove(*radio);
-		delete radio;
-		delete group;
+		Gtk::TreeRow row = *iter;
+		selected = row[columns.name];
 	}
-	m_map.clear();
 
-	bool all_active = true;
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	std::list<Glib::ustring> keys = sm->get_keys("Groups");
-	for (std::list<Glib::ustring>::iterator iter = keys.begin();
-				iter != keys.end(); ++iter)
+	// clear list
+	Gtk::TreeNodeChildren children = model->children();
+	for (Gtk::TreeIter i = children.begin(); i != children.end();)
 	{
-		std::vector<Glib::ustring> info = sm->get_string_list("Groups", *iter);
-
-		if ((info.size() % 3) != 0)
-			continue;
-
-		std::list<Group::Filter> filters;
-		for (int i = 0; i < info.size(); i+=3)
-		{
-			Glib::ustring filter = info[i];
-			Group::EvalType eval = Group::EvalType(std::atoi(info[i+1].c_str()));
-			Group::TagType tag = Group::TagType(std::atoi(info[i+2].c_str()));
-			filters.push_back(Group::Filter(filter, tag, eval));
-		}
-		
-		Group* group = new Group(*iter, filters);
-		Gtk::RadioButtonGroup radio_group = m_all->get_group();
-		Gtk::RadioButton* radio = new Gtk::RadioButton(radio_group, group->get_name());
-		m_map[group] = radio;
-		radio->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &GroupList::on_group_toggled), group));
-		if (active_group == group->get_name())
-		{
-			radio->set_active(true);
-			all_active = false;
-		}
-		pack_start(*radio, false, false);
-		radio->show();
+		Gtk::TreeRow row = *i;
+		Group group = row[columns.group];
+		/* Don't delete "All" */
+		if (group.is_valid())
+			i = model->erase(i);
+		else
+			i++;
 	}
-	if (all_active)
-		m_all->set_active(true);
+
+	// add new groups
+	for (std::list<Group>::const_iterator i = groups.begin(); i != groups.end(); ++i)
+	{
+		Group group = *i;
+		Gtk::TreeRow row = *(model->append());
+		row[columns.name] = group.get_name();
+		row[columns.group] = group;
+	}
+
+	// select previously selected group if it still exists
+	if (!selected.empty())
+	{
+		children = model->children();
+		for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
+		{
+			Gtk::TreeRow row = *i;
+			Glib::ustring name = row[columns.name];
+			if (name == selected)
+				get_selection()->select(i);
+		}
+	}
+	else
+	{
+		Glib::ustring active = Engine::get_settings_manager()->get_string("ui/active_group");
+		if (!active.empty())
+		{
+			Gtk::TreeNodeChildren children = model->children();
+			for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
+			{
+				Gtk::TreeRow row = *i;
+				Glib::ustring name = row[columns.name];
+				if (name == active)
+					get_selection()->select(i);
+			}
+		}
+	}
 }
 
 sigc::signal<void, const Group&> GroupList::signal_filter_set()
@@ -130,29 +153,31 @@ sigc::signal<void, const Group&> GroupList::signal_filter_set()
 	return m_signal_filter_set;
 }
 
-sigc::signal<void> GroupList::signal_filter_unset()
-{
-	return m_signal_filter_unset;
-}
-
 void GroupList::update()
 {
+	/* FIXME: group.eval() is duplicated in TorrentList, possible performance hit */
 	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
 
-	for (GroupMap::iterator iter = m_map.begin(); iter != m_map.end(); ++iter)
+	Gtk::TreeNodeChildren children = model->children();
+	for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
 	{
-		Group* group = iter->first;
-		int n = 0;
-		for (TorrentManager::TorrentList::iterator titer = torrents.begin();
-					titer != torrents.end(); ++titer)
+		Gtk::TreeRow row = *i;
+		Group group = row[columns.group];
+		if (group.is_valid())
 		{
-			if (group->eval(*titer))
-				n++;
+			unsigned int n = 0;
+			for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
+			{
+				WeakPtr<Torrent> torrent = *j;
+				if (m_cur_state && m_cur_state != torrent->get_state())
+					continue;
+				if (group.eval(torrent))
+					n++;
+			}
+			row[columns.num] = n;
 		}
-		Gtk::RadioButton* radio = iter->second;
-
-		radio->set_label(group->get_name() + " (" + str(n) + ")");
+		else
+			row[columns.num] = torrents.size();
 	}
-	
-	m_all->set_label("All (" + str(torrents.size()) + ")");
 }
+

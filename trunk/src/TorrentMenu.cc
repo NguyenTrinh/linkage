@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2007	Christian Lundgren
+Copyright (C) 2006-2007   Christian Lundgren
+Copyright (C) 2007        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,75 +22,44 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/menuitem.h>
 #include <gtkmm/imagemenuitem.h>
 #include <gtkmm/separatormenuitem.h>
+#include <gtkmm/label.h>
+
+#include <libtorrent/entry.hpp>
 
 #include "linkage/Engine.hh"
 #include "linkage/SettingsManager.hh"
 
 #include "TorrentMenu.hh"
-#include "AlignedLabel.hh"
 
-TorrentMenu::TorrentMenu()
+TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::Menu(cobject),
+	glade_xml(refGlade)
 {
-	/* FIXME: add pretty icons */
-	Gtk::Image* image = manage(new Gtk::Image(Gtk::Stock::OPEN, Gtk::ICON_SIZE_MENU));
-	Gtk::ImageMenuItem* imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Open location"));
-	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_open, &sigc::signal<void>::emit));
-	append(*imageitem);
-	image = manage(new Gtk::Image(Gtk::Stock::DIALOG_INFO, Gtk::ICON_SIZE_MENU));
-	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Details"));
-	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_info, &sigc::signal<void>::emit));
-	append(*imageitem);
-	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
-	image = manage(new Gtk::Image(Gtk::Stock::GO_UP, Gtk::ICON_SIZE_MENU));
-	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Move up"));
-	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_up, &sigc::signal<void>::emit));
-	append(*imageitem);
-	image = manage(new Gtk::Image(Gtk::Stock::GO_DOWN, Gtk::ICON_SIZE_MENU));
-	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Move down"));
-	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_down, &sigc::signal<void>::emit));
-	append(*imageitem);
-	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
-	image = manage(new Gtk::Image(Gtk::Stock::APPLY, Gtk::ICON_SIZE_MENU));
-	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Start"));
-	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_start, &sigc::signal<void>::emit));
-	append(*imageitem);
-	image = manage(new Gtk::Image(Gtk::Stock::STOP, Gtk::ICON_SIZE_MENU));
-	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Stop"));
-	imageitem->signal_activate().connect(sigc::mem_fun(&m_signal_stop, &sigc::signal<void>::emit));
-	append(*imageitem);
-	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	submenu_groups = Gtk::manage(new Gtk::Menu());
-	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Group"));
+	Gtk::MenuItem* item;
+	glade_xml->get_widget("torrent_menu_groups", item);
 	item->set_submenu(*submenu_groups);
-	append(*item);
-	Gtk::Menu* submenu_advanced = Gtk::manage(new Gtk::Menu());
-	item = Gtk::manage(new Gtk::MenuItem("Set content location"));
-	submenu_advanced->append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Move content"));
-	submenu_advanced->append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Advanced"));
-	item->set_submenu(*submenu_advanced);
-	append(*item);
-	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
-	Gtk::Menu* submenu_remove = Gtk::manage(new Gtk::Menu());
-	item = Gtk::manage(new Gtk::MenuItem("Torrent"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_remove, &sigc::signal<void, bool>::emit), false));
-	submenu_remove->append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Torrent and content"));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_remove, &sigc::signal<void, bool>::emit), true));
-	submenu_remove->append(*item);
-	image = manage(new Gtk::Image(Gtk::Stock::REMOVE, Gtk::ICON_SIZE_MENU));
-	imageitem = Gtk::manage(new Gtk::ImageMenuItem(*image, "Remove"));
-	imageitem->set_submenu(*submenu_remove);
-	append(*imageitem);
-	append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
-	item = Gtk::manage(new Gtk::MenuItem("Check files"));
-	item->signal_activate().connect(sigc::mem_fun(&m_signal_check, &sigc::signal<void>::emit));
-	append(*item);
 	
-	on_settings();
-
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &TorrentMenu::on_settings));
+	glade_xml->connect_clicked
+		("torrent_menu_open", sigc::mem_fun(&m_signal_open, &sigc::signal<void>::emit));
+	glade_xml->connect_clicked
+		("torrent_menu_details", sigc::mem_fun(&m_signal_info, &sigc::signal<void>::emit));
+	glade_xml->connect_clicked
+		("torrent_menu_up", sigc::mem_fun(&m_signal_up, &sigc::signal<void>::emit));
+	glade_xml->connect_clicked
+		("torrent_menu_down", sigc::mem_fun(&m_signal_down, &sigc::signal<void>::emit));
+	glade_xml->connect_clicked
+		("torrent_menu_start", sigc::mem_fun(&m_signal_start, &sigc::signal<void>::emit));
+	glade_xml->connect_clicked
+		("torrent_menu_stop", sigc::mem_fun(&m_signal_stop, &sigc::signal<void>::emit));
+	glade_xml->connect_clicked
+		("torrent_menu_remove", sigc::bind(sigc::mem_fun
+		(&m_signal_remove, &sigc::signal<void, bool>::emit), false));
+	glade_xml->connect_clicked
+		("torrent_menu_remove_content", sigc::bind(sigc::mem_fun
+		(&m_signal_remove, &sigc::signal<void, bool>::emit), true));
+	glade_xml->connect_clicked
+		("torrent_menu_check", sigc::mem_fun(&m_signal_check, &sigc::signal<void>::emit));
 
 	show_all_children();
 }
@@ -98,7 +68,7 @@ TorrentMenu::~TorrentMenu()
 {
 }
 
-void TorrentMenu::on_settings()
+void TorrentMenu::on_groups_changed(const std::list<Group>& groups)
 {
 	std::list<Gtk::Widget*> children = submenu_groups->get_children();
 	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
@@ -109,19 +79,19 @@ void TorrentMenu::on_settings()
 		delete widget;
 	}
 	
-	AlignedLabel* label = Gtk::manage(new AlignedLabel());
+	Gtk::Label* label = Gtk::manage(new Gtk::Label());
 	label->set_markup("<i>None</i>");
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(*label));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), ""));
 	submenu_groups->append(*item);
 	submenu_groups->append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	
-	std::list<Glib::ustring> groups = Engine::get_settings_manager()->get_keys("Groups");
-	for (std::list<Glib::ustring>::iterator iter = groups.begin();
-				iter != groups.end(); ++iter)
+	for (std::list<Group>::const_iterator iter = groups.begin();
+			iter != groups.end(); ++iter)
 	{
-		item = Gtk::manage(new Gtk::MenuItem(*iter));
-		item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), *iter));
+		Group group = *iter;
+		item = Gtk::manage(new Gtk::MenuItem(group.get_name()));
+		item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), group.get_name()));
 		submenu_groups->append(*item);
 	}
 

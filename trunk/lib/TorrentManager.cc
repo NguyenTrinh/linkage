@@ -47,13 +47,13 @@ TorrentManager::~TorrentManager()
 {
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
-		sha1_hash hash = iter->first;
+		libtorrent::sha1_hash hash = iter->first;
 		Torrent* torrent = iter->second;
 
 		Glib::ustring hash_str = str(hash);
 
-		entry e = torrent->get_resume_entry(!torrent->is_stopped());
-		save_entry(hash, e, ".resume");
+		libtorrent::entry e = torrent->get_resume_entry(!torrent->is_stopped());
+		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 		if (!torrent->is_stopped())
 			m_session_manager->remove_torrent(torrent->get_handle());
 
@@ -61,12 +61,12 @@ TorrentManager::~TorrentManager()
 	}
 }
 
-sigc::signal<void, const sha1_hash&, const Glib::ustring&, unsigned int> TorrentManager::signal_added()
+sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, unsigned int> TorrentManager::signal_added()
 {
 	return m_signal_added;
 }
 
-sigc::signal<void, const sha1_hash&> TorrentManager::signal_removed()
+sigc::signal<void, const libtorrent::sha1_hash&> TorrentManager::signal_removed()
 {
 	return m_signal_removed;
 }
@@ -80,13 +80,13 @@ void TorrentManager::on_settings()
 	check_queue();
 }
 
-void TorrentManager::on_tracker_announce(const sha1_hash& hash, const Glib::ustring& msg)
+void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
 	if (exists(hash) && !Glib::str_has_suffix(msg, "event=stopped"))
 		m_torrents[hash]->set_tracker_reply("Announcing");
 }
 
-void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring& reply, int peers)
+void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int peers)
 {
 	if (exists(hash))
 	{
@@ -95,13 +95,13 @@ void TorrentManager::on_tracker_reply(const sha1_hash& hash, const Glib::ustring
 	}
 }
 
-void TorrentManager::on_tracker_warning(const sha1_hash& hash, const Glib::ustring& reply)
+void TorrentManager::on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& reply)
 {
 	if (exists(hash) && !Glib::str_has_prefix(reply, "Redirecting to \""))
 		m_torrents[hash]->set_tracker_reply(reply);
 }
 
-void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustring& reply, int code, int times)
+void TorrentManager::on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int code, int times)
 {
 	if (exists(hash))
 	{
@@ -118,7 +118,7 @@ void TorrentManager::on_tracker_failed(const sha1_hash& hash, const Glib::ustrin
 	}
 }
 
-void TorrentManager::on_update_queue(const sha1_hash& hash, const Glib::ustring& msg)
+void TorrentManager::on_update_queue(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
 	check_queue();
 }
@@ -135,18 +135,16 @@ void TorrentManager::set_torrent_settings(Torrent* torrent)
 	if (!torrent->is_stopped())
 	{
 		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-		torrent_handle handle = torrent->get_handle();
-		float ratio;
-		std::istringstream(sm->get_string("Network", "SeedRatio")) >> ratio;
-		handle.set_ratio(ratio);
-		handle.set_max_uploads(sm->get_int("Network", "MaxTorrentUploads"));
-		handle.set_max_connections(sm->get_int("Network", "MaxTorrentConnections"));
+		libtorrent::torrent_handle handle = torrent->get_handle();
+		handle.set_ratio(sm->get_float("network/seed_ratio"));
+		handle.set_max_uploads(sm->get_int("network/max_torrent_uploads"));
+		handle.set_max_connections(sm->get_int("network/max_torrent_connections"));
 		/* FIXME: Make this configurable */
 		handle.resolve_countries(true);
 	}
 }
 
-void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
+void TorrentManager::set_torrent_position(const libtorrent::sha1_hash& hash, int diff)
 {
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
@@ -158,7 +156,7 @@ void TorrentManager::set_torrent_position(const sha1_hash& hash, int diff)
 	check_queue();
 }
 
-bool TorrentManager::exists(const sha1_hash& hash)
+bool TorrentManager::exists(const libtorrent::sha1_hash& hash)
 {
 	return (m_torrents.find(hash) != m_torrents.end());
 }
@@ -173,7 +171,7 @@ bool TorrentManager::exists(const Glib::ustring& hash_str)
 	return false;
 }
 
-WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info& info)
+WeakPtr<Torrent> TorrentManager::add_torrent(const libtorrent::entry& e, const libtorrent::torrent_info& info)
 {
 	Torrent::ResumeInfo ri(e, info);
 
@@ -242,7 +240,7 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	torrent->property_handle().signal_changed().connect(sigc::bind(
 		sigc::mem_fun(this, &TorrentManager::on_handle_changed), torrent));
 
-	sha1_hash hash = info.info_hash();
+	libtorrent::sha1_hash hash = info.info_hash();
 	m_torrents[hash] = torrent;
 
 	m_signal_added.emit(hash, torrent->get_name(), torrent->get_position());
@@ -250,7 +248,7 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const entry& e, const torrent_info&
 	return WeakPtr<Torrent>(torrent);
 }
 
-void TorrentManager::remove_torrent(const sha1_hash& hash)
+void TorrentManager::remove_torrent(const libtorrent::sha1_hash& hash)
 {
 	int pos = m_torrents[hash]->get_position();
 	delete m_torrents[hash];
@@ -274,9 +272,9 @@ void TorrentManager::remove_torrent(const sha1_hash& hash)
 	check_queue();
 }
 
-torrent_handle TorrentManager::get_handle(const sha1_hash& hash)
+libtorrent::torrent_handle TorrentManager::get_handle(const libtorrent::sha1_hash& hash)
 {
-	torrent_handle handle;
+	libtorrent::torrent_handle handle;
 
 	if (exists(hash))
 		handle = m_torrents[hash]->get_handle();
@@ -284,7 +282,7 @@ torrent_handle TorrentManager::get_handle(const sha1_hash& hash)
 	return handle;
 }
 
-WeakPtr<Torrent> TorrentManager::get_torrent(const sha1_hash& hash)
+WeakPtr<Torrent> TorrentManager::get_torrent(const libtorrent::sha1_hash& hash)
 {
 	if (exists(hash))
 		return WeakPtr<Torrent>(m_torrents[hash]);
@@ -328,7 +326,7 @@ void TorrentManager::check_queue()
 {
 	unsigned int last_active = 0;
 	unsigned int num_active = 0;
-	unsigned int max_active = Engine::get_settings_manager()->get_int("Network", "MaxActive");
+	unsigned int max_active = Engine::get_settings_manager()->get_int("network/max_active");
 	std::vector<Torrent*> torrents;
 	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{

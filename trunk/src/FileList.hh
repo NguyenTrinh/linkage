@@ -23,11 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 //#include <gtkmm/checkmenuitem.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
+#include <libglademm.h>
 
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
-
-using namespace libtorrent;
 
 class FileList : public Gtk::TreeView
 {
@@ -47,8 +46,8 @@ class FileList : public Gtk::TreeView
 		Gtk::TreeModelColumn<bool> filter;
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<std::vector<bool> > map;
-		Gtk::TreeModelColumn<size_type> done;
-		Gtk::TreeModelColumn<size_type> size;
+		Gtk::TreeModelColumn<libtorrent::size_type> done;
+		Gtk::TreeModelColumn<libtorrent::size_type> size;
 		Gtk::TreeModelColumn<unsigned int> index;
 	};
 	
@@ -63,9 +62,9 @@ class FileList : public Gtk::TreeView
 	//void on_set_priority(Priority p);
 	//void on_menu_filter_toggled();
 	void on_filter_toggled(const Glib::ustring& path);
-	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<size_type>& column);
+	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<libtorrent::size_type>& column);
 	
-	sha1_hash current_hash;
+	libtorrent::sha1_hash current_hash;
 	
 	int compare_piece_map(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
 	
@@ -73,7 +72,7 @@ public:
 	void clear();
 	void update(const WeakPtr<Torrent>& torrent);
 	
-	FileList();
+	FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~FileList();
 };
 

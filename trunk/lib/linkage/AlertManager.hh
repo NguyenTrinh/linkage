@@ -28,36 +28,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/RefCounter.hh"
 
-using namespace libtorrent;
-
 class AlertManager : public RefCounter<AlertManager>
 {
 	void check_alerts();
 
 	sigc::signal<void, const Glib::ustring&> m_signal_listen_failed;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> m_signal_tracker_failed;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> m_signal_tracker_reply;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_tracker_warning;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_tracker_announce;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_torrent_finished;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_file_error;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> m_signal_fastresume_rejected;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> m_signal_hash_failed;
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&> m_signal_peer_ban;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int, int> m_signal_tracker_failed;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int> m_signal_tracker_reply;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> m_signal_tracker_warning;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> m_signal_tracker_announce;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> m_signal_torrent_finished;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> m_signal_file_error;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> m_signal_fastresume_rejected;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int> m_signal_hash_failed;
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, const Glib::ustring&> m_signal_peer_ban;
 	
 	AlertManager();
 	
 public:
 	sigc::signal<void, const Glib::ustring&> signal_listen_failed();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int, int> signal_tracker_failed();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> signal_tracker_reply();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_tracker_warning();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_tracker_announce();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_torrent_finished();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_file_error();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&> signal_fastresume_rejected();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, int> signal_hash_failed();
-	sigc::signal<void, const sha1_hash&, const Glib::ustring&, const Glib::ustring&> signal_peer_ban();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int, int> signal_tracker_failed();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int> signal_tracker_reply();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> signal_tracker_warning();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> signal_tracker_announce();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> signal_torrent_finished();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> signal_file_error();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> signal_fastresume_rejected();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int> signal_hash_failed();
+	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, const Glib::ustring&> signal_peer_ban();
 	
 	static Glib::RefPtr<AlertManager> create();
 	~AlertManager();

@@ -28,7 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
 
-FileList::FileList()
+FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::TreeView(cobject)
 {
 	model = Gtk::ListStore::create(columns);
 
@@ -184,7 +185,7 @@ void FileList::on_filter_toggled(const Glib::ustring& path)
 	}
 }
 
-void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<size_type>& column)
+void FileList::format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<libtorrent::size_type>& column)
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
@@ -195,9 +196,9 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 {
 	current_hash = torrent->get_hash();
 
-	torrent_handle handle = torrent->get_handle();
-	torrent_info info = torrent->get_info();
-	torrent_status status = torrent->get_status();
+	libtorrent::torrent_handle handle = torrent->get_handle();
+	libtorrent::torrent_info info = torrent->get_info();
+	libtorrent::torrent_status status = torrent->get_status();
 	std::vector<bool> pieces(info.num_pieces(), false);
 	if (status.pieces)
 		pieces = *status.pieces;
@@ -231,8 +232,8 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 		
 		std::vector<bool> map;
 
-		file_entry file = info.file_at(row[columns.index]);
-		peer_request file_info = info.map_file(row[columns.index], 0, file.size);
+		libtorrent::file_entry file = info.file_at(row[columns.index]);
+		libtorrent::peer_request file_info = info.map_file(row[columns.index], 0, file.size);
 
 		unsigned int byte_pos_in_file = 0;
 		unsigned int piece_index = file_info.piece;
@@ -250,7 +251,7 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 		row[columns.filter] = filter[row[columns.index]];
 		row[columns.name] = file.path.string();
 		row[columns.map] = map;
-		row[columns.done] = (size_type)(fp[row[columns.index]] * file.size);
+		row[columns.done] = (libtorrent::size_type)(fp[row[columns.index]] * file.size);
 		row[columns.size] = file.size;
 	}
 	model->set_sort_column(id, order);

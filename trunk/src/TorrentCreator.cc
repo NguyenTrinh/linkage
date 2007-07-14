@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "config.h"
 
 #include <fstream>
-#include <sys/stat.h>
 
 #include <glib/gstdio.h>
 #include <gtkmm/main.h>
@@ -30,6 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/image.h>
 #include <gtkmm/radiobuttongroup.h>
 #include <gtkmm/messagedialog.h>
+#include <gtkmm/liststore.h>
+#include <gtkmm/treemodel.h>
 
 #include "libtorrent/entry.hpp"
 #include "libtorrent/bencode.hpp"
@@ -39,88 +40,45 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "libtorrent/file_pool.hpp"
 
 #include "TorrentCreator.hh"
+#include "linkage/Engine.hh"
 
-TorrentCreator::TorrentCreator(Gtk::Window *parent)
+TorrentCreator::TorrentCreator(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
+	: Gtk::Window(cobject),
+		glade_xml(refGlade)
 {
-	set_title("New");
-	set_transient_for(*parent);
 	set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
 	set_skip_taskbar_hint(true);
 	
-	save_dialog = new TorrentSaveDialog(parent);
+	save_dialog = new TorrentSaveDialog(this);
+
+	Gtk::Button* button = NULL;
+	glade_xml->get_widget("button_save", button);
+	button->signal_clicked().connect(sigc::mem_fun(this, &TorrentCreator::on_button_save));
+
+	Gtk::RadioButton *radio_file, *radio_folder;
+	glade_xml->get_widget("radio_file", radio_file);
+	radio_file->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &TorrentCreator::on_radio_toggled), CONTENT_FILE));
+	glade_xml->get_widget("radio_folder", radio_folder);
+	radio_folder->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &TorrentCreator::on_radio_toggled), CONTENT_FOLDER));
 	
-	Gtk::VBox* main_box = manage(new Gtk::VBox());
-	
-	Gtk::HBox* title_box = manage(new Gtk::HBox());
-	Gtk::Image* image = manage(new Gtk::Image(Gtk::Stock::NEW, Gtk::ICON_SIZE_DIALOG));
-	title_box->pack_start(*image, false, false);
-	Gtk::Label* label = manage(new Gtk::Label("", 0.05, 0.5));
-	label->set_use_markup(true);
-	label->set_markup("<big><b>Create torrent</b></big>");
-	title_box->pack_start(*label, true, true);
-	
-	main_box->pack_start(*title_box, false, false);
-	
-	Gtk::Table* table = manage(new Gtk::Table(7, 2));
-	table->set_spacings(10);
-	table->set_border_width(5);
-	
-	label = manage(new Gtk::Label("Tracker url:", 0.0, 0.5));
-	table->attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::SHRINK);
-	entry_tracker = manage(new Gtk::Entry());
-	table->attach(*entry_tracker, 1, 2, 0, 1, Gtk::FILL|Gtk::EXPAND, Gtk::SHRINK);
-	label = manage(new Gtk::Label("Comment:", 0.0, 0.5));
-	table->attach(*label, 0, 1, 1, 2, Gtk::FILL, Gtk::SHRINK);
-	entry_comment = manage(new Gtk::Entry());
-	table->attach(*entry_comment, 1, 2, 1, 2, Gtk::FILL|Gtk::EXPAND, Gtk::SHRINK);
-	
-	Gtk::RadioButtonGroup group;
-	button_files = manage(new Gtk::FileChooserButton("Select file"));
-	
-	radio_file = manage(new Gtk::RadioButton("Single file"));
-	radio_file->set_group(group);
-	radio_file->signal_toggled().connect(sigc::mem_fun(this, &TorrentCreator::on_radio_toggled));
-	table->attach(*radio_file, 0, 1, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	radio_folder = manage(new Gtk::RadioButton("Folder"));
-	radio_folder->set_group(group);
-	radio_folder->signal_toggled().connect(sigc::mem_fun(this, &TorrentCreator::on_radio_toggled));
-	table->attach(*radio_folder, 1, 2, 2, 3, Gtk::FILL, Gtk::SHRINK);
-	
-	label = manage(new Gtk::Label("Piece size (kB):", 0.0, 0.5));
-	table->attach(*label, 0, 1, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	combo_size = manage(new Gtk::ComboBoxText());
-	/* FIXME: add "auto detect" option */
-	combo_size->append_text("32");
-	combo_size->append_text("64");
-	combo_size->append_text("128");
-	combo_size->append_text("256");
-	combo_size->append_text("512");
-	combo_size->append_text("1024");
-	combo_size->append_text("2048");
-	combo_size->set_active(3);
-	table->attach(*combo_size, 1, 2, 3, 4, Gtk::FILL, Gtk::SHRINK);
-	
-	table->attach(*button_files, 0, 2, 4, 5, Gtk::FILL, Gtk::SHRINK);
-	
-	check_seed = manage(new Gtk::CheckButton("Open for seeding"));
-	table->attach(*check_seed, 0, 1, 5, 6, Gtk::FILL, Gtk::SHRINK);
-	check_private = manage(new Gtk::CheckButton("Private tracker"));
-	table->attach(*check_private, 1, 2, 5, 6, Gtk::FILL, Gtk::SHRINK);
-	
-	progress_hashing = manage(new Gtk::ProgressBar());
-	table->attach(*progress_hashing, 0, 2, 6, 7, Gtk::FILL, Gtk::SHRINK);
-	
-	main_box->pack_start(*table, true, true);
-	
-	Gtk::HBox* hbox = manage(new Gtk::HBox());
-	button_save = manage(new Gtk::Button(Gtk::Stock::SAVE));
-	button_save->signal_clicked().connect(sigc::mem_fun(this, &TorrentCreator::on_button_save));
-	hbox->pack_end(*button_save, false, false);
-	main_box->pack_start(*hbox, false, false);
-	
-	add(*main_box);
-	
-	show_all_children();
+	glade_xml->get_widget("entry_tracker", entry_tracker);
+	glade_xml->get_widget("entry_comment", entry_comment);
+	glade_xml->get_widget("filechooserbutton", button_files);
+	glade_xml->get_widget("check_seed", check_seed);
+	glade_xml->get_widget("check_private", check_private);
+	glade_xml->get_widget("combo_pieces", combo_pieces);
+	glade_xml->get_widget("progressbar", progress_hashing);
+
+	Glib::RefPtr<Gtk::ListStore> model = Gtk::ListStore::create(columns);
+	combo_pieces->set_model(model);
+	for (int i = 64; i <= 4096; i *= 2)
+	{
+		Gtk::TreeRow row = *(model->append());
+		row[columns.size] = i;
+	}
+	combo_pieces->set_active(2);
+
+	//show_all_children();
 }
 
 TorrentCreator::~TorrentCreator()
@@ -137,30 +95,34 @@ bool TorrentCreator::on_delete_event(GdkEventAny*)
 	return true;
 }
 
-void TorrentCreator::on_radio_toggled()
+void TorrentCreator::on_radio_toggled(ContentType type)
 {
-	if (button_files->get_filename() != "")
+	if (!button_files->get_filename().empty())
 		button_files->unselect_all();
 		
-	if (radio_file->get_active())
-	{ 
-		button_files->set_action(Gtk::FILE_CHOOSER_ACTION_OPEN);
-		button_files->set_title("Select file");
-	}
-	else if (radio_folder->get_active())
+	switch (type)
 	{
-		button_files->set_action(Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
-		button_files->set_title("Select folder");
+		case CONTENT_FILE:
+			button_files->set_action(Gtk::FILE_CHOOSER_ACTION_OPEN);
+			button_files->set_title("Select file");
+			break;
+		case CONTENT_FOLDER:
+			button_files->set_action(Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+			button_files->set_title("Select folder");
+			break;
 	}
 }
 
 void TorrentCreator::on_button_save()
 {
+	using namespace libtorrent;
+
 	Glib::ustring tracker = entry_tracker->get_text();
 	Glib::ustring comment = entry_comment->get_text();
 	Glib::ustring content = button_files->get_filename();
 	bool priv = check_private->get_active();
-	unsigned int piece_size = std::atoi(combo_size->get_active_text().c_str())*1024;
+	Gtk::TreeRow row = *(combo_pieces->get_active());
+	int piece_size = row[columns.size] * 1024;
 	
 	if (tracker.empty() || content.empty())
 	{
@@ -184,15 +146,7 @@ void TorrentCreator::on_button_save()
 
 		progress_hashing->set_text("Hashing...");
 
-		entry_tracker->set_sensitive(false);
-		entry_comment->set_sensitive(false);
-		radio_file->set_sensitive(false);
-		radio_folder->set_sensitive(false);
-		button_files->set_sensitive(false);
-		combo_size->set_sensitive(false);
-		check_seed->set_sensitive(false);
-		check_private->set_sensitive(false);
-		button_save->set_sensitive(false);
+		set_sensitive(false);
 
 		file_pool fp;
 		storage st(info, root.c_str(), fp);
@@ -212,28 +166,30 @@ void TorrentCreator::on_button_save()
 		
 		entry e = info.create_torrent();
 
-		entry_tracker->set_sensitive(true);
-		entry_comment->set_sensitive(true);
-		radio_file->set_sensitive(true);
-		radio_folder->set_sensitive(true);
-		button_files->set_sensitive(true);
-		combo_size->set_sensitive(true);
-		check_seed->set_sensitive(true);
-		check_private->set_sensitive(true);
-		button_save->set_sensitive(true);
+		set_sensitive(true);
 		
 		save_dialog->set_current_name(content + ".torrent");
 		if (save_dialog->run() == Gtk::RESPONSE_OK)
 		{
+			save_dialog->hide();
 			Glib::ustring file = save_dialog->get_filename();
 			if (!file.empty())
 			{
 				std::ofstream fout;
 				fout.open(file.c_str(), std::ios_base::binary);
 				bencode(std::ostream_iterator<char>(fout), e);
+
+				if (check_seed->get_active())
+				{
+					entry::dictionary_type er;
+					er["path"] = root;
+					er["downloaded"] = info.total_size();
+					save_entry(Glib::build_filename(get_data_dir(), str(info.info_hash()) + ".resume"), er);
+
+					Engine::get_session_manager()->open_torrent(file, root);
+				}
 			}
 		}
-		save_dialog->hide();
 		hide();
 		entry_tracker->set_text("");
 		entry_comment->set_text("");
@@ -243,9 +199,7 @@ void TorrentCreator::on_button_save()
 	}
 }
 
-void TorrentCreator::add_files(torrent_info& info, 
-															 const Glib::ustring& root, 
-															 const Glib::ustring& child)
+void TorrentCreator::add_files(libtorrent::torrent_info& info, const Glib::ustring& root, const Glib::ustring& child)
 {
 	Glib::ustring path = root;
 	if (root != child)
@@ -274,7 +228,7 @@ bool TorrentCreator::get_finished()
 }
 
 TorrentCreator::TorrentSaveDialog::TorrentSaveDialog(Gtk::Window *parent)
-: Gtk::FileChooserDialog(*parent, "Save torrent", Gtk::FILE_CHOOSER_ACTION_SAVE)
+	: Gtk::FileChooserDialog(*parent, "Save torrent", Gtk::FILE_CHOOSER_ACTION_SAVE)
 {
 	Gtk::Button *b = add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	b->signal_clicked().connect(sigc::mem_fun(this, &TorrentSaveDialog::hide));
