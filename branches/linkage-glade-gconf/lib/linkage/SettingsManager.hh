@@ -21,9 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <sigc++/signal.h>
 #include <glibmm/ustring.h>
-#include <gtkmm_extra/keyfile.h>
+
 #include <gconfmm.h>
-#include <libtorrent/entry.hpp>
 
 #include "linkage/RefCounter.hh"
 
@@ -55,9 +54,6 @@ public:
 	void set(const Glib::ustring& path, const bool value);
 	void set(const Glib::ustring& path, const Glib::SListHandle<Glib::ustring> &values);
 	void set(const Glib::ustring& path, const Gnome::Conf::Client::SListHandleInts &values);
-
-	void write_groups_data(const libtorrent::entry& ent);
-	void get_groups_data(libtorrent::entry& ent);
 	
 	sigc::signal<void> signal_update_settings();
 	

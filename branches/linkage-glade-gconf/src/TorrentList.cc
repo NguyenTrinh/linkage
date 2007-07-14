@@ -117,7 +117,7 @@ Glib::SignalProxy0<void> TorrentList::signal_changed()
 bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 {
 	Gtk::TreeRow row = *iter;
-	sha1_hash hash = row[columns.hash];
+	libtorrent::sha1_hash hash = row[columns.hash];
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
 		return false;
@@ -141,7 +141,7 @@ void TorrentList::on_state_filter_changed(Torrent::State state)
 	filter->refilter();
 }
 
-void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, unsigned int position)
+void TorrentList::on_added(const libtorrent::sha1_hash& hash, const Glib::ustring& name, unsigned int position)
 {
 	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("ui/torrent_view/selected");
 	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
@@ -156,13 +156,13 @@ void TorrentList::on_added(const sha1_hash& hash, const Glib::ustring& name, uns
 	update(torrent);
 }
 
-void TorrentList::on_removed(const sha1_hash& hash)
+void TorrentList::on_removed(const libtorrent::sha1_hash& hash)
 {
 	Gtk::TreeIter iter = get_iter(hash);
 	model->erase(iter);
 }
 
-Gtk::TreeIter TorrentList::get_iter(const sha1_hash& hash)
+Gtk::TreeIter TorrentList::get_iter(const libtorrent::sha1_hash& hash)
 {
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
@@ -173,7 +173,7 @@ Gtk::TreeIter TorrentList::get_iter(const sha1_hash& hash)
 	}
 }
 
-bool TorrentList::is_selected(const sha1_hash& hash)
+bool TorrentList::is_selected(const libtorrent::sha1_hash& hash)
 {
 	PathList paths = get_selection()->get_selected_rows();
 	for (PathList::iterator piter = paths.begin(); piter != paths.end(); ++piter)
@@ -290,7 +290,7 @@ Glib::ustring TorrentList::format_name(const WeakPtr<Torrent>& torrent)
 	ss << "<span foreground='" << color << "'><b>" << name.c_str() << "</b> ("
 			<< suffix_value(torrent->get_info().total_size()) << ")</span>\n";
 
-	torrent_status status = torrent->get_status();
+	libtorrent::torrent_status status = torrent->get_status();
 	if (state == Torrent::DOWNLOADING || state == Torrent::SEEDING || state == Torrent::FINISHED)
 	{
 		ss << status.num_seeds;
@@ -364,8 +364,8 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	row[columns.position] = torrent->get_position();
 	row[columns.state] = torrent->get_state_string();
 
-	size_type up = torrent->get_total_uploaded();
-	size_type down = torrent->get_total_downloaded();
+	libtorrent::size_type up = torrent->get_total_uploaded();
+	libtorrent::size_type down = torrent->get_total_downloaded();
 	
 	row[columns.down] = down;
 	row[columns.up] = up;
@@ -381,11 +381,11 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		return;
 	}
 
-	torrent_status status = torrent->get_status();
+	libtorrent::torrent_status status = torrent->get_status();
 
 	if (torrent->get_state() == Torrent::SEEDING)
 	{
-		size_type size = down - up;
+		libtorrent::size_type size = down - up;
 		if (down != 0)
 		{
 			float ratio = (1.0f*up)/(1.0f*down);

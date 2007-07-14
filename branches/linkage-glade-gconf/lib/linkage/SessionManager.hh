@@ -34,35 +34,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/RefCounter.hh"
 
-using namespace libtorrent;
-
-class SessionManager : public RefCounter<SessionManager>, public session
+class SessionManager : public RefCounter<SessionManager>, public libtorrent::session
 {
 	void on_settings();
 
-	bool decode(const Glib::ustring& file, entry& e);
-	bool decode(const Glib::ustring& file, entry& e, std::vector<char>& buffer);
+	bool decode(const Glib::ustring& file, libtorrent::entry& e);
+	bool decode(const Glib::ustring& file, libtorrent::entry& e, std::vector<char>& buffer);
 
-	void on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg);
+	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
-	sigc::signal<void, const Glib::ustring&, const sha1_hash&> m_signal_duplicate_torrent;
+	sigc::signal<void, const Glib::ustring&, const libtorrent::sha1_hash&> m_signal_duplicate_torrent;
 	
 	SessionManager();
 	
 public:
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_invalid_bencoding();
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_missing_file();
-	sigc::signal<void, const Glib::ustring&, const sha1_hash&> signal_duplicate_torrent();
+	sigc::signal<void, const Glib::ustring&, const libtorrent::sha1_hash&> signal_duplicate_torrent();
 
-	sha1_hash open_torrent(const Glib::ustring& file, const Glib::ustring& save_path);
-	sha1_hash resume_torrent(const Glib::ustring& hash_str);
-	sha1_hash resume_torrent(const sha1_hash& hash);
-	void recheck_torrent(const sha1_hash& hash);
+	libtorrent::sha1_hash open_torrent(const Glib::ustring& file, const Glib::ustring& save_path);
+	libtorrent::sha1_hash resume_torrent(const Glib::ustring& hash_str);
+	libtorrent::sha1_hash resume_torrent(const libtorrent::sha1_hash& hash);
+	void recheck_torrent(const libtorrent::sha1_hash& hash);
 	void resume_session();
-	void stop_torrent(const sha1_hash& hash);
-	void erase_torrent(const sha1_hash& hash, bool erase_content = false);
+	void stop_torrent(const libtorrent::sha1_hash& hash);
+	void erase_torrent(const libtorrent::sha1_hash& hash, bool erase_content = false);
 
 	static Glib::RefPtr<SessionManager> create();
 	virtual ~SessionManager();

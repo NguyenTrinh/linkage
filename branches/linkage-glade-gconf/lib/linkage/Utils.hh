@@ -36,29 +36,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <string>
 #include <glibmm/ustring.h>
 #include <glibmm/miscutils.h>
-#include <libglademm.h>
 
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/entry.hpp"
 
 typedef char ip_address[15+1];
 
-using namespace libtorrent;
-
-Glib::ustring suffix_value(size_type value);
+Glib::ustring suffix_value(libtorrent::size_type value);
 Glib::ustring suffix_value(float value);
 
 Glib::ustring str(int value);
 Glib::ustring str(unsigned int value);
-Glib::ustring str(size_type value);
+Glib::ustring str(libtorrent::size_type value);
 Glib::ustring str(unsigned long value);
 Glib::ustring str(float value, int precision);
-Glib::ustring str(const sha1_hash& hash);
-Glib::ustring get_eta(size_type size, float rate);
-Glib::ustring format_time(size_type seconds);
+Glib::ustring str(const libtorrent::sha1_hash& hash);
+Glib::ustring get_eta(libtorrent::size_type size, float rate);
+Glib::ustring format_time(libtorrent::size_type seconds);
 
 /* Can _not_ use ustring for this! */
-sha1_hash info_hash(const std::string& chars);
+libtorrent::sha1_hash info_hash(const std::string& chars);
 
 std::list<Glib::ustring> get_interfaces();
 
@@ -67,9 +64,7 @@ bool get_ip(const char *iface, ip_address ip);
 Glib::ustring get_config_dir();
 Glib::ustring get_data_dir();
 
-bool load_entry(const Glib::ustring& file, entry& e);
-void save_entry(const Glib::ustring& file, const entry& e);
-
-Glib::RefPtr<Gnome::Glade::Xml> load_glade_file(const std::string &file);
+bool load_entry(const Glib::ustring& file, libtorrent::entry& e);
+void save_entry(const Glib::ustring& file, const libtorrent::entry& e);
 
 #endif /* UTILS_HH */

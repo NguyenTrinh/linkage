@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/statusbar.h>
 #include <gtkmm/label.h>
 
+#include <libglademm.h>
+
 class Statusbar : public Gtk::Statusbar
 {
 	Gtk::Label* m_connections;

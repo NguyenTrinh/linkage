@@ -51,6 +51,8 @@ class StateFilter : public Gtk::ComboBox
 public:
 	sigc::signal<void, Torrent::State> signal_state_filter_changed();
 
+	void reselect();
+
 	StateFilter(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~StateFilter();
 };

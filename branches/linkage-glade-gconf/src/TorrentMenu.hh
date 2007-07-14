@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/menu.h>
 #include <libglademm.h>
 
+#include "Group.hh"
+
 class TorrentMenu : public Gtk::Menu
 {
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
@@ -38,7 +40,9 @@ class TorrentMenu : public Gtk::Menu
 	sigc::signal<void, bool> m_signal_remove;
 	sigc::signal<void> m_signal_check;
 
-	void on_settings();
+	void on_groups_changed(const std::list<Group>& groups);
+
+	friend class UI;
 
 public:
 	sigc::signal<void> signal_open();

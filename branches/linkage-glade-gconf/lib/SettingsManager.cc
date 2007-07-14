@@ -16,13 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-#include <iostream>
+
 #include <fstream>
+
 #include <glibmm/iochannel.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
-
-#include <libtorrent/bencode.hpp>
 
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
@@ -34,39 +33,12 @@ Glib::RefPtr<SettingsManager> SettingsManager::create()
 
 SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(this)
 {
-	Glib::ustring groups_file = Glib::build_filename(get_config_dir(), "groups");
-
 	/* Create data dir if it doesn't exists */
 	if(g_mkdir_with_parents(get_data_dir().c_str(), 0755) == -1)
 		g_warning(("Could not create directory: " + get_data_dir()).c_str());
 	
 	Gnome::Conf::init();
 	gconf = Gnome::Conf::Client::get_default_client();
-	
-	/* Dump default groups if file doens't exists */
-	if (!Glib::file_test(groups_file, Glib::FILE_TEST_EXISTS))
-	{
-		using namespace libtorrent;
-		// create the default bencoded groups file
-		entry e(entry::dictionary_t);
-		entry::list_type filters;
-		entry::dictionary_type filter;
-
-		filter["filter"] = entry("");
-		filter["eval"] = entry(int(1));
-		filter["tag"] = entry(int(1));
-		filters.push_back(entry(filter));
-		e["Downloads"] = entry(filters);
-
-		filters.clear();
-		filter["filter"] = entry("Seeding");
-		filter["eval"] = entry(int(1));
-		filter["tag"] = entry(3);
-		filters.push_back(entry(filter));
-		e["Seeds"] = entry(filters);
-
-		write_groups_data(e);
-	}
 	
 	/// TODO check gconf for the schema to make sure we
 	/// have some defaults
@@ -156,33 +128,3 @@ void SettingsManager::update()
 	m_signal_update_settings.emit();
 }
 
-void SettingsManager::write_groups_data(const libtorrent::entry& ent)
-{
-	Glib::ustring file = Glib::build_filename(get_config_dir(), "groups");
-	try
-	{
-		std::ofstream out(file.c_str(), std::ios_base::binary);
-		libtorrent::bencode(std::ostream_iterator<char>(out), ent);
-		out.close();
-	}
-	catch(std::exception& e)
-	{
-		g_warning("Could not save groups file: %s", e.what());
-	}
-}
-
-void SettingsManager::get_groups_data(libtorrent::entry& ent)
-{
-	try
-	{
-		std::ifstream in(Glib::build_filename(get_config_dir(), "groups").c_str(), 
-			std::ios_base::binary);
-		in.unsetf(std::ios_base::skipws);
-		ent = bdecode(std::istream_iterator<char>(in),
-			std::istream_iterator<char>());
-	}
-	catch (std::exception& e)
-	{
-		g_warning("Could not save groups file: %s", e.what());
-	}
-}

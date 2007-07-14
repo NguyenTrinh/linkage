@@ -55,3 +55,4 @@ void Statusbar::set_status(int connections, float down_rate, float up_rate)
 	m_download->set_text(suffix_value(down_rate) + "/s");
 	m_upload->set_text(suffix_value(up_rate) + "/s");
 }
+

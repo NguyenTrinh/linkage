@@ -67,7 +67,17 @@ int main(int argc, char *argv[])
 		Engine::get_session_manager()->resume_session();
 
 		UI* ui = 0;
-		Glib::RefPtr<Gnome::Glade::Xml> xml = load_glade_file(DATA_DIR "/linkage.glade");
+		Glib::RefPtr<Gnome::Glade::Xml> xml;
+		try
+		{
+			xml = Gnome::Glade::Xml::create(DATA_DIR "/linkage.glade");
+		}
+		catch (const Gnome::Glade::XmlError& ex)
+		{
+			g_error(ex.what().c_str());
+			return 1;
+		}
+
 		xml->get_widget_derived("main_window", ui);
 
 		ui->show();
@@ -134,7 +144,7 @@ bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files)
 void send_files(const std::list<Glib::ustring>& files)
 {
 	for (std::list<Glib::ustring>::const_iterator iter = files.begin();
-					iter != files.end(); ++iter)
+		iter != files.end(); ++iter)
 	{
 		/* Pass file(s) to running instance */
 		Engine::get_dbus_manager()->send("Open", *iter);
