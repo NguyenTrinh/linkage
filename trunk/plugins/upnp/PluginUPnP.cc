@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-
+#include <iostream>
 #include <glibmm/thread.h>
 #include <gtkmm/main.h>
 
@@ -65,25 +65,25 @@ void UPnPPlugin::on_device_lost(GUPnPControlPoint* cp, GUPnPDeviceProxy* proxy, 
 
 void UPnPPlugin::on_service_found(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data)
 {
-	/* FIXME: remove service from store */
-	char* id = gupnp_service_info_get_id(reinterpret_cast<GUPnPServiceInfo*>(proxy));
-	if (id)
+	/* FIXME: store services */
+	GUPnPServiceInfo* info = reinterpret_cast<GUPnPServiceInfo*>(proxy);
+	char* type = gupnp_service_info_get_service_type(info);
+	if (type)
 	{
-		const char* wanted_id = "urn:schemas-upnp-org:service:WANIPConnection:1";
-		if (!strncmp(id, wanted_id, std::min(sizeof(id), sizeof(wanted_id))))
+		if (strcmp(type, "urn:schemas-upnp-org:service:WANIPConnection:1") == 0)
 		{
-			gupnp_service_proxy_set_subscribed(proxy, true);
+			gupnp_service_proxy_set_subscribed(proxy, TRUE);
 			g_signal_connect(proxy, "subscription-lost", G_CALLBACK(UPnPPlugin::on_subscription_lost), data);
 			UPnPPlugin* plugin = static_cast<UPnPPlugin*>(data);
 			plugin->on_wan_service_found(proxy);
 		}
-		g_free(id);
+		g_free(type);
 	}
 }
 
 void UPnPPlugin::on_service_lost(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data)
 {
-	/* FIXME: store services */
+	/* FIXME: remove service from store */
 }
 
 void UPnPPlugin::on_subscription_lost(GUPnPServiceProxy *proxy, gpointer error, gpointer data)
@@ -111,7 +111,7 @@ void UPnPPlugin::on_wan_service_found(GUPnPServiceProxy* proxy)
 		"NewProtocol", G_TYPE_STRING, "TCP",
 		"NewInternalPort", G_TYPE_UINT, port,
 		"NewInternalClient", G_TYPE_STRING, ip.c_str(),
-		"NewEnabled", G_TYPE_BOOLEAN, true,
+		"NewEnabled", G_TYPE_UINT, 1,
 		"NewPortMappingDescription", G_TYPE_STRING, PACKAGE_NAME "/" PACKAGE_VERSION,
 		"NewLeaseDuration", G_TYPE_INT, 0,
 		NULL);
@@ -132,7 +132,7 @@ void UPnPPlugin::on_wan_service_found(GUPnPServiceProxy* proxy)
 		"NewProtocol", G_TYPE_STRING, "UDP",
 		"NewInternalPort", G_TYPE_UINT, port,
 		"NewInternalClient", G_TYPE_STRING, ip.c_str(),
-		"NewEnabled", G_TYPE_BOOLEAN, true,
+		"NewEnabled", G_TYPE_UINT, 1,
 		"NewPortMappingDescription", G_TYPE_STRING, PACKAGE_NAME "/" PACKAGE_VERSION,
 		"NewLeaseDuration", G_TYPE_INT, 0,
 		NULL);
@@ -145,7 +145,15 @@ void UPnPPlugin::on_wan_service_found(GUPnPServiceProxy* proxy)
 
 void UPnPPlugin::on_action_done(GUPnPServiceProxy *proxy, GUPnPServiceProxyAction *action, gpointer data)
 {
-	g_warning("Action done");
+	GError* error = NULL;
+	bool ret = gupnp_service_proxy_end_action(proxy, action, &error, NULL);
+	
+	g_warning("Action done: %i", ret);
+	if (error)
+	{
+		g_warning(error->message);
+		g_error_free(error);
+	}
 }
 
 Plugin::Info UPnPPlugin::get_info()

@@ -1,0 +1,17 @@
+To build you need the following packages (including the *-devel packages)
+  * libtorrent (>= 0.12)
+  * gtkmm (>= 2.10)
+  * libnotify (>= 1.4.2)
+  * libcurl (>= 7.14.0)
+  * dbus-glib (>= 0.70)
+  * gssdp/gupnp (>= 0.1) (Optional)
+
+Then simply run
+# ./configure
+Or if you check out from svn
+# ./autogen.sh
+# make
+# sudo make install
+Or as root
+# make install
+
