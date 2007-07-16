@@ -146,7 +146,7 @@ void TorrentCreator::on_button_save()
 
 		progress_hashing->set_text("Hashing...");
 
-		set_sensitive(false);
+		//set_sensitive(false);
 
 		file_pool fp;
 		storage st(info, root.c_str(), fp);
@@ -166,7 +166,7 @@ void TorrentCreator::on_button_save()
 		
 		entry e = info.create_torrent();
 
-		set_sensitive(true);
+		//set_sensitive(true);
 		
 		save_dialog->set_current_name(content + ".torrent");
 		if (save_dialog->run() == Gtk::RESPONSE_OK)
@@ -178,14 +178,18 @@ void TorrentCreator::on_button_save()
 				std::ofstream fout;
 				fout.open(file.c_str(), std::ios_base::binary);
 				bencode(std::ostream_iterator<char>(fout), e);
+				fout.close();
 
 				if (check_seed->get_active())
 				{
+g_warning("saving entry");
 					entry::dictionary_type er;
 					er["path"] = root;
 					er["downloaded"] = info.total_size();
+					er["downloaded"] = info.total_size();
+					er["completed"] = true;
 					save_entry(Glib::build_filename(get_data_dir(), str(info.info_hash()) + ".resume"), er);
-
+g_warning("opening torrent");
 					Engine::get_session_manager()->open_torrent(file, root);
 				}
 			}
