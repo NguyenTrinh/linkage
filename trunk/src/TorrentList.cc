@@ -42,27 +42,24 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 
-	append_column("#", columns.position);
-	append_column("Name", columns.name);
-	Gtk::TreeViewColumn* column = get_column(COL_NAME);
-	Gtk::CellRenderer* name_render = column->get_first_cell_renderer();
+	int col_id = append_column("#", columns.position);
+	col_id = append_column("Name", columns.name_formated);
+	Gtk::TreeViewColumn* column = get_column(col_id - 1);
+	Gtk::CellRendererText* renderer_text = dynamic_cast<Gtk::CellRendererText*>
+		(column->get_first_cell_renderer());
+	column->clear_attributes(*renderer_text);
+	column->add_attribute(*renderer_text, "markup", columns.name_formated);
 	column->set_expand(true);
-	column->set_cell_data_func(*name_render, sigc::mem_fun(this, &TorrentList::format_name));
+	//column->set_cell_data_func(*name_render, sigc::mem_fun(this, &TorrentList::format_name));
 	CellRendererProgressText* renderer = manage(new CellRendererProgressText());
-	append_column("Progress", *renderer);
-	column = get_column(COL_PROGRESS);
-	column->add_attribute(*renderer, "value", COL_PROGRESS);
-	column->add_attribute(*renderer, "text", COL_ETA);
-	column->add_attribute(*renderer, "text-left", COL_DOWNRATE);
-	column->add_attribute(*renderer, "text-right", COL_UPRATE);
+	col_id = append_column("Progress", *renderer);
+	column = get_column(col_id - 1);
+	column->add_attribute(*renderer, "value", columns.progress);
+	column->add_attribute(*renderer, "text", columns.eta);
+	column->add_attribute(*renderer, "text-left", columns.down_rate);
+	column->add_attribute(*renderer, "text-right", columns.up_rate);
 	column->set_cell_data_func(*renderer, sigc::mem_fun(this, &TorrentList::format_rates));
 
-	for (unsigned int i = 0; i < 3; i++)
-	{
-		Gtk::TreeView::Column* column = get_column(i);
-		column->set_sort_column_id(i);
-		column->set_resizable(true);
-	}
 	set_headers_visible(false);
 	set_search_column(columns.name);
 
@@ -142,16 +139,16 @@ void TorrentList::on_state_filter_changed(Torrent::State state)
 void TorrentList::on_added(const libtorrent::sha1_hash& hash, const Glib::ustring& name, unsigned int position)
 {
 	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("ui/torrent_view/selected");
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
 	Gtk::TreeIter iter = model->append();
 	Gtk::TreeRow new_row = *iter;
 	new_row[columns.hash] = hash;
+	new_row[columns.name] = name;
 
 	if (selected_hash == str(hash))
 		get_selection()->select(filter->convert_child_iter_to_iter(iter));
 
-	update(torrent);
+	update(Engine::get_torrent_manager()->get_torrent(hash));
 }
 
 void TorrentList::on_removed(const libtorrent::sha1_hash& hash)
@@ -240,13 +237,8 @@ void TorrentList::set_sort_order(Gtk::SortType order)
 	model->set_sort_column_id(current_col_id, order);
 }
 
-void TorrentList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
+Glib::ustring TorrentList::get_formated_name(const WeakPtr<Torrent>& torrent)
 {
-	Gtk::TreeRow row = *iter;
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
-	if (!torrent)
-		return;
-
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	Torrent::State state = torrent->get_state();
 	Glib::ustring color;
@@ -308,9 +300,7 @@ void TorrentList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter
 	else
 		ss << torrent->get_state_string(state);
 
-	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
-
-	cell_t->property_markup() = ss.str();
+	return ss.str();
 }
 
 void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
@@ -362,12 +352,29 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	Gtk::TreeIter iter = get_iter(torrent->get_hash());
 	if (!iter)
 		return;
-
+	
 	Gtk::TreeRow row = *iter;
 
-	row[columns.name] = torrent->get_name();
+	Glib::ustring old_state = row[columns.state];
+	unsigned int old_peers = row[columns.peers];
+	unsigned int old_seeds = row[columns.seeds];
+
+	//row[columns.name_formated] = get_formated_name(torrent);
 	row[columns.position] = torrent->get_position();
-	row[columns.state] = torrent->get_state_string();
+	Glib::ustring state_string = torrent->get_state_string();
+
+	// update formated name column only if needed
+	bool state_changed = (old_state != state_string);
+	if (state_changed)
+	{
+		row[columns.state] = state_string;
+		row[columns.name_formated] = get_formated_name(torrent);
+	}
+
+	// don't continue if we don't need to, possibly include more states here..
+	Torrent::State state = torrent->get_state();
+	if (!state_changed && state == Torrent::STOPPED)
+		return;
 
 	libtorrent::size_type up = torrent->get_total_uploaded();
 	libtorrent::size_type down = torrent->get_total_downloaded();
@@ -393,7 +400,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	}
 
 	libtorrent::torrent_status status = torrent->get_status();
-	Torrent::State state = torrent->get_state();
+	// FIXME: (Torrent::STOPPED && torrent->get_completed()) should equal Torrent::FINISHED
 	if (state == Torrent::SEEDING || (state == Torrent::STOPPED && torrent->get_completed()))
 	{
 		libtorrent::size_type size = down - up;
@@ -434,5 +441,13 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
 	row[columns.seeds] = status.num_seeds;
-	row[columns.peers] = status.num_peers - status.num_seeds;
+	unsigned int peers = status.num_peers - status.num_seeds;
+	row[columns.peers] = peers;
+
+	// if we haven't already done it, update formated name if peers/seeds has changed
+	if (!state_changed)
+	{
+		if (old_seeds != status.num_seeds || old_peers != peers)
+			row[columns.name_formated] = get_formated_name(torrent);
+	}
 }

@@ -63,14 +63,12 @@ PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	append_column("Client", columns.client);
 	append_column("State", columns.flags);
 
-	for(unsigned int i = 1; i < 8; i++)
+	for (unsigned int i = 1; i < 8; i++)
 	{
 		column = get_column(i);
 		column->set_sort_column_id(i + 1);
 		column->set_resizable(true);
 	}
-
-	m_state = STATE_IDLE;
 }
 
 PeerList::~PeerList()
@@ -97,11 +95,12 @@ void PeerList::format_rates(Gtk::CellRenderer* cell,
 
 void PeerList::update(const WeakPtr<Torrent>& torrent)
 {
-	/* FIXME: thread loop, tell old thread to exit and do cond/wait */
-	if (m_state == STATE_BUSY)
+	static bool working = false;
+
+	if (working)
 		return;
 	else
-		m_state = STATE_BUSY;
+		working = true;
 
 	std::vector<libtorrent::peer_info> peers;
 	if (!torrent->is_stopped())
@@ -109,7 +108,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 
 	if (peers.empty()) {
 		model->clear();
-		m_state = STATE_IDLE;
+		working = false;
 		return;
 	}
 
@@ -153,7 +152,7 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		set_peer_details(row, iter->second);
 	}
 
-	m_state = STATE_IDLE;
+	working = false;
 }
 
 void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& peer)
@@ -191,6 +190,7 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 	row[columns.up_rate] = peer.payload_up_speed;
 	if (!peer.seed)
 	{
+		// this is a real time hog, if we have a lot of peers and many pieces =/
 		unsigned int completed = 0;
 		for (unsigned int j = 0; j < peer.pieces.size(); j++)
 		{

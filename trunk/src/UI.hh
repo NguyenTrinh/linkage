@@ -143,6 +143,8 @@ class UI : public Gtk::Window, public Interface
 	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
 
 	bool on_visibility_notify_event(GdkEventVisibility* event);
+	void on_hide();
+	void on_show();
 	void on_spin_down();
 	void on_spin_up();
 

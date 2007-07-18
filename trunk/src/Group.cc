@@ -43,8 +43,9 @@ bool Group::is_valid() const
 
 bool Group::eval(const WeakPtr<Torrent>& torrent) const
 {
-	libtorrent::torrent_info info = torrent->get_info();
-	
+	const libtorrent::torrent_info& info = torrent->get_info();
+	std::vector<libtorrent::announce_entry> trackers = torrent->get_trackers();
+
 	if (m_name.empty())
 		return false;
 	
@@ -64,9 +65,9 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < trackers.size() && !tmp; i++)
 						{
-							Glib::ustring tracker = info.trackers()[i].url;
+							Glib::ustring tracker = trackers[i].url;
 							tmp = (f.filter == tracker);
 						}
 						break;
@@ -82,9 +83,9 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < trackers.size() && !tmp; i++)
 						{
-							Glib::ustring tracker = info.trackers()[i].url;
+							Glib::ustring tracker = trackers[i].url;
 							tmp = (tracker.find(f.filter) != Glib::ustring::npos);
 						}
 						break;
@@ -100,9 +101,9 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < trackers.size() && !tmp; i++)
 						{
-							Glib::ustring tracker = info.trackers()[i].url;
+							Glib::ustring tracker = trackers[i].url;
 							tmp = Glib::str_has_prefix(tracker, f.filter);
 						}
 						break;
@@ -118,9 +119,9 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 				switch (f.tag)
 				{
 					case TAG_TRACKER:
-						for (unsigned int i = 0; i < info.trackers().size(); i++)
+						for (unsigned int i = 0; i < trackers.size() && !tmp; i++)
 						{
-							Glib::ustring tracker = info.trackers()[i].url;
+							Glib::ustring tracker = trackers[i].url;
 							tmp = Glib::str_has_suffix(tracker, f.filter);
 						}
 						break;
