@@ -475,6 +475,11 @@ void Torrent::add_tracker(const Glib::ustring& url)
 		get_handle().replace_trackers(m_trackers);
 }
 
+const std::vector<libtorrent::announce_entry>& Torrent::get_trackers()
+{
+	return m_trackers;
+}
+
 void Torrent::queue()
 {
 	if (!is_stopped())
