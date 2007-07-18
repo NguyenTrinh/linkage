@@ -109,6 +109,7 @@ public:
 	bool is_stopped();
 
 	void reannounce(const Glib::ustring& tracker = Glib::ustring());
+	const std::vector<libtorrent::announce_entry>& get_trackers();
 
 	const libtorrent::entry get_resume_entry(bool running = false);
 
