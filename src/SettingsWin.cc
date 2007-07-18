@@ -290,8 +290,8 @@ void SettingsWin::on_show()
 
 	/* Network */
 	Glib::ustring interface = sm->get_string("network/interface");
-	min_port->set_value((double)sm->get_int("network/min_port"));
 	max_port->set_value((double)sm->get_int("network/max_port"));
+	min_port->set_value((double)sm->get_int("network/min_port"));
 	tracker_timeout->set_value((double)sm->get_int("network/tracker_timeout"));
 	enable_dht->set_active(sm->get_bool("network/use_dht"));
 	dht_fallback->set_active(sm->get_bool("network/dht_fallback"));

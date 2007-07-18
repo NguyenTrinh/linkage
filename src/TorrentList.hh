@@ -40,6 +40,7 @@ class TorrentList : public Gtk::TreeView
 			{
 				add(position);
 				add(name);
+				add(name_formated);
 				add(progress);
 				add(state);
 				add(down);
@@ -52,7 +53,8 @@ class TorrentList : public Gtk::TreeView
 				add(hash);
 			}
 		Gtk::TreeModelColumn<unsigned int> position;
-		Gtk::TreeModelColumn<Glib::ustring> name;
+		Gtk::TreeModelColumn<Glib::ustring> name; // For searching/sorting
+		Gtk::TreeModelColumn<Glib::ustring> name_formated; // updated only when needed
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> state;
 		Gtk::TreeModelColumn<libtorrent::size_type> down;
@@ -80,7 +82,7 @@ class TorrentList : public Gtk::TreeView
 	void on_removed(const libtorrent::sha1_hash& hash);
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
-	void format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
+	Glib::ustring get_formated_name(const WeakPtr<Torrent>& torrent);
 
 	bool on_button_press_event(GdkEventButton *event);
 
@@ -99,6 +101,7 @@ public:
 	{
 		COL_POSITION,
 		COL_NAME,
+		COL_NAME_FORMATED,
 		COL_PROGRESS,
 		COL_STATUS,
 		COL_DOWNLOADED,

@@ -323,6 +323,9 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	Engine::get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
 
 	connection_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
+
+	add_events(Gdk::VISIBILITY_NOTIFY_MASK);
+	//signal_visibility_notify_event().connect(sigc::mem_fun(this, &UI::on_visibility_notify_event));
 }
 
 UI::~UI()
@@ -406,6 +409,18 @@ bool UI::on_visibility_notify_event(GdkEventVisibility* event)
 		connection_tick.unblock();
 
 	return false;
+}
+
+void UI::on_hide()
+{
+	Gtk::Window::on_hide();
+	connection_tick.block();
+}
+
+void UI::on_show()
+{
+	Gtk::Window::on_show();
+	connection_tick.unblock();
 }
 
 void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)

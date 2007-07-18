@@ -6,4 +6,5 @@
 * Make it possible to add user-defined trackers
 * Add sort on time remaining
 * Fix colors in CellrendererPiecemap (looks like the brighter colors aren't alloc'ed)
-* Save .resume on tracker_announce_alert ?
+* Save .resume on tracker_announce_alert, that way we are on par with tracker (uploaded/downloaded) even if we crash ?
+* on_torrent_finished, if files are filtered and then unfiltered we should do set_complete(false)

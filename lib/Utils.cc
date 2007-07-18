@@ -208,7 +208,7 @@ bool load_entry(const Glib::ustring& file, libtorrent::entry& e)
 		e = libtorrent::bdecode(std::istream_iterator<char>(in),
 			std::istream_iterator<char>());
 	}
-	catch (std::exception& err)
+	catch (libtorrent::invalid_encoding& err)
 	{
 		ret = false;
 	}

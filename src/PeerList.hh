@@ -65,9 +65,6 @@ class PeerList : public Gtk::TreeView
 	ModelColumns columns;
 	Glib::RefPtr<Gtk::ListStore> model;
 
-	enum State { STATE_IDLE, STATE_BUSY };
-	State m_state;
-
 	void format_data(Gtk::CellRenderer* cell,
 		const Gtk::TreeIter& iter,
 		const Gtk::TreeModelColumn<libtorrent::size_type>& column);
@@ -75,6 +72,7 @@ class PeerList : public Gtk::TreeView
 		const Gtk::TreeIter& iter,
 		const Gtk::TreeModelColumn<float>& column);
 	void set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& peer);
+
 public:
 	void update(const WeakPtr<Torrent>& torrent);
 

@@ -84,6 +84,9 @@ int main(int argc, char *argv[])
 		if (file_args)
 			send_files(files);
 
+		// just to wake it up
+		Engine::get_plugin_manager();
+
 		kit.run();
 		delete ui;
 	}
