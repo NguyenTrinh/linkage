@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 //#include <gtkmm/menu.h>
 //#include <gtkmm/checkmenuitem.h>
 #include <gtkmm/treeview.h>
-#include <gtkmm/liststore.h>
+#include <gtkmm/treestore.h>
+#include <gdkmm/pixbuf.h>
 #include <libglademm.h>
 
 #include "linkage/Torrent.hh"
@@ -35,33 +36,48 @@ class FileList : public Gtk::TreeView
 	{
 	public:
 		ModelColumns()
-			{ 
-				add(filter);
-				add(name);
-				add(map);
-				add(done);
-				add(size);
-				add(index);
-			}
+		{
+			add(inconsistent);
+			add(filter);
+			add(icon);
+			add(name);
+			add(map);
+			add(done);
+			add(size);
+			add(index);
+		}
+		Gtk::TreeModelColumn<bool> inconsistent;
 		Gtk::TreeModelColumn<bool> filter;
+		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > icon;
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<std::vector<bool> > map;
 		Gtk::TreeModelColumn<libtorrent::size_type> done;
 		Gtk::TreeModelColumn<libtorrent::size_type> size;
-		Gtk::TreeModelColumn<unsigned int> index;
+		Gtk::TreeModelColumn<int> index;
 	};
 	
 	ModelColumns columns;
-	Glib::RefPtr<Gtk::ListStore> model;
-
-	//Gtk::Menu* menu;
-	//Gtk::CheckMenuItem* checkitem;
-
-	//bool on_button_press_event(GdkEventButton *event);
+	Glib::RefPtr<Gtk::TreeStore> model;
 
 	//void on_set_priority(Priority p);
-	//void on_menu_filter_toggled();
+
+	typedef struct
+	{
+		libtorrent::torrent_info info;
+		std::vector<bool> pieces;
+		std::vector<float> file_progress;
+		std::vector<bool> filter;
+	} FileData;
+
+	typedef std::list<Gtk::TreeIter> IterList;
+	bool on_foreach(const Gtk::TreeModel::iterator& iter, IterList* list);
+	void on_reverse_foreach(const Gtk::TreeModel::iterator& iter, const FileData& data);
+
+	void refill_tree(const libtorrent::torrent_info& info);
+
 	void on_filter_toggled(const Glib::ustring& path);
+	void filter_children(const Gtk::TreeNodeChildren& children, bool filter);
+
 	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<libtorrent::size_type>& column);
 	
 	libtorrent::sha1_hash current_hash;
