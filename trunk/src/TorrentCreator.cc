@@ -182,14 +182,12 @@ void TorrentCreator::on_button_save()
 
 				if (check_seed->get_active())
 				{
-g_warning("saving entry");
 					entry::dictionary_type er;
 					er["path"] = root;
 					er["downloaded"] = info.total_size();
 					er["downloaded"] = info.total_size();
 					er["completed"] = true;
 					save_entry(Glib::build_filename(get_data_dir(), str(info.info_hash()) + ".resume"), er);
-g_warning("opening torrent");
 					Engine::get_session_manager()->open_torrent(file, root);
 				}
 			}
