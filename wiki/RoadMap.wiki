@@ -7,10 +7,11 @@ Latest release is 0.1.2 available from the [http://code.google.com/p/linkage/dow
 
 = Planned releases =
   * *0.1.4*
-    * Use gconf and libglade.
-    * Use gupnp instead of libupnp.
-    * New group list with combobox/treeview.
-    * Add features to the "select download path" dialog, make it "smarter" (remember previous paths).
+    * Use gconf and libglade
+    * Use gupnp instead of libupnp
+    * New group list with combobox/treeview
+    * Add torrent info to the save path dialog
+    * Finish new interface/plugin code
   * *0.1.6* 
     * Clean up and review code
     * RSS plugin, Scheduler plugin
@@ -18,4 +19,5 @@ Latest release is 0.1.2 available from the [http://code.google.com/p/linkage/dow
     * Finalize plugin architecture
     * Support for python plugins?
     * Add more dbus calls/signals
+    * Merge library part into binary
   * *0.1.8* Avahi support?
