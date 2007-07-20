@@ -59,25 +59,25 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 		iter++;
 	}
 
-	if (ri.resume.find_key("trackers"))
+	// make sure it's a list, old version used dictionary
+	if (ri.resume.find_key("trackers") && e["trackers"].type() == libtorrent::entry::list_t)
 	{
-		libtorrent::entry::dictionary_type td = e["trackers"].dict();
-		for (libtorrent::entry::dictionary_type::iterator iter = td.begin();
-			iter != td.end(); ++iter)
+		libtorrent::entry::list_type e_trackers = e["trackers"].list();
+		int tier = 0;
+		for (libtorrent::entry::list_type::iterator iter = e_trackers.begin();
+			iter != e_trackers.end(); ++iter)
 		{
-			Glib::ustring url = iter->first;
-			libtorrent::announce_entry a(iter->first);
-			a.tier = iter->second.integer();
+			libtorrent::announce_entry a(iter->string());
+			a.tier = tier;
 			m_trackers.push_back(a);
+			tier++;
 		}
 	}
 	else
 		m_trackers = m_info.trackers();
 
-	for (unsigned int i = 0; i < m_trackers.size(); i++)
-	{
+	for (int i = 0; i < m_trackers.size(); i++)
 		m_replies[m_trackers[i].url] = "";
-	}
 }
 
 Torrent::Torrent() : m_prop_handle(*this, "handle")
@@ -444,9 +444,9 @@ void Torrent::add_tracker(const Glib::ustring& url)
 			diff = true;
 		else if (m_trackers.size() == trackers.size())
 		{
-			for (unsigned int i = 0; i < m_trackers.size() && !diff; i++)
+			for (int i = 0; i < m_trackers.size() && !diff; i++)
 			{
-				for (unsigned int j = 0; j < trackers.size(); j++)
+				for (int j = 0; j < trackers.size(); j++)
 				{
 					if (m_trackers[i].url == trackers[j].url)
 					{
@@ -521,14 +521,15 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 	std::vector<libtorrent::announce_entry> trackers = get_handle().trackers();
 	if (!tracker.empty())
 	{
-		for (int i = 0; i < trackers.size(); i++)
+		for (std::vector<libtorrent::announce_entry>::iterator i = trackers.begin();
+			i != trackers.end(); ++i)
 		{
-			if (trackers[i].url == tracker)
+			if (i->url == tracker)
 			{
-				m_cur_tier = trackers[i].tier;
+				m_cur_tier = i->tier;
 				libtorrent::announce_entry a(tracker);
 				a.tier = 0;
-				trackers.erase(trackers.begin() + i);
+				trackers.erase(i);
 				trackers.insert(trackers.begin(), a);
 				break;
 			}
@@ -539,7 +540,9 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 				trackers[i].tier++;
 		}
 
-		get_handle().replace_trackers(trackers);
+		m_trackers = trackers;
+
+		get_handle().replace_trackers(m_trackers);
 	}
 
 	m_cur_tier = 0;
@@ -600,18 +603,20 @@ const libtorrent::entry Torrent::get_resume_entry(bool running)
 	resume_entry["download-limit"] = m_down_limit;
 	resume_entry["upload-limit"] = m_up_limit;
 	resume_entry["completed"] = m_completed;
-	libtorrent::entry::list_type el;
-	for (unsigned int i = 0; i < m_filter.size(); i++)
+
+	libtorrent::entry::list_type e_filter;
+	for (int i = 0; i < m_filter.size(); i++)
 		if (m_filter[i])
-			el.push_back(i);
-	resume_entry["filter"] = el;
+			e_filter.push_back(i);
+	resume_entry["filter"] = e_filter;
+
 	if (!m_group.empty())
 		resume_entry["group"] = m_group;
 
-	libtorrent::entry::dictionary_type td;
-	for (unsigned int i = 0; i < m_trackers.size(); i++)
-		td[m_trackers[i].url] = m_trackers[i].tier;
-	resume_entry["trackers"] = td;
+	libtorrent::entry::list_type e_trackers;
+	for (int i = 0; i < m_trackers.size(); i++)
+		e_trackers.push_back(m_trackers[i].url);
+	resume_entry["trackers"] = e_trackers;
 
 	return resume_entry;
 }
