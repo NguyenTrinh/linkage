@@ -21,3 +21,5 @@ Latest release is 0.1.2 available from the [http://code.google.com/p/linkage/dow
     * Add more dbus calls/signals
     * Merge library part into binary
   * *0.1.8* Avahi support?
+
+  * *0.2* Major rewrite
