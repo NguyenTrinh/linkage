@@ -138,16 +138,16 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 		switch (f.operation)
 		{
 			case Group::OP_OR:
-				ret = ret | tmp;
+				ret = ret || tmp;
 				break;
 			case Group::OP_NOR:
-				ret = ret | ~tmp;
+				ret = ret || !tmp;
 				break;
 			case Group::OP_AND:
-				ret = ret & tmp;
+				ret = ret && tmp;
 				break;
 			case Group::OP_NAND:
-				ret = ret & ~tmp;
+				ret = ret && !tmp;
 				break;
 		}
 	}
