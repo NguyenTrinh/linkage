@@ -72,7 +72,9 @@ Options::~Options()
 
 int main(int argc, char *argv[])
 {
+	#if !HAVE_GNOME
 	Gtk::Main kit(&argc, &argv, false);
+	#endif
 
 	boost::filesystem::path::default_name_check(boost::filesystem::native);
 
@@ -80,25 +82,19 @@ int main(int argc, char *argv[])
 		Glib::thread_init();
 
 	Options options; 
-	Glib::OptionContext context("[FILE...] \n\nA BitTorrent client for GTK+\n");
-	context.set_main_group(options);
+	Glib::OptionContext* context = new Glib::OptionContext(
+		"[FILE...] \n\nA BitTorrent client for GTK+\n");
+	context->set_main_group(options);
 	
 	#if HAVE_GNOME
 	Gnome::Vfs::init();
-	// If we parse context with this we get this on exit:
-	// g_option_group_free: assertion `group != NULL' failed
-	//Gnome::Main app(PACKAGE_NAME, PACKAGE_VERSION,
-	//	Gnome::UI::module_info_get(), argc, argv, context);
 
-	// can't use LIBGNOMEUI_MODULE to init Gnome::UI
-	gnome_program_init(PACKAGE_NAME, PACKAGE_VERSION,
-		Gnome::UI::module_info_get().gobj(), argc, argv,
-		GNOME_PARAM_GOPTION_CONTEXT, context.gobj(),
-		GNOME_PARAM_NONE);
+	Gnome::Main app(PACKAGE_NAME, PACKAGE_VERSION,
+		Gnome::UI::module_info_get(), argc, argv, *context);
 	#else
 	try
 	{
-		context.parse(argc, argv);
+		context->parse(argc, argv);
 	}
 	catch (const Glib::OptionError& e)
 	{
@@ -106,6 +102,7 @@ int main(int argc, char *argv[])
 		std::cout << "Run \"linkage --help\" to see a full list of available command line options.\n";
 		return 1;
 	}
+	delete context;
 	#endif
 
 	if (options.version)
@@ -171,7 +168,11 @@ int main(int argc, char *argv[])
 		// just to wake it up
 		Engine::get_plugin_manager();
 
+		#if HAVE_GNOME
+		Gtk::Main::run();
+		#else
 		kit.run();
+		#endif
 		delete ui;
 	}
 
