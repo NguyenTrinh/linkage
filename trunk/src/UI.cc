@@ -19,11 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "config.h"
 
+#if HAVE_CURL
 #include <curl/curl.h>
-#include <string.h>
 #include <glib/gstdio.h>
-
-#include <iostream>
+#endif
 
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
@@ -42,6 +41,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <libglademm.h>
 
+#if HAVE_GNOME
+#include <libgnomevfsmm/utils.h>
+#include <libgnomevfsmm/uri.h>
+#endif
+
 #include "UI.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
@@ -52,9 +56,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml(refGlade)
 {
 	Engine::register_interface(this);
-
-	/* FIXME: Move somewhere more proper, it's just here to wake up manager and plugins */
-	//Engine::get_plugin_manager();
 
 	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 
@@ -104,7 +105,8 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->get_widget("main_hpane", main_hpane);
 
 	glade_xml->get_widget("notebook_details", notebook_details);
-	notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
+	m_conn_switch_page = notebook_details->signal_switch_page().connect(
+		sigc::mem_fun(this, &UI::on_switch_page));
 	glade_xml->get_widget("expander_details", expander_details);
 	glade_xml->get_widget("button_tracker", button_tracker);
 	glade_xml->get_widget("label_tracker", label_tracker);
@@ -235,11 +237,13 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	// setup drag and drop
 	std::list<Gtk::TargetEntry> targets;
-	targets.push_back(Gtk::TargetEntry("STRING", Gtk::TargetFlags(0)));
-	targets.push_back(Gtk::TargetEntry("text/plain", Gtk::TargetFlags(0)));
-	targets.push_back(Gtk::TargetEntry("text/uri-list", Gtk::TargetFlags(0)));
-	torrent_list->drag_dest_set(targets, Gtk::DEST_DEFAULT_ALL, Gdk::DragAction(GDK_ACTION_COPY | GDK_ACTION_MOVE));
-	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received));
+	targets.push_back(Gtk::TargetEntry("text/uri-list"));
+	// FIXME: check target string from KTHML/WebKit/Dillo etc..
+	#if HAVE_CURL
+	targets.push_back(Gtk::TargetEntry("text/x-moz-url"));
+	#endif
+	torrent_list->drag_dest_set(targets);
+	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), true);
 
 	/* setup group and state stuff, this is ugly and should be changed */
 	groups_win->signal_groups_changed().connect(sigc::mem_fun(group_list, &GroupList::on_groups_changed));
@@ -323,14 +327,35 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	Engine::get_dbus_manager()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
 	Engine::get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
 
-	connection_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
+	m_conn_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
 
 	add_events(Gdk::VISIBILITY_NOTIFY_MASK);
-	//signal_visibility_notify_event().connect(sigc::mem_fun(this, &UI::on_visibility_notify_event));
+
+	#if HAVE_GNOME
+	Gnome::UI::Client* gnome_client = Gnome::UI::Client::master_client();
+	if (gnome_client)
+	{
+		gnome_client->signal_die().connect(sigc::mem_fun(this, &UI::on_die_gnome));
+		gnome_client->signal_save_yourself().connect(sigc::mem_fun(this, &UI::on_save_yourself_gnome));
+	}
+	else
+		g_warning("Failed to connect to GNOME session");
+	#endif
+
+	#if HAVE_EXO
+	GdkDisplay* display = get_screen()->get_display()->gobj();
+	GdkWindow* leader = gdk_display_get_default_group(display);
+	exo_client = exo_xsession_client_new_with_group(leader);
+	g_signal_connect(G_OBJECT(exo_client), "save-yourself", 
+		G_CALLBACK(UI::on_save_yourself_exo), this);
+	#endif
 }
 
 UI::~UI()
 {
+	// needs to be disconnect to avoid crash
+	m_conn_switch_page.disconnect();
+
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	int w, h;
@@ -356,7 +381,50 @@ UI::~UI()
 	delete torrent_menu;
 	delete file_chooser;
 	delete path_chooser;
+
+	#if HAVE_EXO
+	g_object_unref(G_OBJECT(exo_client));
+	#endif
 }
+
+#if HAVE_GNOME
+void UI::on_die_gnome()
+{
+	Gtk::Main::quit();
+}
+
+bool UI::on_save_yourself_gnome(int phase, Gnome::UI::SaveStyle save_style,
+	bool shutdown, Gnome::UI::InteractStyle interact_style, bool fast)
+{
+	Gnome::UI::Client* gnome_client = Gnome::UI::Client::master_client();
+	if (gnome_client)
+	{
+		std::vector<std::string> argv;
+		argv.push_back("linkage");
+		gnome_client->set_clone_command(argv);
+		gnome_client->set_restart_command(argv);
+	}
+	else
+		g_warning("Failed to connect to GNOME session");
+
+	Gtk::Main::quit();
+
+	return true;
+}
+#endif
+
+#if HAVE_EXO
+void UI::on_save_yourself_exo(ExoXsessionClient* client, gpointer data)
+{
+	UI* ui = static_cast<UI*>(data);
+
+	gchar* argv = "linkage";
+	gint argc = 1;
+	exo_xsession_client_set_restart_command(ui->exo_client, &argv, argc);
+
+	Gtk::Main::quit();
+}
+#endif
 
 Gtk::Container* UI::get_container(Plugin::PluginParent parent)
 {
@@ -403,9 +471,9 @@ void UI::on_tick()
 bool UI::on_visibility_notify_event(GdkEventVisibility* event)
 {
 	if (event->state == GDK_VISIBILITY_FULLY_OBSCURED)
-		connection_tick.block();
+		m_conn_tick.block();
 	else
-		connection_tick.unblock();
+		m_conn_tick.unblock();
 
 	return false;
 }
@@ -413,13 +481,13 @@ bool UI::on_visibility_notify_event(GdkEventVisibility* event)
 void UI::on_hide()
 {
 	Gtk::Window::on_hide();
-	connection_tick.block();
+	m_conn_tick.block();
 }
 
 void UI::on_show()
 {
 	Gtk::Window::on_show();
-	connection_tick.unblock();
+	m_conn_tick.unblock();
 }
 
 void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
@@ -800,8 +868,36 @@ void UI::on_open_location()
 		if (torrent->get_info().num_files() > 1)
 			path = Glib::build_filename(path, torrent->get_name());
 
-		Glib::ustring cmd = "nautilus --no-desktop \"" + path + "\"";
-		Glib::spawn_command_line_async(cmd);
+		// FIXME: show message dialog instead of g_warning
+		#if HAVE_GNOME
+		Glib::ustring uri = Gnome::Vfs::Uri::make_from_input(path);
+		try
+		{
+			Gnome::Vfs::url_show(uri);
+		}
+		catch (Gnome::Vfs::exception& e)
+		{
+			g_warning(e.what().c_str());
+		}
+		#elif HAVE_EXO
+		GError* e = NULL;
+		if (!exo_url_show(path.c_str(), NULL, &e))
+		{
+			g_warning(e->message);
+		}
+		#endif
+
+		if (!HAVE_GNOME && !HAVE_EXO)
+		{
+			Glib::ustring app = Glib::find_program_in_path("nautilus");
+			if (app.empty())
+				app = Glib::find_program_in_path("thunar");
+			if (!app.empty())
+			{
+				Glib::ustring cmd = app + " \"" + path + "\"";
+				Glib::spawn_command_line_async(cmd);
+			}
+		}
 	}
 }
 
@@ -961,12 +1057,15 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 												 guint info, guint time)
 {
 	Glib::ustring data = selection_data.get_data_as_string();
-	Glib::StringArrayHandle a = context->get_targets();
+	Glib::StringArrayHandle targets = context->get_targets();
 
 	bool is_file_uri = false;
-	for (Glib::StringArrayHandle::iterator ai = a.begin(); ai != a.end(); ++ai)
-		if (*ai == "text/uri-list")
+	for (Glib::StringArrayHandle::iterator iter = targets.begin();
+		iter != targets.end(); ++iter)
+	{
+		if (*iter == "text/uri-list")
 			is_file_uri = true;
+	}
 
 	if (is_file_uri)
 	{
@@ -981,21 +1080,25 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 			offset = pos + 2;
 		}
 
-		for (std::list<Glib::ustring>::iterator li = uri_list.begin(); li != uri_list.end(); ++li)
+		for (std::list<Glib::ustring>::iterator iter = uri_list.begin();
+			iter != uri_list.end(); ++iter)
 		{
+			#if HAVE_GNOME
+			Glib::RefPtr<Gnome::Vfs::Uri> uri = Gnome::Vfs::Uri::create(*iter);
+			if (uri->is_local())
+				add_torrent(uri->get_path());
+			#else
 			gchar* f = g_filename_from_uri(li->c_str(), NULL, NULL);
 			if (f)
 				add_torrent(f);
+			#endif
 		}
 	}
-	else if (Glib::str_has_prefix(data, "http://"))
+	#if HAVE_CURL
+	else // FIXME: add check, now we just assume it's an URL..
 	{
 		/* TODO: Add a progress bar */
 		notify("Downloading torrent", "downloading " + data);
-
-		CURL *curl;
-		CURLcode res;
-		char err[CURL_ERROR_SIZE];
 
 		gchar* name;
 		GError* error;
@@ -1009,9 +1112,10 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 		{
 			FILE* file = fdopen(fd, "wb");
 
-			curl = curl_easy_init();
+			CURL* curl = curl_easy_init();
 			if (curl && file)
 			{
+				char err[CURL_ERROR_SIZE];
 				curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err);
 				curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 				curl_easy_setopt(curl, CURLOPT_HEADER, 0);
@@ -1019,13 +1123,13 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 
 				curl_easy_setopt(curl, CURLOPT_URL, data.c_str());
 
-				int res = curl_easy_perform(curl);
+				CURLcode ret = curl_easy_perform(curl);
 
 				curl_easy_cleanup(curl);
 
 				fclose(file);
 
-				if (res == CURLE_OK)
+				if (ret == CURLE_OK)
 					add_torrent(name);
 				else
 					notify("Download failed", err);
@@ -1035,6 +1139,8 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 			}
 		}
 	}
+	#endif
+
 	context->drag_finish(false, false, time);
 }
 

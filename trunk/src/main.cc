@@ -24,13 +24,51 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/main.h>
 #include <libglademm.h>
 
+#if HAVE_GNOME
+#include <libgnomemm/main.h>
+#include <libgnomemm/init.h>
+#include <libgnomeuimm/init.h>
+#include <libgnomevfsmm/init.h>
+
+#include <libgnomeui/gnome-ui-init.h>
+#include <libgnome/gnome-init.h>
+#endif
+
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
 #include "UI.hh"
 
-bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files);
 void send_files(const std::list<Glib::ustring>& files);
+
+class Options : public Glib::OptionGroup
+{
+public:
+	Options();
+	~Options();
+
+	bool version, quit;
+};
+
+Options::Options()
+: Glib::OptionGroup(PACKAGE_NAME, "Command line options"),
+	version(false),
+	quit(false)
+{
+	Glib::OptionEntry e_version;
+	e_version.set_long_name("version") ;
+	e_version.set_description("Show version and quit");
+	add_entry(e_version, version);
+
+  Glib::OptionEntry e_quit;
+  e_quit.set_long_name("quit");
+  e_quit.set_description("Tell the running instance to quit");
+  add_entry(e_quit, quit);
+}
+
+Options::~Options()
+{
+}
 
 int main(int argc, char *argv[])
 {
@@ -39,12 +77,57 @@ int main(int argc, char *argv[])
 	if(!Glib::thread_supported()) 
 		Glib::thread_init();
 
-	std::list<Glib::ustring> files;
-	if (parse_args(argc, argv, files))
-		return 0;
+	Options options; 
+	Glib::OptionContext context("[FILE...] \n\nA BitTorrent client for GTK+\n");
+	context.set_main_group(options);
+	
+	#if HAVE_GNOME
+	Gnome::Vfs::init();
+	// If we parse context with this we get this on exit:
+	// g_option_group_free: assertion `group != NULL' failed
+	//Gnome::Main app(PACKAGE_NAME, PACKAGE_VERSION,
+	//	Gnome::UI::module_info_get(), argc, argv, context);
 
-	/* Don't set up translations since we don't have any */
+	// can't use LIBGNOMEUI_MODULE to init Gnome::UI
+	gnome_program_init(PACKAGE_NAME, PACKAGE_VERSION,
+		Gnome::UI::module_info_get().gobj(), argc, argv,
+		GNOME_PARAM_GOPTION_CONTEXT, context.gobj(),
+		GNOME_PARAM_NONE);
+	#else
 	Gtk::Main kit(&argc, &argv, false);
+	try
+	{
+		context.parse(argc, argv);
+	}
+	catch (const Glib::OptionError& e)
+	{
+		std::cerr << e.what() << std::endl;
+		std::cout << "Run \"linkage --help\" to see a full list of available command line options.\n";
+		return 1;
+	}
+	#endif
+
+	if (options.version)
+	{
+		std::cout << PACKAGE_VERSION << std::endl;
+		return 0;
+	}
+  if (options.quit)
+  {
+    Engine::get_dbus_manager()->send("Quit");
+    return 0;
+  }
+
+	// FIXME: handle file:// style URIs
+	std::list<Glib::ustring> files;
+	for (int i = 1; i < argc; i++)
+	{
+		Glib::ustring file = argv[i];
+		if (!Glib::path_is_absolute(file))
+			file = Glib::build_filename(Glib::get_current_dir(), file);
+
+		files.push_back(file);
+	}
 
 	bool file_args = (argc > 1);
 
@@ -53,7 +136,7 @@ int main(int argc, char *argv[])
 		if (file_args)
 		{
 			send_files(files);
-				std::cout << argc - 1 << " files passed to running instance.\n";
+			std::cout << argc - 1 << " files passed to running instance.\n";
 			return 0;
 		}
 		else
@@ -87,61 +170,15 @@ int main(int argc, char *argv[])
 		// just to wake it up
 		Engine::get_plugin_manager();
 
+		#if HAVE_GNOME
+		Gtk::Main::run();
+		#else
 		kit.run();
+		#endif
 		delete ui;
 	}
 
 	return 0;
-}
-
-bool parse_args(int argc, char* argv[], std::list<Glib::ustring>& files)
-{
-	Glib::OptionGroup options(PACKAGE_NAME, "Command line options");
-	bool version = false, quit = false;
-	Glib::OptionEntry e_version;
-	e_version.set_long_name("version") ;
-	e_version.set_description("Show version and quit");
-	options.add_entry(e_version, version);
-  Glib::OptionEntry e_quit;
-  e_quit.set_long_name("quit");
-  e_quit.set_description("Tell the running instance to quit");
-  options.add_entry(e_quit, quit);
- 
-	Glib::OptionContext context("[FILE...] \n\nA BitTorrent client for GTK+\n");
-	context.set_main_group(options);
-	try
-	{
-		context.parse(argc, argv);
-	}
-	catch (const Glib::OptionError& e)
-	{
-		std::cerr << e.what() << std::endl;
-		std::cout << "Run \"linkage --help\" to see a full list of available command line options.\n";
-		return true;
-	}
-
-	if (version)
-	{
-		std::cout << PACKAGE_VERSION << std::endl;
-		return true;
-	}
-
-  if (quit)
-  {
-    Engine::get_dbus_manager()->send("Quit");
-    return true;
-  }
- 
-	for (int i = 1; i < argc; i++)
-	{
-		Glib::ustring file = argv[i];
-		if (!Glib::path_is_absolute(file))
-			file.insert(0, Glib::get_current_dir() + "/");
-
-		files.push_back(file);
-	}
-	
-	return false;
 }
 
 void send_files(const std::list<Glib::ustring>& files)
