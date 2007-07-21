@@ -37,6 +37,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <libglademm.h>
 
+#if HAVE_GNOME
+#include <libgnomeuimm/client.h>
+#endif
+
+#if HAVE_EXO
+#include <exo/exo.h>
+#endif
+
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 #include "linkage/Plugin.hh"
@@ -137,8 +145,8 @@ class UI : public Gtk::Window, public Interface
 	SettingsWin* settings_win;
 	TorrentCreator* torrent_win;
 
-	sigc::connection connection_tick;
-	sigc::connection connection_switch_page;
+	sigc::connection m_conn_tick;
+	sigc::connection m_conn_switch_page;
 
 	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
 
@@ -219,6 +227,17 @@ class UI : public Gtk::Window, public Interface
 	void on_hash_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int piece);
 	void on_peer_ban(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
 
+	#if HAVE_GNOME
+	void on_die_gnome();
+	bool on_save_yourself_gnome(int phase, Gnome::UI::SaveStyle save_style,
+		bool shutdown, Gnome::UI::InteractStyle interact_style, bool fast);
+	#endif
+
+	#if HAVE_EXO
+	ExoXsessionClient* exo_client;
+	static void on_save_yourself_exo(ExoXsessionClient *client, gpointer data);
+	#endif
+ 
 public:
 	Gtk::Container* get_container(Plugin::PluginParent parent);
 
