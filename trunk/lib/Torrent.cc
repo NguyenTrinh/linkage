@@ -549,16 +549,15 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 	get_handle().force_reannounce();
 }
 
-const libtorrent::entry Torrent::get_resume_entry(bool running)
+const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 {
 	libtorrent::entry::dictionary_type resume_entry;
 
 	if (!is_stopped())
 	{
-		if (!get_handle().is_paused())
+		// only add current session data if we intend to stop the handle or quit
+		if (stopping || quitting)
 		{
-			/* FIXME: This gives torrent State::Error (for a brief moment) */
-			get_handle().pause();
 			m_downloaded += get_handle().status().total_download;
 			m_uploaded += get_handle().status().total_upload;
 		}
@@ -597,7 +596,7 @@ const libtorrent::entry Torrent::get_resume_entry(bool running)
 
 	resume_entry["path"] = m_path;
 	resume_entry["position"] = m_position;
-	resume_entry["running"] = running;
+	resume_entry["stopped"] = stopping;
 	resume_entry["downloaded"] = m_downloaded;
 	resume_entry["uploaded"] = m_uploaded;
 	resume_entry["download-limit"] = m_down_limit;

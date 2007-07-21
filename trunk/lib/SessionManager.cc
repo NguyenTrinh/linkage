@@ -290,7 +290,9 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 			torrent = Engine::get_torrent_manager()->add_torrent(de, info);
 		}	
 
-		er = torrent->get_resume_entry(true);
+		// see below, get entry before we set the handle
+		er = torrent->get_resume_entry(false);
+
 		torrent->set_handle(handle);
 	}
 	else
@@ -359,7 +361,7 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	else //Torrent was resumed from previous session
 	{
 		torrent = Engine::get_torrent_manager()->add_torrent(er, info);
-		if (er.dict()["running"].integer())
+		if (er.find_key("stopped") && !er.dict()["stopped"].integer())
 		{
 			torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
 			torrent->set_handle(handle);
@@ -395,16 +397,18 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 		if (torrent->is_stopped())
 			return;
 
+		// to make sure Torrent::m_is_queued is false
 		if (torrent->is_queued())
 			torrent->unqueue();
 
+		torrent->get_handle().pause();
 		entry e = torrent->get_resume_entry();
 
 		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 
 		remove_torrent(torrent->get_handle());
-		/* FIXME: this is pretty stupid, just to get the TorrentManager's attention */
-		torrent->set_handle(torrent_handle());
+
+		Engine::get_torrent_manager()->check_queue();
 	}
 }
 
