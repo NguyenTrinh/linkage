@@ -111,7 +111,7 @@ public:
 	void reannounce(const Glib::ustring& tracker = Glib::ustring());
 	const std::vector<libtorrent::announce_entry>& get_trackers();
 
-	const libtorrent::entry get_resume_entry(bool running = false);
+	const libtorrent::entry get_resume_entry(bool stopping = true, bool quitting = false);
 
 	/* FIXME: Friend access only? */
 	void set_handle(const libtorrent::torrent_handle& handle);

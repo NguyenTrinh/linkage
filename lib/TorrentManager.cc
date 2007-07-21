@@ -50,9 +50,9 @@ TorrentManager::~TorrentManager()
 		libtorrent::sha1_hash hash = iter->first;
 		Torrent* torrent = iter->second;
 
-		Glib::ustring hash_str = str(hash);
-
-		libtorrent::entry e = torrent->get_resume_entry(!torrent->is_stopped());
+		if (!torrent->is_stopped())
+			torrent->get_handle().pause();
+		libtorrent::entry e = torrent->get_resume_entry(torrent->is_stopped(), true);
 		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 		if (!torrent->is_stopped())
 			m_session_manager->remove_torrent(torrent->get_handle());
@@ -83,7 +83,13 @@ void TorrentManager::on_settings()
 void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
 	if (exists(hash) && !Glib::str_has_suffix(msg, "event=stopped"))
+	{
+		// FIXME: should we save resume data more often?
+		libtorrent::entry e = m_torrents[hash]->get_resume_entry(false);
+		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
+
 		m_torrents[hash]->set_tracker_reply("Announcing");
+	}
 }
 
 void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int peers)
