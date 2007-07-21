@@ -104,6 +104,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->get_widget("main_hpane", main_hpane);
 
 	glade_xml->get_widget("notebook_details", notebook_details);
+	notebook_details->signal_switch_page().connect(sigc::mem_fun(this, &UI::on_switch_page));
 	glade_xml->get_widget("expander_details", expander_details);
 	glade_xml->get_widget("button_tracker", button_tracker);
 	glade_xml->get_widget("label_tracker", label_tracker);
@@ -330,8 +331,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 UI::~UI()
 {
-	connection_switch_page.disconnect();
-
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
 	int w, h;
@@ -927,7 +926,6 @@ bool UI::on_tracker_update(GdkEventButton* e)
 
 void UI::on_popup_tracker_selected(const Glib::ustring& tracker)
 {
-	/* TODO: Save info to next session */
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1)
 	{
