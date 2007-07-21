@@ -1088,7 +1088,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 			if (uri->is_local())
 				add_torrent(uri->get_path());
 			#else
-			gchar* f = g_filename_from_uri(li->c_str(), NULL, NULL);
+			gchar* f = g_filename_from_uri(iter->c_str(), NULL, NULL);
 			if (f)
 				add_torrent(f);
 			#endif
