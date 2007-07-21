@@ -72,6 +72,8 @@ Options::~Options()
 
 int main(int argc, char *argv[])
 {
+	Gtk::Main kit(&argc, &argv, false);
+
 	boost::filesystem::path::default_name_check(boost::filesystem::native);
 
 	if(!Glib::thread_supported()) 
@@ -94,7 +96,6 @@ int main(int argc, char *argv[])
 		GNOME_PARAM_GOPTION_CONTEXT, context.gobj(),
 		GNOME_PARAM_NONE);
 	#else
-	Gtk::Main kit(&argc, &argv, false);
 	try
 	{
 		context.parse(argc, argv);
@@ -170,11 +171,7 @@ int main(int argc, char *argv[])
 		// just to wake it up
 		Engine::get_plugin_manager();
 
-		#if HAVE_GNOME
-		Gtk::Main::run();
-		#else
 		kit.run();
-		#endif
 		delete ui;
 	}
 
