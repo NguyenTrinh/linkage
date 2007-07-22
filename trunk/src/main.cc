@@ -39,7 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "UI.hh"
 
-void send_files(const std::list<Glib::ustring>& files);
+void send_files(const std::vector<Glib::ustring>& files);
 
 class Options : public Glib::OptionGroup
 {
@@ -48,6 +48,7 @@ public:
 	~Options();
 
 	bool version, quit;
+	std::vector<Glib::ustring> files;
 };
 
 Options::Options()
@@ -60,10 +61,14 @@ Options::Options()
 	e_version.set_description("Show version and quit");
 	add_entry(e_version, version);
 
-  Glib::OptionEntry e_quit;
-  e_quit.set_long_name("quit");
-  e_quit.set_description("Tell the running instance to quit");
-  add_entry(e_quit, quit);
+	Glib::OptionEntry e_quit;
+	e_quit.set_long_name("quit");
+	e_quit.set_description("Tell the running instance to quit");
+	add_entry(e_quit, quit);
+
+	Glib::OptionEntry e_remaining;
+	e_remaining.set_long_name(G_OPTION_REMAINING);
+	add_entry(e_remaining, files);
 }
 
 Options::~Options()
@@ -110,31 +115,18 @@ int main(int argc, char *argv[])
 		std::cout << PACKAGE_VERSION << std::endl;
 		return 0;
 	}
-  if (options.quit)
-  {
-    Engine::get_dbus_manager()->send("Quit");
-    return 0;
-  }
-
-	// FIXME: handle file:// style URIs
-	std::list<Glib::ustring> files;
-	for (int i = 1; i < argc; i++)
+	if (options.quit)
 	{
-		Glib::ustring file = argv[i];
-		if (!Glib::path_is_absolute(file))
-			file = Glib::build_filename(Glib::get_current_dir(), file);
-
-		files.push_back(file);
+		Engine::get_dbus_manager()->send("Quit");
+		return 0;
 	}
-
-	bool file_args = (argc > 1);
 
 	if (!Engine::is_primary())
 	{
-		if (file_args)
+		if (!options.files.empty())
 		{
-			send_files(files);
-			std::cout << argc - 1 << " files passed to running instance.\n";
+			send_files(options.files);
+			std::cout << options.files.size() << " files passed to running instance.\n";
 			return 0;
 		}
 		else
@@ -162,8 +154,8 @@ int main(int argc, char *argv[])
 		xml->get_widget_derived("main_window", ui);
 
 		ui->show();
-		if (file_args)
-			send_files(files);
+		if (!options.files.empty())
+			send_files(options.files);
 
 		// just to wake it up
 		Engine::get_plugin_manager();
@@ -179,12 +171,16 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void send_files(const std::list<Glib::ustring>& files)
+void send_files(const std::vector<Glib::ustring>& files)
 {
-	for (std::list<Glib::ustring>::const_iterator iter = files.begin();
+	// FIXME: handle file:// style URIs
+	for (std::vector<Glib::ustring>::const_iterator iter = files.begin();
 		iter != files.end(); ++iter)
 	{
+		Glib::ustring file = *iter;
+		if (!Glib::path_is_absolute(file))
+			file = Glib::build_filename(Glib::get_current_dir(), file);
 		/* Pass file(s) to running instance */
-		Engine::get_dbus_manager()->send("Open", *iter);
+		Engine::get_dbus_manager()->send("Open", file);
 	}
 }
