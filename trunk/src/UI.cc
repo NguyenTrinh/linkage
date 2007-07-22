@@ -240,7 +240,8 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	targets.push_back(Gtk::TargetEntry("text/uri-list"));
 	// FIXME: check target string from KTHML/WebKit/Dillo etc..
 	#if HAVE_CURL
-	targets.push_back(Gtk::TargetEntry("text/x-moz-url"));
+	targets.push_back(Gtk::TargetEntry("text/plain"));
+	//targets.push_back(Gtk::TargetEntry("text/x-moz-url-data")); 
 	#endif
 	torrent_list->drag_dest_set(targets);
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), true);
@@ -875,9 +876,9 @@ void UI::on_open_location()
 		{
 			Gnome::Vfs::url_show(uri);
 		}
-		catch (Gnome::Vfs::exception& e)
+		catch (Gnome::Vfs::exception& ex)
 		{
-			g_warning(e.what().c_str());
+			g_warning(ex.what().c_str());
 		}
 		#elif HAVE_EXO
 		GError* e = NULL;
@@ -1097,7 +1098,6 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	#if HAVE_CURL
 	else // FIXME: add check, now we just assume it's an URL..
 	{
-		/* TODO: Add a progress bar */
 		notify("Downloading torrent", "downloading " + data);
 
 		gchar* name;
