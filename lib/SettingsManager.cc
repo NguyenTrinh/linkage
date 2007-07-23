@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/iochannel.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
+#include <glibmm/i18n.h>
 
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
@@ -34,8 +35,9 @@ Glib::RefPtr<SettingsManager> SettingsManager::create()
 SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(this)
 {
 	/* Create data dir if it doesn't exists */
+	// FIXME: this belongs in SessionManager/TorrentManager
 	if(g_mkdir_with_parents(get_data_dir().c_str(), 0755) == -1)
-		g_warning(("Could not create directory: " + get_data_dir()).c_str());
+		g_warning(_("Could not create directory: %s"), get_data_dir().c_str());
 	
 	Gnome::Conf::init();
 	gconf = Gnome::Conf::Client::get_default_client();

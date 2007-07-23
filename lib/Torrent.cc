@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <glibmm/i18n.h>
+
 #include "linkage/Torrent.hh"
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
@@ -234,26 +236,26 @@ const Glib::ustring Torrent::get_state_string(State state)
 	switch (state)
 	{
 		case ERROR:
-			return "Error";
+			return _("Error");
 		case QUEUED:
-			return "Queued";
+			return _("Queued");
 		case STOPPED:
-			return "Stopped";
+			return _("Stopped");
 		case CHECK_QUEUE:
-			return "Queued for checking";
+			return _("Queued for checking");
 		case CHECKING:
-			return "Checking";
+			return _("Checking");
 		case ANNOUNCING:
-			return "Announcing";
+			return _("Announcing");
 		case FINISHED:
-			return "Finished";
+			return _("Finished");
 		case SEEDING:
-			return "Seeding";
+			return _("Seeding");
 		case ALLOCATING:
-			return "Allocating";
+			return _("Allocating");
 		case DOWNLOADING:
 		default:
-			return "Downloading";
+			return _("Downloading");
 	}
 }
 
@@ -364,7 +366,8 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 		m_cur_tier = 0;
 	}
 	/* All trackers failed, cycle stops */
-	else if (m_cur_tier == 0 && reply != "Announcing")
+	// FIXME: shouldn't rely on check against translateable string
+	else if (m_cur_tier == 0 && reply != _("Announcing"))
 		m_announcing = false;
 	else
 		m_announcing = true;

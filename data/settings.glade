@@ -1242,7 +1242,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label9">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Maximum connections:</property>
+			      <property name="label" translatable="yes">Max connections:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1270,7 +1270,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label12">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Maximum uploads:</property>
+			      <property name="label" translatable="yes">Max uploads:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1298,7 +1298,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label13">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Maximum upload rate:</property>
+			      <property name="label" translatable="yes">Max upload rate:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1326,7 +1326,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label14">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Maximum download rate:</property>
+			      <property name="label" translatable="yes">Max download rate:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1354,7 +1354,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label19">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Maximum active downloads:</property>
+			      <property name="label" translatable="yes">Max active downloads:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1516,7 +1516,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label23">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Maximum connections:</property>
+			      <property name="label" translatable="yes">Max connections:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1544,7 +1544,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label27">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Maximum uploads:</property>
+			      <property name="label" translatable="yes">Max uploads:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -2130,7 +2130,7 @@
 			      <child>
 				<widget class="GtkLabel" id="label49">
 				  <property name="visible">True</property>
-				  <property name="label" translatable="yes">Maximum open files:</property>
+				  <property name="label" translatable="yes">Max open files:</property>
 				  <property name="use_underline">False</property>
 				  <property name="use_markup">False</property>
 				  <property name="justify">GTK_JUSTIFY_LEFT</property>

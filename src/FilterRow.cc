@@ -17,6 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <glibmm/i18n.h>
+
 #include "FilterRow.hh"
 
 FilterRow::FilterRow(bool first)
@@ -48,27 +50,27 @@ void FilterRow::init(bool first)
 	combo_operation = manage(new Gtk::ComboBoxText());
 	if (first)
 	{
-		combo_operation->append_text("If");
-		combo_operation->append_text("If not");
+		combo_operation->append_text(_("If"));
+		combo_operation->append_text(_("If not"));
 	}
 	else
 	{
-		combo_operation->append_text("Or");
-		combo_operation->append_text("Or not");
-		combo_operation->append_text("And");
-		combo_operation->append_text("And not");
+		combo_operation->append_text(_("Or"));
+		combo_operation->append_text(_("Or not"));
+		combo_operation->append_text(_("And"));
+		combo_operation->append_text(_("And not"));
 	}
 
 	combo_tag = manage(new Gtk::ComboBoxText());
-	combo_tag->append_text("Tracker");
-	combo_tag->append_text("Name");
-	combo_tag->append_text("Comment");
+	combo_tag->append_text(_("Tracker"));
+	combo_tag->append_text(_("Name"));
+	combo_tag->append_text(_("Comment"));
 
 	combo_eval = manage(new Gtk::ComboBoxText());
-	combo_eval->append_text("Equals");
-	combo_eval->append_text("Contains");
-	combo_eval->append_text("Starts with");
-	combo_eval->append_text("Ends with");
+	combo_eval->append_text(_("Equals"));
+	combo_eval->append_text(_("Contains"));
+	combo_eval->append_text(_("Starts with"));
+	combo_eval->append_text(_("Ends with"));
 
 	entry_filter = manage(new Gtk::Entry());
 

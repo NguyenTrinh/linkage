@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/button.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrenderertoggle.h>
-#include <libtorrent/entry.hpp>
+#include <glibmm/i18n.h>
 
 #include "SettingsWin.hh"
 #include "linkage/Engine.hh"
@@ -95,7 +95,7 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	// cant be done with glade because ComboBoxText is gtkmm only
 	interfaces = manage(new Gtk::ComboBoxText());
 	interfaces->set_row_separator_func(sigc::mem_fun(this, &SettingsWin::is_separator));
-	interfaces->append_text("None specified");
+	interfaces->append_text(_("None specified"));
 	interfaces->append_text("-");
 	std::list<Glib::ustring> if_list = get_interfaces();
 	for (std::list<Glib::ustring>::iterator iter = if_list.begin();
@@ -115,10 +115,10 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	treeview_plugins->set_model(model_plugins);
 	Gtk::CellRendererToggle* trender = new Gtk::CellRendererToggle();
 	trender->signal_toggled().connect(sigc::mem_fun(this, &SettingsWin::on_plugin_toggled));
-	treeview_plugins->append_column("Load", *manage(trender));
+	treeview_plugins->append_column(_("Load"), *manage(trender));
 	treeview_plugins->get_column(0)->add_attribute(*trender, "active", 0);
-	treeview_plugins->append_column("Name", plugin_columns.name);
-	treeview_plugins->append_column("Description", plugin_columns.description);
+	treeview_plugins->append_column(_("Name"), plugin_columns.name);
+	treeview_plugins->append_column(_("Description"), plugin_columns.description);
 	for(unsigned int i = 0; i < 3; i++)
 	{
 		Gtk::TreeView::Column* column = treeview_plugins->get_column(i);

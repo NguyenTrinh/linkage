@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <vector>
 
+#include <glibmm/i18n.h>
+
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 #include "linkage/TorrentManager.hh"
@@ -88,7 +90,7 @@ void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, cons
 		libtorrent::entry e = m_torrents[hash]->get_resume_entry(false);
 		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 
-		m_torrents[hash]->set_tracker_reply("Announcing");
+		m_torrents[hash]->set_tracker_reply(_("Announcing"));
 	}
 }
 
@@ -97,7 +99,7 @@ void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const G
 	if (exists(hash))
 	{
 		Glib::ustring tracker = reply.substr(27);
-		m_torrents[hash]->set_tracker_reply("OK, got " + str(peers) + " peers", tracker);
+		m_torrents[hash]->set_tracker_reply(_("OK, got ") + str(peers) + _(" peers"), tracker);
 	}
 }
 
@@ -118,7 +120,7 @@ void TorrentManager::on_tracker_failed(const libtorrent::sha1_hash& hash, const 
 		Glib::ustring s = msg;
 
 		if (times > 1)
-			s = s + " (" + str(times) + " times in a row)";
+			s = s + " (" + str(times) + _(" times in a row)");
 
 		m_torrents[hash]->set_tracker_reply(s, tracker);
 	}

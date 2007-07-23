@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "config.h"
 
 #include <gtkmm/statusicon.h>
+#include <glibmm/i18n.h>
 
 #include "linkage/Engine.hh"
 #include "PluginNotification.hh"
@@ -45,7 +46,7 @@ NotifyPlugin::~NotifyPlugin()
 Plugin::Info NotifyPlugin::get_info()
 {
 	return Plugin::Info("NotifyPlugin",
-		"Displays notifications trough libnotify",
+		_("Displays notifications trough libnotify"),
 		"1",
 		"Christian Lundgren",
 		"http://code.google.com/p/linkage",
@@ -103,7 +104,7 @@ Plugin* create_plugin()
 Plugin::Info plugin_info()
 {
 	return Plugin::Info("NotifyPlugin",
-		"Displays notifications trough libnotify",
+		_("Displays notifications trough libnotify"),
 		"1",
 		"Christian Lundgren",
 		"http://code.google.com/p/linkage",

@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/menuitem.h>
 #include <gtkmm/imagemenuitem.h>
 #include <gtkmm/separatormenuitem.h>
+#include <glibmm/i18n.h>
 
 #include "PluginTrayIcon.hh"
 #include "linkage/Engine.hh"
@@ -32,10 +33,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 TrayPlugin::TrayPlugin()
 {
 	menu = new Gtk::Menu();
-	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem("Start torrents"));
+	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(_("Start torrents")));
 	item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_start));
 	menu->append(*item);
-	item = Gtk::manage(new Gtk::MenuItem("Stop torrents"));
+	item = Gtk::manage(new Gtk::MenuItem(_("Stop torrents")));
 	item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_stop));
 	menu->append(*item);
 	Gtk::SeparatorMenuItem* separator = Gtk::manage(new Gtk::SeparatorMenuItem());
@@ -62,7 +63,7 @@ TrayPlugin::~TrayPlugin()
 Plugin::Info TrayPlugin::get_info()
 {
 	return Plugin::Info("TrayPlugin",
-		"Displays a tray icon",
+		_("Displays a tray icon"),
 		"1",
 		"Christian Lundgren",
 		"http://code.google.com/p/linkage",
@@ -105,9 +106,10 @@ void TrayPlugin::on_tick()
 
 	std::stringstream ss;
 	ss.imbue(std::locale(""));
-	ss << num_active << " (" << num_queued << ") downloads, "
-		<< num_seeds << " seeds\nDL: " << suffix_value(status.payload_download_rate)
-		<< "/s\tUL:" << suffix_value(status.payload_upload_rate) + "/s";
+	ss << num_active << " (" << num_queued << ") " << _("downloads") << ", "
+		<< num_seeds << " " << _("seeds") << "\n" << _("DL: ")
+		<< suffix_value(status.payload_download_rate)		<< "/s\t"
+		<< _("UL: ") << suffix_value(status.payload_upload_rate) + "/s";
 
 	icon->set_tooltip(Glib::locale_to_utf8(ss.str()));
 }
@@ -149,7 +151,7 @@ Plugin* create_plugin()
 Plugin::Info plugin_info()
 {
 	return Plugin::Info("TrayPlugin",
-		"Displays a tray icon",
+		_("Displays a tray icon"),
 		"1",
 		"Christian Lundgren",
 		"http://code.google.com/p/linkage",

@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <glib/gstdio.h>
 #include <glibmm/fileutils.h>
+#include <glibmm/i18n.h>
 
 // FIXME: Remove using statement
 using namespace libtorrent;
@@ -117,7 +118,7 @@ void SessionManager::on_settings()
 		}
 		catch (std::exception& e)
 		{
-			g_warning("Listen failed: %s", e.what());
+			g_warning(_("Listen failed: %s"), e.what());
 		}
 	}
 
@@ -143,7 +144,7 @@ void SessionManager::on_settings()
 		}
 		catch (asio::error& error)
 		{
-			g_warning("Failed to start DHT");
+			g_warning(_("Failed to start DHT"));
 		}
 	}
 	else
@@ -209,7 +210,7 @@ bool SessionManager::decode(const Glib::ustring& file,
 
 	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 	{
-		m_signal_missing_file.emit("File not found, \"" + file + "\"", file);
+		m_signal_missing_file.emit(_("File not found, \"") + file + "\"", file);
 		return false;
 	}
 
@@ -228,7 +229,7 @@ bool SessionManager::decode(const Glib::ustring& file,
 	}
 	catch (std::exception& err)
 	{
-		m_signal_invalid_bencoding.emit("Invalid bencoding in " + file, file);
+		m_signal_invalid_bencoding.emit(_("Invalid bencoding in ") + file, file);
 		return false;
 	}
 
@@ -245,7 +246,7 @@ void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustr
 		if (!torrent->is_stopped())
 			ret = torrent->get_handle().move_storage(path.c_str());
 		if (!ret)
-			g_warning("Failed to move content for %s to %s", torrent->get_name().c_str(), path.c_str());
+			g_warning(_("Failed to move content for %s to %s"), torrent->get_name().c_str(), path.c_str());
 	}
 }
 
@@ -302,7 +303,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		{
 			torrent->add_tracker(trackers[i].url);
 		}
-		m_signal_duplicate_torrent.emit("Merged " + info.name() + " with " + torrent->get_name(), hash);
+		m_signal_duplicate_torrent.emit(_("Merged ") + info.name() + _(" with ") + torrent->get_name(), hash);
 		return hash;
 	}
 

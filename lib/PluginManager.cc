@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <glibmm/i18n.h>
+
 #include "config.h"
 
 #include "linkage/PluginManager.hh"
@@ -84,7 +86,7 @@ void PluginManager::refresh_info()
 			}
 		}
 		else
-			g_warning("Failed to open plugin %s", module.get_last_error().c_str());
+			g_warning(_("Failed to open plugin %s"), module.get_last_error().c_str());
 	}
 }
 

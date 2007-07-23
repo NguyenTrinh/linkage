@@ -15,9 +15,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-#include <iostream>
+
 #include <glibmm/thread.h>
 #include <gtkmm/main.h>
+#include <glibmm/i18n.h>
 
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
@@ -159,7 +160,7 @@ void UPnPPlugin::on_action_done(GUPnPServiceProxy *proxy, GUPnPServiceProxyActio
 Plugin::Info UPnPPlugin::get_info()
 {
 	return Plugin::Info("UPnPPlugin",
-		"Enables port forwarding through gssdp/gupnp",
+		_("Enables port forwarding through gssdp/gupnp"),
 		"1",
 		"Christian Lundgren",
 		"http://code.google.com/p/linkage",
@@ -175,7 +176,7 @@ Plugin* create_plugin()
 Plugin::Info plugin_info()
 {
 	return Plugin::Info("UPnPPlugin",
-		"Enables port forwarding through gssdp/gupnp",
+		_("Enables port forwarding through gssdp/gupnp"),
 		"1",
 		"Christian Lundgren",
 		"http://code.google.com/p/linkage",

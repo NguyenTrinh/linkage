@@ -17,6 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <glibmm/i18n.h>
+
 #include "linkage/Engine.hh"
 #include "linkage/SettingsManager.hh"
 
@@ -33,7 +35,7 @@ StateFilter::StateFilter(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	Torrent tmp;
 
 	Gtk::TreeRow row = *(model->append());
-	row[columns.name] = "All";
+	row[columns.name] = _("All");
 	row[columns.state] = Torrent::NONE;
 
 	for (int i = Torrent::ANNOUNCING; i != Torrent::ERROR; i *= 2)

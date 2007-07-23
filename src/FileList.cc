@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrendererprogress.h>
 #include <gtkmm/cellrenderertoggle.h>
+#include <glibmm/i18n.h>
 
 #include "FileList.hh"
 #include "CellRendererPieceMap.hh"
@@ -43,14 +44,14 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 
 	Gtk::CellRendererToggle* toggle_render = manage(new Gtk::CellRendererToggle());
 	toggle_render->signal_toggled().connect(sigc::mem_fun(*this, &FileList::on_filter_toggled));
-	int cols_count = append_column("Filter", *toggle_render);
+	int cols_count = append_column(_("Filter"), *toggle_render);
 	Gtk::TreeViewColumn* column = get_column(cols_count - 1);
 	column->add_attribute(*toggle_render, "active", columns.filter);
 	column->add_attribute(*toggle_render, "inconsistent", columns.inconsistent);
 	column->set_sort_column(columns.filter);
 	column->set_resizable(true);
 
-	column = manage(new Gtk::TreeViewColumn("Name"));
+	column = manage(new Gtk::TreeViewColumn(_("Name")));
 	append_column(*column);
 	Gtk::CellRendererText* text_render = manage(new Gtk::CellRendererText());
 	Gtk::CellRendererPixbuf* icon_render = manage(new Gtk::CellRendererPixbuf());
@@ -62,21 +63,21 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	column->set_resizable(true);
 
 	CellRendererPieceMap *piece_render = manage(new CellRendererPieceMap());
-	column = manage(new Gtk::TreeViewColumn("Progress", *piece_render));
+	column = manage(new Gtk::TreeViewColumn(_("Pieces"), *piece_render));
 	append_column(*column);
 	column->add_attribute(piece_render->property_map(), columns.map);
 	model->set_sort_func(columns.map, sigc::mem_fun(this, &FileList::compare_piece_map));
 	column->set_sort_column(columns.map);
 	column->set_resizable(true);
 
-	cols_count = append_column("Done", columns.done);
+	cols_count = append_column(_("Done"), columns.done);
 	column = get_column(cols_count - 1);
 	Gtk::CellRendererText* cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
 	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &FileList::format_data), columns.done));
 	column->set_sort_column(columns.done);
 	column->set_resizable(true);
 
-	cols_count = append_column("Size", columns.size);
+	cols_count = append_column(_("Size"), columns.size);
 	column = get_column(cols_count - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
 	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &FileList::format_data), columns.size));
