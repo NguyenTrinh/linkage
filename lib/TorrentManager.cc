@@ -152,14 +152,19 @@ void TorrentManager::set_torrent_settings(Torrent* torrent)
 
 void TorrentManager::set_torrent_position(const libtorrent::sha1_hash& hash, int diff)
 {
-	for (TorrentIter iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
+	TorrentIter iter;
+	for (iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
 		unsigned int position = iter->second->get_position();
 		if (position == m_torrents[hash]->get_position() && iter->first != hash)
+		{
 			iter->second->set_position(position + diff);
+			break;
+		}
 	}
 
-	check_queue();
+	if (iter == m_torrents.end())
+		check_queue();
 }
 
 bool TorrentManager::exists(const libtorrent::sha1_hash& hash)
