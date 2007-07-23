@@ -37,8 +37,22 @@ PKG_CHECK_MODULES(DBUSGLIB, dbus-glib-1 >= 0.70)
 AC_SUBST(DBUSGLIB_CFLAGS)
 AC_SUBST(DBUSGLIB_LIBS)
 
-PKG_CHECK_MODULES(LIBUPNP, libupnp >= 1.4.1, USE_UPNP="yes", USE_UPNP="no")
-AM_CONDITIONAL(BUILDUPNP, test x$USE_UPNP = xyes)
+AC_ARG_ENABLE([upnp],
+    [AS_HELP_STRING([--enable-upnp], [Enable libupnp (default=disabled)])],
+    [enable_upnp="$enableval"],
+    [enable_upnp="no"]
+)
+
+if test "$enable_upnp" = "yes"; then
+    PKG_CHECK_MODULES([LIBUPNP], [libupnp >= 1.4.1])
+    AC_DEFINE([BUILDUPNP], [], [Define when building with libupnp])    
+    BUILDUPNP="true"
+else
+    BUILDUPNP="false"
+fi
+
+AC_SUBST([ENABLE_LIBUPNP])
+AM_CONDITIONAL([BUILDUPNP], [test "$enable_upnp" = "yes"])
 
 AC_SUBST(LIBUPNP_CFLAGS)
 AC_SUBST(LIBUPNP_LIBS)
