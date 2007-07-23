@@ -17,9 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <vector>
-#include <iostream>
 
 #include "linkage/Engine.hh"
+#include "linkage/Utils.hh"
 #include "linkage/TorrentManager.hh"
 
 Glib::RefPtr<TorrentManager> TorrentManager::create()
