@@ -291,10 +291,13 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	resize(sm->get_int("ui/win_width"), sm->get_int("ui/win_width"));
 
 	notebook_details->set_current_page(sm->get_int("ui/page"));
-	/* this makes expander insensitive even if we have a valid selection,
-			if we shutdown with expander not expanded */
-	expander_details->set_sensitive(sm->get_bool("ui/expanded"));
+	HashList list = torrent_list->get_selected_list();
+	expander_details->set_sensitive(!list.empty());
 	expander_details->set_expanded(sm->get_bool("ui/expanded"));
+	// To make sure update_statics is run properly on startup
+	if (expander_details->get_expanded())
+		on_torrent_list_selection_changed();
+
 	Gtk::HPaned* hpan;
 	glade_xml->get_widget("main_hpane",hpan);
 	hpan->set_position(sm->get_int("ui/groups_width"));
