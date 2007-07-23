@@ -1,10 +1,6 @@
 bin_PROGRAMS = linkage
 
-flagdir = \"$(prefix)/share/linkage/flags\"
-pixmapdir = \"$(prefix)/share/pixmaps\"
-datadir = \"${prefix}/share/linkage\"
-
-AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS)  $(LIBCURL_CFLAGS) $(DBUSGLIB_CFLAGS) $(GTHREAD_CFLAGS) ${LIBGLADE_CFLAGS} ${GCONFMM_CFLAGS} $(EXO_CFLAGS) $(GNOME_CFLAGS) -DFLAG_DIR="$(flagdir)" -DPIXMAP_DIR="$(pixmapdir)" -DDATA_DIR="${datadir}"
+AM_CXXFLAGS = -I../lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS)  $(LIBCURL_CFLAGS) $(DBUSGLIB_CFLAGS) $(GTHREAD_CFLAGS) ${LIBGLADE_CFLAGS} ${GCONFMM_CFLAGS} $(EXO_CFLAGS) $(GNOME_CFLAGS)
 
 linkage_SOURCES = CellRendererPieceMap.hh \
                   FileList.hh \

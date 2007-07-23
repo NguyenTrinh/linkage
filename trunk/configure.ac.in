@@ -39,24 +39,68 @@ PKG_CHECK_MODULES(LIBNOTIFY, libnotify >= 0.4.2)
 AC_SUBST(LIBNOTIFY_CFLAGS)
 AC_SUBST(LIBNOTIFY_LIBS)
 
-PKG_CHECK_MODULES(LIBCURL, libcurl >= 7.14.0, AC_DEFINE([HAVE_CURL], [1], [Have curl]), AC_DEFINE([HAVE_CURL], [0], [Have curl]))
-AC_SUBST(LIBCURL_CFLAGS)
-AC_SUBST(LIBCURL_LIBS)
-
 PKG_CHECK_MODULES(DBUSGLIB, dbus-glib-1 >= 0.70)
 AC_SUBST(DBUSGLIB_CFLAGS)
 AC_SUBST(DBUSGLIB_LIBS)
 
-PKG_CHECK_MODULES(GUPNP, gupnp-1.0 >= 0.1, USE_UPNP="yes", USE_UPNP="no")
+AC_ARG_WITH([curl],
+	[AS_HELP_STRING([--with-curl],
+		[support for curl @<:@default=check@:>@])],
+	[],
+	[with_curl=check])
+AS_IF([test "x$with_curl" != xno],
+	[PKG_CHECK_MODULES(LIBCURL, libcurl >= 7.14.0,
+		AC_DEFINE([HAVE_CURL], [1], [Have curl]),
+		[if test "x$with_curl" != xcheck; then
+			AC_MSG_FAILURE(
+				[--with-curl was given, but test for curl failed.])
+	 	fi])], AC_DEFINE([HAVE_CURL], [0], [Have curl]))
+AC_SUBST(LIBCURL_CFLAGS)
+AC_SUBST(LIBCURL_LIBS)
+
+AC_ARG_WITH([gupnp],
+	[AS_HELP_STRING([--with-gupnp],
+		[support for gupnp @<:@default=check@:>@])],
+	[],
+	[with_gupnp=check])
+AS_IF([test "x$with_gupnp" != xno],
+	[PKG_CHECK_MODULES(GUPNP, gupnp-1.0 >= 0.1,
+		USE_UPNP="yes",
+		[if test "x$with_gupnp" != xcheck; then
+			AC_MSG_FAILURE(
+				[--with-gupnp was given, but test for gupnp failed.])
+	 	fi])], [USE_UPNP="no"])
 AM_CONDITIONAL(BUILDUPNP, test x$USE_UPNP = xyes)
 AC_SUBST(GUPNP_CFLAGS)
 AC_SUBST(GUPNP_LIBS)
 
-PKG_CHECK_MODULES(GNOME, libgnomemm-2.6 >= 2.16 gnome-vfsmm-2.6 >= 2.16 libgnomeuimm-2.6 > 2.16, AC_DEFINE([HAVE_GNOME], [1], [Have GNOME]), AC_DEFINE([HAVE_GNOME], [0], [Have GNOME]))
+AC_ARG_WITH([gnome],
+	[AS_HELP_STRING([--with-gnome],
+		[gnome session support @<:@default=check@:>@])],
+	[],
+	[with_gnome=check])
+AS_IF([test "x$with_gnome" != xno],
+	[PKG_CHECK_MODULES(GNOME, libgnomemm-2.6 >= 2.16 gnome-vfsmm-2.6 >= 2.16 libgnomeuimm-2.6 > 2.16,
+		AC_DEFINE([HAVE_GNOME], [1], [Have GNOME]),
+		[if test "x$with_gnome" != xcheck; then
+			AC_MSG_FAILURE(
+				[--with-gnome was given, but test for GNOME failed.])
+	 	fi])], AC_DEFINE([HAVE_GNOME], [0], [Have GNOME]))
 AC_SUBST(GNOME_CFLAGS)
 AC_SUBST(GNOME_LIBS)
 
-PKG_CHECK_MODULES(EXO, exo-0.3 >= 0.3, AC_DEFINE([HAVE_EXO], [1], [Have exo]), AC_DEFINE([HAVE_EXO], [0], [Have exo]))
+AC_ARG_WITH([exo],
+	[AS_HELP_STRING([--with-exo],
+		[xfce session support @<:@default=check@:>@])],
+	[],
+	[with_exo=check])
+AS_IF([test "x$with_exo" != xno],
+	[PKG_CHECK_MODULES(EXO, exo-0.3 >= 0.3,
+		AC_DEFINE([HAVE_EXO], [1], [Have exo]),
+		[if test "x$with_exo" != xcheck; then
+			AC_MSG_FAILURE(
+				[--with-exo was given, but test for exo failed.])
+	 	fi])], AC_DEFINE([HAVE_EXO], [0], [Have exo]))
 AC_SUBST(EXO_CFLAGS)
 AC_SUBST(EXO_LIBS)
 
@@ -68,10 +112,15 @@ dnl Checking for gconftool-2
 AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
 
 if test "x$GCONFTOOL" = xno; then
-  AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf])
+	AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf])
 fi
 
 AM_GCONF_SOURCE_2
+
+AC_DEFINE_UNQUOTED([FLAG_DIR], ["${prefix}/share/linkage/flags"], [Flag directory])
+AC_DEFINE_UNQUOTED([PIXMAP_DIR], ["${prefix}/share/pixmaps"], [Pixmap directory])
+AC_DEFINE_UNQUOTED([DATA_DIR], ["${prefix}/share/linkage"], [Data directory])
+AC_DEFINE_UNQUOTED([PLUGIN_DIR], ["${prefix}/lib/linkage/plugins"], [Plugin directory])
 
 AC_PROG_CC()
 AC_PROG_CXX()
