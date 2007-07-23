@@ -209,39 +209,40 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 		client.replace(0, 5, "\u00b5");
 	row[columns.client] = client;
 
-	std::stringstream flags;
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
 	if (peer.flags & libtorrent::peer_info::connecting)
-		flags << "Connecting";
+		ss << "Connecting";
 	else if (peer.flags & libtorrent::peer_info::handshake)
-		flags << "Handshake";
+		ss << "Handshake";
 	else if	(peer.flags & libtorrent::peer_info::queued)
-		flags << "Queued";
+		ss << "Queued";
 	else
 	{
 		if (peer.flags & libtorrent::peer_info::interesting)
 		{
-			if (flags.tellp())
-				flags << ", ";
-			flags << "Interested";
+			if (ss.tellp())
+				ss << ", ";
+			ss << "Interested";
 		}
 		if (peer.flags & libtorrent::peer_info::choked)
 		{
-			if (flags.tellp())
-				flags << ", ";
-			flags << "Choked";
+			if (ss.tellp())
+				ss << ", ";
+			ss << "Choked";
 		}
 		if (peer.flags & libtorrent::peer_info::remote_interested)
 		{
-			if (flags.tellp())
-				flags << ", ";
-			flags << "Remote interested";
+			if (ss.tellp())
+				ss << ", ";
+			ss << "Remote interested";
 		}
 		if (peer.flags & libtorrent::peer_info::remote_choked)
 		{
-			if (flags.tellp())
-				flags << ", ";
-			flags << "Remote choked";
+			if (ss.tellp())
+				ss << ", ";
+			ss << "Remote choked";
 		}
 	}
-	row[columns.flags] = flags.str();
+	row[columns.flags] = Glib::locale_to_utf8(ss.str());
 }

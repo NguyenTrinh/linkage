@@ -203,6 +203,7 @@ void GroupsWin::format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& it
 		return;
 
 	std::stringstream ss;
+	ss.imbue(std::locale(""));
 
 	Gtk::TreeRow row = *iter;
 
@@ -279,6 +280,6 @@ void GroupsWin::format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& it
 	ss << "</small>";
 
 	Gtk::CellRendererText* txt_renderer = dynamic_cast<Gtk::CellRendererText*>(renderer);
-	txt_renderer->property_markup() = ss.str();
+	txt_renderer->property_markup() = Glib::locale_to_utf8(ss.str());
 }
 

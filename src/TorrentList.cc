@@ -50,7 +50,6 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	column->clear_attributes(*renderer_text);
 	column->add_attribute(*renderer_text, "markup", columns.name_formated);
 	column->set_expand(true);
-	//column->set_cell_data_func(*name_render, sigc::mem_fun(this, &TorrentList::format_name));
 	CellRendererProgressText* renderer = manage(new CellRendererProgressText());
 	col_id = append_column("Progress", *renderer);
 	column = get_column(col_id - 1);
@@ -276,6 +275,7 @@ Glib::ustring TorrentList::get_formated_name(const WeakPtr<Torrent>& torrent)
 			break;
 	}
 	std::stringstream ss;
+	ss.imbue(std::locale(""));
 	Glib::ustring name = torrent->get_name();
 	int name_max = sm->get_int("ui/torrent_view/max_name_width");
 	if (sm->get_bool("ui/torrent_view/trunkate_names") && name.size() > name_max)
@@ -300,7 +300,7 @@ Glib::ustring TorrentList::get_formated_name(const WeakPtr<Torrent>& torrent)
 	else
 		ss << torrent->get_state_string(state);
 
-	return ss.str();
+	return Glib::locale_to_utf8(ss.str());
 }
 
 void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
@@ -320,13 +320,9 @@ bool TorrentList::on_button_press_event(GdkEventButton* event)
 	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y))
 		return false;
 
-	if (event->button == 1)
-		TreeView::on_button_press_event(event);
-	/* Don't reset a multi selection */
-	else if (get_selection()->count_selected_rows() <= 1)
-		TreeView::on_button_press_event(event);
-	/* Unless we right clicked an unselected row */
-	else if (!get_selection()->is_selected(path))
+	bool selected = get_selection()->is_selected(path);
+	int selected_rows = get_selection()->count_selected_rows();
+	if (event->button == 1 || selected_rows <= 1 ||	!selected)
 		TreeView::on_button_press_event(event);
 
 	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
