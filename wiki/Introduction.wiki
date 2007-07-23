@@ -1,4 +1,5 @@
 #summary General information about Linkage and some screenshots
+#labels Featured
 
 = Introduction =
 
@@ -6,26 +7,36 @@ Linkage is a BitTorrent client written in C++. It based on libtorrent and uses t
 
 = Purpose =
 
-At the time I started writing Linkage there wasn't any decent BitTorrent client around for the GTK+ desktop. I guess Dave had a similar view of things when he started his own client, I saw it and suggested that we merged our efforts. The result is Linkage.
+At the time I started writing Linkage there wasn't any decent BitTorrent client around for the GTK+ desktop.
+
+I guess Dave had a similar view of things when he started his own client, I saw it and suggested that we merged our efforts. The result is Linkage.
 
 = Screenshots =
 
-[http://code.google.com/p/linkage/wiki/images/linkage_small.png http://code.google.com/p/linkage/wiki/images/linkage_small.th.png]
-[http://code.google.com/p/linkage/wiki/images/linkage_full.png http://code.google.com/p/linkage/wiki/images/linkage_full.th.png]
-[http://code.google.com/p/linkage/wiki/images/linkage_prefs.png http://code.google.com/p/linkage/wiki/images/linkage_prefs.th.png]
-[http://code.google.com/p/linkage/wiki/images/linkage_groups.png http://code.google.com/p/linkage/wiki/images/linkage_groups.th.png]
-[http://code.google.com/p/linkage/wiki/images/linkage_new.png http://code.google.com/p/linkage/wiki/images/linkage_new.th.png]
-[http://code.google.com/p/linkage/wiki/images/linkage_general.png http://code.google.com/p/linkage/wiki/images/linkage_general.th.png]
-[http://code.google.com/p/linkage/wiki/images/linkage_transfer.png http://code.google.com/p/linkage/wiki/images/linkage_transfer.th.png]
-[http://code.google.com/p/linkage/wiki/images/linkage_files.png http://code.google.com/p/linkage/wiki/images/linkage_files.th.png]
+|| [http://linkage.googlecode.com/svn/wiki/images/linkage-small.png http://linkage.googlecode.com/svn/wiki/images/linkage-small.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-general.png http://linkage.googlecode.com/svn/wiki/images/linkage-general.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-transfer.png http://linkage.googlecode.com/svn/wiki/images/linkage-transfer.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-files.png http://linkage.googlecode.com/svn/wiki/images/linkage-files.th.png] ||
+
+|| [http://linkage.googlecode.com/svn/wiki/images/linkage-prefs.png http://linkage.googlecode.com/svn/wiki/images/linkage-prefs.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-groups.png http://linkage.googlecode.com/svn/wiki/images/linkage-groups.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-new.png http://linkage.googlecode.com/svn/wiki/images/linkage-new.th.png] ||
 
 = Installing =
 See [Installation]
 
 == Running ==
 
-You can start Linkage either by typing linkage in a terminal or simply clicking the launcher in your menu. If you just installed Linkage you might need to run the following as root to make it show up in the menu:
+You can start Linkage either by typing linkage in a terminal or simply clicking the launcher in your menu.
+
+If you just installed Linkage you might need to run the following as root to make it show up in the menu:
 {{{
 update-desktop-database /usr/share/applications
 }}}
+
+
+
+
+
+
+
+
+
+
+
 
