@@ -2,8 +2,6 @@ SUBDIRS = linkage
 
 lib_LTLIBRARIES = liblinkage-1.la
 
-plugindir = \"$(prefix)/share/linkage/plugins\"
-
 liblinkage_1_la_SOURCES = Engine.cc \
                           AlertManager.cc \
                           Plugin.cc \
@@ -18,8 +16,7 @@ liblinkage_1_la_SOURCES = Engine.cc \
                           Interface.cc
 
 liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) \
-	$(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) \
-	${GCONFMM_CFLAGS} -DPLUGIN_DIR="$(plugindir)"
+	$(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) ${GCONFMM_CFLAGS}
 
 liblinkage_1_la_CFLAGS = $(CFLAGS) $(DBUSGLIB_CFLAGS)
 

@@ -1,4 +1,4 @@
-upnpdir = $(prefix)/share/linkage/plugins
+upnpdir = $(libdir)/linkage/plugins
 
 upnp_LTLIBRARIES = upnp.la
 

@@ -16,8 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "config.h"
+
 #include <sstream>
-#include <iostream>
 
 #include <gtkmm/stock.h>
 #include <gtkmm/menuitem.h>
@@ -102,11 +103,12 @@ void TrayPlugin::on_tick()
 	libtorrent::session_status status = Engine::get_session_manager()->status();
 
 	std::stringstream ss;
+	ss.imbue(std::locale(""));
 	ss << num_active << " (" << num_queued << ") downloads, "
 		<< num_seeds << " seeds\nDL: " << suffix_value(status.payload_download_rate)
 		<< "/s\tUL:" << suffix_value(status.payload_upload_rate) + "/s";
 
-	icon->set_tooltip(ss.str());
+	icon->set_tooltip(Glib::locale_to_utf8(ss.str()));
 }
 
 void TrayPlugin::on_quit()
