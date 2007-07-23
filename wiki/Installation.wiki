@@ -59,3 +59,7 @@ cd linkage
 make
 sudo make install
 }}}
+
+
+= Gentoo =
+An ebuild is available in Portage, http://packages.gentoo.org/packages/?category=net-p2p;name=linkage
