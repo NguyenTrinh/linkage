@@ -13,17 +13,14 @@ src/PieceMap.cc
 src/SettingsWin.cc
 src/StateFilter.cc
 src/Statusbar.cc
-src/test.cc
 src/TorrentCreator.cc
 src/TorrentList.cc
 src/TorrentMenu.cc
 src/UI.cc
 lib/AlertManager.cc
-lib/ConfigManager.cc
 lib/dbus-c.c
 lib/DbusManager.cc
 lib/Engine.cc
-lib/errno.c
 lib/Interface.cc
 lib/MainIface.cc
 lib/Plugin.cc
