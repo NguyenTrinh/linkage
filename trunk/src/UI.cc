@@ -50,6 +50,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
+const char* TARGET_URI_LIST = "text/uri-list";
+const char* TARGET_MOZ_URL = "text/x-moz-url-data";
 
 UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::Window(cobject),
@@ -237,14 +239,13 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	// setup drag and drop
 	std::list<Gtk::TargetEntry> targets;
-	targets.push_back(Gtk::TargetEntry("text/uri-list"));
+	targets.push_back(Gtk::TargetEntry(TARGET_URI_LIST));
 	// FIXME: check target string from KTHML/WebKit/Dillo etc..
 	#if HAVE_CURL
-	targets.push_back(Gtk::TargetEntry("text/plain"));
-	//targets.push_back(Gtk::TargetEntry("text/x-moz-url-data")); 
+	targets.push_back(Gtk::TargetEntry(TARGET_MOZ_URL)); 
 	#endif
 	torrent_list->drag_dest_set(targets);
-	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), true);
+	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), false);
 
 	/* setup group and state stuff, this is ugly and should be changed */
 	groups_win->signal_groups_changed().connect(sigc::mem_fun(group_list, &GroupList::on_groups_changed));
@@ -1057,18 +1058,15 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 												 const Gtk::SelectionData& selection_data,
 												 guint info, guint time)
 {
+	// TreeModelFilter doesn't support DnD, this suppresses default handler/warning
+	g_signal_stop_emission_by_name(G_OBJECT(torrent_list->gobj()), "drag-data-received");
+
+	bool success = false;
+
 	Glib::ustring data = selection_data.get_data_as_string();
-	Glib::StringArrayHandle targets = context->get_targets();
+	Glib::ustring target = selection_data.get_target();
 
-	bool is_file_uri = false;
-	for (Glib::StringArrayHandle::iterator iter = targets.begin();
-		iter != targets.end(); ++iter)
-	{
-		if (*iter == "text/uri-list")
-			is_file_uri = true;
-	}
-
-	if (is_file_uri)
+	if (target == TARGET_URI_LIST)
 	{
 		std::list<Glib::ustring> uri_list;
 		int pos, offset = 0;
@@ -1094,54 +1092,68 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 				add_torrent(f);
 			#endif
 		}
+		success = true;
 	}
 	#if HAVE_CURL
-	else // FIXME: add check, now we just assume it's an URL..
+	else if (target == TARGET_MOZ_URL)
 	{
-		notify("Downloading torrent", "downloading " + data);
-
-		gchar* name;
-		GError* error;
-		gint fd = g_file_open_tmp("torrent-XXXXXX", &name, &error);
-		if (fd == -1)
+		// seems like x-moz-url-data is in UTF-16
+		GError* error = NULL;
+		gchar* url = g_utf16_to_utf8((gunichar2*)selection_data.get_data(),
+			(glong)selection_data.get_length(), NULL, NULL, &error);
+		if (!url)
 		{
 			g_warning(error->message);
-			g_error_free(error);
 		}
 		else
 		{
-			FILE* file = fdopen(fd, "wb");
+			notify("Downloading torrent", "downloading " + Glib::ustring(url));
 
-			CURL* curl = curl_easy_init();
-			if (curl && file)
+			gchar* name = NULL;
+			gint fd = g_file_open_tmp("torrent-XXXXXX", &name, &error);
+			if (fd == -1)
 			{
-				char err[CURL_ERROR_SIZE];
-				curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err);
-				curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-				curl_easy_setopt(curl, CURLOPT_HEADER, 0);
-				curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
+				g_warning(error->message);
+				g_error_free(error);
+			}
+			else
+			{
+				FILE* file = fdopen(fd, "wb");
 
-				curl_easy_setopt(curl, CURLOPT_URL, data.c_str());
+				CURL* curl = curl_easy_init();
+				if (curl && file)
+				{
+					char err[CURL_ERROR_SIZE];
+					curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err);
+					curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+					curl_easy_setopt(curl, CURLOPT_HEADER, 0);
+					curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
 
-				CURLcode ret = curl_easy_perform(curl);
+					curl_easy_setopt(curl, CURLOPT_URL, url);
 
-				curl_easy_cleanup(curl);
+					CURLcode ret = curl_easy_perform(curl);
 
-				fclose(file);
+					curl_easy_cleanup(curl);
 
-				if (ret == CURLE_OK)
-					add_torrent(name);
-				else
-					notify("Download failed", err);
+					fclose(file);
 
-				g_unlink(name);
-				g_free(name);
+					if (ret == CURLE_OK)
+						add_torrent(name);
+					else
+						notify("Download failed", err);
+
+					g_unlink(name);
+					g_free(name);
+					g_free(url);
+
+					success = true;
+				}
 			}
 		}
 	}
 	#endif
 
-	context->drag_finish(false, false, time);
+	context->drag_finish(true, false, time);
 }
 
 void UI::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)
