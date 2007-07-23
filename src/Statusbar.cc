@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/frame.h>
 #include <gtkmm/box.h>
+#include <gtkmm/image.h>
+#include <gtkmm/stock.h>
 
 #include "linkage/Utils.hh"
 
@@ -29,17 +31,22 @@ Statusbar::Statusbar(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	Gtk::Frame* frame = manage(new Gtk::Frame());
 	Gtk::HBox* box = manage(new Gtk::HBox());
 
+	Gtk::Image* image = NULL;
+
 	m_upload = manage(new Gtk::Label());
 	box->pack_end(*m_upload, false, false);
-	box->pack_end(*manage(new Gtk::Label("Upload rate:")), false, false, 10);
+	image = manage(new Gtk::Image(Gtk::Stock::GO_UP, Gtk::ICON_SIZE_MENU));
+	box->pack_end(*image, false, false, 5);
 	
 	m_download = manage(new Gtk::Label());
 	box->pack_end(*m_download, false, false);
-	box->pack_end(*manage(new Gtk::Label("Download rate:")), false, false, 10);
+	image = manage(new Gtk::Image(Gtk::Stock::GO_DOWN, Gtk::ICON_SIZE_MENU));
+	box->pack_end(*image, false, false, 5);
 	
 	m_connections = manage(new Gtk::Label());
 	box->pack_end(*m_connections, false, false);
-	box->pack_end(*manage(new Gtk::Label("Connections:")), false, false, 10);
+	image = manage(new Gtk::Image(Gtk::Stock::NETWORK, Gtk::ICON_SIZE_MENU));
+	box->pack_end(*image, false, false, 5);
 
 	frame->add(*box);
 	pack_end(*frame, false, false);
