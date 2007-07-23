@@ -41,6 +41,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "TorrentCreator.hh"
 #include "linkage/Engine.hh"
+#include "linkage/Utils.hh"
 
 TorrentCreator::TorrentCreator(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::Window(cobject),
