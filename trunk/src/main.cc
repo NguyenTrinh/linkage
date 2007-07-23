@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <list>
 
 #include <gtkmm/main.h>
+#include <glibmm/i18n.h>
 #include <libglademm.h>
 
 #if HAVE_GNOME
@@ -58,12 +59,12 @@ Options::Options()
 {
 	Glib::OptionEntry e_version;
 	e_version.set_long_name("version") ;
-	e_version.set_description("Show version and quit");
+	e_version.set_description(_("Show version and quit"));
 	add_entry(e_version, version);
 
 	Glib::OptionEntry e_quit;
 	e_quit.set_long_name("quit");
-	e_quit.set_description("Tell the running instance to quit");
+	e_quit.set_description(_("Tell the running instance to quit"));
 	add_entry(e_quit, quit);
 
 	Glib::OptionEntry e_remaining;
@@ -77,8 +78,12 @@ Options::~Options()
 
 int main(int argc, char *argv[])
 {
+	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+	textdomain(GETTEXT_PACKAGE);
+
 	#if !HAVE_GNOME
-	Gtk::Main kit(&argc, &argv, false);
+	Gtk::Main kit(&argc, &argv);
 	#endif
 
 	boost::filesystem::path::default_name_check(boost::filesystem::native);
@@ -88,7 +93,7 @@ int main(int argc, char *argv[])
 
 	Options options; 
 	Glib::OptionContext* context = new Glib::OptionContext(
-		"[FILE...] \n\nA BitTorrent client for GTK+\n");
+		_("[FILE...] \n\nA BitTorrent client\n"));
 	context->set_main_group(options);
 	
 	#if HAVE_GNOME
@@ -104,7 +109,7 @@ int main(int argc, char *argv[])
 	catch (const Glib::OptionError& e)
 	{
 		std::cerr << e.what() << std::endl;
-		std::cout << "Run \"linkage --help\" to see a full list of available command line options.\n";
+		std::cout << _("Run \"linkage --help\" to see a full list of available command line options.\n");
 		return 1;
 	}
 	delete context;
@@ -126,12 +131,12 @@ int main(int argc, char *argv[])
 		if (!options.files.empty())
 		{
 			send_files(options.files);
-			std::cout << options.files.size() << " files passed to running instance.\n";
+			std::cout << options.files.size() << _(" files passed to running instance.\n");
 			return 0;
 		}
 		else
 		{
-			std::cerr << "Another process is already running. Quitting...\n";
+			std::cerr << _("Another process is already running. Quitting...\n");
 			return 1;
 		}
 	}

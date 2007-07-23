@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treepath.h>
 #include <gtkmm/treeselection.h>
 #include <gtkmm/cellrenderertext.h>
+#include <glibmm/i18n.h>
 
 #include "CellRendererProgressText.hh"
 #include "TorrentList.hh"
@@ -43,7 +44,7 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 
 	int col_id = append_column("#", columns.position);
-	col_id = append_column("Name", columns.name_formated);
+	col_id = append_column(_("Name"), columns.name_formated);
 	Gtk::TreeViewColumn* column = get_column(col_id - 1);
 	Gtk::CellRendererText* renderer_text = dynamic_cast<Gtk::CellRendererText*>
 		(column->get_first_cell_renderer());
@@ -51,7 +52,7 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	column->add_attribute(*renderer_text, "markup", columns.name_formated);
 	column->set_expand(true);
 	CellRendererProgressText* renderer = manage(new CellRendererProgressText());
-	col_id = append_column("Progress", *renderer);
+	col_id = append_column(_("Progress"), *renderer);
 	column = get_column(col_id - 1);
 	column->add_attribute(*renderer, "value", columns.progress);
 	column->add_attribute(*renderer, "text", columns.eta);
@@ -75,6 +76,14 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 		WeakPtr<Torrent> torrent = *iter;
 		on_added(torrent->get_hash(), torrent->get_name(), torrent->get_position());
 	}
+	PathList path_list = get_selection()->get_selected_rows();
+	if (!path_list.empty())
+	{
+		Gtk::TreePath path = filter->convert_path_to_child_path(*path_list.begin());
+		// this doesn't work so great for some reason
+		scroll_to_row(path);
+	}
+
 	tm->signal_added().connect(sigc::mem_fun(*this, &TorrentList::on_added));
 	tm->signal_removed().connect(sigc::mem_fun(*this, &TorrentList::on_removed));
 }
@@ -292,10 +301,10 @@ Glib::ustring TorrentList::get_formated_name(const WeakPtr<Torrent>& torrent)
 		bool got_scrape = (status.num_complete != -1 && status.num_incomplete != -1);
 		if (got_scrape)
 			ss << " (" << status.num_complete << ")";
-		ss << " connected seeds, " << (status.num_peers - status.num_seeds);
+		ss << _(" connected seeds, ") << (status.num_peers - status.num_seeds);
 		if (got_scrape)
 			ss << " (" << status.num_incomplete << ")";
-		ss << " peers";
+		ss << _(" peers");
 	}
 	else
 		ss << torrent->get_state_string(state);
@@ -308,8 +317,8 @@ void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	Gtk::TreeRow row = *iter;
 	CellRendererProgressText* cell_pt = dynamic_cast<CellRendererProgressText*>(cell);
 
-	cell_pt->property_text_left() = "DL: " + suffix_value(row[columns.down_rate]) + "/s";
-	cell_pt->property_text_right() = "UL: " + suffix_value(row[columns.up_rate]) + "/s";
+	cell_pt->property_text_left() = _("DL: ") + suffix_value(row[columns.down_rate]) + "/s";
+	cell_pt->property_text_right() = _("UL: ") + suffix_value(row[columns.up_rate]) + "/s";
 }
 
 bool TorrentList::on_button_press_event(GdkEventButton* event)

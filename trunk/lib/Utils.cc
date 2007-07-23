@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <fstream>
 
 #include <glibmm/convert.h>
+#include <glibmm/i18n.h>
 
 #include "libtorrent/hasher.hpp"
 #include "libtorrent/bencode.hpp"
@@ -141,9 +142,9 @@ Glib::ustring format_time(libtorrent::size_type seconds)
 	{
 		Glib::ustring day_str;
 		if (days == 1)
-			day_str = "day";
+			day_str = _("day");
 		else
-			 day_str = "days";
+			 day_str = _("days");
 		ss << days << day_str << ", " << std::setw(2) << std::setfill('0') << hours << ":";
 		ss << std::setw(2) << std::setfill('0') << minutes << ":" ;
 		ss << std::setw(2) << std::setfill('0') << seconds;

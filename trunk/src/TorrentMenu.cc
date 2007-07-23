@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/imagemenuitem.h>
 #include <gtkmm/separatormenuitem.h>
 #include <gtkmm/label.h>
+#include <glibmm/i18n.h>
 
 #include <libtorrent/entry.hpp>
 
@@ -80,7 +81,7 @@ void TorrentMenu::on_groups_changed(const std::list<Group>& groups)
 	}
 	
 	Gtk::Label* label = Gtk::manage(new Gtk::Label());
-	label->set_markup("<i>None</i>");
+	label->set_markup(_("<i>None</i>"));
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(*label));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), ""));
 	submenu_groups->append(*item);

@@ -1,15 +1,15 @@
-m4_define(linkage_major_version, 0)
-m4_define(linkage_minor_version, 1)
-m4_define(linkage_micro_version, 3)
-m4_define(linkage_tag, svn)
-m4_define(linkage_tag_revision, r@REVISION@)
+m4_define([linkage_major_version], [0])
+m4_define([linkage_minor_version], [1])
+m4_define([linkage_micro_version], [3])
+m4_define([linkage_tag], [svn])
+m4_define([linkage_tag_revision], [r@REVISION@])
 
-m4_define(linkage_version, linkage_major_version().linkage_minor_version().linkage_micro_version()m4_ifdef(linkage_tag,,linkage_tag()-linkage_tag_revision()))
+m4_define([linkage_version], [linkage_major_version().linkage_minor_version().linkage_micro_version()m4_ifdef(linkage_tag,,linkage_tag()-linkage_tag_revision())])
 
 AC_INIT([linkage], [linkage_version()])
 AC_CONFIG_SRCDIR(src/main.cc)
 AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
-AC_CONFIG_HEADERS([config.h])
+AM_CONFIG_HEADER([config.h])
 
 AC_DEFINE([LINKAGE_VERSION_MAJOR], [linkage_major_version()], [Major version])
 AC_DEFINE([LINKAGE_VERSION_MINOR], [linkage_minor_version()], [Minor version])
@@ -122,11 +122,19 @@ AC_DEFINE_UNQUOTED([PIXMAP_DIR], ["${prefix}/share/pixmaps"], [Pixmap directory]
 AC_DEFINE_UNQUOTED([DATA_DIR], ["${prefix}/share/linkage"], [Data directory])
 AC_DEFINE_UNQUOTED([PLUGIN_DIR], ["${prefix}/lib/linkage/plugins"], [Plugin directory])
 
+GETTEXT_PACKAGE=$PACKAGE_NAME
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",GETTEXT_PACKAGE)
+AC_SUBST(GETTEXT_PACKAGE)
+
+dnl ALL_LINGUAS="sv"
+AM_GLIB_GNU_GETTEXT
+AC_PROG_INTLTOOL
+
 AC_PROG_CC()
 AC_PROG_CXX()
 AC_DISABLE_STATIC()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
 
-AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile plugins/upnp/Makefile data/Makefile data/flags/Makefile)
+AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile plugins/upnp/Makefile data/Makefile data/flags/Makefile po/Makefile.in)
 

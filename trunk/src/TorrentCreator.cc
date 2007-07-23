@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/treemodel.h>
+#include <glibmm/i18n.h>
 
 #include "libtorrent/entry.hpp"
 #include "libtorrent/bencode.hpp"
@@ -105,11 +106,11 @@ void TorrentCreator::on_radio_toggled(ContentType type)
 	{
 		case CONTENT_FILE:
 			button_files->set_action(Gtk::FILE_CHOOSER_ACTION_OPEN);
-			button_files->set_title("Select file");
+			button_files->set_title(_("Select file"));
 			break;
 		case CONTENT_FOLDER:
 			button_files->set_action(Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
-			button_files->set_title("Select folder");
+			button_files->set_title(_("Select folder"));
 			break;
 	}
 }
@@ -127,8 +128,8 @@ void TorrentCreator::on_button_save()
 	
 	if (tracker.empty() || content.empty())
 	{
-		Gtk::MessageDialog dialog(*this, "Incomplete information");
-		dialog.set_secondary_text("You must specify the tracker url and a file/folder.");
+		Gtk::MessageDialog dialog(*this, _("Incomplete information"));
+		dialog.set_secondary_text(_("You must specify the tracker url and a file/folder."));
 		dialog.run();
 	}
 	else
@@ -145,7 +146,7 @@ void TorrentCreator::on_button_save()
 		info.set_comment(comment.c_str());
 		info.set_priv(priv);
 
-		progress_hashing->set_text("Hashing...");
+		progress_hashing->set_text(_("Hashing..."));
 
 		//set_sensitive(false);
 
@@ -231,7 +232,7 @@ bool TorrentCreator::get_finished()
 }
 
 TorrentCreator::TorrentSaveDialog::TorrentSaveDialog(Gtk::Window *parent)
-	: Gtk::FileChooserDialog(*parent, "Save torrent", Gtk::FILE_CHOOSER_ACTION_SAVE)
+	: Gtk::FileChooserDialog(*parent, _("Save torrent"), Gtk::FILE_CHOOSER_ACTION_SAVE)
 {
 	Gtk::Button *b = add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	b->signal_clicked().connect(sigc::mem_fun(this, &TorrentSaveDialog::hide));

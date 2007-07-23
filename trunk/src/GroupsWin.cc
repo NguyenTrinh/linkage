@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <gtkmm/button.h>
+#include <glibmm/i18n.h>
 
 #include "linkage/Utils.hh"
 #include "GroupsWin.hh"
@@ -34,7 +35,7 @@ GroupsWin::GroupsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	model = Gtk::ListStore::create(columns);
 	groups_view->set_model(model);
 
-	groups_view->append_column("Name", columns.name);
+	groups_view->append_column(_("Name"), columns.name);
 	Gtk::TreeViewColumn* column = groups_view->get_column(0);
 	Gtk::CellRenderer* renderer = column->get_first_cell_renderer();
 	column->clear_attributes(*renderer);
@@ -212,7 +213,7 @@ void GroupsWin::format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& it
 	std::list<Group::Filter> filters = row[columns.filters];
 	if (!filters.empty())
 	{
-		ss << "If ";
+		ss << _("If") << " ";
 
 		std::list<Group::Filter>::iterator iter = filters.begin();
 		while (iter != filters.end())
@@ -226,49 +227,49 @@ void GroupsWin::format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& it
 			switch (filter.operation)
 			{
 				case Group::OP_AND:
-					ss << "and ";
+					ss << _("and ");
 					break;
 				case Group::OP_NAND:
-					ss << "and not ";
+					ss << _("and not ");
 					break;
 				case Group::OP_OR:
 					if (!first)
-						ss << "or ";
+						ss << _("or ");
 					break;
 				case Group::OP_NOR:
 					if (!first)
-						ss << "or not ";
+						ss << _("or not ");
 					else
-						ss << "not ";
+						ss << _("not ");
 					break;
 			}
 
 			switch (filter.tag)
 			{
 				case Group::TAG_COMMENT:
-					ss << "comment ";
+					ss << _("comment ");
 					break;
 				case Group::TAG_TRACKER:
-					ss << "tracker ";
+					ss << _("tracker ");
 					break;
 				case Group::TAG_NAME:
-					ss << "name ";
+					ss << _("name ");
 					break;
 			}
 
 			switch (filter.eval)
 			{
 				case Group::EVAL_EQUALS:
-					ss << "equals ";
+					ss << _("equals ");
 					break;
 				case Group::EVAL_CONTAINS:
-					ss << "contains ";
+					ss << _("contains ");
 					break;
 				case Group::EVAL_STARTS:
-					ss << "starts with ";
+					ss << _("starts with ");
 					break;
 				case Group::EVAL_ENDS:
-					ss << "ends with ";
+					ss << _("ends with ");
 					break;
 			}
 

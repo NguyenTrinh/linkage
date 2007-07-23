@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treeselection.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrendererprogress.h>
+#include <glibmm/i18n.h>
 
 #include "libtorrent/identify_client.hpp"
 
@@ -33,35 +34,35 @@ PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 
 	set_model(model);
 
-	Gtk::TreeViewColumn* column = Gtk::manage(new Gtk::TreeViewColumn("Address"));
+	Gtk::TreeViewColumn* column = Gtk::manage(new Gtk::TreeViewColumn(_("Address")));
 	column->set_sort_column_id(columns.address);
 	column->set_resizable(true);
 	column->pack_start(columns.flag, false);
 	column->pack_start(columns.address);
 	append_column(*column);
 
-	int col = append_column("Down", columns.down);
+	int col = append_column(_("Downloaded"), columns.down);
 	column = get_column(col - 1);
 	Gtk::CellRendererText* cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
 	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.down));
-	col = append_column("Up", columns.up);
+	col = append_column(_("Uploaded"), columns.up);
 	column = get_column(col - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
 	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_data), columns.up));
-	col = append_column("Down rate", columns.down_rate);
+	col = append_column(_("Download rate"), columns.down_rate);
 	column = get_column(col - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
 	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_rates), columns.down_rate));
-	col = append_column("Up rate", columns.up_rate);
+	col = append_column(_("Upload rate"), columns.up_rate);
 	column = get_column(col - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
 	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_rates), columns.up_rate));
 
 	Gtk::CellRendererProgress* prender = new Gtk::CellRendererProgress();
-	col = append_column("Progress", *Gtk::manage(prender));
+	col = append_column(_("Progress"), *Gtk::manage(prender));
 	get_column(col - 1)->add_attribute(*prender, "value", col);
-	append_column("Client", columns.client);
-	append_column("State", columns.flags);
+	append_column(_("Client"), columns.client);
+	append_column(_("State"), columns.flags);
 
 	for (unsigned int i = 1; i < 8; i++)
 	{
@@ -212,36 +213,36 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 	std::stringstream ss;
 	ss.imbue(std::locale(""));
 	if (peer.flags & libtorrent::peer_info::connecting)
-		ss << "Connecting";
+		ss << _("Connecting");
 	else if (peer.flags & libtorrent::peer_info::handshake)
-		ss << "Handshake";
+		ss << _("Handshake");
 	else if	(peer.flags & libtorrent::peer_info::queued)
-		ss << "Queued";
+		ss << _("Queued");
 	else
 	{
 		if (peer.flags & libtorrent::peer_info::interesting)
 		{
 			if (ss.tellp())
 				ss << ", ";
-			ss << "Interested";
+			ss << _("Interested");
 		}
 		if (peer.flags & libtorrent::peer_info::choked)
 		{
 			if (ss.tellp())
 				ss << ", ";
-			ss << "Choked";
+			ss << _("Choked");
 		}
 		if (peer.flags & libtorrent::peer_info::remote_interested)
 		{
 			if (ss.tellp())
 				ss << ", ";
-			ss << "Remote interested";
+			ss << _("Remote interested");
 		}
 		if (peer.flags & libtorrent::peer_info::remote_choked)
 		{
 			if (ss.tellp())
 				ss << ", ";
-			ss << "Remote choked";
+			ss << _("Remote choked");
 		}
 	}
 	row[columns.flags] = Glib::locale_to_utf8(ss.str());

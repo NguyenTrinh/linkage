@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/box.h>
 #include <gtkmm/paned.h>
 #include <gtkmm/aboutdialog.h>
-
+#include <glibmm/i18n.h>
 #include <libglademm.h>
 
 #if HAVE_GNOME
@@ -344,7 +344,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 		gnome_client->signal_save_yourself().connect(sigc::mem_fun(this, &UI::on_save_yourself_gnome));
 	}
 	else
-		g_warning("Failed to connect to GNOME session");
+		g_warning(_("Failed to connect to GNOME session"));
 	#endif
 
 	#if HAVE_EXO
@@ -410,7 +410,7 @@ bool UI::on_save_yourself_gnome(int phase, Gnome::UI::SaveStyle save_style,
 		gnome_client->set_restart_command(argv);
 	}
 	else
-		g_warning("Failed to connect to GNOME session");
+		g_warning(_("Failed to connect to GNOME session"));
 
 	Gtk::Main::quit();
 
@@ -563,7 +563,7 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 	label_size->set_text(suffix_value(info.total_size()));
 	label_files->set_text(str(info.num_files()));
 	label_pieces->set_text(str(info.num_pieces()) + " x " + suffix_value(info.piece_length()));
-	label_private->set_text(info.priv() ? "Yes" : "No");
+	label_private->set_text(info.priv() ? _("Yes") : _("No"));
 }
 
 void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
@@ -587,7 +587,7 @@ void UI::add_torrent(const Glib::ustring& file)
 {
 	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 	{
-		Engine::get_session_manager()->signal_missing_file().emit("File not found, \"" + file + "\"", file);
+		Engine::get_session_manager()->signal_missing_file().emit(_("File not found, \"") + file + "\"", file);
 		return;
 	}
 
@@ -596,7 +596,7 @@ void UI::add_torrent(const Glib::ustring& file)
 
 	Glib::ustring save_path;
 	Glib::ustring name = file.substr(file.rfind("/") + 1, file.size());
-	path_chooser->set_title("Select path for " + name);
+	path_chooser->set_title(_("Select path for ") + name);
 	if (!Engine::get_settings_manager()->get_bool("files/use_default_path"))
 	{
 		if (path_chooser->run() == Gtk::RESPONSE_OK)
@@ -620,15 +620,15 @@ void UI::add_torrent(const Glib::ustring& file)
 }
 
 OpenDialog::OpenDialog(Gtk::Window *parent)
-: Gtk::FileChooserDialog(*parent, "Open torrent")
+: Gtk::FileChooserDialog(*parent, _("Open torrent"))
 {
 	torrent_filter = new Gtk::FileFilter();
 	torrent_filter->add_mime_type("application/x-bittorrent");
-	torrent_filter->set_name("BitTorrent files");
+	torrent_filter->set_name(_("BitTorrent files"));
 
 	no_filter = new Gtk::FileFilter();
 	no_filter->add_pattern("*");
-	no_filter->set_name("All files");
+	no_filter->set_name(_("All files"));
 
 	add_filter(*torrent_filter);
 	add_filter(*no_filter);
@@ -645,7 +645,7 @@ OpenDialog::~OpenDialog()
 }
 
 SaveDialog::SaveDialog(Gtk::Window *parent)
-: Gtk::FileChooserDialog(*parent, "Select path", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER)
+: Gtk::FileChooserDialog(*parent, _("Select path"), Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER)
 {
 	Gtk::Button *b = add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	b->signal_clicked().connect(sigc::mem_fun(this, &SaveDialog::hide));
@@ -684,7 +684,7 @@ void UI::on_about()
 	people.push_back("Ludvig Aleman");
 	about.set_artists(people);
 	people.clear();
-	about.set_comments("A BitTorrent client");
+	about.set_comments(_("A BitTorrent client"));
 	about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 	about.set_version(PACKAGE_VERSION);
 	about.set_copyright("Copyright \u00A9 2006-2007 Christian Lundgren and Dave Moore");
@@ -747,16 +747,16 @@ void UI::on_remove(bool erase_content)
 		if (erase_content)
 		{
 			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-			Glib::ustring title = "Are you sure you wish to remove \"" +
-				torrent->get_name() + "\" and it's content?";
+			Glib::ustring title = _("Are you sure you wish to remove \"") +
+				torrent->get_name() + _("\" and it's content?");
 			Gtk::MessageDialog dialog(*this, title, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
 			Glib::ustring files;
 			int n = torrent->get_info().num_files();
 			if (n != 1)
-				files = "(" + str(n) + " files).";
+				files = "(" + str(n) + _(" files).");
 			else
-				files = "(1 file).";
-			Glib::ustring msg = "This will permanently remove the torrent and all of it's content " + files;
+				files = _("(1 file).");
+			Glib::ustring msg = _("This will permanently remove the torrent and all of it's content ") + files;
 			dialog.set_secondary_text(msg);
 
 			if (dialog.run() == Gtk::RESPONSE_OK)

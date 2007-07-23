@@ -17,6 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <glibmm/i18n.h>
+
 #include <libtorrent/entry.hpp>
 
 #include "linkage/Utils.hh"
@@ -33,7 +35,7 @@ GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 
 	set_model(model);
 
-	append_column("Name", columns.name);
+	append_column(_("Name"), columns.name);
 	Gtk::TreeViewColumn* column = get_column(0);
 	Gtk::CellRenderer* renderer = column->get_first_cell_renderer();
 	column->set_cell_data_func(*renderer, sigc::mem_fun(this, &GroupList::format_name));
@@ -42,7 +44,7 @@ GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 
 	/* Add the "All" filter with an invalid group */
 	Gtk::TreeRow row = *(model->append());
-	row[columns.name] = "All";
+	row[columns.name] = _("All");
 	row[columns.group] = Group();
 
 	get_selection()->signal_changed().connect(sigc::mem_fun(this, &GroupList::on_selection_changed));

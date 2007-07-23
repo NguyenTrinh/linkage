@@ -5,7 +5,7 @@
 
 <widget class="GtkWindow" id="main_window">
   <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-  <property name="title" translatable="yes">Linkage</property>
+  <property name="title">Linkage</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
   <property name="modal">False</property>
@@ -218,6 +218,7 @@
 	  <child>
 	    <widget class="GtkToolButton" id="toolb_remove">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Remove selected torrents</property>
 	      <property name="label">Remove</property>
 	      <property name="use_underline">True</property>
 	      <property name="stock_id">gtk-remove</property>
@@ -294,6 +295,7 @@
 	  <child>
 	    <widget class="GtkToolButton" id="toolb_up">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Move selected torrents up</property>
 	      <property name="label">Up</property>
 	      <property name="use_underline">True</property>
 	      <property name="stock_id">gtk-go-up</property>
@@ -683,7 +685,7 @@
 				  <child>
 				    <widget class="GtkLabel" id="label_response">
 				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">OK, got 0 peers</property>
+				      <property name="label">OK, got 0 peers</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -710,7 +712,7 @@
 				  <child>
 				    <widget class="GtkLabel" id="label14">
 				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">Next Announce:</property>
+				      <property name="label" translatable="yes">Next announce:</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -738,7 +740,7 @@
 				  <child>
 				    <widget class="GtkLabel" id="label_next_announce">
 				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">01:54.35</property>
+				      <property name="label">01:54.35</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -778,7 +780,7 @@
 					  <child>
 					    <widget class="GtkLabel" id="label_tracker">
 					      <property name="visible">True</property>
-					      <property name="label" translatable="yes">http://</property>
+					      <property name="label">http://</property>
 					      <property name="use_underline">False</property>
 					      <property name="use_markup">True</property>
 					      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -904,7 +906,7 @@
 				  <child>
 				    <widget class="GtkLabel" id="label28">
 				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">Creation Date:</property>
+				      <property name="label" translatable="yes">Created:</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -988,7 +990,7 @@
 				  <child>
 				    <widget class="GtkLabel" id="label_creator">
 				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">poopnose</property>
+				      <property name="label">poopnose</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1015,7 +1017,7 @@
 				  <child>
 				    <widget class="GtkLabel" id="label_date">
 				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">date</property>
+				      <property name="label">date</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1042,7 +1044,7 @@
 				  <child>
 				    <widget class="GtkLabel" id="label_private">
 				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">yes</property>
+				      <property name="label">yes</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1070,7 +1072,7 @@
 				    <widget class="GtkLabel" id="label_comment">
 				      <property name="visible">True</property>
 				      <property name="can_focus">True</property>
-				      <property name="label" translatable="yes">Yar! This here be the comment!</property>
+				      <property name="label">Yar! This here be the comment!</property>
 				      <property name="use_underline">False</property>
 				      <property name="use_markup">False</property>
 				      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1175,7 +1177,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_up">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">532 MB</property>
+			      <property name="label">532 MB</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1202,7 +1204,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_down">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">1.06 GB</property>
+			      <property name="label">1.06 GB</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1229,7 +1231,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_up_rate">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0.00 Kb/s</property>
+			      <property name="label">0.00 Kb/s</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1256,7 +1258,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_down_rate">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0.00 Kb/s</property>
+			      <property name="label">0.00 Kb/s</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1283,7 +1285,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label36">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Upload Rate:</property>
+			      <property name="label" translatable="yes">Upload rate:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1311,7 +1313,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label35">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Download Rate:</property>
+			      <property name="label" translatable="yes">Download rate:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1524,7 +1526,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label41">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Seen Copies:</property>
+			      <property name="label" translatable="yes">Seen copies:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1580,7 +1582,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_ratio">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0.789</property>
+			      <property name="label">0.789</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1607,7 +1609,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_copies">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">12</property>
+			      <property name="label">12</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1716,7 +1718,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label19">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Total Size:</property>
+			      <property name="label" translatable="yes">Total size:</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1856,7 +1858,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_path">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">/all/your/dirs/are/belong/to/us</property>
+			      <property name="label">/all/your/dirs/are/belong/to/us</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1883,7 +1885,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_files">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0</property>
+			      <property name="label">0</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1910,7 +1912,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_size">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0 MB</property>
+			      <property name="label">0 MB</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1937,7 +1939,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_done">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0 MB</property>
+			      <property name="label">0 MB</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1964,7 +1966,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_remaining">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0 MB</property>
+			      <property name="label">0 MB</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1991,7 +1993,7 @@
 			  <child>
 			    <widget class="GtkLabel" id="label_pieces">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">0 x 0,00 kB</property>
+			      <property name="label">0 x 0,00 kB</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -2688,7 +2690,7 @@
       <child>
 	<widget class="GtkFileChooserButton" id="filechooserbutton">
 	  <property name="visible">True</property>
-	  <property name="title" translatable="yes">Välj en fil</property>
+	  <property name="title" translatable="yes">Select content</property>
 	  <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
 	  <property name="local_only">True</property>
 	  <property name="show_hidden">False</property>
