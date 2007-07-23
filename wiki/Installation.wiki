@@ -12,10 +12,13 @@ rpm -ivh http://linkage.googlecode.com/files/linkage-0.1.2-1.fc7.i386.rpm
 }}}
 
 == Subversion install ==
-If you want the latest SVN version install the dependencies and rb_libtorrent as above, then do the following.
+The SVN version has the same dependencies as above, except for libupnp. Optional dependencies are curl, gupnp, exo, libgnomemm, gnome-vfsmm and libgnomeuimm.
+
+(You will need the -devel packages to build linkage, however after installation you can safely remove the -devel packages if you wish)
 {{{
+yum -y install curl-devel exo-devel libgnomemm26-devel gnome-vfsmm26-devel libgnomeuimm26-devel
 yum -y install subversion libtool autoconf automake boost-devel gtkmm24-devel \
-libnotify-devel curl-devel dbus-glib-devel libupnp-devel gcc-c++
+libnotify-devel dbus-glib-devel gcc-c++
 rpm -ivh http://linkage.googlecode.com/files/rb_libtorrent-devel-0.12-1.fc7.i386.rpm
 svn checkout http://linkage.googlecode.com/svn/trunk/ linkage
 cd linkage
@@ -46,8 +49,10 @@ sudo make install
 
 {{{
 sudo apt-get install subversion libtool autoconf automake
-sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev libupnp-dev \
-libdbus-glib-1-dev libgtkmm-2.4-1c2a libnotify1 libcurl3 libupnp0 libdbus-glib-1-2
+sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev \
+libdbus-glib-1-dev libgtkmm-2.4-1c2a libnotify1 libcurl3 libdbus-glib-1-2 \
+libgnomemm-2.6-1c2a libgnomemm-2.6-dev libgnomeuimm-2.6-1c2a libgnomeuimm-2.6-devel \
+libgnome-vfsmm-2.6-1c2a libgnome-vfsmm-2.6-dev libexo-0.3-0 libexo-0.3-dev
 svn checkout http://linkage.googlecode.com/svn/trunk/ linkage
 cd linkage
 ./autogen.sh --prefix=/usr
