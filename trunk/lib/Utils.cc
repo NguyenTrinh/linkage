@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <fstream>
 
+#include <glibmm/convert.h>
+
 #include "libtorrent/hasher.hpp"
 #include "libtorrent/bencode.hpp"
 
@@ -30,65 +32,73 @@ Glib::ustring suffix_value(float value)
 
 Glib::ustring suffix_value(libtorrent::size_type value)
 {
-	std::stringstream tc;
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
 	if (value >= 1073741824)
-		tc << std::fixed << std::setprecision(2) << value/1073741824.0 << " GB";
+		ss << std::fixed << std::setprecision(2) << value/1073741824.0 << " GB";
 	else if (value >= 1048576)
-		tc << std::fixed << std::setprecision(2) << value/1048576.0 << " MB";
+		ss << std::fixed << std::setprecision(2) << value/1048576.0 << " MB";
 	else
-		tc << std::fixed << std::setprecision(2) << value/1024.0 << " kB";
-	return tc.str();
+		ss << std::fixed << std::setprecision(2) << value/1024.0 << " kB";
+	return Glib::locale_to_utf8(ss.str());
 }
 
 Glib::ustring str(size_t value)
 {
-	std::stringstream tc;
-	tc << value;
-	return tc.str();
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << value;
+	return Glib::locale_to_utf8(ss.str());
 }
 
 #if SIZEOF_UNSIGNED_INT != SIZEOF_SIZE_T
 Glib::ustring str(unsigned int value)
 {
-	std::stringstream tc;
-	tc << value;
-	return tc.str();
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << value;
+	return Glib::locale_to_utf8(ss.str());
 }
 #endif
 
 Glib::ustring str(int value)
 {
-	std::stringstream tc;
-	tc << value;
-	return tc.str();
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << value;
+	return Glib::locale_to_utf8(ss.str());
 }
 
 Glib::ustring str(libtorrent::size_type value)
 {
-	std::stringstream tc;
-	tc << value;
-	return tc.str();
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << value;
+	return Glib::locale_to_utf8(ss.str());
 }
 
 Glib::ustring str(unsigned long value)
 {
-	std::stringstream tc;
-	tc << value;
-	return tc.str();
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << value;
+	return Glib::locale_to_utf8(ss.str());
 }
 
 Glib::ustring str(float value, int precision)
 {
-	std::stringstream tc;
-	tc << std::fixed << std::setprecision(precision) << value;
-	return tc.str();
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << std::fixed << std::setprecision(precision) << value;
+	return Glib::locale_to_utf8(ss.str());
 }
 
 Glib::ustring str(const libtorrent::sha1_hash& hash)
 {
-	std::stringstream tc;
-	tc << hash;
-	return tc.str();
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	ss << hash;
+	return Glib::locale_to_utf8(ss.str());
 }
 
 
@@ -118,13 +128,14 @@ Glib::ustring format_time(libtorrent::size_type seconds)
 	days = div.quot;
 	hours = div.rem;
 
-	std::stringstream tc;
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
 	if (days==0)
 	{
-		tc << std::setw(2) << std::setfill('0') << hours << ":";
-		tc << std::setw(2) << std::setfill('0') << minutes << ":";
-		tc << std::setw(2) << std::setfill('0') << seconds;
-		return tc.str();
+		ss << std::setw(2) << std::setfill('0') << hours << ":";
+		ss << std::setw(2) << std::setfill('0') << minutes << ":";
+		ss << std::setw(2) << std::setfill('0') << seconds;
+		return Glib::locale_to_utf8(ss.str());
 	}
 	else
 	{
@@ -133,10 +144,10 @@ Glib::ustring format_time(libtorrent::size_type seconds)
 			day_str = "day";
 		else
 			 day_str = "days";
-		tc << days << day_str << ", " << std::setw(2) << std::setfill('0') << hours << ":";
-		tc << std::setw(2) << std::setfill('0') << minutes << ":" ;
-		tc << std::setw(2) << std::setfill('0') << seconds;
-		return tc.str();
+		ss << days << day_str << ", " << std::setw(2) << std::setfill('0') << hours << ":";
+		ss << std::setw(2) << std::setfill('0') << minutes << ":" ;
+		ss << std::setw(2) << std::setfill('0') << seconds;
+		return Glib::locale_to_utf8(ss.str());
 	}
 }
 
@@ -173,9 +184,9 @@ std::list<Glib::ustring> get_interfaces()
 /* http://www.linuxquestions.org/questions/showthread.php?t=425637 */
 Glib::ustring get_ip(const Glib::ustring& iface)
 {
-	int sockfd;
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-		return "";
+	int sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (sockfd == -1)
+		return Glib::ustring();
 
 	struct ifreq ifr;
 	ifr.ifr_addr.sa_family = AF_INET;
@@ -183,7 +194,7 @@ Glib::ustring get_ip(const Glib::ustring& iface)
 	strncpy(ifr.ifr_name, iface.c_str(), sizeof(ifr.ifr_name));
 
 	if (ioctl(sockfd, SIOCGIFADDR, &ifr) < 0)
-		return "";
+		return Glib::ustring();
 	
 	return ifr.ifr_addr.sa_data;
 }
@@ -202,13 +213,13 @@ bool load_entry(const Glib::ustring& file, libtorrent::entry& e)
 {
 	bool ret = true;
 	std::ifstream in(file.c_str(), std::ios_base::binary);
+	in.unsetf(std::ios_base::skipws);
 	try
 	{
-		in.unsetf(std::ios_base::skipws);
 		e = libtorrent::bdecode(std::istream_iterator<char>(in),
 			std::istream_iterator<char>());
 	}
-	catch (libtorrent::invalid_encoding& err)
+	catch (libtorrent::invalid_encoding& ex)
 	{
 		ret = false;
 	}

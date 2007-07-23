@@ -372,6 +372,7 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 
 void Torrent::set_position(unsigned int position)
 {
+	// diff should be either 1 or -1
 	int diff = m_position - position;
 	m_position = position;
 	Engine::get_torrent_manager()->set_torrent_position(m_info.info_hash(), diff);
