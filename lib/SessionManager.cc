@@ -408,7 +408,8 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 
 		remove_torrent(torrent->get_handle());
 
-		Engine::get_torrent_manager()->check_queue();
+		// Make the Torrent and TorrentManager aware of stopping it
+		torrent->set_handle(torrent_handle());
 	}
 }
 
