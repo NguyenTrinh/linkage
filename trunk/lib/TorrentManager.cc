@@ -96,7 +96,7 @@ void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, cons
 
 void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int peers)
 {
-	if (exists(hash))
+	if (exists(hash) && reply.size() > 27)
 	{
 		Glib::ustring tracker = reply.substr(27);
 		m_torrents[hash]->set_tracker_reply(_("OK, got ") + str(peers) + _(" peers"), tracker);
