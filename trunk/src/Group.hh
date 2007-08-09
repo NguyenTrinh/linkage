@@ -35,12 +35,12 @@ public:
 
 	struct Filter
 	{
-		/* Note to self, first filter _must_ always be OP_OR or OP_NOR */
-		OperationType operation;
-
 		Glib::ustring filter;
 		TagType tag;
 		EvalType eval;
+
+		/* Note to self, first filter _must_ always be OP_OR or OP_NOR */
+		OperationType operation;
 
 		Filter(const Glib::ustring& f, TagType t, EvalType e, OperationType o) : 
 			filter(f),

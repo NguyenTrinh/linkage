@@ -443,6 +443,8 @@ Gtk::Container* UI::get_container(Plugin::PluginParent parent)
 			return dynamic_cast<Gtk::Container*>(manager->get_widget("/ToolBar"));
 		case Plugin::PARENT_MENU:
 			return dynamic_cast<Gtk::Container*>(torrent_menu);
+		default:
+			return NULL;
 	}
 }
 
@@ -572,7 +574,7 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 
 	std::vector<libtorrent::announce_entry> trackers = torrent->get_handle().trackers();
 
-	for (int i = 0; i < trackers.size(); i++)
+	for (size_t i = 0; i < trackers.size(); i++)
 	{
 		Glib::ustring tracker = trackers[i].url;
 		Gtk::MenuItem* item = manage(new Gtk::MenuItem(tracker));
@@ -587,7 +589,8 @@ void UI::add_torrent(const Glib::ustring& file)
 {
 	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 	{
-		Engine::get_session_manager()->signal_missing_file().emit(_("File not found, \"") + file + "\"", file);
+		Engine::get_session_manager()->signal_missing_file().emit(
+			String::ucompose(_("File not found, \"%1\""), file), file);
 		return;
 	}
 
@@ -596,7 +599,7 @@ void UI::add_torrent(const Glib::ustring& file)
 
 	Glib::ustring save_path;
 	Glib::ustring name = file.substr(file.rfind("/") + 1, file.size());
-	path_chooser->set_title(_("Select path for ") + name);
+	path_chooser->set_title(String::ucompose(_("Select path for %1"), name));
 	if (!Engine::get_settings_manager()->get_bool("files/use_default_path"))
 	{
 		if (path_chooser->run() == Gtk::RESPONSE_OK)
@@ -747,16 +750,20 @@ void UI::on_remove(bool erase_content)
 		if (erase_content)
 		{
 			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-			Glib::ustring title = _("Are you sure you wish to remove \"") +
-				torrent->get_name() + _("\" and it's content?");
+			Glib::ustring title = String::ucompose(
+				_("Are you sure you wish to remove \"%1\" and it's content?"),
+				torrent->get_name());
 			Gtk::MessageDialog dialog(*this, title, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
+			// FIXME: this is not so good for translations
 			Glib::ustring files;
 			int n = torrent->get_info().num_files();
 			if (n != 1)
-				files = "(" + str(n) + _(" files).");
+				files = String::ucompose(_("(%1 files)."), n);
 			else
 				files = _("(1 file).");
-			Glib::ustring msg = _("This will permanently remove the torrent and all of it's content ") + files;
+			Glib::ustring msg = String::ucompose(_(
+				"This will permanently remove the torrent and all of it's content %1"),
+				files);
 			dialog.set_secondary_text(msg);
 
 			if (dialog.run() == Gtk::RESPONSE_OK)
@@ -830,7 +837,7 @@ void UI::on_down()
 	{
 		libtorrent::sha1_hash hash = *iter;
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		int position = torrent->get_position();
+		unsigned int position = torrent->get_position();
 		if (position < Engine::get_torrent_manager()->get_torrents_count())
 			torrent->set_position(position + 1);
 	}
@@ -1072,7 +1079,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	if (target == TARGET_URI_LIST)
 	{
 		std::list<Glib::ustring> uri_list;
-		int pos, offset = 0;
+		size_t pos, offset = 0;
 		while ((pos = data.find("\r\n", offset)) != Glib::ustring::npos)
 		{
 			Glib::ustring s = data.substr(offset, pos);
