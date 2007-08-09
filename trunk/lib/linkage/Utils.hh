@@ -39,17 +39,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/entry.hpp"
 
+#include "linkage/ucompose.hpp"
+
 Glib::ustring suffix_value(libtorrent::size_type value);
 Glib::ustring suffix_value(float value);
 
-Glib::ustring str(size_t value);
+Glib::ustring str(size_t value, bool localize = false);
 #if SIZEOF_UNSIGNED_INT != SIZEOF_SIZE_T
-Glib::ustring str(unsigned int value);
+Glib::ustring str(unsigned int value, bool localize = false);
 #endif
-Glib::ustring str(int value);
-Glib::ustring str(libtorrent::size_type value);
-Glib::ustring str(unsigned long value);
-Glib::ustring str(float value, int precision);
+Glib::ustring str(int value, bool localize = false);
+Glib::ustring str(libtorrent::size_type value, bool localize = false);
+Glib::ustring str(float value, int precision, bool localize = true);
 Glib::ustring str(const libtorrent::sha1_hash& hash);
 Glib::ustring get_eta(libtorrent::size_type size, float rate);
 Glib::ustring format_time(libtorrent::size_type seconds);

@@ -99,7 +99,8 @@ void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const G
 	if (exists(hash) && reply.size() > 27)
 	{
 		Glib::ustring tracker = reply.substr(27);
-		m_torrents[hash]->set_tracker_reply(_("OK, got ") + str(peers) + _(" peers"), tracker);
+		m_torrents[hash]->set_tracker_reply(String::ucompose(_(
+			"OK, got %1 peers"), tracker));
 	}
 }
 
@@ -114,13 +115,14 @@ void TorrentManager::on_tracker_failed(const libtorrent::sha1_hash& hash, const 
 	if (exists(hash))
 	{
 		int pos = reply.find(" ", 9);
+		// FIXME: use our own error messages so we can translate them
 		Glib::ustring msg = reply.substr(pos + 1);
 		Glib::ustring tracker = reply.substr(10, pos - 11);
 
 		Glib::ustring s = msg;
 
 		if (times > 1)
-			s = s + " (" + str(times) + _(" times in a row)");
+			s = String::ucompose(_("%1 (%2 times in a row)"), s, times);
 
 		m_torrents[hash]->set_tracker_reply(s, tracker);
 	}

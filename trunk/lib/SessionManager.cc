@@ -180,11 +180,10 @@ void SessionManager::on_settings()
 	sset.tracker_completion_timeout = sm->get_int("network/tracker_timeout");
 	sset.tracker_receive_timeout = sm->get_int("network/tracker_timeout");
 	sset.stop_tracker_timeout = sm->get_int("network/tracker_timeout");
-	#ifdef LT_012
-	sset.allow_multiple_connections_per_ip = sm->get_bool("Network", "MultipleConnectionsPerIP");
-	sset.use_dht_as_fallback = sm->get_int("network/dht_fallback");
+	sset.allow_multiple_connections_per_ip = sm->get_bool("network/multiple_connections_per_ip");
+	sset.use_dht_as_fallback = sm->get_bool("network/dht_fallback");
 	sset.file_pool_size = sm->get_int("files/max_open");
-	#endif
+
 	Glib::ustring proxy = sm->get_string("network/proxy/ip");
 	if (!proxy.empty())
 	{
@@ -210,7 +209,7 @@ bool SessionManager::decode(const Glib::ustring& file,
 
 	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
 	{
-		m_signal_missing_file.emit(_("File not found, \"") + file + "\"", file);
+		m_signal_missing_file.emit(String::ucompose(_("File not found, \"%1\""), file), file);
 		return false;
 	}
 
@@ -229,7 +228,7 @@ bool SessionManager::decode(const Glib::ustring& file,
 	}
 	catch (std::exception& err)
 	{
-		m_signal_invalid_bencoding.emit(_("Invalid bencoding in ") + file, file);
+		m_signal_invalid_bencoding.emit(String::ucompose(_("Invalid bencoding in %1"), file), file);
 		return false;
 	}
 
@@ -303,7 +302,8 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		{
 			torrent->add_tracker(trackers[i].url);
 		}
-		m_signal_duplicate_torrent.emit(_("Merged ") + info.name() + _(" with ") + torrent->get_name(), hash);
+		m_signal_duplicate_torrent.emit(String::ucompose(_(
+			"Merged %1 with %2"), info.name(), torrent->get_name()), hash);
 		return hash;
 	}
 
