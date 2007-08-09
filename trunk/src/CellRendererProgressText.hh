@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define CELLRENDERER_PROGRESS_HH
 
 #include <gtkmm/cellrendererprogress.h>
+#include <gtkmm/stock.h>
 
 class CellRendererProgressText : public Gtk::CellRendererProgress
 {

@@ -32,12 +32,13 @@ CellRendererProgressText::~CellRendererProgressText()
 {
 }
 
-void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& window,
-																				Gtk::Widget& widget,
-																				const Gdk::Rectangle& bg_area,
-																				const Gdk::Rectangle& cell_area,
-																				const Gdk::Rectangle& exp_area,
-																				Gtk::CellRendererState flags)
+void CellRendererProgressText::render_vfunc(
+	const Glib::RefPtr<Gdk::Drawable>& window,
+	Gtk::Widget& widget,
+	const Gdk::Rectangle& bg_area,
+	const Gdk::Rectangle& cell_area,
+	const Gdk::Rectangle& exp_area,
+	Gtk::CellRendererState flags)
 {
 	const int xpad = property_xpad();
 	const int ypad = property_ypad();
@@ -69,32 +70,52 @@ void CellRendererProgressText::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& w
 
 	Glib::RefPtr<Gdk::Window> gdkwin = Glib::RefPtr<Gdk::Window>::cast_dynamic<>(window);
 	Gdk::Rectangle text_area(bar_x + xpad,
-														bar_y + bar_height + ypad,
-														bar_width - xpad,
-														height - bar_height - xpad);
+		bar_y + bar_height + ypad,
+		bar_width - xpad,
+		height - bar_height - xpad);
+
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf;
+	pixbuf = widget.render_icon(Gtk::Stock::GO_DOWN, Gtk::ICON_SIZE_MENU);
+	int pixbuf_x = text_area.get_x();
+	int pixbuf_y = text_area.get_y();
+	int pixbuf_width = pixbuf->get_width();
+	int pixbuf_height = pixbuf->get_height();
+	pixbuf->render_to_drawable_alpha(window, 0, 0, pixbuf_x, pixbuf_y,
+		-1, -1, Gdk::PIXBUF_ALPHA_FULL, 0, Gdk::RGB_DITHER_NONE, 0, 0);
+
+
 	Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(widget.get_pango_context());
 	layout->set_markup(m_prop_text_left);
 	widget.get_style()->paint_layout(gdkwin, state, true, text_area,
-																		widget,
-                        						"CellRendererProgressText_property_text_left",
-                        						text_area.get_x() + x_offset + xpad,
-                        						text_area.get_y() + y_offset + ypad,
-                        						layout);
-   layout->set_markup(m_prop_text_right);
-   int text_right_width, text_right_height;
-   layout->get_pixel_size(text_right_width, text_right_height);
-   widget.get_style()->paint_layout(gdkwin, state, true, text_area,
-																		widget,
-                        						"CellRendererProgressText_property_text_right",
-                        						text_area.get_x() + text_area.get_width() - xpad - text_right_width,
-                        						text_area.get_y() + y_offset + ypad,
-                        						layout);
+		widget, "CellRendererProgressText_property_text_left",
+		text_area.get_x() + x_offset + xpad + (pixbuf_width),
+		text_area.get_y() + y_offset + ypad,
+		layout);
+
+	layout->set_markup(m_prop_text_right);
+	int text_right_width, text_right_height;
+	layout->get_pixel_size(text_right_width, text_right_height);
+
+	pixbuf = widget.render_icon(Gtk::Stock::GO_UP, Gtk::ICON_SIZE_MENU);
+	pixbuf_width = pixbuf->get_width();
+	pixbuf_height = pixbuf->get_height();
+	pixbuf_x = text_area.get_x() + text_area.get_width() - xpad
+		- text_right_width - pixbuf_width;
+	pixbuf_y = text_area.get_y();
+	pixbuf->render_to_drawable_alpha(window, 0, 0, pixbuf_x, pixbuf_y,
+		-1, -1, Gdk::PIXBUF_ALPHA_FULL, 0, Gdk::RGB_DITHER_NONE, 0, 0);
+
+	widget.get_style()->paint_layout(gdkwin, state, true, text_area,
+		widget, "CellRendererProgressText_property_text_right",
+		text_area.get_x() + text_area.get_width() - xpad - text_right_width,
+		text_area.get_y() + y_offset + ypad,
+		layout);
 }
 
 void CellRendererProgressText::get_size_vfunc(Gtk::Widget& widget,
-																					const Gdk::Rectangle* cell_area,
-																					int* x_offset, int* y_offset,
-																					int* width, int* height) const
+	const Gdk::Rectangle* cell_area,
+	int* x_offset, int* y_offset,
+	int* width, int* height) const
 {
 	int w = 0, h = 0;
 	if (cell_area)
@@ -106,13 +127,21 @@ void CellRendererProgressText::get_size_vfunc(Gtk::Widget& widget,
 	const int calc_height = h - property_ypad() * 2;
 	
 	Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(widget.get_pango_context());
-	/* Include whitespace so that we also get some spacing */
-	layout->set_markup(m_prop_text_left + "     " + m_prop_text_right);
-	int min_width, min_height;
-  layout->get_pixel_size(min_width, min_height);
-	min_width += 5 - property_xpad()*2;
-	min_height -= property_ypad() * 2;
-	
+	layout->set_markup(m_prop_text_left + m_prop_text_right);
+	int row2_width, row2_height;
+	layout->get_pixel_size(row2_width, row2_height);
+	row2_height = row2_height*2 - property_ypad() * 2;
+	row2_width += 10 + row2_height - property_xpad() * 2;
+
+	layout->set_text(property_text()); //progressbar text might be wider..
+	int row1_width, row1_height;
+	layout->get_pixel_size(row1_width, row1_height);
+	row1_height -= property_ypad() * 2;
+	row1_width -= property_xpad() * 2;
+
+	int min_width = std::max(row1_width, row2_width);
+	int min_height = std::max(row1_height, row2_height);
+
 	if (width)
 		*width = std::max(calc_width, min_width);
 
