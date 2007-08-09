@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/ustring.h>
 #include <glibmm/property.h>
 #include <glibmm/propertyproxy.h>
-#include <sigc++/signal.h>
 
 #include "libtorrent/torrent.hpp"
 

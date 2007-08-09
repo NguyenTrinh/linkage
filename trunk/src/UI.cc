@@ -431,6 +431,28 @@ void UI::on_save_yourself_exo(ExoXsessionClient* client, gpointer data)
 }
 #endif
 
+// Interface stuff
+HashList UI::get_selected_list()
+{
+	return torrent_list->get_selected_list();
+}
+
+bool UI::get_visible()
+{
+	return is_visible();
+}
+
+void UI::set_visible(bool visible)
+{
+	if (visible)
+	{
+		deiconify();
+		show();
+	}
+	else
+		hide();
+}
+
 Gtk::Container* UI::get_container(Plugin::PluginParent parent)
 {
 	switch (parent)
@@ -443,9 +465,20 @@ Gtk::Container* UI::get_container(Plugin::PluginParent parent)
 			return dynamic_cast<Gtk::Container*>(manager->get_widget("/ToolBar"));
 		case Plugin::PARENT_MENU:
 			return dynamic_cast<Gtk::Container*>(torrent_menu);
+		case Plugin::PARENT_NONE:
 		default:
 			return NULL;
 	}
+}
+
+void UI::open(const Glib::ustring& uri)
+{
+	add_torrent(uri);
+}
+
+void UI::quit()
+{
+	on_quit();
 }
 
 void UI::notify(const Glib::ustring& title,
@@ -555,7 +588,25 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 	libtorrent::torrent_info info = torrent->get_info();
 
 	label_creator->set_text(info.creator());
-	label_comment->set_text(info.comment());
+	if (Engine::get_settings_manager()->get_bool("ui/allow_linebreak_comments"))
+		label_comment->set_text(info.comment());
+	else
+	{
+		Glib::ustring comment = info.comment();
+		size_t pos;
+		while ((pos = comment.find("\n")) != Glib::ustring::npos)
+		{
+			unsigned int len = 1;
+			if (pos > 0 && comment[pos - 1] == '\r')
+			{
+				pos--;
+				len++;
+			}
+			comment = comment.replace(pos, len, " ");
+		}
+		label_comment->set_text(comment);
+		//FIXME: set tooltip to full comment
+	}
 
 	if (info.creation_date())
 		label_date->set_text(Glib::ustring(to_simple_string(*info.creation_date())) );

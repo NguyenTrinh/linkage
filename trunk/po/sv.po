@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-09 11:04+0200\n"
+"POT-Creation-Date: 2007-08-09 12:36+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -21,7 +21,7 @@ msgid "Filter"
 msgstr "Filter"
 
 #: ../src/FileList.cc:54 ../src/FilterRow.cc:66 ../src/GroupList.cc:38
-#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:120 ../src/TorrentList.cc:48
+#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:121 ../src/TorrentList.cc:48
 #: ../data/linkage.glade.h:31
 msgid "Name"
 msgstr "Namn"
@@ -232,15 +232,15 @@ msgstr "Fjärran intresserad"
 msgid "Remote choked"
 msgstr "Fjärran strypt"
 
-#: ../src/SettingsWin.cc:98
+#: ../src/SettingsWin.cc:99
 msgid "None specified"
 msgstr "Ingen specifierad"
 
-#: ../src/SettingsWin.cc:118
+#: ../src/SettingsWin.cc:119
 msgid "Load"
 msgstr "Ladda"
 
-#: ../src/SettingsWin.cc:121
+#: ../src/SettingsWin.cc:122
 msgid "Description"
 msgstr "Beskrivning"
 
@@ -292,55 +292,55 @@ msgstr "<i>Ingen</i>"
 msgid "Failed to connect to GNOME session"
 msgstr "Misslyckades att ansluta till GNOME sessionen"
 
-#: ../src/UI.cc:568
+#: ../src/UI.cc:619
 msgid "Yes"
 msgstr "Ja"
 
-#: ../src/UI.cc:568
+#: ../src/UI.cc:619
 msgid "No"
 msgstr "Nej"
 
-#: ../src/UI.cc:593 ../lib/SessionManager.cc:212
+#: ../src/UI.cc:644 ../lib/SessionManager.cc:212
 msgid "File not found, \"%1\""
 msgstr "Filen hittades inte, \"%1\""
 
-#: ../src/UI.cc:602
+#: ../src/UI.cc:653
 msgid "Select path for %1"
 msgstr "Välj sökväg för %1"
 
-#: ../src/UI.cc:626
+#: ../src/UI.cc:677
 msgid "Open torrent"
 msgstr "Öppna torrent"
 
-#: ../src/UI.cc:630
+#: ../src/UI.cc:681
 msgid "BitTorrent files"
 msgstr "BitTorrent filer"
 
-#: ../src/UI.cc:634
+#: ../src/UI.cc:685
 msgid "All files"
 msgstr "Alla filer"
 
-#: ../src/UI.cc:651
+#: ../src/UI.cc:702
 msgid "Select path"
 msgstr "Välj sökväg"
 
-#: ../src/UI.cc:690
+#: ../src/UI.cc:741
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
-#: ../src/UI.cc:754
+#: ../src/UI.cc:805
 msgid "Are you sure you wish to remove \"%1\" and it's content?"
 msgstr "Är du säker på att du vill ta bort \"%1\" och hela dess innehåll?"
 
-#: ../src/UI.cc:761
+#: ../src/UI.cc:812
 msgid "(%1 files)."
 msgstr "(%1 filer)."
 
-#: ../src/UI.cc:763
+#: ../src/UI.cc:814
 msgid "(1 file)."
 msgstr "(1 fil)."
 
-#: ../src/UI.cc:765
+#: ../src/UI.cc:816
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
@@ -395,7 +395,7 @@ msgstr "Kontrollerar"
 #. All trackers failed, cycle stops
 #. FIXME: shouldn't rely on check against translateable string
 #: ../lib/Torrent.cc:250 ../lib/Torrent.cc:371 ../lib/TorrentManager.cc:93
-#: ../data/settings.glade.h:13
+#: ../data/settings.glade.h:14
 msgid "Announcing"
 msgstr "Annonerar"
 
@@ -440,25 +440,17 @@ msgid "Stop torrents"
 msgstr "Stoppa torrenter"
 
 #: ../plugins/trayicon/PluginTrayIcon.cc:66
-#: ../plugins/trayicon/PluginTrayIcon.cc:154
+#: ../plugins/trayicon/PluginTrayIcon.cc:156
 msgid "Displays a tray icon"
 msgstr "Visar en satusikon"
 
 #: ../plugins/trayicon/PluginTrayIcon.cc:109
-msgid "downloads"
-msgstr "nedladdningar"
-
-#: ../plugins/trayicon/PluginTrayIcon.cc:110
-msgid "seeds"
-msgstr "källor"
-
-#: ../plugins/trayicon/PluginTrayIcon.cc:110
-msgid "DL: "
-msgstr "NL: "
-
-#: ../plugins/trayicon/PluginTrayIcon.cc:112
-msgid "UL: "
-msgstr "UL: "
+msgid ""
+"%1 (%2) downloads, %3 seeds\n"
+"DL: %4/s\tUL: %5/s"
+msgstr ""
+"%1 (%2) nedladdningar, %3 uppladdningar\n"
+"NL: %4/s\tUL: %5/s"
 
 #: ../plugins/notification/PluginNotification.cc:49
 #: ../plugins/notification/PluginNotification.cc:107
@@ -810,54 +802,58 @@ msgid "Allocating:"
 msgstr "Allokerar:"
 
 #: ../data/settings.glade.h:12
+msgid "Allow line breaks in comments"
+msgstr "Tillåt radbrytningar i kommentarer"
+
+#: ../data/settings.glade.h:13
 msgid "Allow multiple connections per IP"
 msgstr "Tillåt flera anslutningar per IP"
 
-#: ../data/settings.glade.h:14
+#: ../data/settings.glade.h:15
 msgid "Auto expand details"
 msgstr "Auto expandera detaljer"
 
-#: ../data/settings.glade.h:15
+#: ../data/settings.glade.h:16
 msgid "C_onfigure Plugin"
 msgstr "K_onfigurera Insticksmodul"
 
-#: ../data/settings.glade.h:16
+#: ../data/settings.glade.h:17
 msgid "Check queue:"
 msgstr "Kontrollkö:"
 
-#: ../data/settings.glade.h:17
+#: ../data/settings.glade.h:18
 msgid "Checking:"
 msgstr "Kontrollerar:"
 
-#: ../data/settings.glade.h:18
+#: ../data/settings.glade.h:19
 msgid "Desired ratio:"
 msgstr "Önskat ratio:"
 
-#: ../data/settings.glade.h:19
+#: ../data/settings.glade.h:20
 msgid "Downloading:"
 msgstr "Laddar ned:"
 
-#: ../data/settings.glade.h:20
+#: ../data/settings.glade.h:21
 msgid "Enable DHT"
 msgstr "Aktivera DHT"
 
-#: ../data/settings.glade.h:21
+#: ../data/settings.glade.h:22
 msgid "Enable PEX"
 msgstr "Aktivera PEX"
 
-#: ../data/settings.glade.h:22
+#: ../data/settings.glade.h:23
 msgid "Error:"
 msgstr "Fel:"
 
-#: ../data/settings.glade.h:23
+#: ../data/settings.glade.h:24
 msgid "Files & Folders"
 msgstr "Filer & Kataloger"
 
-#: ../data/settings.glade.h:24
+#: ../data/settings.glade.h:25
 msgid "Finished:"
 msgstr "Klar:"
 
-#: ../data/settings.glade.h:25
+#: ../data/settings.glade.h:26
 msgid ""
 "For a non-zero value n greater than or equal 1, linkage will try to upload n "
 "bytes for every byte received"
@@ -865,119 +861,119 @@ msgstr ""
 "För ett värde n som inte är noll och större eller lika med 1, kommerlinkage "
 "försöka ladda upp n byte för varje byte mottaget"
 
-#: ../data/settings.glade.h:26
+#: ../data/settings.glade.h:27
 msgid ""
 "Global limit of connections open, hard coded to at least two per torrent"
 msgstr ""
 "Global gräns för öppna anslutningar, hårdkodat till minst två per torrent"
 
-#: ../data/settings.glade.h:27
+#: ../data/settings.glade.h:28
 msgid ""
 "Global limit on the number of uploads, hard coded to at least one per torrent"
 msgstr ""
 "Global gräns för antalet uppladdningar, hårdkodat till minst en per torrent"
 
-#: ../data/settings.glade.h:28
+#: ../data/settings.glade.h:29
 msgid "Global maximum for the download rate in kB/s"
 msgstr "Globalt maximum för nedladdningshastigheten i kB/s"
 
-#: ../data/settings.glade.h:29
+#: ../data/settings.glade.h:30
 msgid "Global maximum for the upload rate in kB/s"
 msgstr "Globalt maximum för uppladdningshastigheten i Kb/s"
 
-#: ../data/settings.glade.h:30
+#: ../data/settings.glade.h:31
 msgid "Interface"
 msgstr "Gränssnitt"
 
-#: ../data/settings.glade.h:31
+#: ../data/settings.glade.h:32
 msgid "Interface:"
 msgstr "Gränssnitt:"
 
-#: ../data/settings.glade.h:32
+#: ../data/settings.glade.h:33
 msgid "Max active downloads:"
 msgstr "Max aktiva nedladdningar:"
 
-#: ../data/settings.glade.h:33
+#: ../data/settings.glade.h:34
 msgid "Max connections:"
 msgstr "Max anslutningar:"
 
-#: ../data/settings.glade.h:34
+#: ../data/settings.glade.h:35
 msgid "Max download rate:"
 msgstr "Max nedladdningshastighet:"
 
-#: ../data/settings.glade.h:35
+#: ../data/settings.glade.h:36
 msgid "Max open files:"
 msgstr "Max öppna filer:"
 
-#: ../data/settings.glade.h:36
+#: ../data/settings.glade.h:37
 msgid "Max upload rate:"
 msgstr "Max uppladdningshastighet:"
 
-#: ../data/settings.glade.h:37
+#: ../data/settings.glade.h:38
 msgid "Max uploads:"
 msgstr "Max uppladdningar:"
 
-#: ../data/settings.glade.h:38
+#: ../data/settings.glade.h:39
 msgid "Maximum number of connections per torrent"
 msgstr "Maximala antalet anslutningar per torrent"
 
-#: ../data/settings.glade.h:39
+#: ../data/settings.glade.h:40
 msgid "Maximum number of simultaneously active torrents"
 msgstr "Maximala antalet samtidigt aktiva torrenter"
 
-#: ../data/settings.glade.h:40
+#: ../data/settings.glade.h:41
 msgid "Maximum number of uploads per torrent"
 msgstr "Maximala antalet uppladdningar per torrent"
 
-#: ../data/settings.glade.h:41
+#: ../data/settings.glade.h:42
 msgid "Move finished:"
 msgstr "Flytta klara:"
 
-#: ../data/settings.glade.h:42
+#: ../data/settings.glade.h:43
 msgid "Network"
 msgstr "Nätverk"
 
-#: ../data/settings.glade.h:43
+#: ../data/settings.glade.h:44
 msgid "Only as fallback"
 msgstr "Endast som reservutväg"
 
-#: ../data/settings.glade.h:44
+#: ../data/settings.glade.h:45
 msgid "Password:"
 msgstr "Lösenord:"
 
-#: ../data/settings.glade.h:45
+#: ../data/settings.glade.h:46
 msgid "Plugins"
 msgstr "Insticksmoduler"
 
-#: ../data/settings.glade.h:46
+#: ../data/settings.glade.h:47
 msgid "Ports:"
 msgstr "Portar:"
 
-#: ../data/settings.glade.h:47
+#: ../data/settings.glade.h:48
 msgid "Preferences"
 msgstr "Inställningar"
 
-#: ../data/settings.glade.h:48
+#: ../data/settings.glade.h:49
 msgid "Proxy:"
 msgstr ""
 
-#: ../data/settings.glade.h:49
+#: ../data/settings.glade.h:50
 msgid "Queued:"
 msgstr "Köad:"
 
-#: ../data/settings.glade.h:50
+#: ../data/settings.glade.h:51
 msgid "Seeding:"
 msgstr "Laddar upp"
 
-#: ../data/settings.glade.h:51
+#: ../data/settings.glade.h:52
 msgid "Select Folder"
 msgstr "Välj Katalog"
 
-#: ../data/settings.glade.h:52
+#: ../data/settings.glade.h:53
 msgid "Stopped:"
 msgstr "Stoppad:"
 
-#: ../data/settings.glade.h:53
+#: ../data/settings.glade.h:54
 msgid ""
 "The maximum number of open files limits the\n"
 "amount simultaneously open files <b><i>and</i></b>\n"
@@ -993,27 +989,27 @@ msgstr ""
 "För att ställa in det maximala antalet anslutningar\n"
 "se fliken <i>Nätverk</i>."
 
-#: ../data/settings.glade.h:59
+#: ../data/settings.glade.h:60
 msgid "Tracker timeout:"
 msgstr "Tracker tidsgräns:"
 
-#: ../data/settings.glade.h:60
+#: ../data/settings.glade.h:61
 msgid "Trunkate names, width:"
 msgstr "Kapa namn, bredd:"
 
-#: ../data/settings.glade.h:61
+#: ../data/settings.glade.h:62
 msgid "Update interval:"
 msgstr "Uppdateringsintervall:"
 
-#: ../data/settings.glade.h:62
+#: ../data/settings.glade.h:63
 msgid "Use default path:"
 msgstr "Spara i standardsökväg:"
 
-#: ../data/settings.glade.h:63
+#: ../data/settings.glade.h:64
 msgid "Username:"
 msgstr "Användarnamn:"
 
-#: ../data/settings.glade.h:64
+#: ../data/settings.glade.h:65
 msgid "_About Plugin"
 msgstr "_Om Insticksmodul"
 
@@ -1036,6 +1032,18 @@ msgstr "Grupper"
 #: ../data/groups.glade.h:6
 msgid "My New Group's Name"
 msgstr "Min Nya Grupps Namn"
+
+#~ msgid "downloads"
+#~ msgstr "nedladdningar"
+
+#~ msgid "seeds"
+#~ msgstr "källor"
+
+#~ msgid "DL: "
+#~ msgstr "NL: "
+
+#~ msgid "UL: "
+#~ msgstr "UL: "
 
 #~ msgid " connected seeds, "
 #~ msgstr " anslutna källor, "

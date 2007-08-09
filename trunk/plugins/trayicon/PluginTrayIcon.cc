@@ -73,7 +73,8 @@ Plugin::Info TrayPlugin::get_info()
 
 void TrayPlugin::on_activate(GtkStatusIcon* status_icon, gpointer data)
 {
-	Engine::get_dbus_manager()->send("ToggleVisible");
+	WeakPtr<Interface> ui = Engine::get_interface();
+	ui->set_visible(!ui->get_visible());
 }
 
 void TrayPlugin::on_popup(GtkStatusIcon* status_icon, guint button, guint time, gpointer data)
@@ -104,19 +105,20 @@ void TrayPlugin::on_tick()
 	
 	libtorrent::session_status status = Engine::get_session_manager()->status();
 
-	std::stringstream ss;
-	ss.imbue(std::locale(""));
-	ss << num_active << " (" << num_queued << ") " << _("downloads") << ", "
-		<< num_seeds << " " << _("seeds") << "\n" << _("DL: ")
-		<< suffix_value(status.payload_download_rate)		<< "/s\t"
-		<< _("UL: ") << suffix_value(status.payload_upload_rate) + "/s";
+	Glib::ustring tip = String::ucompose(_(
+		"%1 (%2) downloads, %3 seeds\n"
+		"DL: %4/s\tUL: %5/s"),
+		num_active, num_queued, num_seeds,
+		suffix_value(status.payload_download_rate),
+		suffix_value(status.payload_upload_rate));
 
-	icon->set_tooltip(Glib::locale_to_utf8(ss.str()));
+	icon->set_tooltip(tip);
 }
 
 void TrayPlugin::on_quit()
 {
-	Engine::get_dbus_manager()->send("Quit");
+	WeakPtr<Interface> ui = Engine::get_interface();
+	ui->quit();
 }
 
 void TrayPlugin::on_torrents_stop()

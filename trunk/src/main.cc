@@ -158,12 +158,12 @@ int main(int argc, char *argv[])
 
 		xml->get_widget_derived("main_window", ui);
 
+		// just to wake it up
+		Engine::get_plugin_manager();
+
 		ui->show();
 		if (!options.files.empty())
 			send_files(options.files);
-
-		// just to wake it up
-		Engine::get_plugin_manager();
 
 		#if HAVE_GNOME
 		Gtk::Main::run();
