@@ -296,6 +296,7 @@ void SettingsWin::on_show()
 	enable_dht->set_active(sm->get_bool("network/use_dht"));
 	dht_fallback->set_active(sm->get_bool("network/dht_fallback"));
 	enable_pex->set_active(sm->get_bool("network/use_pex"));
+	multiple_connections->set_active(sm->get_bool("network/multiple_connections_per_ip"));
 
 	up_rate->set_value((double)sm->get_int("network/max_up_rate"));
 	down_rate->set_value((double)sm->get_int("network/max_down_rate"));
