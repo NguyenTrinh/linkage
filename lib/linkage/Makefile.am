@@ -10,8 +10,9 @@ linkageinclude_HEADERS = AlertManager.hh \
 													SettingsManager.hh \
 													Torrent.hh \
 													TorrentManager.hh \
-													Utils.hh \
 													WeakPtr.hh \
 													Interface.hh \
 													dbus-c.h
+
+noinst_HEADERS = Utils.hh ucompose.hpp
 
