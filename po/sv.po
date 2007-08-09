@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-07-24 00:43+0200\n"
+"POT-Creation-Date: 2007-08-09 11:04+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -21,7 +21,7 @@ msgid "Filter"
 msgstr "Filter"
 
 #: ../src/FileList.cc:54 ../src/FilterRow.cc:66 ../src/GroupList.cc:38
-#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:120 ../src/TorrentList.cc:47
+#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:120 ../src/TorrentList.cc:48
 #: ../data/linkage.glade.h:31
 msgid "Name"
 msgstr "Namn"
@@ -91,52 +91,52 @@ msgid "All"
 msgstr "Alla"
 
 #: ../src/GroupsWin.cc:230
-msgid "and "
-msgstr "och "
+msgid "and"
+msgstr "och"
 
 #: ../src/GroupsWin.cc:233
-msgid "and not "
-msgstr "och inte "
+msgid "and not"
+msgstr "och inte"
 
 #: ../src/GroupsWin.cc:237
-msgid "or "
-msgstr "eller "
+msgid "or"
+msgstr "eller"
 
 #: ../src/GroupsWin.cc:241
-msgid "or not "
-msgstr "eller inte "
+msgid "or not"
+msgstr "eller inte"
 
 #: ../src/GroupsWin.cc:243
-msgid "not "
-msgstr "inte "
+msgid "not"
+msgstr "inte"
 
 #: ../src/GroupsWin.cc:250
-msgid "comment "
-msgstr "kommentar "
+msgid "comment"
+msgstr "kommentar"
 
 #: ../src/GroupsWin.cc:253
-msgid "tracker "
-msgstr "tracker "
+msgid "tracker"
+msgstr ""
 
 #: ../src/GroupsWin.cc:256
-msgid "name "
-msgstr "namn "
+msgid "name"
+msgstr "namn"
 
 #: ../src/GroupsWin.cc:263
-msgid "equals "
-msgstr "är lika med "
+msgid "equals"
+msgstr "är lika med"
 
 #: ../src/GroupsWin.cc:266
-msgid "contains "
-msgstr "innehåller "
+msgid "contains"
+msgstr "innehåller"
 
 #: ../src/GroupsWin.cc:269
-msgid "starts with "
-msgstr "börjar med "
+msgid "starts with"
+msgstr "börjar med"
 
 #: ../src/GroupsWin.cc:272
-msgid "ends with "
-msgstr "slutar med "
+msgid "ends with"
+msgstr "slutar med"
 
 #: ../src/main.cc:62
 msgid "Show version and quit"
@@ -192,7 +192,7 @@ msgstr "Nedladdningshastighet"
 msgid "Upload rate"
 msgstr "Uppladdningshastighet"
 
-#: ../src/PeerList.cc:62 ../src/TorrentList.cc:55 ../data/linkage.glade.h:44
+#: ../src/PeerList.cc:62 ../src/TorrentList.cc:56 ../data/linkage.glade.h:44
 msgid "Progress"
 msgstr "Förlopp"
 
@@ -212,7 +212,7 @@ msgstr "Ansluter"
 msgid "Handshake"
 msgstr "Handskakning"
 
-#: ../src/PeerList.cc:220 ../lib/Torrent.cc:241
+#: ../src/PeerList.cc:220 ../lib/Torrent.cc:242
 msgid "Queued"
 msgstr "Köad"
 
@@ -268,21 +268,21 @@ msgstr "Hashar..."
 msgid "Save torrent"
 msgstr "Spara torrent"
 
-#: ../src/TorrentList.cc:304
-msgid " connected seeds, "
-msgstr " anslutna källor, "
+#: ../src/TorrentList.cc:301
+msgid ""
+"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+"%4 (%5) connected seeds, %6 (%7) peers"
+msgstr ""
+"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+"%4 (%5) anslutna källor, %6 (%7) klienter"
 
-#: ../src/TorrentList.cc:307 ../lib/TorrentManager.cc:102
-msgid " peers"
-msgstr " klienter"
-
-#: ../src/TorrentList.cc:320 ../plugins/trayicon/PluginTrayIcon.cc:110
-msgid "DL: "
-msgstr "NL: "
-
-#: ../src/TorrentList.cc:321 ../plugins/trayicon/PluginTrayIcon.cc:112
-msgid "UL: "
-msgstr "UL: "
+#: ../src/TorrentList.cc:308
+msgid ""
+"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+"%4 connected seeds, %5 peers"
+msgstr ""
+"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+"%4 anslutna källor, %5 klienter"
 
 #: ../src/TorrentMenu.cc:84
 msgid "<i>None</i>"
@@ -292,61 +292,57 @@ msgstr "<i>Ingen</i>"
 msgid "Failed to connect to GNOME session"
 msgstr "Misslyckades att ansluta till GNOME sessionen"
 
-#: ../src/UI.cc:566
+#: ../src/UI.cc:568
 msgid "Yes"
 msgstr "Ja"
 
-#: ../src/UI.cc:566
+#: ../src/UI.cc:568
 msgid "No"
 msgstr "Nej"
 
-#: ../src/UI.cc:590 ../lib/SessionManager.cc:213
-msgid "File not found, \""
-msgstr "Filen hittades inte, \""
+#: ../src/UI.cc:593 ../lib/SessionManager.cc:212
+msgid "File not found, \"%1\""
+msgstr "Filen hittades inte, \"%1\""
 
-#: ../src/UI.cc:599
-msgid "Select path for "
-msgstr "Välj sökväg för "
+#: ../src/UI.cc:602
+msgid "Select path for %1"
+msgstr "Välj sökväg för %1"
 
-#: ../src/UI.cc:623
+#: ../src/UI.cc:626
 msgid "Open torrent"
 msgstr "Öppna torrent"
 
-#: ../src/UI.cc:627
+#: ../src/UI.cc:630
 msgid "BitTorrent files"
 msgstr "BitTorrent filer"
 
-#: ../src/UI.cc:631
+#: ../src/UI.cc:634
 msgid "All files"
 msgstr "Alla filer"
 
-#: ../src/UI.cc:648
+#: ../src/UI.cc:651
 msgid "Select path"
 msgstr "Välj sökväg"
 
-#: ../src/UI.cc:687
+#: ../src/UI.cc:690
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
-#: ../src/UI.cc:750
-msgid "Are you sure you wish to remove \""
-msgstr "Är du säker på att du vill ta bort \""
+#: ../src/UI.cc:754
+msgid "Are you sure you wish to remove \"%1\" and it's content?"
+msgstr "Är du säker på att du vill ta bort \"%1\" och hela dess innehåll?"
 
-#: ../src/UI.cc:751
-msgid "\" and it's content?"
-msgstr "\" och dess innehåll"
+#: ../src/UI.cc:761
+msgid "(%1 files)."
+msgstr "(%1 filer)."
 
-#: ../src/UI.cc:756
-msgid " files)."
-msgstr "filer)."
-
-#: ../src/UI.cc:758
+#: ../src/UI.cc:763
 msgid "(1 file)."
 msgstr "(1 fil)."
 
-#: ../src/UI.cc:759
-msgid "This will permanently remove the torrent and all of it's content "
-msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll"
+#: ../src/UI.cc:765
+msgid "This will permanently remove the torrent and all of it's content %1"
+msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
 #: ../lib/PluginManager.cc:89
 #, c-format
@@ -362,80 +358,76 @@ msgstr "Lyssning misslyckades: %s"
 msgid "Failed to start DHT"
 msgstr "Misslyckades med att starta DHT"
 
-#: ../lib/SessionManager.cc:232
-msgid "Invalid bencoding in "
-msgstr "Ogiltig bkodning i "
+#: ../lib/SessionManager.cc:231
+msgid "Invalid bencoding in %1"
+msgstr "Ogiltig bkodning i %1"
 
-#: ../lib/SessionManager.cc:249
+#: ../lib/SessionManager.cc:248
 #, c-format
 msgid "Failed to move content for %s to %s"
 msgstr "Misslyckades med att flytta innehåll för %s till %s"
 
 #: ../lib/SessionManager.cc:306
-msgid "Merged "
-msgstr "Slog samman "
-
-#: ../lib/SessionManager.cc:306
-msgid " with "
-msgstr " med "
+msgid "Merged %1 with %2"
+msgstr "Slog samman %1 med %2"
 
 #: ../lib/SettingsManager.cc:40
 #, c-format
 msgid "Could not create directory: %s"
 msgstr "Kunde inte skapa katalog: %s"
 
-#: ../lib/Torrent.cc:239
+#: ../lib/Torrent.cc:240
 msgid "Error"
 msgstr "Fel"
 
-#: ../lib/Torrent.cc:243
+#: ../lib/Torrent.cc:244
 msgid "Stopped"
 msgstr "Stoppad"
 
-#: ../lib/Torrent.cc:245
+#: ../lib/Torrent.cc:246
 msgid "Queued for checking"
 msgstr "Köad för kontroll"
 
-#: ../lib/Torrent.cc:247
+#: ../lib/Torrent.cc:248
 msgid "Checking"
 msgstr "Kontrollerar"
 
 #. All trackers failed, cycle stops
 #. FIXME: shouldn't rely on check against translateable string
-#: ../lib/Torrent.cc:249 ../lib/Torrent.cc:370 ../lib/TorrentManager.cc:93
+#: ../lib/Torrent.cc:250 ../lib/Torrent.cc:371 ../lib/TorrentManager.cc:93
 #: ../data/settings.glade.h:13
 msgid "Announcing"
 msgstr "Annonerar"
 
-#: ../lib/Torrent.cc:251
+#: ../lib/Torrent.cc:252
 msgid "Finished"
 msgstr "Klar"
 
-#: ../lib/Torrent.cc:253
+#: ../lib/Torrent.cc:254
 msgid "Seeding"
 msgstr "Laddar upp"
 
-#: ../lib/Torrent.cc:255
+#: ../lib/Torrent.cc:256
 msgid "Allocating"
 msgstr "Allokerar"
 
-#: ../lib/Torrent.cc:258
+#: ../lib/Torrent.cc:259
 msgid "Downloading"
 msgstr "Laddar ned"
 
-#: ../lib/TorrentManager.cc:102
-msgid "OK, got "
-msgstr "OK, fick "
+#: ../lib/TorrentManager.cc:103
+msgid "OK, got %1 peers"
+msgstr "OK, fick %1 klienter"
 
-#: ../lib/TorrentManager.cc:123
-msgid " times in a row)"
-msgstr " gånger i rad)"
+#: ../lib/TorrentManager.cc:125
+msgid "%1 (%2 times in a row)"
+msgstr "%1 (%2 gånger i rad)"
 
-#: ../lib/Utils.cc:145
+#: ../lib/Utils.cc:143
 msgid "day"
 msgstr "dag"
 
-#: ../lib/Utils.cc:147
+#: ../lib/Utils.cc:145
 msgid "days"
 msgstr "dagar"
 
@@ -459,6 +451,14 @@ msgstr "nedladdningar"
 #: ../plugins/trayicon/PluginTrayIcon.cc:110
 msgid "seeds"
 msgstr "källor"
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:110
+msgid "DL: "
+msgstr "NL: "
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:112
+msgid "UL: "
+msgstr "UL: "
 
 #: ../plugins/notification/PluginNotification.cc:49
 #: ../plugins/notification/PluginNotification.cc:107
@@ -663,7 +663,7 @@ msgstr "Ta bort torrent och innehåll"
 
 #: ../data/linkage.glade.h:52
 msgid "Saving as:"
-msgstr "Spara som:"
+msgstr "Sparar som:"
 
 #: ../data/linkage.glade.h:53
 msgid "Seeds"
@@ -707,7 +707,7 @@ msgstr ""
 
 #: ../data/linkage.glade.h:63
 msgid "Stop"
-msgstr "Stoppa:"
+msgstr "Stoppa"
 
 #: ../data/linkage.glade.h:64
 msgid "Stop selected torrents"
@@ -1036,3 +1036,21 @@ msgstr "Grupper"
 #: ../data/groups.glade.h:6
 msgid "My New Group's Name"
 msgstr "Min Nya Grupps Namn"
+
+#~ msgid " connected seeds, "
+#~ msgstr " anslutna källor, "
+
+#~ msgid " peers"
+#~ msgstr " klienter"
+
+#~ msgid "\" and it's content?"
+#~ msgstr "\" och dess innehåll"
+
+#~ msgid " files)."
+#~ msgstr "filer)."
+
+#~ msgid "Merged "
+#~ msgstr "Slog samman "
+
+#~ msgid " with "
+#~ msgstr " med "
