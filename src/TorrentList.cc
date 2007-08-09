@@ -22,10 +22,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/cellrenderertext.h>
 #include <glibmm/i18n.h>
 
-#include "CellRendererProgressText.hh"
-#include "TorrentList.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
+
+#include "CellRendererProgressText.hh"
+#include "TorrentList.hh"
 
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 
@@ -283,33 +284,39 @@ Glib::ustring TorrentList::get_formated_name(const WeakPtr<Torrent>& torrent)
 			color = sm->get_string("ui/colors/error");
 			break;
 	}
-	std::stringstream ss;
-	ss.imbue(std::locale(""));
+
 	Glib::ustring name = torrent->get_name();
 	int name_max = sm->get_int("ui/torrent_view/max_name_width");
 	if (sm->get_bool("ui/torrent_view/trunkate_names") && name.size() > name_max)
 		name = name.substr(0, name_max) + "...";
 	name = Glib::Markup::escape_text(name);
 
-	ss << "<span foreground='" << color << "'><b>" << name.c_str() << "</b> ("
-			<< suffix_value(torrent->get_info().total_size()) << ")</span>\n";
 
+	Glib::ustring format;
 	libtorrent::torrent_status status = torrent->get_status();
 	if (state == Torrent::DOWNLOADING || state == Torrent::SEEDING || state == Torrent::FINISHED)
 	{
-		ss << status.num_seeds;
-		bool got_scrape = (status.num_complete != -1 && status.num_incomplete != -1);
-		if (got_scrape)
-			ss << " (" << status.num_complete << ")";
-		ss << _(" connected seeds, ") << (status.num_peers - status.num_seeds);
-		if (got_scrape)
-			ss << " (" << status.num_incomplete << ")";
-		ss << _(" peers");
+		if (status.num_complete != -1 && status.num_incomplete != -1)
+			format = String::ucompose(_(
+				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+				"%4 (%5) connected seeds, %6 (%7) peers"),
+				color, name, suffix_value(torrent->get_info().total_size()),
+				status.num_seeds, status.num_complete,
+				status.num_peers - status.num_seeds, status.num_incomplete);
+		else
+			format = String::ucompose(_(
+				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+				"%4 connected seeds, %5 peers"),
+				color, name, suffix_value(torrent->get_info().total_size()),
+				status.num_seeds, status.num_peers - status.num_seeds);
 	}
 	else
-		ss << torrent->get_state_string(state);
+		format = String::ucompose(
+			"<span foreground='%1'><b>%2</b> (%3)</span>\n%4",
+			color, name, suffix_value(torrent->get_info().total_size()),
+			torrent->get_state_string(state));
 
-	return Glib::locale_to_utf8(ss.str());
+	return format;
 }
 
 void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
@@ -317,8 +324,8 @@ void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	Gtk::TreeRow row = *iter;
 	CellRendererProgressText* cell_pt = dynamic_cast<CellRendererProgressText*>(cell);
 
-	cell_pt->property_text_left() = _("DL: ") + suffix_value(row[columns.down_rate]) + "/s";
-	cell_pt->property_text_right() = _("UL: ") + suffix_value(row[columns.up_rate]) + "/s";
+	cell_pt->property_text_left() = suffix_value(row[columns.down_rate]) + "/s";
+	cell_pt->property_text_right() = suffix_value(row[columns.up_rate]) + "/s";
 }
 
 bool TorrentList::on_button_press_event(GdkEventButton* event)
