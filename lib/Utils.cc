@@ -44,52 +44,49 @@ Glib::ustring suffix_value(libtorrent::size_type value)
 	return Glib::locale_to_utf8(ss.str());
 }
 
-Glib::ustring str(size_t value)
+Glib::ustring str(size_t value, bool localize)
 {
 	std::stringstream ss;
-	ss.imbue(std::locale(""));
+	if (localize)
+		ss.imbue(std::locale(""));
 	ss << value;
 	return Glib::locale_to_utf8(ss.str());
 }
 
 #if SIZEOF_UNSIGNED_INT != SIZEOF_SIZE_T
-Glib::ustring str(unsigned int value)
+Glib::ustring str(unsigned int value, bool localize)
 {
 	std::stringstream ss;
-	ss.imbue(std::locale(""));
+	if (localize)
+		ss.imbue(std::locale(""));
 	ss << value;
 	return Glib::locale_to_utf8(ss.str());
 }
 #endif
 
-Glib::ustring str(int value)
+Glib::ustring str(int value, bool localize)
 {
 	std::stringstream ss;
-	ss.imbue(std::locale(""));
+	if (localize)
+		ss.imbue(std::locale(""));
 	ss << value;
 	return Glib::locale_to_utf8(ss.str());
 }
 
-Glib::ustring str(libtorrent::size_type value)
+Glib::ustring str(libtorrent::size_type value, bool localize)
 {
 	std::stringstream ss;
-	ss.imbue(std::locale(""));
+	if (localize)
+		ss.imbue(std::locale(""));
 	ss << value;
 	return Glib::locale_to_utf8(ss.str());
 }
 
-Glib::ustring str(unsigned long value)
+Glib::ustring str(float value, int precision, bool localize)
 {
 	std::stringstream ss;
-	ss.imbue(std::locale(""));
-	ss << value;
-	return Glib::locale_to_utf8(ss.str());
-}
-
-Glib::ustring str(float value, int precision)
-{
-	std::stringstream ss;
-	ss.imbue(std::locale(""));
+	if (localize)
+		ss.imbue(std::locale(""));
 	ss << std::fixed << std::setprecision(precision) << value;
 	return Glib::locale_to_utf8(ss.str());
 }
@@ -108,7 +105,7 @@ Glib::ustring get_eta(libtorrent::size_type size, float rate)
 	if (!rate || !size)
 		return "\u221E";
 	else if (rate < 0 || size < 0)
-		return "";
+		return Glib::ustring();
 
 	libtorrent::size_type seconds = (libtorrent::size_type)round(size/rate);
 	return format_time(seconds);
@@ -131,23 +128,25 @@ Glib::ustring format_time(libtorrent::size_type seconds)
 
 	std::stringstream ss;
 	ss.imbue(std::locale(""));
-	if (days==0)
+	if (days == 0)
 	{
-		ss << std::setw(2) << std::setfill('0') << hours << ":";
-		ss << std::setw(2) << std::setfill('0') << minutes << ":";
-		ss << std::setw(2) << std::setfill('0') << seconds;
+		ss << std::setw(2) << std::setfill('0') << hours << ":"
+			<< std::setw(2) << std::setfill('0') << minutes << ":"
+			<< std::setw(2) << std::setfill('0') << seconds;
 		return Glib::locale_to_utf8(ss.str());
 	}
 	else
 	{
+		// FIXME: this is not so good for translations
 		Glib::ustring day_str;
 		if (days == 1)
 			day_str = _("day");
 		else
 			 day_str = _("days");
-		ss << days << day_str << ", " << std::setw(2) << std::setfill('0') << hours << ":";
-		ss << std::setw(2) << std::setfill('0') << minutes << ":" ;
-		ss << std::setw(2) << std::setfill('0') << seconds;
+		ss << days << " " << day_str << ", " << std::setw(2)
+			<< std::setfill('0') << hours << ":"
+			<< std::setw(2) << std::setfill('0') << minutes << ":"
+			<< std::setw(2) << std::setfill('0') << seconds;
 		return Glib::locale_to_utf8(ss.str());
 	}
 }

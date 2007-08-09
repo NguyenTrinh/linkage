@@ -78,7 +78,7 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	else
 		m_trackers = m_info.trackers();
 
-	for (int i = 0; i < m_trackers.size(); i++)
+	for (size_t i = 0; i < m_trackers.size(); i++)
 		m_replies[m_trackers[i].url] = "";
 }
 
@@ -212,14 +212,15 @@ const Torrent::State Torrent::get_state()
 				return CHECKING;
 			case libtorrent::torrent_status::connecting_to_tracker:
 				return ANNOUNCING;
-			case libtorrent::torrent_status::downloading:
-				return DOWNLOADING;
 			case libtorrent::torrent_status::finished:
 				return FINISHED;
 			case libtorrent::torrent_status::seeding:
 				return SEEDING;
 			case libtorrent::torrent_status::allocating:
 				return ALLOCATING;
+			case libtorrent::torrent_status::downloading:
+			default:
+				return DOWNLOADING;
 		}
 	}
 	else
@@ -346,7 +347,7 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 
 	if (tracker.empty())
 	{
-		for (int j = 0; j < trackers.size(); j++)
+		for (size_t j = 0; j < trackers.size(); j++)
 		{
 			if (trackers[j].tier == m_cur_tier)
 			{
@@ -448,9 +449,9 @@ void Torrent::add_tracker(const Glib::ustring& url)
 			diff = true;
 		else if (m_trackers.size() == trackers.size())
 		{
-			for (int i = 0; i < m_trackers.size() && !diff; i++)
+			for (size_t i = 0; i < m_trackers.size() && !diff; i++)
 			{
-				for (int j = 0; j < trackers.size(); j++)
+				for (size_t j = 0; j < trackers.size(); j++)
 				{
 					if (m_trackers[i].url == trackers[j].url)
 					{
@@ -538,7 +539,7 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 				break;
 			}
 		}
-		for (int i = 1; i < trackers.size(); i++)
+		for (size_t i = 1; i < trackers.size(); i++)
 		{
 			if (trackers[i].tier < m_cur_tier)
 				trackers[i].tier++;
@@ -608,7 +609,7 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 	resume_entry["completed"] = m_completed;
 
 	libtorrent::entry::list_type e_filter;
-	for (int i = 0; i < m_filter.size(); i++)
+	for (size_t i = 0; i < m_filter.size(); i++)
 		if (m_filter[i])
 			e_filter.push_back(i);
 	resume_entry["filter"] = e_filter;
@@ -617,7 +618,7 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 		resume_entry["group"] = m_group;
 
 	libtorrent::entry::list_type e_trackers;
-	for (int i = 0; i < m_trackers.size(); i++)
+	for (size_t i = 0; i < m_trackers.size(); i++)
 		e_trackers.push_back(m_trackers[i].url);
 	resume_entry["trackers"] = e_trackers;
 
