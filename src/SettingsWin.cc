@@ -40,6 +40,7 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	glade_xml->get_widget("name_width", name_width);
 	glade_xml->get_widget("auto_expand", auto_expand);
 	glade_xml->get_widget("trunkate_names", trunkate_names);
+	glade_xml->get_widget("allow_linebreaks", allow_linebreaks);
 	glade_xml->get_widget("color_downloading", color_downloading);
 	glade_xml->get_widget("color_seeding", color_seeding);
 	glade_xml->get_widget("color_queued", color_queued);
@@ -252,6 +253,7 @@ void SettingsWin::on_hide()
 	sm->set("ui/interval", (int)update_interval->get_value());
 	sm->set("ui/auto_expand", auto_expand->get_active());
 	sm->set("ui/torrent_view/trunkate_names", trunkate_names->get_active());
+	sm->set("ui/allow_linebreak_comments", allow_linebreaks->get_active());
 	sm->set("ui/torrent_view/max_name_width", (int)name_width->get_value());
 	sm->set("ui/colors/downloading", hex_str(color_downloading->get_color()));
 	sm->set("ui/colors/finished", hex_str(color_finished->get_color()));
@@ -320,6 +322,7 @@ void SettingsWin::on_show()
 	update_interval->set_value((double)sm->get_int("ui/interval"));
 	auto_expand->set_active(sm->get_bool("ui/auto_expand"));
 	trunkate_names->set_active(sm->get_bool("ui/torrent_view/trunkate_names"));
+	allow_linebreaks->set_active(sm->get_bool("ui/allow_linebreak_comments"));
 	name_width->set_value((double)sm->get_int("ui/torrent_view/max_name_width"));
 	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_default_colormap();
 	Gdk::Color color = Gdk::Color(sm->get_string("ui/colors/downloading"));

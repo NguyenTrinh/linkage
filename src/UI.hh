@@ -239,7 +239,13 @@ class UI : public Gtk::Window, public Interface
 	#endif
  
 public:
+	// Interface stuff
+	HashList get_selected_list();
+	bool get_visible();
+	void set_visible(bool visible);
 	Gtk::Container* get_container(Plugin::PluginParent parent);
+	void open(const Glib::ustring& uri);
+	void quit();
 
 	UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~UI();

@@ -38,7 +38,7 @@ class SettingsWin : public Gtk::Window
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::SpinButton *update_interval, *name_width;
-	Gtk::CheckButton *auto_expand, *trunkate_names;
+	Gtk::CheckButton *auto_expand, *trunkate_names, *allow_linebreaks;
 	Gtk::ColorButton *color_downloading, *color_seeding, *color_queued, *color_error;
 	Gtk::ColorButton *color_check_queue, *color_checking, *color_finished;
 	Gtk::ColorButton *color_allocating, *color_announcing, *color_stopped;
