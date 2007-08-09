@@ -227,49 +227,49 @@ void GroupsWin::format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& it
 			switch (filter.operation)
 			{
 				case Group::OP_AND:
-					ss << _("and ");
+					ss << _("and") << " ";
 					break;
 				case Group::OP_NAND:
-					ss << _("and not ");
+					ss << _("and not") << " ";
 					break;
 				case Group::OP_OR:
 					if (!first)
-						ss << _("or ");
+						ss << _("or") << " ";
 					break;
 				case Group::OP_NOR:
 					if (!first)
-						ss << _("or not ");
+						ss << _("or not") << " ";
 					else
-						ss << _("not ");
+						ss << _("not") << " ";
 					break;
 			}
 
 			switch (filter.tag)
 			{
 				case Group::TAG_COMMENT:
-					ss << _("comment ");
+					ss << _("comment") << " ";
 					break;
 				case Group::TAG_TRACKER:
-					ss << _("tracker ");
+					ss << _("tracker") << " ";
 					break;
 				case Group::TAG_NAME:
-					ss << _("name ");
+					ss << _("name") << " ";
 					break;
 			}
 
 			switch (filter.eval)
 			{
 				case Group::EVAL_EQUALS:
-					ss << _("equals ");
+					ss << _("equals") << " ";
 					break;
 				case Group::EVAL_CONTAINS:
-					ss << _("contains ");
+					ss << _("contains") << " ";
 					break;
 				case Group::EVAL_STARTS:
-					ss << _("starts with ");
+					ss << _("starts with") << " ";
 					break;
 				case Group::EVAL_ENDS:
-					ss << _("ends with ");
+					ss << _("ends with") << " ";
 					break;
 			}
 
