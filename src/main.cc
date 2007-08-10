@@ -40,8 +40,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "UI.hh"
 
-void send_files(const std::vector<Glib::ustring>& files);
-
 class Options : public Glib::OptionGroup
 {
 public:
@@ -74,6 +72,22 @@ Options::Options()
 
 Options::~Options()
 {
+}
+
+static void send_files(const std::vector<Glib::ustring>& files, UI* recipient = NULL)
+{
+	// FIXME: handle file:// style URIs
+	for (size_t i = 0; i < files.size(); i++)
+	{
+		Glib::ustring file = files[i];
+		if (!Glib::path_is_absolute(file))
+			file = Glib::build_filename(Glib::get_current_dir(), file);
+		/* Pass file(s) to running instance */
+		if (recipient)
+			recipient->open(file);
+		else
+			Engine::get_dbus_manager()->send("Open", file);
+	}
 }
 
 int main(int argc, char *argv[])
@@ -163,7 +177,7 @@ int main(int argc, char *argv[])
 
 		ui->show();
 		if (!options.files.empty())
-			send_files(options.files);
+			send_files(options.files, ui);
 
 		#if HAVE_GNOME
 		Gtk::Main::run();
@@ -176,16 +190,3 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void send_files(const std::vector<Glib::ustring>& files)
-{
-	// FIXME: handle file:// style URIs
-	for (std::vector<Glib::ustring>::const_iterator iter = files.begin();
-		iter != files.end(); ++iter)
-	{
-		Glib::ustring file = *iter;
-		if (!Glib::path_is_absolute(file))
-			file = Glib::build_filename(Glib::get_current_dir(), file);
-		/* Pass file(s) to running instance */
-		Engine::get_dbus_manager()->send("Open", file);
-	}
-}

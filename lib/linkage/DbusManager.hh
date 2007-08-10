@@ -46,8 +46,7 @@ public:
 	sigc::signal<void> signal_toggle_visible();
 	
 	bool is_primary();
-	void send(const Glib::ustring& interface, const Glib::ustring& msg);
-	void send(const Glib::ustring& interface);
+	void send(const Glib::ustring& interface, const Glib::ustring& msg = Glib::ustring());
 	
 	static void callback_handler(unsigned int action, const char* data);
 	
