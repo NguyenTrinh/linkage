@@ -29,7 +29,7 @@ const char* xml_introspect =
 "  </interface>\n"
 "  <interface name=\"org.linkage\">\n"
 "    <method name=\"Open\">\n"
-"      <arg direction=\"in\" type=\"s\"/>\n"
+"      <arg name=\"file\" direction=\"in\" type=\"s\"/>\n"
 "    </method>\n"
 "    <method name=\"Quit\">\n"
 "    </method>\n"

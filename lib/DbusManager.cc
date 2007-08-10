@@ -38,6 +38,8 @@ void DbusManager::callback_handler(unsigned int action, const char* data)
 		case ACTION_TOGGLE_VISIBLE:
 			Engine::get_dbus_manager()->signal_toggle_visible().emit();
 			break;
+		default:
+			break;
 	}
 }
 
