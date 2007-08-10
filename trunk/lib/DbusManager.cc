@@ -60,12 +60,9 @@ DbusManager::~DbusManager()
 
 void DbusManager::send(const Glib::ustring& interface, const Glib::ustring& msg)
 {
-	c_send(m_connection, interface.c_str(), msg.c_str());
-}
-
-void DbusManager::send(const Glib::ustring& interface)
-{
-	c_send(m_connection, interface.c_str(), NULL);
+	// ignore messages past to self, should use Engine::get_interface() for those
+	if (!is_primary())
+		c_send(m_connection, interface.c_str(), msg.c_str());
 }
 
 bool DbusManager::is_primary()

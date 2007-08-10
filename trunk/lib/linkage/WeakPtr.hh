@@ -36,7 +36,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 		WeakPtr<Torrent> t =	TorrentManager->get_torrent(hash);
 		t->some_method();
 */
-		
+
+// FIXME: just use RefPtr instead, should be safer
 template<class T> class WeakPtr
 {
 	T* m_object;

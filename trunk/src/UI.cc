@@ -960,6 +960,8 @@ void UI::on_open_location()
 				Glib::ustring cmd = app + " \"" + path + "\"";
 				Glib::spawn_command_line_async(cmd);
 			}
+			else
+				g_warning("No suitable file manager found");
 		}
 	}
 }
@@ -997,7 +999,8 @@ void UI::on_quit()
 
 void UI::on_toggle_visible()
 {
-	is_visible() ? hide() : show();
+	// this will also unminimize window
+	set_visible(is_visible());
 }
 
 void UI::on_details_expanded()
