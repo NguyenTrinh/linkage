@@ -65,7 +65,7 @@ AC_ARG_WITH([gupnp],
 	[],
 	[with_gupnp=check])
 AS_IF([test "x$with_gupnp" != xno],
-	[PKG_CHECK_MODULES(GUPNP, gupnp-1.0 >= 0.1,
+	[PKG_CHECK_MODULES(GUPNP, gupnp-1.0 >= 0.3,
 		USE_UPNP="yes",
 		[if test "x$with_gupnp" != xcheck; then
 			AC_MSG_FAILURE([--with-gupnp was given, but test for gupnp failed.])

@@ -68,7 +68,7 @@ void UPnPPlugin::on_service_found(GUPnPControlPoint* cp, GUPnPServiceProxy* prox
 {
 	/* FIXME: store services */
 	GUPnPServiceInfo* info = reinterpret_cast<GUPnPServiceInfo*>(proxy);
-	char* type = gupnp_service_info_get_service_type(info);
+	const char* type = gupnp_service_info_get_service_type(info);
 	if (type)
 	{
 		if (strcmp(type, "urn:schemas-upnp-org:service:WANIPConnection:1") == 0)
@@ -78,7 +78,6 @@ void UPnPPlugin::on_service_found(GUPnPControlPoint* cp, GUPnPServiceProxy* prox
 			UPnPPlugin* plugin = static_cast<UPnPPlugin*>(data);
 			plugin->on_wan_service_found(proxy);
 		}
-		g_free(type);
 	}
 }
 
