@@ -19,11 +19,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/thread.h>
 #include <gtkmm/main.h>
 #include <glibmm/i18n.h>
+#include <gtkmm/toolbar.h>
+#include <gtkmm/toolbutton.h>
+#include <gtkmm/stock.h>
 
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
 #include "PluginUPnP.hh"
+
+#define PLUGIN_NAME		"UPnPPlugin"
+#define PLUGIN_DESC		_("Enables port forwarding through gupnp")
+#define PLUGIN_VER		"1"
+#define PLUGIN_AUTHOR	"Christian Lundgren"
+#define PLUGIN_WEB		"http://code.google.com/p/linkage"
 
 UPnPPlugin::UPnPPlugin()
 {
@@ -40,10 +49,7 @@ UPnPPlugin::UPnPPlugin()
 
 	m_cp = gupnp_control_point_new(m_context, GSSDP_ALL_RESOURCES);
 
-	g_signal_connect(m_cp, "device-proxy-available", G_CALLBACK(UPnPPlugin::on_device_found), this);
-	g_signal_connect(m_cp, "device-proxy-unavailable", G_CALLBACK(UPnPPlugin::on_device_lost), this);
 	g_signal_connect(m_cp, "service-proxy-available", G_CALLBACK(UPnPPlugin::on_service_found), this);
-	g_signal_connect(m_cp, "service-proxy-unavailable", G_CALLBACK(UPnPPlugin::on_service_lost), this);
 
 	gssdp_resource_browser_set_active(reinterpret_cast<GSSDPResourceBrowser*>(m_cp), TRUE);
 }
@@ -54,19 +60,8 @@ UPnPPlugin::~UPnPPlugin()
 	g_object_unref(m_context);
 }
 
-void UPnPPlugin::on_device_found(GUPnPControlPoint* cp, GUPnPDeviceProxy* proxy, gpointer data)
-{
-	/* FIXME: store devices */
-}
-
-void UPnPPlugin::on_device_lost(GUPnPControlPoint* cp, GUPnPDeviceProxy* proxy, gpointer data)
-{
-	/* FIXME: remove device from store */
-}
-
 void UPnPPlugin::on_service_found(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data)
 {
-	/* FIXME: store services */
 	GUPnPServiceInfo* info = reinterpret_cast<GUPnPServiceInfo*>(proxy);
 	const char* type = gupnp_service_info_get_service_type(info);
 	if (type)
@@ -81,14 +76,12 @@ void UPnPPlugin::on_service_found(GUPnPControlPoint* cp, GUPnPServiceProxy* prox
 	}
 }
 
-void UPnPPlugin::on_service_lost(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data)
-{
-	/* FIXME: remove service from store */
-}
-
 void UPnPPlugin::on_subscription_lost(GUPnPServiceProxy *proxy, gpointer error, gpointer data)
 {
-	/* FIXME: renew subscription */
+	gupnp_service_proxy_set_subscribed(proxy, TRUE);
+	// FIXME: are mappings really removed when subscription expires?
+	UPnPPlugin* plugin = static_cast<UPnPPlugin*>(data);
+	plugin->on_wan_service_found(proxy);
 }
 
 void UPnPPlugin::on_wan_service_found(GUPnPServiceProxy* proxy)
@@ -146,9 +139,11 @@ void UPnPPlugin::on_wan_service_found(GUPnPServiceProxy* proxy)
 void UPnPPlugin::on_action_done(GUPnPServiceProxy *proxy, GUPnPServiceProxyAction *action, gpointer data)
 {
 	GError* error = NULL;
-	bool ret = gupnp_service_proxy_end_action(proxy, action, &error, NULL);
-	
-	g_warning("Action done: %i", ret);
+	gboolean ret = gupnp_service_proxy_end_action(proxy, action, &error, NULL);
+
+	if (!ret)
+		g_warning("Failed to map port");
+
 	if (error)
 	{
 		g_warning(error->message);
@@ -158,11 +153,11 @@ void UPnPPlugin::on_action_done(GUPnPServiceProxy *proxy, GUPnPServiceProxyActio
 
 Plugin::Info UPnPPlugin::get_info()
 {
-	return Plugin::Info("UPnPPlugin",
-		_("Enables port forwarding through gssdp/gupnp"),
-		"1",
-		"Christian Lundgren",
-		"http://code.google.com/p/linkage",
+	return Plugin::Info(PLUGIN_NAME,
+		PLUGIN_DESC,
+		PLUGIN_VER,
+		PLUGIN_AUTHOR,
+		PLUGIN_WEB,
 		false,
 		Plugin::PARENT_NONE);
 }
@@ -174,11 +169,11 @@ Plugin* create_plugin()
 
 Plugin::Info plugin_info()
 {
-	return Plugin::Info("UPnPPlugin",
-		_("Enables port forwarding through gssdp/gupnp"),
-		"1",
-		"Christian Lundgren",
-		"http://code.google.com/p/linkage",
+	return Plugin::Info(PLUGIN_NAME,
+		PLUGIN_DESC,
+		PLUGIN_VER,
+		PLUGIN_AUTHOR,
+		PLUGIN_WEB,
 		false,
 		Plugin::PARENT_NONE);
 }

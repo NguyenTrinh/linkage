@@ -29,10 +29,7 @@ class UPnPPlugin : public Plugin
 	GUPnPControlPoint* m_cp;
 	GUPnPContext* m_context;
 
-	static void on_device_found(GUPnPControlPoint* cp, GUPnPDeviceProxy* proxy, gpointer data);
-	static void on_device_lost(GUPnPControlPoint* cp, GUPnPDeviceProxy* proxy, gpointer data);
 	static void on_service_found(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data);
-	static void on_service_lost(GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer data);
 
 	static void on_subscription_lost(GUPnPServiceProxy *proxy, gpointer error, gpointer data);
 

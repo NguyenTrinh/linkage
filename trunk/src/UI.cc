@@ -460,9 +460,9 @@ Gtk::Container* UI::get_container(Plugin::PluginParent parent)
 		case Plugin::PARENT_DETAILS:
 			return dynamic_cast<Gtk::Container*>(notebook_details);
 		case Plugin::PARENT_MAIN:
-			return dynamic_cast<Gtk::Container*>(notebook_main);
+			return dynamic_cast<Gtk::Container*>(glade_xml->get_widget("notebook_main"));
 		case Plugin::PARENT_TOOLBAR:
-			return dynamic_cast<Gtk::Container*>(manager->get_widget("/ToolBar"));
+			return dynamic_cast<Gtk::Container*>(glade_xml->get_widget("toolbar"));
 		case Plugin::PARENT_MENU:
 			return dynamic_cast<Gtk::Container*>(torrent_menu);
 		case Plugin::PARENT_NONE:
