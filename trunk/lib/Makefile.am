@@ -11,7 +11,6 @@ liblinkage_1_la_SOURCES = Engine.cc \
                           Torrent.cc \
                           TorrentManager.cc \
                           DbusManager.cc \
-                          dbus-c.c \
                           Utils.cc \
                           Interface.cc
 

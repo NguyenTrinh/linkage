@@ -23,10 +23,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/toolbutton.h>
 #include <gtkmm/stock.h>
 
-#include "linkage/Engine.hh"
-#include "linkage/Utils.hh"
-
 #include "PluginUPnP.hh"
+
+#include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/SettingsManager.hh"
+#include "linkage/Utils.hh"
 
 #define PLUGIN_NAME		"UPnPPlugin"
 #define PLUGIN_DESC		_("Enables port forwarding through gupnp")

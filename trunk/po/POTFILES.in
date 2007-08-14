@@ -18,7 +18,6 @@ src/TorrentList.cc
 src/TorrentMenu.cc
 src/UI.cc
 lib/AlertManager.cc
-lib/dbus-c.c
 lib/DbusManager.cc
 lib/Engine.cc
 lib/Interface.cc

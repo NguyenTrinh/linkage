@@ -22,11 +22,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/cellrenderertext.h>
 #include <glibmm/i18n.h>
 
-#include "linkage/Engine.hh"
-#include "linkage/Utils.hh"
-
 #include "CellRendererProgressText.hh"
 #include "TorrentList.hh"
+
+#include "linkage/Engine.hh"
+#include "linkage/TorrentManager.hh"
+#include "linkage/SettingsManager.hh"
+#include "linkage/Utils.hh"
 
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 

@@ -28,9 +28,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/i18n.h>
 
 #include "SettingsWin.hh"
+
 #include "linkage/Engine.hh"
-#include "linkage/Utils.hh"
 #include "linkage/SettingsManager.hh"
+#include "linkage/PluginManager.hh"
+#include "linkage/Utils.hh"
 
 SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::Window(cobject),

@@ -44,11 +44,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <exo/exo.h>
 #endif
 
-#include "linkage/Torrent.hh"
-#include "linkage/WeakPtr.hh"
-#include "linkage/Plugin.hh"
-#include "linkage/Interface.hh"
-
 #include "Statusbar.hh"
 #include "PieceMap.hh"
 #include "TorrentList.hh"
@@ -60,6 +55,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "TorrentCreator.hh"
 #include "TorrentMenu.hh"
 #include "StateFilter.hh"
+
+#include "linkage/Torrent.hh"
+#include "linkage/WeakPtr.hh"
+#include "linkage/Plugin.hh"
+#include "linkage/Interface.hh"
 
 class OpenDialog : public Gtk::FileChooserDialog
 {

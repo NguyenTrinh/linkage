@@ -25,14 +25,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/RefCounter.hh"
 
-extern "C" {
-#include <dbus/dbus-glib.h>
-}
+#include <dbus/dbus-glib-bindings.h>
+#include <dbus/dbus-protocol.h>
+#include <dbus/dbus.h>
+#include <dbus/dbus-glib-lowlevel.h>
 
 class DbusManager : public RefCounter<DbusManager>
 {	
 	bool primary;
-	DBusGConnection *m_connection;
+	DBusConnection* m_connection;
 	
 	sigc::signal<void> m_signal_quit;
 	sigc::signal<void, const Glib::ustring&> m_signal_open;
@@ -47,8 +48,8 @@ public:
 	
 	bool is_primary();
 	void send(const Glib::ustring& interface, const Glib::ustring& msg = Glib::ustring());
-	
-	static void callback_handler(unsigned int action, const char* data);
+
+	static DBusHandlerResult message_handler(DBusConnection* connection, DBusMessage* message, gpointer data);
 	
 	static Glib::RefPtr<DbusManager> create();
 	~DbusManager();

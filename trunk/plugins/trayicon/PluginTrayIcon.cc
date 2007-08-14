@@ -27,7 +27,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/i18n.h>
 
 #include "PluginTrayIcon.hh"
+
 #include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/TorrentManager.hh"
+#include "linkage/Interface.hh"
 #include "linkage/Utils.hh"
 
 #define PLUGIN_NAME		"TrayPlugin"
