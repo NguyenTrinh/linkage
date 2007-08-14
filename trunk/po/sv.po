@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-09 12:36+0200\n"
+"POT-Creation-Date: 2007-08-14 02:07+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -138,15 +138,15 @@ msgstr "börjar med"
 msgid "ends with"
 msgstr "slutar med"
 
-#: ../src/main.cc:62
+#: ../src/main.cc:60
 msgid "Show version and quit"
 msgstr "Visa version och avsluta"
 
-#: ../src/main.cc:67
+#: ../src/main.cc:65
 msgid "Tell the running instance to quit"
 msgstr "Säg åt den körande instansen att avsluta"
 
-#: ../src/main.cc:96
+#: ../src/main.cc:110
 msgid ""
 "[FILE...] \n"
 "\n"
@@ -156,7 +156,7 @@ msgstr ""
 "\n"
 "En BitTorrent klient\n"
 
-#: ../src/main.cc:112
+#: ../src/main.cc:126
 msgid ""
 "Run \"linkage --help\" to see a full list of available command line "
 "options.\n"
@@ -164,11 +164,11 @@ msgstr ""
 "Kör \"linkage --help\" för att se hela listan av tillgängliga "
 "kommandoradsflaggor.\n"
 
-#: ../src/main.cc:134
+#: ../src/main.cc:148
 msgid " files passed to running instance.\n"
 msgstr " filer skickade till körande instans.\n"
 
-#: ../src/main.cc:139
+#: ../src/main.cc:153
 msgid "Another process is already running. Quitting...\n"
 msgstr "En annan process kör redan. Avslutar...\n"
 
@@ -324,7 +324,7 @@ msgstr "Alla filer"
 msgid "Select path"
 msgstr "Välj sökväg"
 
-#: ../src/UI.cc:741
+#: ../src/UI.cc:741 ../data/linkage.desktop.in.h:1
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
@@ -457,7 +457,7 @@ msgstr ""
 msgid "Displays notifications trough libnotify"
 msgstr "Visar notifieringar genom libnotify"
 
-#: ../plugins/upnp/PluginUPnP.cc:163 ../plugins/upnp/PluginUPnP.cc:179
+#: ../plugins/upnp/PluginUPnP.cc:162 ../plugins/upnp/PluginUPnP.cc:178
 msgid "Enables port forwarding through gssdp/gupnp"
 msgstr "Vidarebefodrar portar genom gssdp/gupnp"
 
@@ -1033,32 +1033,6 @@ msgstr "Grupper"
 msgid "My New Group's Name"
 msgstr "Min Nya Grupps Namn"
 
-#~ msgid "downloads"
-#~ msgstr "nedladdningar"
-
-#~ msgid "seeds"
-#~ msgstr "källor"
-
-#~ msgid "DL: "
-#~ msgstr "NL: "
-
-#~ msgid "UL: "
-#~ msgstr "UL: "
-
-#~ msgid " connected seeds, "
-#~ msgstr " anslutna källor, "
-
-#~ msgid " peers"
-#~ msgstr " klienter"
-
-#~ msgid "\" and it's content?"
-#~ msgstr "\" och dess innehåll"
-
-#~ msgid " files)."
-#~ msgstr "filer)."
-
-#~ msgid "Merged "
-#~ msgstr "Slog samman "
-
-#~ msgid " with "
-#~ msgstr " med "
+#: ../data/linkage.desktop.in.h:2
+msgid "Linkage"
+msgstr ""

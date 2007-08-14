@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Linkage
-Comment=Bittorrent client
+_Name=Linkage
+_Comment=A BitTorrent client
 Exec=linkage %F
 Icon=linkage.svg
 Terminal=false

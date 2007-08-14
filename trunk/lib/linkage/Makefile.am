@@ -1,4 +1,4 @@
-linkageincludedir = $(includedir)/linkage
+linkageincludedir = $(includedir)/linkage-1.0/linkage
 
 linkageinclude_HEADERS = AlertManager.hh \
 													DbusManager.hh \
