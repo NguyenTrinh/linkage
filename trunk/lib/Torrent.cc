@@ -82,10 +82,6 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 		m_replies[m_trackers[i].url] = "";
 }
 
-Torrent::Torrent() : m_prop_handle(*this, "handle")
-{
-}
-
 Torrent::~Torrent()
 {
 }
@@ -100,7 +96,7 @@ libtorrent::torrent_handle Torrent::get_handle()
 	return m_prop_handle.get_value();
 }
 
-const Glib::ustring Torrent::get_name()
+Glib::ustring Torrent::get_name()
 {
 	return m_info.name();
 }
@@ -115,7 +111,7 @@ const Glib::ustring& Torrent::get_path()
 	return m_path;
 }
 
-const std::pair<Glib::ustring, Glib::ustring> Torrent::get_tracker_reply()
+std::pair<Glib::ustring, Glib::ustring> Torrent::get_tracker_reply()
 {
 	static int offset = 0;
 
@@ -130,7 +126,7 @@ const std::pair<Glib::ustring, Glib::ustring> Torrent::get_tracker_reply()
 	return *iter;
 }
 
-const unsigned int Torrent::get_position()
+unsigned int Torrent::get_position()
 {
 	return m_position;
 }
@@ -140,22 +136,22 @@ const std::vector<bool>& Torrent::get_filter()
 	return m_filter;
 }
 
-const int Torrent::get_up_limit()
+int Torrent::get_up_limit()
 {
 	return m_up_limit;
 }
 
-const int Torrent::get_down_limit()
+int Torrent::get_down_limit()
 {
 	return m_down_limit;
 }
 
-const libtorrent::sha1_hash Torrent::get_hash()
+libtorrent::sha1_hash Torrent::get_hash()
 {
 	return m_info.info_hash();
 }
 
-const libtorrent::size_type Torrent::get_total_downloaded()
+libtorrent::size_type Torrent::get_total_downloaded()
 {
 	libtorrent::size_type total = m_downloaded;
 	if (!is_stopped())
@@ -163,7 +159,7 @@ const libtorrent::size_type Torrent::get_total_downloaded()
 	return total;
 }
 
-const libtorrent::size_type Torrent::get_total_uploaded()
+libtorrent::size_type Torrent::get_total_uploaded()
 {
 	libtorrent::size_type total = m_uploaded;
 	if (!is_stopped())
@@ -176,7 +172,7 @@ bool Torrent::get_completed()
 	return m_completed;
 }
 
-const Torrent::State Torrent::get_state()
+Torrent::State Torrent::get_state()
 {
 	if (!is_stopped())
 	{
@@ -227,12 +223,17 @@ const Torrent::State Torrent::get_state()
 		return STOPPED;
 }
 
-const Glib::ustring Torrent::get_state_string()
+Glib::ustring Torrent::get_state_string()
 {
-	return get_state_string(get_state());
+	return Torrent::state_string(get_state());
 }
 
-const Glib::ustring Torrent::get_state_string(State state)
+Glib::ustring Torrent::get_state_string(State state)
+{
+	return Torrent::state_string(state);
+}
+
+Glib::ustring Torrent::state_string(State state)
 {
 	switch (state)
 	{

@@ -59,25 +59,26 @@ public:
 
 	Glib::PropertyProxy<libtorrent::torrent_handle> property_handle();
 	libtorrent::torrent_handle get_handle();
-	const std::pair<Glib::ustring, Glib::ustring> get_tracker_reply();
-	const Glib::ustring get_name();
+	std::pair<Glib::ustring, Glib::ustring> get_tracker_reply();
+	Glib::ustring get_name();
 	const Glib::ustring& get_group();
 	const Glib::ustring& get_path();
-	const unsigned int get_position();
+	unsigned int get_position();
 	//const std::vector<int>& get_priorities();
 	const std::vector<bool>& get_filter();
-	const int get_up_limit();
-	const int get_down_limit();
-	const libtorrent::sha1_hash get_hash();
+	int get_up_limit();
+	int get_down_limit();
+	libtorrent::sha1_hash get_hash();
 
-	const libtorrent::size_type get_total_downloaded();
-	const libtorrent::size_type get_total_uploaded();
+	libtorrent::size_type get_total_downloaded();
+	libtorrent::size_type get_total_uploaded();
 
 	bool get_completed();
 
-	const State get_state();
-	const Glib::ustring get_state_string();
-	const Glib::ustring get_state_string(State state);
+	State get_state();
+	Glib::ustring get_state_string();
+	static Glib::ustring state_string(State state);
+	Glib::ustring get_state_string(State state);
 
 	const libtorrent::torrent_info& get_info();
 	const libtorrent::torrent_status get_status();
@@ -116,7 +117,6 @@ public:
 	void set_handle(const libtorrent::torrent_handle& handle);
 
 	Torrent(const ResumeInfo& ri, bool queued = false);
-	Torrent();
 	~Torrent();
 
 private:

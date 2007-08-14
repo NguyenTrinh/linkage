@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-14 02:07+0200\n"
+"POT-Creation-Date: 2007-08-14 13:11+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -431,20 +431,19 @@ msgstr "dag"
 msgid "days"
 msgstr "dagar"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:36
-msgid "Start torrents"
-msgstr "Starta torrenter"
-
-#: ../plugins/trayicon/PluginTrayIcon.cc:39
-msgid "Stop torrents"
-msgstr "Stoppa torrenter"
-
-#: ../plugins/trayicon/PluginTrayIcon.cc:66
-#: ../plugins/trayicon/PluginTrayIcon.cc:156
+#: ../plugins/trayicon/PluginTrayIcon.cc:34
 msgid "Displays a tray icon"
 msgstr "Visar en satusikon"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:109
+#: ../plugins/trayicon/PluginTrayIcon.cc:42
+msgid "Start torrents"
+msgstr "Starta torrenter"
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:45
+msgid "Stop torrents"
+msgstr "Stoppa torrenter"
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:115
 msgid ""
 "%1 (%2) downloads, %3 seeds\n"
 "DL: %4/s\tUL: %5/s"
@@ -452,14 +451,13 @@ msgstr ""
 "%1 (%2) nedladdningar, %3 uppladdningar\n"
 "NL: %4/s\tUL: %5/s"
 
-#: ../plugins/notification/PluginNotification.cc:49
-#: ../plugins/notification/PluginNotification.cc:107
+#: ../plugins/notification/PluginNotification.cc:28
 msgid "Displays notifications trough libnotify"
 msgstr "Visar notifieringar genom libnotify"
 
-#: ../plugins/upnp/PluginUPnP.cc:162 ../plugins/upnp/PluginUPnP.cc:178
-msgid "Enables port forwarding through gssdp/gupnp"
-msgstr "Vidarebefodrar portar genom gssdp/gupnp"
+#: ../plugins/upnp/PluginUPnP.cc:29
+msgid "Enables port forwarding through gupnp"
+msgstr "Vidarebefodrar portar genom gupnp"
 
 #: ../data/linkage.glade.h:1
 msgid "<b>Details</b>"
