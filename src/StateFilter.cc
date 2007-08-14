@@ -32,17 +32,16 @@ StateFilter::StateFilter(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	set_model(model);
 
-	Torrent tmp;
-
 	Gtk::TreeRow row = *(model->append());
 	row[columns.name] = _("All");
 	row[columns.state] = Torrent::NONE;
 
 	for (int i = Torrent::ANNOUNCING; i != Torrent::ERROR; i *= 2)
 	{
-		Torrent::State state = Torrent::State(i);
 		row = *(model->append());
-		row[columns.name] = tmp.get_state_string(state);
+
+		Torrent::State state = Torrent::State(i);
+		row[columns.name] = Torrent::state_string(state);
 		row[columns.state] = state;
 	}
 
