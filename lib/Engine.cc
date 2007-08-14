@@ -19,6 +19,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/main.h>
 
 #include "linkage/Engine.hh"
+#include "linkage/AlertManager.hh"
+#include "linkage/PluginManager.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/SettingsManager.hh"
+#include "linkage/TorrentManager.hh"
+#include "linkage/DbusManager.hh"
 
 Glib::RefPtr<Engine> Engine::self					= Glib::RefPtr<Engine>();
 

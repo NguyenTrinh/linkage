@@ -35,10 +35,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <libgnome/gnome-init.h>
 #endif
 
-#include "linkage/Engine.hh"
-#include "linkage/Utils.hh"
-
 #include "UI.hh"
+
+#include "linkage/Engine.hh"
+#include "linkage/DbusManager.hh"
+#include "linkage/PluginManager.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/Utils.hh"
 
 class Options : public Glib::OptionGroup
 {

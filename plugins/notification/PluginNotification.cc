@@ -21,8 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/statusicon.h>
 #include <glibmm/i18n.h>
 
-#include "linkage/Engine.hh"
 #include "PluginNotification.hh"
+
+#include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/AlertManager.hh"
+#include "linkage/PluginManager.hh"
+#include "linkage/TorrentManager.hh"
 
 #define PLUGIN_NAME		"NotifyPlugin"
 #define PLUGIN_DESC		_("Displays notifications trough libnotify")

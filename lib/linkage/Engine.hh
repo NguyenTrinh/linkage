@@ -21,17 +21,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <glibmm/refptr.h>
 
-#include "linkage/AlertManager.hh"
-#include "linkage/PluginManager.hh"
-#include "linkage/SessionManager.hh"
-#include "linkage/SettingsManager.hh"
-#include "linkage/TorrentManager.hh"
-#include "linkage/DbusManager.hh"
+#include <sigc++/signal.h>
+
 #include "linkage/RefCounter.hh"
-#include "linkage/Interface.hh"
+#include "linkage/WeakPtr.hh"
+
+class SettingsManager;
+class TorrentManager;
+class SessionManager;
+class AlertManager;
+class PluginManager;
+class DbusManager;
+class Interface;
 
 class Engine : public RefCounter<Engine>
 {
+
 	static Glib::RefPtr<SettingsManager> ssm;
 	static Glib::RefPtr<TorrentManager> tm;
 	static Glib::RefPtr<SessionManager> sm;

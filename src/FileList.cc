@@ -27,8 +27,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "FileList.hh"
 #include "CellRendererPieceMap.hh"
-#include "linkage/Utils.hh"
+
 #include "linkage/Engine.hh"
+#include "linkage/TorrentManager.hh"
+#include "linkage/Utils.hh"
 
 #define ICON_DIR "gnome-fs-directory"
 #define ICON_FILE "gnome-fs-regular"

@@ -21,10 +21,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef PLUGIN_NOTIFICATION_HH
 #define PLUGIN_NOTIFICATION_HH
 
-#include "linkage/Plugin.hh"
-
 #include <libnotify/notify.h>
 #include <glib.h>
+
+#include "linkage/Plugin.hh"
+#include "linkage/Torrent.hh"
 
 class NotifyPlugin : public Plugin
 {

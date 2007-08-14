@@ -47,7 +47,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #endif
 
 #include "UI.hh"
+
 #include "linkage/Engine.hh"
+#include "linkage/AlertManager.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/TorrentManager.hh"
+#include "linkage/DbusManager.hh"
+#include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
 
 const char* TARGET_URI_LIST = "text/uri-list";

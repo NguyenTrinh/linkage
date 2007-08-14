@@ -41,7 +41,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "libtorrent/file_pool.hpp"
 
 #include "TorrentCreator.hh"
+
 #include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
 #include "linkage/Utils.hh"
 
 TorrentCreator::TorrentCreator(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)

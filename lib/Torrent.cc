@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Torrent.hh"
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/TorrentManager.hh"
 
 Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*this, "handle")
 {
