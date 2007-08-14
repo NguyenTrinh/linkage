@@ -22,14 +22,12 @@ lib/dbus-c.c
 lib/DbusManager.cc
 lib/Engine.cc
 lib/Interface.cc
-lib/MainIface.cc
 lib/Plugin.cc
 lib/PluginManager.cc
 lib/SessionManager.cc
 lib/SettingsManager.cc
 lib/Torrent.cc
 lib/TorrentManager.cc
-lib/TorrentMenuIface.cc
 lib/Utils.cc
 plugins/trayicon/PluginTrayIcon.cc
 plugins/notification/PluginNotification.cc
@@ -37,3 +35,5 @@ plugins/upnp/PluginUPnP.cc
 data/linkage.glade
 data/settings.glade
 data/groups.glade
+data/linkage.desktop.in
+data/linkage.schemas.in
