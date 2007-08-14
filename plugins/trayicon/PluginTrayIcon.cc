@@ -30,6 +30,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/Utils.hh"
 
+#define PLUGIN_NAME		"TrayPlugin"
+#define PLUGIN_DESC		_("Displays a tray icon")
+#define PLUGIN_VER		"1"
+#define PLUGIN_AUTHOR	"Christian Lundgren"
+#define PLUGIN_WEB		"http://code.google.com/p/linkage"
+
 TrayPlugin::TrayPlugin()
 {
 	menu = new Gtk::Menu();
@@ -62,11 +68,11 @@ TrayPlugin::~TrayPlugin()
 	
 Plugin::Info TrayPlugin::get_info()
 {
-	return Plugin::Info("TrayPlugin",
-		_("Displays a tray icon"),
-		"1",
-		"Christian Lundgren",
-		"http://code.google.com/p/linkage",
+	return Plugin::Info(PLUGIN_NAME,
+		PLUGIN_DESC,
+		PLUGIN_VER,
+		PLUGIN_AUTHOR,
+		PLUGIN_WEB,
 		false,
 		Plugin::PARENT_NONE);
 }
@@ -152,11 +158,11 @@ Plugin* create_plugin()
 
 Plugin::Info plugin_info()
 {
-	return Plugin::Info("TrayPlugin",
-		_("Displays a tray icon"),
-		"1",
-		"Christian Lundgren",
-		"http://code.google.com/p/linkage",
+	return Plugin::Info(PLUGIN_NAME,
+		PLUGIN_DESC,
+		PLUGIN_VER,
+		PLUGIN_AUTHOR,
+		PLUGIN_WEB,
 		false,
 		Plugin::PARENT_NONE);
 }

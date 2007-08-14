@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/filefilter.h>
 #include <gtkmm/textview.h>
-#include <gtkmm/uimanager.h>
 #include <gtkmm/notebook.h>
 #include <gtkmm/window.h>
 #include <gtkmm/button.h>
@@ -81,8 +80,6 @@ public:
 
 class UI : public Gtk::Window, public Interface
 {
-	Glib::RefPtr<Gtk::ActionGroup> action_group;
-	Glib::RefPtr<Gtk::UIManager> manager;
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::MenuToolButton* tb_sort;
@@ -123,7 +120,6 @@ class UI : public Gtk::Window, public Interface
 	Gtk::HPaned* main_hpane;
 
 	Gtk::Expander* expander_details;
-	Gtk::Notebook* notebook_main;
 	Gtk::Notebook* notebook_details;
 
 	Gtk::SpinButton* spinbutton_down;

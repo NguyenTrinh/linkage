@@ -24,6 +24,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "PluginNotification.hh"
 
+#define PLUGIN_NAME		"NotifyPlugin"
+#define PLUGIN_DESC		_("Displays notifications trough libnotify")
+#define PLUGIN_VER		"1"
+#define PLUGIN_AUTHOR	"Christian Lundgren"
+#define PLUGIN_WEB		"http://code.google.com/p/linkage"
+
 NotifyPlugin::NotifyPlugin()	
 {
 	notify_init(PACKAGE_NAME);
@@ -45,11 +51,11 @@ NotifyPlugin::~NotifyPlugin()
 
 Plugin::Info NotifyPlugin::get_info()
 {
-	return Plugin::Info("NotifyPlugin",
-		_("Displays notifications trough libnotify"),
-		"1",
-		"Christian Lundgren",
-		"http://code.google.com/p/linkage",
+	return Plugin::Info(PLUGIN_NAME,
+		PLUGIN_DESC,
+		PLUGIN_VER,
+		PLUGIN_AUTHOR,
+		PLUGIN_WEB,
 		false,
 		Plugin::PARENT_NONE);
 }
@@ -103,11 +109,11 @@ Plugin* create_plugin()
 
 Plugin::Info plugin_info()
 {
-	return Plugin::Info("NotifyPlugin",
-		_("Displays notifications trough libnotify"),
-		"1",
-		"Christian Lundgren",
-		"http://code.google.com/p/linkage",
+	return Plugin::Info(PLUGIN_NAME,
+		PLUGIN_DESC,
+		PLUGIN_VER,
+		PLUGIN_AUTHOR,
+		PLUGIN_WEB,
 		false,
 		Plugin::PARENT_NONE);
 }
