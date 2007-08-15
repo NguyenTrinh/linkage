@@ -76,8 +76,6 @@ class TorrentList : public Gtk::TreeView
 	Group m_active_group;
 	Torrent::State m_cur_state;
 
-	Gtk::TreeIter get_iter(const libtorrent::sha1_hash& hash);
-
 	void on_added(const libtorrent::sha1_hash& hash, const Glib::ustring& name, unsigned int position);
 	void on_removed(const libtorrent::sha1_hash& hash);
 
@@ -93,6 +91,8 @@ class TorrentList : public Gtk::TreeView
 
 	void on_filter_set(const Group& group);
 	void on_state_filter_changed(Torrent::State state);
+
+	void update_row(Gtk::TreeRow& row);
 
 	friend class UI;
 
@@ -120,7 +120,7 @@ public:
 	void set_sort_column(Column col_id);
 	void set_sort_order(Gtk::SortType order);
 
-	void update(const WeakPtr<Torrent>& torrent);
+	void update();
 
 	Glib::SignalProxy0<void> signal_changed();
 	sigc::signal<void, GdkEventButton*> signal_double_click();
