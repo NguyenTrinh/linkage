@@ -1,10 +1,8 @@
-* Revamp plugins
-* Mathusalem plugin? http://tw.apinc.org/weblog/2006/08/13#mathusalem-gets-useful
-* Update TorrentCreator (private flag, DHT, multi tracker)
+* Add possibility for plugins to add dbus methods/signals
+* Extend dbus interface with methods/signals
+* Update TorrentCreator (DHT, multi tracker)
 * Make plugins configureable
 * Add RSS, Scheduler and Auto-file filter (like *.nfo etc...) plugins
 * Make it possible to add user-defined trackers
 * Add sort on time remaining
-* Fix colors in CellrendererPiecemap (looks like the brighter colors aren't alloc'ed)
-* Save .resume on tracker_announce_alert, that way we are on par with tracker (uploaded/downloaded) even if we crash ?
 * on_torrent_finished, if files are filtered and then unfiltered we should do set_complete(false)
