@@ -26,6 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/separatormenuitem.h>
 #include <glibmm/i18n.h>
 
+#include <gtk/gtkstatusicon.h>
+#include <gtk/gtkmenu.h>
+
 #include "PluginTrayIcon.hh"
 
 #include "linkage/Engine.hh"
@@ -43,10 +46,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 TrayPlugin::TrayPlugin()
 {
 	menu = new Gtk::Menu();
-	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(_("Start torrents")));
+	Gtk::ImageMenuItem* item = Gtk::manage(new Gtk::ImageMenuItem(_("Start torrents")));
+	Gtk::Image* image = Gtk::manage(new Gtk::Image(Gtk::Stock::APPLY, Gtk::ICON_SIZE_MENU));
+	item->set_image(*image);
 	item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_start));
 	menu->append(*item);
-	item = Gtk::manage(new Gtk::MenuItem(_("Stop torrents")));
+	item = Gtk::manage(new Gtk::ImageMenuItem(_("Stop torrents")));
+	image = Gtk::manage(new Gtk::Image(Gtk::Stock::STOP, Gtk::ICON_SIZE_MENU));
+	item->set_image(*image);
 	item->signal_activate().connect(sigc::mem_fun(this, &TrayPlugin::on_torrents_stop));
 	menu->append(*item);
 	Gtk::SeparatorMenuItem* separator = Gtk::manage(new Gtk::SeparatorMenuItem());
@@ -90,7 +97,8 @@ void TrayPlugin::on_activate(GtkStatusIcon* status_icon, gpointer data)
 void TrayPlugin::on_popup(GtkStatusIcon* status_icon, guint button, guint time, gpointer data)
 {
 	Gtk::Menu* menu = static_cast<Gtk::Menu*>(data);
-	menu->popup(button, time);
+	// FIXME: use gtkmm 2.12 for this
+	gtk_menu_popup(menu->gobj(), NULL, NULL, gtk_status_icon_position_menu, status_icon, button, time);
 }
 
 void TrayPlugin::on_tick()
