@@ -1155,7 +1155,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 			#if HAVE_GNOME
 			Glib::RefPtr<Gnome::Vfs::Uri> uri = Gnome::Vfs::Uri::create(*iter);
 			if (uri->is_local())
-				add_torrent(uri->get_path());
+				add_torrent(Gnome::Vfs::unescape_string(uri->get_path()));
 			#else
 			gchar* f = g_filename_from_uri(iter->c_str(), NULL, NULL);
 			if (f)
