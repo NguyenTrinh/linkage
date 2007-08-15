@@ -101,7 +101,7 @@ void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const G
 	{
 		Glib::ustring tracker = reply.substr(27);
 		m_torrents[hash]->set_tracker_reply(String::ucompose(_(
-			"OK, got %1 peers"), tracker));
+			"OK, got %1 peers"), peers), tracker);
 	}
 }
 
