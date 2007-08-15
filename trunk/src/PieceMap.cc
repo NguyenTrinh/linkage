@@ -19,8 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-#include <iostream>
+
 #include "PieceMap.hh"
+
+#include "linkage/Utils.hh"
 
 PieceMap::PieceMap(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::DrawingArea(cobject)
@@ -81,16 +83,8 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 		if (px < x)
 			continue;
 
-		Gdk::Color c = base;
-		/* FIXME: Not so great for themes with a background that has a rgb part equal 00 */
-		unsigned int r = (unsigned int)(c.get_red()*p.fac);
-		unsigned int g = (unsigned int)(c.get_green()*p.fac);
-		unsigned int b = (unsigned int)(c.get_blue()*p.fac);
-		/* FIXME: this perhaps could be handled (and shown!) in a better way */
-		if (r > USHRT_MAX || g > USHRT_MAX || b > USHRT_MAX)
-			continue;
+		Gdk::Color c = lighter(base, p.fac);
 
-		c.set_rgb(r, g, b);
 		colormap->alloc_color(c);
 		gc->set_foreground(c);
 		get_window()->draw_rectangle(gc, true, px, get_style()->get_ythickness(), pw, ph);
@@ -145,10 +139,10 @@ std::list<Part> PieceMap::more_pieces()
 		for (int j = start; j < end; j++)
 			if (m_map[j])
 				completed++;
-				
+
 		if (!completed)
 			continue;
-			
+
 		double fac = 2 - (double)completed / (end - start);
 
 		if (parts.empty())

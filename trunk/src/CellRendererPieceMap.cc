@@ -19,11 +19,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
-#include <iostream>
+
 #include <list>
 #include <vector>
 
 #include "CellRendererPieceMap.hh"
+
+#include "linkage/Utils.hh"
 
 CellRendererPieceMap::CellRendererPieceMap() :
 	Glib::ObjectBase(typeid(CellRendererPieceMap)),
@@ -203,14 +205,8 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		if (px < expose_area.get_x())
 			continue;
 
-		Gdk::Color c = base;
-		unsigned int r = (unsigned int)(c.get_red()*p.fac);
-		unsigned int g = (unsigned int)(c.get_green()*p.fac);
-		unsigned int b = (unsigned int)(c.get_blue()*p.fac);
-		if (r > USHRT_MAX || g > USHRT_MAX || b > USHRT_MAX)
-			continue;
+		Gdk::Color c = lighter(base, p.fac);
 
-		c.set_rgb(r, g, b);
 		colormap->alloc_color(c);
 		gc->set_foreground(c);
 		cwin->draw_rectangle(gc, true, px, bar_y, pw, bar_height);

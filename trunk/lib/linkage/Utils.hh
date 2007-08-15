@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <string>
 #include <glibmm/ustring.h>
 #include <glibmm/miscutils.h>
+#include <gdkmm/color.h>
 
 #include "libtorrent/peer_id.hpp"
 #include "libtorrent/entry.hpp"
@@ -67,5 +68,7 @@ Glib::ustring get_data_dir();
 
 bool load_entry(const Glib::ustring& file, libtorrent::entry& e);
 void save_entry(const Glib::ustring& file, const libtorrent::entry& e);
+
+Gdk::Color lighter(const Gdk::Color& color, double fac);
 
 #endif /* UTILS_HH */
