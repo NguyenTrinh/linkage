@@ -49,6 +49,7 @@ Statusbar::Statusbar(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	box->pack_end(*image, false, false, 5);
 
 	frame->add(*box);
+	frame->set_shadow_type(Gtk::SHADOW_IN);
 	pack_end(*frame, false, false);
 }
 
