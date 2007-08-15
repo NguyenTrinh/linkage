@@ -91,7 +91,7 @@ void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, cons
 		libtorrent::entry e = m_torrents[hash]->get_resume_entry(false);
 		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
 
-		m_torrents[hash]->set_tracker_reply(_("Announcing"));
+		m_torrents[hash]->set_tracker_reply(_("Announcing"), "", Torrent::REPLY_ANNOUNCING);
 	}
 }
 
@@ -101,7 +101,7 @@ void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const G
 	{
 		Glib::ustring tracker = reply.substr(27);
 		m_torrents[hash]->set_tracker_reply(String::ucompose(_(
-			"OK, got %1 peers"), peers), tracker);
+			"OK, got %1 peers"), peers), tracker, Torrent::REPLY_OK);
 	}
 }
 

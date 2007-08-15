@@ -57,6 +57,8 @@ public:
 		ResumeInfo(const libtorrent::entry& e, const libtorrent::torrent_info& i) : resume(e), info(i) {}
 	};
 
+	enum ReplyType { REPLY_ANY, REPLY_OK, REPLY_ANNOUNCING };
+
 	Glib::PropertyProxy<libtorrent::torrent_handle> property_handle();
 	libtorrent::torrent_handle get_handle();
 	std::pair<Glib::ustring, Glib::ustring> get_tracker_reply();
@@ -85,7 +87,7 @@ public:
 	const std::vector<libtorrent::partial_piece_info> get_download_queue();
 	const std::vector<float> get_file_progress();
 
-	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring());
+	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring(), ReplyType type = REPLY_ANY);
 	void set_group(const Glib::ustring& group);
 	void set_path(const Glib::ustring& path);
 	void set_position(unsigned int position);

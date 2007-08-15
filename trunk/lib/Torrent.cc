@@ -339,11 +339,10 @@ void Torrent::set_path(const Glib::ustring& path)
 	}
 }
 
-void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker)
+void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker, Torrent::ReplyType type)
 {
 	if (is_stopped())
 		return;
-
 
 	/* Get trackers from handle, since the list might have changed */
 	std::vector<libtorrent::announce_entry> trackers = get_handle().trackers();
@@ -364,14 +363,13 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 		m_replies[tracker] = reply;
 
 	/* A tracker responded and the announce cycle stops */
-	if (Glib::str_has_prefix(reply, "OK, got "))
+	if (type == REPLY_OK)
 	{
 		m_announcing = false;
 		m_cur_tier = 0;
 	}
 	/* All trackers failed, cycle stops */
-	// FIXME: shouldn't rely on check against translateable string
-	else if (m_cur_tier == 0 && reply != _("Announcing"))
+	else if (m_cur_tier == 0 && type != REPLY_ANNOUNCING)
 		m_announcing = false;
 	else
 		m_announcing = true;
