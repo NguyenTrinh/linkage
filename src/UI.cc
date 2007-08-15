@@ -500,13 +500,14 @@ void UI::on_tick()
 	static int tick;
 	tick = (tick + 1) % 3;
 
-	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
-	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
-				iter != torrents.end(); ++iter)
+	HashList list = torrent_list->get_selected_list();
+	if (list.size() == 1)
 	{
-		if (*iter)
-			update(*iter, (tick == 0));
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
+		update(torrent, (tick == 0));
 	}
+
+	torrent_list->update();
 
 	group_list->update();
 
@@ -538,13 +539,9 @@ void UI::on_show()
 
 void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 {
-	bool selected = torrent_list->is_selected(torrent->get_hash());
-
 	libtorrent::torrent_status stats = torrent->get_status();
 
-	torrent_list->update(torrent);
-
-	if (selected && expander_details->get_expanded())
+	if (expander_details->get_expanded())
 	{
 		libtorrent::size_type down = torrent->get_total_downloaded();
 		libtorrent::size_type up = torrent->get_total_uploaded();

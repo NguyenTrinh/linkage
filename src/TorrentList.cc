@@ -159,23 +159,20 @@ void TorrentList::on_added(const libtorrent::sha1_hash& hash, const Glib::ustrin
 	if (selected_hash == str(hash))
 		get_selection()->select(filter->convert_child_iter_to_iter(iter));
 
-	update(Engine::get_torrent_manager()->get_torrent(hash));
+	update_row(new_row);
 }
 
 void TorrentList::on_removed(const libtorrent::sha1_hash& hash)
-{
-	Gtk::TreeIter iter = get_iter(hash);
-	model->erase(iter);
-}
-
-Gtk::TreeIter TorrentList::get_iter(const libtorrent::sha1_hash& hash)
 {
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
 		Gtk::TreeRow row = *iter;
 		if (hash == row[columns.hash])
-			return iter;
+		{
+			model->erase(iter);
+			break;
+		}
 	}
 }
 
@@ -361,22 +358,33 @@ sigc::signal<void, GdkEventButton*> TorrentList::signal_right_click()
 	return m_signal_right_click;
 }
 
-void TorrentList::update(const WeakPtr<Torrent>& torrent)
+
+void TorrentList::update()
 {
-	Gtk::TreeIter iter = get_iter(torrent->get_hash());
-	if (!iter)
-		return;
-	
-	Gtk::TreeRow row = *iter;
+	Gtk::TreeNodeChildren children = model->children();
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
+	{
+		Gtk::TreeRow row = *iter;
+
+		// FIXME: don't update if row is invisible/filtered
+		update_row(row);
+	}
+}
+
+void TorrentList::update_row(Gtk::TreeRow& row)
+{
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
 
 	Glib::ustring old_state = row[columns.state];
 	unsigned int old_peers = row[columns.peers];
 	unsigned int old_seeds = row[columns.seeds];
+	unsigned int old_position = row[columns.position];
 
 	//row[columns.name_formated] = get_formated_name(torrent);
-	row[columns.position] = torrent->get_position();
-	Glib::ustring state_string = torrent->get_state_string();
+	if (old_position != torrent->get_position())
+		row[columns.position] = torrent->get_position();
 
+	Glib::ustring state_string = torrent->get_state_string();
 	// update formated name column only if needed
 	bool state_changed = (old_state != state_string);
 	if (state_changed)
@@ -476,3 +484,4 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 			row[columns.name_formated] = get_formated_name(torrent);
 	}
 }
+
