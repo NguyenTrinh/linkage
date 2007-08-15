@@ -406,7 +406,19 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 		{
 			float progress = 0;
 			if (down)
-				progress = (1.0f*down)/(1.0f*torrent->get_info().total_size())*100;
+			{
+				libtorrent::size_type wanted_size = torrent->get_info().total_size();
+				std::vector<bool> filter = torrent->get_filter();
+				for (unsigned int = 0; i < filter.size(); i++)
+				{
+					if (filter[i])
+						wanted_size -= torrent->get_info().file_at(i).size;
+				}
+				
+				progress = (1.0f*down)/(1.0f*wanted_size) * 100;
+				if (progress > 100)
+					progress = 100;
+			}
 			row[columns.progress] = progress;
 			row[columns.eta] = str(progress, 2) + "%";
 			return;
@@ -414,7 +426,6 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 	}
 
 	libtorrent::torrent_status status = torrent->get_status();
-	// FIXME: (Torrent::STOPPED && torrent->get_completed()) should equal Torrent::FINISHED
 	if (state == Torrent::SEEDING || (state == Torrent::STOPPED && torrent->get_completed()))
 	{
 		libtorrent::size_type size = down - up;

@@ -599,7 +599,7 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 	else
 	{
 		Glib::ustring comment = info.comment();
-		size_t pos;
+		unsigned int pos;
 		while ((pos = comment.find("\n")) != Glib::ustring::npos)
 		{
 			unsigned int len = 1;
@@ -631,7 +631,7 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 
 	std::vector<libtorrent::announce_entry> trackers = torrent->get_handle().trackers();
 
-	for (size_t i = 0; i < trackers.size(); i++)
+	for (unsigned int i = 0; i < trackers.size(); i++)
 	{
 		Glib::ustring tracker = trackers[i].url;
 		Gtk::MenuItem* item = manage(new Gtk::MenuItem(tracker));
@@ -1139,7 +1139,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	if (target == TARGET_URI_LIST)
 	{
 		std::list<Glib::ustring> uri_list;
-		size_t pos, offset = 0;
+		Glib::ustring::size_type pos, offset = 0;
 		while ((pos = data.find("\r\n", offset)) != Glib::ustring::npos)
 		{
 			Glib::ustring s = data.substr(offset, pos);
