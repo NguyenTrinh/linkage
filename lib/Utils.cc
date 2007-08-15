@@ -236,3 +236,62 @@ void save_entry(const Glib::ustring& file, const libtorrent::entry& e)
 	out.close();
 }
 
+static void get_hsv(const Gdk::Color& color, double& h, double& s, double& v)
+{
+	// thanks to wikipedia, why doesn't GdkColor do this?
+
+	gint r = color.get_red();
+	gint g = color.get_green();
+	gint b = color.get_blue();
+	
+	gint max = std::max(std::max(r, g), b);
+	gint min = std::min(std::min(r, g), b);
+
+	if (max == min)
+		return;
+
+	gint delta = max - min;
+
+	// hue
+	if (max == r)
+	{
+		if (g >= b)
+			h = 60 * ((double)(g - b)/delta);
+		else
+			h = 60 * ((double)(g - b)/delta) + 360;
+	}
+	else if (max == g)
+		h = 60 * ((double)(b - r)/delta) + 120;
+	else if (max == b)
+		h = 60 * ((double)(r - g)/delta) + 240;
+
+	// saturation
+	if (max > 0)
+		s = 1 - (double)min/max;
+	else
+		s = 0;
+
+	// value
+	v = (double)(max)/G_MAXUSHORT;
+}
+
+// Derived from QColor::light, Copyright (C) 1992-2006 Trolltech ASA
+Gdk::Color lighter(const Gdk::Color& color, double fac)
+{
+	double hue = 0, sat = 0, val = 0;
+	get_hsv(color, hue, sat,  val);
+
+	val *= fac;
+	if (val > G_MAXUSHORT)
+	{
+		sat -= val - G_MAXUSHORT;
+		if (sat < 0)
+			sat = 0;
+		val = G_MAXUSHORT;
+	}
+
+	Gdk::Color c;
+	c.set_hsv(hue, sat, val);
+	return c;
+}
+
