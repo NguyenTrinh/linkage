@@ -282,12 +282,12 @@ Gdk::Color lighter(const Gdk::Color& color, double fac)
 	get_hsv(color, hue, sat,  val);
 
 	val *= fac;
-	if (val > G_MAXUSHORT)
+	if (val > 1)
 	{
-		sat -= val - G_MAXUSHORT;
+		sat -= val - 1;
 		if (sat < 0)
 			sat = 0;
-		val = G_MAXUSHORT;
+		val = 1;
 	}
 
 	Gdk::Color c;
