@@ -81,7 +81,7 @@ std::list<Part> CellRendererPieceMap::more_pieces(int width, int height)
 		if (!completed)
 			continue;
 
-		double fac = 2 - (double)(completed / (end - start));
+		double fac = 2 - (double)completed / (end - start);
 
 		if (parts.empty())
 			parts.push_back(Part(i, i, fac));
