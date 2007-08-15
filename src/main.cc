@@ -80,7 +80,7 @@ Options::~Options()
 static void send_files(const std::vector<Glib::ustring>& files, UI* recipient = NULL)
 {
 	// FIXME: handle file:// style URIs
-	for (size_t i = 0; i < files.size(); i++)
+	for (unsigned int i = 0; i < files.size(); i++)
 	{
 		Glib::ustring file = files[i];
 		if (!Glib::path_is_absolute(file))
