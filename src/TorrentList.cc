@@ -409,7 +409,7 @@ void TorrentList::update(const WeakPtr<Torrent>& torrent)
 			{
 				libtorrent::size_type wanted_size = torrent->get_info().total_size();
 				std::vector<bool> filter = torrent->get_filter();
-				for (unsigned int = 0; i < filter.size(); i++)
+				for (unsigned int i = 0; i < filter.size(); i++)
 				{
 					if (filter[i])
 						wanted_size -= torrent->get_info().file_at(i).size;
