@@ -329,7 +329,7 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 	return;
 }
 
-bool FileList::on_foreach(const Gtk::TreeModel::iterator& iter, std::list<Gtk::TreeIter>* list)
+bool FileList::on_foreach(const Gtk::TreeModel::iterator& iter, IterList* list)
 {
 	Gtk::TreeIter iter_copy(iter);
 	list->push_back(iter_copy);
@@ -361,11 +361,19 @@ void FileList::update(const WeakPtr<Torrent>& torrent)
 	Torrent::State state = torrent->get_state();
 	cell->property_activatable() = (state != Torrent::SEEDING && state != Torrent::STOPPED);
 
+	// sorting mess up iteration when we change the values in the sort column
+	Gtk::SortType order;
+	int col;
+	model->get_sort_column_id(col, order);
+	model->set_sort_column_id(Gtk::TreeSortable::DEFAULT_UNSORTED_COLUMN_ID, order);
+
 	// FIXME: this is pretty inefficient
 	IterList list;
 	model->foreach_iter(sigc::bind(sigc::mem_fun(this, &FileList::on_foreach), &list));
 	for (IterList::reverse_iterator iter = list.rbegin(); iter != list.rend(); ++iter)
 		on_reverse_foreach(*iter, data);
+
+	model->set_sort_column_id(col, order);
 }
 
 void FileList::refill_tree(const libtorrent::torrent_info& info)

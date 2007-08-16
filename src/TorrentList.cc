@@ -361,6 +361,12 @@ sigc::signal<void, GdkEventButton*> TorrentList::signal_right_click()
 
 void TorrentList::update()
 {
+	// sorting mess up iteration when we change the values in the sort column
+	Gtk::SortType order;
+	int col;
+	model->get_sort_column_id(col, order);
+	model->set_sort_column_id(Gtk::TreeSortable::DEFAULT_UNSORTED_COLUMN_ID, order);
+
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
@@ -369,6 +375,8 @@ void TorrentList::update()
 		// FIXME: don't update if row is invisible/filtered
 		update_row(row);
 	}
+
+	model->set_sort_column_id(col, order);
 }
 
 void TorrentList::update_row(Gtk::TreeRow& row)

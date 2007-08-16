@@ -94,6 +94,27 @@ void PeerList::format_rates(Gtk::CellRenderer* cell,
 	cell_text->property_text() = suffix_value(row[column]) + "/s";
 }
 
+bool PeerList::on_foreach(const Gtk::TreeModel::iterator& iter, PeerMap* peer_map)
+{
+	Gtk::TreeRow row = *iter;
+	PeerMap::iterator peer_iter = peer_map->find(row[columns.address]);
+	if (peer_iter != peer_map->end())
+	{
+		row[columns.remove] = false;
+
+		Glib::ustring s = row[columns.address];
+
+		set_peer_details(row, peer_iter->second);
+		peer_map->erase(peer_iter);
+
+		/* Give the UI some love, since this loop is pretty slow with many peers */
+		while (Gtk::Main::events_pending())
+			Gtk::Main::iteration(false);
+	}
+
+	return false;
+}
+
 void PeerList::update(const WeakPtr<Torrent>& torrent)
 {
 	static bool working = false;
@@ -116,34 +137,33 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 	PeerMap peer_map;
 	for (unsigned int i = 0; i < peers.size(); i++)
 	{
-		peer_map[peers[i].pid] = peers[i];
+		peer_map[peer_as_string(peers[i])] = peers[i];
 	}
 
 	Gtk::TreeNodeChildren children = model->children();
-	for (Gtk::TreeIter iter = children.begin(); iter != children.end();)
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
-		libtorrent::peer_info peer;
 		Gtk::TreeRow row = *iter;
+		row[columns.remove] = true;
+	}
 
-		PeerMap::iterator peer_iter = peer_map.find(row[columns.id]);
-		if (peer_iter == peer_map.end())
-		{
+	// sorting mess up iteration when we change the values in the sort column
+	Gtk::SortType order;
+	int col;
+	model->get_sort_column_id(col, order);
+	model->set_sort_column_id(Gtk::TreeSortable::DEFAULT_UNSORTED_COLUMN_ID, order);
+
+	model->foreach_iter(sigc::bind(sigc::mem_fun(this, &PeerList::on_foreach), &peer_map));
+
+	// erase disconnected peers (can't do that in on_foreach...)
+	children = model->children();
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); )
+	{
+		Gtk::TreeRow row = *iter;
+		if (row[columns.remove])
 			iter = model->erase(iter);
-			continue;
-		}
 		else
-		{
-			peer = peer_iter->second;
-			peer_map.erase(peer_iter);
-
 			iter++;
-		}
-
-		/* Give the UI some love, since this loop is pretty slow with many peers */
-		while (Gtk::Main::events_pending())
-			Gtk::Main::iteration(false);
-
-		set_peer_details(row, peer);
 	}
 
 	/* Add all new (remaining) peers */
@@ -153,15 +173,14 @@ void PeerList::update(const WeakPtr<Torrent>& torrent)
 		set_peer_details(row, iter->second);
 	}
 
+	model->set_sort_column_id(col, order);
+
 	working = false;
 }
 
 void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& peer)
 {
-	row[columns.id] = peer.pid;
-
-	Glib::ustring address = peer.ip.address().to_string();
-	row[columns.address] = address + ":" + str(peer.ip.port());
+	row[columns.address] = peer_as_string(peer);
 
 	if (!row[columns.has_flag])
 	{
@@ -247,3 +266,9 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 	}
 	row[columns.flags] = Glib::locale_to_utf8(ss.str());
 }
+
+Glib::ustring PeerList::peer_as_string(const libtorrent::peer_info& peer)
+{
+	return peer.ip.address().to_string() + ":" + str(peer.ip.port());
+}
+

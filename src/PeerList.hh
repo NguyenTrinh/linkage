@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class PeerList : public Gtk::TreeView
 {
-	typedef std::map<libtorrent::peer_id, libtorrent::peer_info> PeerMap;
+	typedef std::map<Glib::ustring, libtorrent::peer_info> PeerMap;
 
 	class ModelColumns : public Gtk::TreeModelColumnRecord
 	{
@@ -47,7 +47,7 @@ class PeerList : public Gtk::TreeView
 			add(client);
 			add(flags);
 			add(has_flag);
-			add(id);
+			add(remove);
 		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > flag;
 		Gtk::TreeModelColumn<Glib::ustring> address;
@@ -59,7 +59,7 @@ class PeerList : public Gtk::TreeView
 		Gtk::TreeModelColumn<Glib::ustring> client;
 		Gtk::TreeModelColumn<Glib::ustring> flags;
 		Gtk::TreeModelColumn<bool> has_flag;
-		Gtk::TreeModelColumn<libtorrent::peer_id> id;
+		Gtk::TreeModelColumn<bool> remove;
 	};
 
 	ModelColumns columns;
@@ -71,8 +71,11 @@ class PeerList : public Gtk::TreeView
 	void format_rates(Gtk::CellRenderer* cell,
 		const Gtk::TreeIter& iter,
 		const Gtk::TreeModelColumn<float>& column);
+
+	bool on_foreach(const Gtk::TreeModel::iterator& iter, PeerMap* peer_map);
 	void set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& peer);
 
+	Glib::ustring peer_as_string(const libtorrent::peer_info& peer);
 public:
 	void update(const WeakPtr<Torrent>& torrent);
 
