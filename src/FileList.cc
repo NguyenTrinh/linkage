@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/icontheme.h>
 #include <gtkmm/menuitem.h>
 #include <gtkmm/cellrenderertext.h>
-#include <gtkmm/cellrendererprogress.h>
 #include <gtkmm/cellrenderertoggle.h>
 #include <glibmm/i18n.h>
 
@@ -422,8 +421,7 @@ void FileList::refill_tree(const libtorrent::torrent_info& info)
 	expand_all();
 }
 
-int FileList::compare_piece_map(const Gtk::TreeIter& a,
-																const Gtk::TreeIter& b)
+int FileList::compare_piece_map(const Gtk::TreeIter& a, const Gtk::TreeIter& b)
 {
 	Gtk::TreeRow row_a, row_b;
 	row_a = *a;

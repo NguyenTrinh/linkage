@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-14 17:22+0200\n"
+"POT-Creation-Date: 2007-08-16 13:57+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -16,25 +16,25 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/FileList.cc:49
+#: ../src/FileList.cc:48
 msgid "Filter"
 msgstr "Filter"
 
-#: ../src/FileList.cc:56 ../src/FilterRow.cc:66 ../src/GroupList.cc:39
+#: ../src/FileList.cc:55 ../src/FilterRow.cc:66 ../src/GroupList.cc:39
 #: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:123 ../src/TorrentList.cc:50
 #: ../data/linkage.glade.h:31
 msgid "Name"
 msgstr "Namn"
 
-#: ../src/FileList.cc:68
+#: ../src/FileList.cc:67
 msgid "Pieces"
 msgstr "Delar"
 
-#: ../src/FileList.cc:75
+#: ../src/FileList.cc:74
 msgid "Done"
 msgstr "Klart"
 
-#: ../src/FileList.cc:82
+#: ../src/FileList.cc:81
 msgid "Size"
 msgstr "Storlek"
 
@@ -204,31 +204,31 @@ msgstr "Klient"
 msgid "State"
 msgstr "Tillstånd"
 
-#: ../src/PeerList.cc:216
+#: ../src/PeerList.cc:235
 msgid "Connecting"
 msgstr "Ansluter"
 
-#: ../src/PeerList.cc:218
+#: ../src/PeerList.cc:237
 msgid "Handshake"
 msgstr "Handskakning"
 
-#: ../src/PeerList.cc:220 ../lib/Torrent.cc:245
+#: ../src/PeerList.cc:239 ../lib/Torrent.cc:245
 msgid "Queued"
 msgstr "Köad"
 
-#: ../src/PeerList.cc:227
+#: ../src/PeerList.cc:246
 msgid "Interested"
 msgstr "Intresserad"
 
-#: ../src/PeerList.cc:233
+#: ../src/PeerList.cc:252
 msgid "Choked"
 msgstr "Strypt"
 
-#: ../src/PeerList.cc:239
+#: ../src/PeerList.cc:258
 msgid "Remote interested"
 msgstr "Fjärran intresserad"
 
-#: ../src/PeerList.cc:245
+#: ../src/PeerList.cc:264
 msgid "Remote choked"
 msgstr "Fjärran strypt"
 
@@ -268,7 +268,7 @@ msgstr "Hashar..."
 msgid "Save torrent"
 msgstr "Spara torrent"
 
-#: ../src/TorrentList.cc:303
+#: ../src/TorrentList.cc:300
 msgid ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 (%5) connected seeds, %6 (%7) peers"
@@ -276,7 +276,7 @@ msgstr ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 (%5) anslutna källor, %6 (%7) klienter"
 
-#: ../src/TorrentList.cc:310
+#: ../src/TorrentList.cc:307
 msgid ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 connected seeds, %5 peers"
@@ -292,55 +292,55 @@ msgstr "<i>Ingen</i>"
 msgid "Failed to connect to GNOME session"
 msgstr "Misslyckades att ansluta till GNOME sessionen"
 
-#: ../src/UI.cc:625
+#: ../src/UI.cc:622
 msgid "Yes"
 msgstr "Ja"
 
-#: ../src/UI.cc:625
+#: ../src/UI.cc:622
 msgid "No"
 msgstr "Nej"
 
-#: ../src/UI.cc:650 ../lib/SessionManager.cc:214
+#: ../src/UI.cc:647 ../lib/SessionManager.cc:214
 msgid "File not found, \"%1\""
 msgstr "Filen hittades inte, \"%1\""
 
-#: ../src/UI.cc:659
+#: ../src/UI.cc:656
 msgid "Select path for %1"
 msgstr "Välj sökväg för %1"
 
-#: ../src/UI.cc:683
+#: ../src/UI.cc:680
 msgid "Open torrent"
 msgstr "Öppna torrent"
 
-#: ../src/UI.cc:687
+#: ../src/UI.cc:684
 msgid "BitTorrent files"
 msgstr "BitTorrent filer"
 
-#: ../src/UI.cc:691
+#: ../src/UI.cc:688
 msgid "All files"
 msgstr "Alla filer"
 
-#: ../src/UI.cc:708
+#: ../src/UI.cc:705
 msgid "Select path"
 msgstr "Välj sökväg"
 
-#: ../src/UI.cc:747 ../data/linkage.desktop.in.h:1
+#: ../src/UI.cc:744 ../data/linkage.desktop.in.h:1
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
-#: ../src/UI.cc:811
+#: ../src/UI.cc:808
 msgid "Are you sure you wish to remove \"%1\" and it's content?"
 msgstr "Är du säker på att du vill ta bort \"%1\" och hela dess innehåll?"
 
-#: ../src/UI.cc:818
+#: ../src/UI.cc:815
 msgid "(%1 files)."
 msgstr "(%1 filer)."
 
-#: ../src/UI.cc:820
+#: ../src/UI.cc:817
 msgid "(1 file)."
 msgstr "(1 fil)."
 
-#: ../src/UI.cc:822
+#: ../src/UI.cc:819
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
@@ -397,9 +397,7 @@ msgstr "Köad för kontroll"
 msgid "Checking"
 msgstr "Kontrollerar"
 
-#. All trackers failed, cycle stops
-#. FIXME: shouldn't rely on check against translateable string
-#: ../lib/Torrent.cc:253 ../lib/Torrent.cc:374 ../lib/TorrentManager.cc:94
+#: ../lib/Torrent.cc:253 ../lib/TorrentManager.cc:94
 #: ../data/settings.glade.h:14
 msgid "Announcing"
 msgstr "Annonerar"
@@ -436,19 +434,19 @@ msgstr "dag"
 msgid "days"
 msgstr "dagar"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:38
+#: ../plugins/trayicon/PluginTrayIcon.cc:41
 msgid "Displays a tray icon"
 msgstr "Visar en satusikon"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:46
+#: ../plugins/trayicon/PluginTrayIcon.cc:49
 msgid "Start torrents"
 msgstr "Starta torrenter"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:49
+#: ../plugins/trayicon/PluginTrayIcon.cc:54
 msgid "Stop torrents"
 msgstr "Stoppa torrenter"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:119
+#: ../plugins/trayicon/PluginTrayIcon.cc:127
 msgid ""
 "%1 (%2) downloads, %3 seeds\n"
 "DL: %4/s\tUL: %5/s"
