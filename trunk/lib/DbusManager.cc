@@ -178,7 +178,10 @@ void DbusManager::send(const Glib::ustring& interface, const Glib::ustring& msg)
 		
 		message = dbus_message_new_method_call("org.linkage", "/org/linkage", "org.linkage", interface.c_str());
 		if (!msg.empty())
-			dbus_message_append_args(message, DBUS_TYPE_STRING, msg.c_str(), DBUS_TYPE_INVALID);
+		{
+			const char* c_msg = msg.c_str();
+			dbus_message_append_args(message, DBUS_TYPE_STRING, &c_msg, DBUS_TYPE_INVALID);
+		}
 		else
 			dbus_message_append_args(message, DBUS_TYPE_INVALID);
 		dbus_connection_send(m_connection, message, NULL);
