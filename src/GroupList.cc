@@ -87,6 +87,8 @@ void GroupList::on_selection_changed()
 void GroupList::on_state_filter_changed(Torrent::State state)
 {
 	m_cur_state = state;
+
+	update();
 }
 
 void GroupList::on_groups_changed(const std::list<Group>& groups)
@@ -158,29 +160,38 @@ sigc::signal<void, const Group&> GroupList::signal_filter_set()
 
 void GroupList::update()
 {
-	/* FIXME: group.eval() is duplicated in TorrentList, possible performance hit */
 	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
+
+	Gtk::TreeRow all;
+	unsigned int n_all = 0;
 
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
 	{
 		Gtk::TreeRow row = *i;
 		Group group = row[columns.group];
-		if (group.is_valid())
+
+		unsigned int n = 0;
+		for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
 		{
-			unsigned int n = 0;
-			for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
+			WeakPtr<Torrent> torrent = *j;
+			if (m_cur_state && m_cur_state != torrent->get_state())
+				continue;
+
+			if (group.is_valid()) // not "All" row
 			{
-				WeakPtr<Torrent> torrent = *j;
-				if (m_cur_state && m_cur_state != torrent->get_state())
-					continue;
 				if (group.eval(torrent))
 					n++;
 			}
-			row[columns.num] = n;
+			else if (m_cur_state) // "All" row with state filter set
+			{
+				if (m_cur_state == torrent->get_state())
+					n++;
+			}
+			else // "All" row without any state filter
+				n++;
 		}
-		else
-			row[columns.num] = torrents.size();
+		row[columns.num] = n;
 	}
 }
 
