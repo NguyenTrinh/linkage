@@ -204,8 +204,8 @@ bool SessionManager::decode(const Glib::ustring& file, entry& e)
 }
 
 bool SessionManager::decode(const Glib::ustring& file,
-														entry& e,
-														std::vector<char>& buffer)
+	entry& e,
+	std::vector<char>& buffer)
 {
 	static std::ifstream in;
 
@@ -252,7 +252,7 @@ void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustr
 }
 
 sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
-																			 const Glib::ustring& save_path)
+	const Glib::ustring& save_path)
 {
 	std::vector<char> buff;
 	entry e;
