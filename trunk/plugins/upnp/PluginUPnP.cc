@@ -16,6 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include "config.h"
+
 #include <gtkmm/main.h>
 #include <glibmm/i18n.h>
 #include <gtkmm/toolbar.h>
@@ -31,7 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #define PLUGIN_NAME		"UPnPPlugin"
 #define PLUGIN_DESC		_("Enables port forwarding through gupnp")
-#define PLUGIN_VER		"1"
+#define PLUGIN_VER		PACKAGE_VERSION
 #define PLUGIN_AUTHOR	"Christian Lundgren"
 #define PLUGIN_WEB		"http://code.google.com/p/linkage"
 

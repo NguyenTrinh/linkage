@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
+#include <gtkmm/aboutdialog.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/box.h>
 #include <gtkmm/notebook.h>
@@ -86,8 +87,11 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	glade_xml->get_widget("treeview_plugins", treeview_plugins);
 	glade_xml->get_widget("plugin_about", about_plugin);
+	about_plugin->set_sensitive(false);
+	about_plugin->signal_clicked().connect(sigc::mem_fun(this, &SettingsWin::on_about_plugin));
 	glade_xml->get_widget("plugin_configure", configure_plugin);
-	/* FIXME: about and configure support for plugins */
+	configure_plugin->signal_clicked().connect(sigc::mem_fun(this, &SettingsWin::on_configure_plugin));
+	configure_plugin->set_sensitive(false);
 
 	// connect callbacks
 	Gtk::Button* button;
@@ -112,9 +116,8 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	// setup the plugins listview
 	model_plugins = Gtk::ListStore::create(plugin_columns);
-	treeview_plugins->get_selection()->signal_changed().connect(sigc::bind(
-		sigc::mem_fun(this, &SettingsWin::on_plugin_changed),
-		treeview_plugins->get_selection()));
+	treeview_plugins->get_selection()->signal_changed().connect(
+		sigc::mem_fun(this, &SettingsWin::on_plugin_changed));
 	treeview_plugins->set_model(model_plugins);
 	Gtk::CellRendererToggle* trender = new Gtk::CellRendererToggle();
 	trender->signal_toggled().connect(sigc::mem_fun(this, &SettingsWin::on_plugin_toggled));
@@ -168,26 +171,57 @@ void SettingsWin::on_plugin_toggled(const Glib::ustring& path)
 	row[plugin_columns.load] = !row[plugin_columns.load];
 }
 
-void SettingsWin::on_plugin_changed(const Glib::RefPtr<Gtk::TreeSelection>& selection)
+void SettingsWin::on_about_plugin()
 {
-	Gtk::TreeIter iter = selection->get_selected();
-	if (!iter)
-		return;
-
-	/*Gtk::TreeRow row = *iter;
-	label_author->set_text(row[plugin_columns.author]);
-	label_website->set_text(row[plugin_columns.website]);
-	label_file->set_text(row[plugin_columns.file]);
-	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
-	if (plugin)
+	Gtk::TreeIter iter = treeview_plugins->get_selection()->get_selected();
+	if (iter)
 	{
-		FIXME: save previous plugin settings to settings manager
-		frame_options->remove();
-		Gtk::Widget* widget = plugin->get_config_widget();
-		if (widget)
-			frame_options->add(*widget);
-		 FIXME: load plugin settings from settings manager
-	}*/
+		Gtk::TreeRow row = *iter;
+
+		Gtk::AboutDialog about;
+		std::list<Glib::ustring> people;
+		people.push_back(row[plugin_columns.author]);
+		about.set_authors(people);
+		about.set_comments(row[plugin_columns.description]);
+		about.set_version(row[plugin_columns.version]);
+		about.set_website(row[plugin_columns.website]);
+		about.set_name(row[plugin_columns.name]);
+		about.run();
+	}
+}
+
+void SettingsWin::on_configure_plugin()
+{
+	Gtk::TreeIter iter = treeview_plugins->get_selection()->get_selected();
+	if (iter)
+	{
+		Gtk::TreeRow row = *iter;
+
+		WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
+		if (plugin)
+		{
+			Gtk::Widget* widget = plugin->get_config_widget();
+			if (widget)
+			{
+				Gtk::Dialog dialog(row[plugin_columns.name]);
+				dialog.add(*widget);
+				dialog.run();
+				dialog.remove();
+			}
+		}
+	}
+}
+
+void SettingsWin::on_plugin_changed()
+{
+	Gtk::TreeIter iter = treeview_plugins->get_selection()->get_selected();
+	if (iter)
+	{
+		Gtk::TreeRow row = *iter;
+		configure_plugin->set_sensitive(row[plugin_columns.configurable]);
+		if (!about_plugin->is_sensitive())
+			about_plugin->set_sensitive(true);
+	}
 }
 
 Glib::ustring SettingsWin::hex_str(const Gdk::Color& color)
@@ -388,6 +422,8 @@ void SettingsWin::on_show()
 			row[plugin_columns.description] = info.description;
 			row[plugin_columns.author] = info.author;
 			row[plugin_columns.website] = info.website;
+			row[plugin_columns.version] = info.version;
+			row[plugin_columns.configurable] = info.has_options;
 			row[plugin_columns.file] = info.file;
 			row[plugin_columns.load] = info.loaded;
 		}
