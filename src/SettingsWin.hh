@@ -67,6 +67,8 @@ class SettingsWin : public Gtk::Window
 				add(description);
 				add(author);
 				add(website);
+				add(version);
+				add(configurable);
 				add(file);
 			}
 		Gtk::TreeModelColumn<bool> load;
@@ -74,6 +76,8 @@ class SettingsWin : public Gtk::Window
 		Gtk::TreeModelColumn<Glib::ustring> description;
 		Gtk::TreeModelColumn<Glib::ustring> author;
 		Gtk::TreeModelColumn<Glib::ustring> website;
+		Gtk::TreeModelColumn<Glib::ustring> version;
+		Gtk::TreeModelColumn<bool> configurable;
 		Gtk::TreeModelColumn<Glib::ustring> file;
 	};
 
@@ -83,7 +87,9 @@ class SettingsWin : public Gtk::Window
 	Gtk::Button *about_plugin, *configure_plugin;
 
 	void on_plugin_toggled(const Glib::ustring& path);
-	void on_plugin_changed(const Glib::RefPtr<Gtk::TreeSelection>& selection);
+	void on_plugin_changed();
+	void on_configure_plugin();
+	void on_about_plugin();
 
 	void list_interfaces();
 

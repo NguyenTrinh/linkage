@@ -39,7 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #define PLUGIN_NAME		"TrayPlugin"
 #define PLUGIN_DESC		_("Displays a tray icon")
-#define PLUGIN_VER		"1"
+#define PLUGIN_VER		PACKAGE_VERSION
 #define PLUGIN_AUTHOR	"Christian Lundgren"
 #define PLUGIN_WEB		"http://code.google.com/p/linkage"
 
