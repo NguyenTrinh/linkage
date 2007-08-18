@@ -122,6 +122,9 @@ fi
 
 AM_GCONF_SOURCE_2
 
+# Thanks to papuawm for stealing this line from the blackbox configure.ac.in script
+test x$prefix = "xNONE" && prefix="$ac_default_prefix"
+
 AC_DEFINE_UNQUOTED([FLAG_DIR], ["${prefix}/share/linkage/flags"], [Flag directory])
 AC_DEFINE_UNQUOTED([PIXMAP_DIR], ["${prefix}/share/pixmaps"], [Pixmap directory])
 AC_DEFINE_UNQUOTED([DATA_DIR], ["${prefix}/share/linkage"], [Data directory])
