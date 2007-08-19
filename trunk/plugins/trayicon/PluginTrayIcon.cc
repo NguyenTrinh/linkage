@@ -65,6 +65,7 @@ TrayPlugin::TrayPlugin()
 	menu->show_all_children();
 
 	icon = Gtk::StatusIcon::create_from_file(PIXMAP_DIR "/linkage.svg");
+	// FIXME: use gtkmm 2.12 for this
 	GtkStatusIcon* gobj = icon->gobj();
 	g_signal_connect(G_OBJECT(gobj), "activate", G_CALLBACK(TrayPlugin::on_activate), NULL);
 	g_signal_connect(G_OBJECT(gobj), "popup-menu", G_CALLBACK(TrayPlugin::on_popup), menu);
@@ -103,6 +104,8 @@ void TrayPlugin::on_popup(GtkStatusIcon* status_icon, guint button, guint time, 
 
 void TrayPlugin::on_tick()
 {
+	// GtkStatusIcon doesn't provide any kind of enter-notify event,
+	// so we have to update the tooltip like this..
 	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
 	unsigned int num_active = 0, num_queued = 0, num_seeds = 0;
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin(); iter != torrents.end(); ++iter)
