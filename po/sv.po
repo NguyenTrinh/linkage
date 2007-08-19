@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-16 13:57+0200\n"
+"POT-Creation-Date: 2007-08-20 01:27+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -21,7 +21,7 @@ msgid "Filter"
 msgstr "Filter"
 
 #: ../src/FileList.cc:55 ../src/FilterRow.cc:66 ../src/GroupList.cc:39
-#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:123 ../src/TorrentList.cc:50
+#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:126 ../src/TorrentList.cc:50
 #: ../data/linkage.glade.h:31
 msgid "Name"
 msgstr "Namn"
@@ -232,15 +232,15 @@ msgstr "Fjärran intresserad"
 msgid "Remote choked"
 msgstr "Fjärran strypt"
 
-#: ../src/SettingsWin.cc:101
+#: ../src/SettingsWin.cc:105
 msgid "None specified"
 msgstr "Ingen specifierad"
 
-#: ../src/SettingsWin.cc:121
+#: ../src/SettingsWin.cc:124
 msgid "Load"
 msgstr "Ladda"
 
-#: ../src/SettingsWin.cc:124
+#: ../src/SettingsWin.cc:127
 msgid "Description"
 msgstr "Beskrivning"
 
@@ -288,17 +288,21 @@ msgstr ""
 msgid "<i>None</i>"
 msgstr "<i>Ingen</i>"
 
-#: ../src/UI.cc:353 ../src/UI.cc:419
+#: ../src/UI.cc:355 ../src/UI.cc:421
 msgid "Failed to connect to GNOME session"
 msgstr "Misslyckades att ansluta till GNOME sessionen"
 
-#: ../src/UI.cc:622
+#: ../src/UI.cc:607
 msgid "Yes"
 msgstr "Ja"
 
-#: ../src/UI.cc:622
+#: ../src/UI.cc:607
 msgid "No"
 msgstr "Nej"
+
+#: ../src/UI.cc:624
+msgid "<i>Add tracker</i>"
+msgstr "<i>Lägg till tracker</i>"
 
 #: ../src/UI.cc:647 ../lib/SessionManager.cc:214
 msgid "File not found, \"%1\""
@@ -328,23 +332,32 @@ msgstr "Välj sökväg"
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
-#: ../src/UI.cc:808
+#: ../src/UI.cc:811
 msgid "Are you sure you wish to remove \"%1\" and it's content?"
 msgstr "Är du säker på att du vill ta bort \"%1\" och hela dess innehåll?"
 
-#: ../src/UI.cc:815
+#: ../src/UI.cc:818
 msgid "(%1 files)."
 msgstr "(%1 filer)."
 
-#: ../src/UI.cc:817
+#: ../src/UI.cc:820
 msgid "(1 file)."
 msgstr "(1 fil)."
 
-#: ../src/UI.cc:819
+#: ../src/UI.cc:822
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
-#: ../lib/DbusManager.cc:188
+#. FIXME: make an EntryDialog class for this
+#: ../src/UI.cc:1108
+msgid "Add new tracker"
+msgstr "Lägg till ny tracker"
+
+#: ../src/UI.cc:1115
+msgid "Tracker URL:"
+msgstr ""
+
+#: ../lib/DbusManager.cc:191
 #, c-format
 msgid "Ignoring attempt to send message to self (%s: %s)"
 msgstr "Ignorerar försök att sicka meddelande till själv (%s: %s)"
@@ -446,7 +459,7 @@ msgstr "Starta torrenter"
 msgid "Stop torrents"
 msgstr "Stoppa torrenter"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:127
+#: ../plugins/trayicon/PluginTrayIcon.cc:130
 msgid ""
 "%1 (%2) downloads, %3 seeds\n"
 "DL: %4/s\tUL: %5/s"
@@ -458,7 +471,7 @@ msgstr ""
 msgid "Displays notifications trough libnotify"
 msgstr "Visar notifieringar genom libnotify"
 
-#: ../plugins/upnp/PluginUPnP.cc:34
+#: ../plugins/upnp/PluginUPnP.cc:35
 msgid "Enables port forwarding through gupnp"
 msgstr "Vidarebefodrar portar genom gupnp"
 

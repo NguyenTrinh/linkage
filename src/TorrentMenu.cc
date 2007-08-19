@@ -73,7 +73,7 @@ void TorrentMenu::on_groups_changed(const std::list<Group>& groups)
 {
 	std::list<Gtk::Widget*> children = submenu_groups->get_children();
 	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
-				iter != children.end(); ++iter)
+		iter != children.end(); ++iter)
 	{
 		Gtk::Widget* widget = *iter;
 		submenu_groups->remove(*widget);
