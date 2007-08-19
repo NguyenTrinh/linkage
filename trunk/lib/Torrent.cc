@@ -452,17 +452,12 @@ void Torrent::add_tracker(const Glib::ustring& url)
 		{
 			for (unsigned int i = 0; i < m_trackers.size() && !diff; i++)
 			{
+				diff = true;
 				for (unsigned int j = 0; j < trackers.size(); j++)
 				{
 					if (m_trackers[i].url == trackers[j].url)
 					{
 						diff = (m_trackers[i].tier != trackers[j].tier);
-						if (diff)
-							break;
-					}
-					else if (j == trackers.size() - 1)
-					{
-						diff = true;
 						break;
 					}
 				}
@@ -476,6 +471,8 @@ void Torrent::add_tracker(const Glib::ustring& url)
 	libtorrent::announce_entry a(url);
 	a.tier = m_trackers.size();
 	m_trackers.push_back(a);
+
+	m_replies[url] = "";
 
 	if (!stopped)
 		get_handle().replace_trackers(m_trackers);
@@ -552,6 +549,8 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 	}
 
 	m_cur_tier = 0;
+	// FIXME: if someone else calls force_reannounce while we are announcing it
+	// will mess up the iteration in this method, maybe we should wrap the handle?
 	get_handle().force_reannounce();
 }
 

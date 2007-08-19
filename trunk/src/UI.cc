@@ -609,14 +609,29 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 
 void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 {
-	menu_trackers->items().clear();
+	std::list<Gtk::Widget*> children = menu_trackers->get_children();
+	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
+		iter != children.end(); ++iter)
+	{
+		Gtk::Widget* widget = *iter;
+		menu_trackers->remove(*widget);
+		delete widget;
+	}
 
-	std::vector<libtorrent::announce_entry> trackers = torrent->get_handle().trackers();
+	std::vector<libtorrent::announce_entry> trackers = torrent->get_trackers();
+
+	Gtk::Label* label = manage(new Gtk::Label());
+	label->set_markup(_("<i>Add tracker</i>"));
+	Gtk::MenuItem* item = manage(new Gtk::MenuItem(*label));
+	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
+		this, &UI::on_popup_tracker_selected), ""));
+	menu_trackers->append(*item);
+	menu_trackers->append(*manage(new Gtk::SeparatorMenuItem()));
 
 	for (unsigned int i = 0; i < trackers.size(); i++)
 	{
 		Glib::ustring tracker = trackers[i].url;
-		Gtk::MenuItem* item = manage(new Gtk::MenuItem(tracker));
+		item = manage(new Gtk::MenuItem(tracker));
 		item->signal_activate().connect(sigc::bind(sigc::mem_fun(
 			this, &UI::on_popup_tracker_selected), tracker));
 		menu_trackers->append(*item);
@@ -1084,7 +1099,33 @@ void UI::on_popup_tracker_selected(const Glib::ustring& tracker)
 	{
 		libtorrent::sha1_hash hash = *list.begin();
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		torrent->reannounce(tracker);
+
+		if (!tracker.empty())
+			torrent->reannounce(tracker);
+		else
+		{
+			// FIXME: make an EntryDialog class for this
+			Gtk::Dialog dialog(_("Add new tracker"), *this, true, true);
+			dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+			dialog.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+
+			Gtk::VBox* vbox = dialog.get_vbox();
+			Gtk::HBox hbox;
+			vbox->pack_start(hbox, false, false);
+			Gtk::Label label(_("Tracker URL:"));
+			hbox.pack_start(label, false, false);
+			Gtk::Entry entry;
+			hbox.pack_start(entry, true, true);
+			vbox->show_all_children();
+
+			if (dialog.run() == Gtk::RESPONSE_OK)
+			{
+				Glib::ustring tracker = entry.get_text();
+				// FIXME: notify user if the entered url is rejected
+				if (Glib::str_has_prefix(tracker, "http://") || Glib::str_has_prefix(tracker, "udp://"))
+					torrent->add_tracker(entry.get_text());
+			}
+		}
 	}
 }
 
