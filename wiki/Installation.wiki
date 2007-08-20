@@ -3,39 +3,33 @@
 
 = Fedora Core 7 =
 
-== Binary packages ==
-Packages are available for both linkage and rb_libtorrent, all you have to do is run the following as root.
-{{{
-yum -y install boost gtkmm24 libnotify curl dbus-glib libupnp
-rpm -ivh http://linkage.googlecode.com/files/rb_libtorrent-0.12-1.fc7.i386.rpm
-rpm -ivh http://linkage.googlecode.com/files/linkage-0.1.2-1.fc7.i386.rpm
-}}}
+== Source install ==
+Optional dependencies are curl, gupnp, exo, libgnomemm, gnome-vfsmm and libgnomeuimm.
 
-== Subversion install ==
-The SVN version has the same dependencies as above, except for libupnp. Optional dependencies are curl, gupnp, exo, libgnomemm, gnome-vfsmm and libgnomeuimm.
+Exo is for Xfce session support, the GNOME libraries are for GNOME session support. You can specify which optional dependencies you want to build with by passing --with-DEP or --without-DEP to the configure script (e.g. ./configure --with-exo --without-gnome --with-curl --without-gupnp)
 
 (You will need the -devel packages to build linkage, however after installation you can safely remove the -devel packages if you wish)
 {{{
+yum -y install libtool autoconf automake gcc-c++
+yum -y install rb_libtorrent-devel gtkmm24-devel libnotify-devel dbus-glib-devel gconfmm26-devel libglademm24-devel
 yum -y install curl-devel exo-devel libgnomemm26-devel gnome-vfsmm26-devel libgnomeuimm26-devel
-yum -y install subversion libtool autoconf automake boost-devel gtkmm24-devel \
-libnotify-devel dbus-glib-devel gcc-c++
-rpm -ivh http://linkage.googlecode.com/files/rb_libtorrent-devel-0.12-1.fc7.i386.rpm
-svn checkout http://linkage.googlecode.com/svn/trunk/ linkage
-cd linkage
-./autogen.sh --prefix=/usr
+wget http://linkage.googlecode.com/files/linkage-0.1.4.tar.gz
+tar xzvpf linkage-0.1.4.tar.gz
+cd linkage-0.1.4
+./configure --prefix=/usr
 make
 make install
 }}}
 
-= Ubuntu Feisty 7.04 =
+= Ubuntu =
 
 == Source install ==
 Currently there are no packages for rb_libtorrent nor linkage for Ubuntu. So if you want to install linkage you have to build them both from source.
 
-Libtorrent can be downloaded [http://sourceforge.net/project/downloading.php?group_id=79942&filename=libtorrent-0.12.tar.gz here]. To build linkage on Ubuntu you must use the [http://code.google.com/p/linkage/source SVN] version (rev 223 or higher).
+Libtorrent can be downloaded [http://sourceforge.net/project/downloading.php?group_id=79942&filename=libtorrent-0.12.tar.gz here].
 
 {{{
-sudo apt-get install build-essential
+sudo apt-get install build-essential libtool autoconf automake
 sudo apt-get install libboost-date-time-dev libboost-date-time1.33.1 \
 libboost-filesystem-dev libboost-filesystem1.33.1 libboost-regex-dev \
 libboost-regex1.33.1 libboost-signals-dev libboost-signals1.33.1 \
@@ -48,14 +42,15 @@ sudo make install
 }}}
 
 {{{
-sudo apt-get install subversion libtool autoconf automake
 sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev \
 libdbus-glib-1-dev libgtkmm-2.4-1c2a libnotify1 libcurl3 libdbus-glib-1-2 \
 libgnomemm-2.6-1c2a libgnomemm-2.6-dev libgnomeuimm-2.6-1c2a libgnomeuimm-2.6-devel \
-libgnome-vfsmm-2.6-1c2a libgnome-vfsmm-2.6-dev libexo-0.3-0 libexo-0.3-dev
-svn checkout http://linkage.googlecode.com/svn/trunk/ linkage
-cd linkage
-./autogen.sh --prefix=/usr
+libgnome-vfsmm-2.6-1c2a libgnome-vfsmm-2.6-dev libexo-0.3-0 libexo-0.3-dev \
+libgconfmm-2.6-1c2 libgconfmm-2.6-dev libglademm-2.4-1c2a libglademm-2.4-dev
+wget http://linkage.googlecode.com/files/linkage-0.1.4.tar.gz
+tar xzvpf linkage-0.1.4.tar.gz
+cd linkage-0.1.4
+./configure --prefix=/usr
 make
 sudo make install
 }}}
@@ -63,3 +58,5 @@ sudo make install
 
 = Gentoo =
 An ebuild is available in Portage, http://packages.gentoo.org/packages/?category=net-p2p;name=linkage
+
+
