@@ -41,6 +41,7 @@ make
 sudo make install
 }}}
 
+(I might have missed some package below, if you notice anything missing please let me know :)
 {{{
 sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev \
 libdbus-glib-1-dev libgtkmm-2.4-1c2a libnotify1 libcurl3 libdbus-glib-1-2 \
