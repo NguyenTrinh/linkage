@@ -133,6 +133,7 @@ DbusManager::DbusManager() : RefCounter<DbusManager>::RefCounter(this)
 		g_warning("Failed to connect to the D-BUS daemon: %s", error.message);
 		dbus_error_free(&error);
 	}
+	// FIXME: is this needed? we don't really use dbus-glib...
 	dbus_connection_setup_with_g_main(m_connection, NULL);
 
 	primary = !dbus_bus_name_has_owner(m_connection, "org.linkage", &error);
@@ -170,7 +171,7 @@ DbusManager::~DbusManager()
 
 void DbusManager::send(const Glib::ustring& interface, const Glib::ustring& msg)
 {
-	// ignore messages past to self, should use Engine::get_interface() for those
+	// ignore messages past to self, should use Engine::get_interface()/Plugin::get_data() for those
 	if (!is_primary())
 	{
 		DBusMessage *message;

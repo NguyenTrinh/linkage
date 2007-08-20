@@ -147,10 +147,7 @@ void AlertManager::check_alerts()
 			if (torrent)
 				torrent->set_completed(false);
 
-			Glib::ustring msg = p->msg();
-			if (msg == "missing file format tag")
-				msg = "fast resume rejected, content check forced";
-			m_signal_fastresume_rejected.emit(hash, msg);
+			m_signal_fastresume_rejected.emit(hash, p->msg());
 		}
 		else if (hash_failed_alert* p = dynamic_cast<hash_failed_alert*>(a.get()))
 		{

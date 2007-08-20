@@ -18,6 +18,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "config.h"
 
+#if HAVE_GNOME
+#include <libgnomevfsmm/utils.h>
+#include <libgnomevfsmm/uri.h>
+#endif
+
+#if HAVE_EXO
+#include <exo/exo.h>
+#endif
+
 #include <gtkmm/statusicon.h>
 #include <glibmm/i18n.h>
 
@@ -28,6 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/AlertManager.hh"
 #include "linkage/PluginManager.hh"
 #include "linkage/TorrentManager.hh"
+#include "linkage/ucompose.hpp"
 
 #define PLUGIN_NAME		"NotifyPlugin"
 #define PLUGIN_DESC		_("Displays notifications trough libnotify")
@@ -35,9 +45,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define PLUGIN_AUTHOR	"Christian Lundgren"
 #define PLUGIN_WEB		"http://code.google.com/p/linkage"
 
+#define DBUS_API_SUBJECT_TO_CHANGE
+
 NotifyPlugin::NotifyPlugin()	
 {
-	notify_init(PACKAGE_NAME);
+	notify_init(PLUGIN_NAME);
 
 	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &NotifyPlugin::on_invalid_bencoding));
 	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &NotifyPlugin::on_missing_file));
@@ -65,46 +77,226 @@ Plugin::Info NotifyPlugin::get_info()
 		Plugin::PARENT_NONE);
 }
 
-void NotifyPlugin::notify(const Glib::ustring& title,
-													const Glib::ustring& message,
-													NotifyType type)
+NotifyNotification* NotifyPlugin::build_notification(const Glib::ustring& title,
+	const Glib::ustring& message,
+	NotifyUrgency urgency,
+	const Glib::ustring& category)
 {
-	NotifyUrgency urgency;
 	gchar* icon = NULL;
-	switch (type)
+	switch (urgency)
 	{
-		case NOTIFY_ERROR:
+		case NOTIFY_URGENCY_CRITICAL:
 			icon = "dialog-error";
-			urgency = NOTIFY_URGENCY_CRITICAL;
 			break;
-		case NOTIFY_WARNING:
+		case NOTIFY_URGENCY_NORMAL:
 			icon = "dialog-warning";
-			urgency = NOTIFY_URGENCY_NORMAL;
 			break;
-		case NOTIFY_INFO:
+		case NOTIFY_URGENCY_LOW:
 		default:
 			icon = "dialog-information";
-			urgency = NOTIFY_URGENCY_LOW;
 			break;
 	}
 
-	glong timeout = NOTIFY_EXPIRES_DEFAULT;
-	NotifyNotification* notification = NULL;
+	NotifyNotification* notification = notify_notification_new(
+		title.c_str(), message.c_str(), icon, NULL);
+
 	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
 	if (plugin)
 	{
 		GtkStatusIcon* status_icon = static_cast<GtkStatusIcon*>(plugin->get_user_data());
 		if (status_icon)
-			notification = notify_notification_new_with_status_icon(title.c_str(), message.c_str(), icon, status_icon);
+			notify_notification_attach_to_status_icon(notification, status_icon);
 	}
-	if (!plugin || !notification)
-		notification = notify_notification_new(title.c_str(), message.c_str(), icon, NULL);
+		
 	notify_notification_set_urgency(notification, urgency);
-	notify_notification_set_timeout(notification, timeout);
+	notify_notification_set_timeout(notification, NOTIFY_EXPIRES_DEFAULT);
+	if (!category.empty())
+		notify_notification_set_category(notification, category.c_str());
+
+	return notification;
+}
+		
+void NotifyPlugin::notify_with_action(const Glib::ustring& title,
+	const Glib::ustring& message,
+	NotifyUrgency urgency,
+	const Glib::ustring& action,
+	const Glib::ustring& action_title,
+	const sigc::slot<void>& slot,
+	const Glib::ustring& category)
+{
+	NotifyNotification* notification = build_notification(title, message, urgency, category);
+
+	sigc::slot<void>* data = new sigc::slot<void>(slot);
+	notify_notification_add_action(notification, action.c_str(),
+		action_title.c_str(),
+		(NotifyActionCallback)NotifyPlugin::on_action_cb,
+		data,
+		(GFreeFunc)NotifyPlugin::free_slot);
 
 	notify_notification_show(notification, NULL);
+}
 
-	g_object_unref(G_OBJECT(notification));
+void NotifyPlugin::notify(const Glib::ustring& title,
+	const Glib::ustring& message,
+	NotifyUrgency urgency,
+	const Glib::ustring& category)
+{
+	NotifyNotification* notification = build_notification(title, message, urgency, category);
+
+	notify_notification_show(notification, NULL);
+}
+
+void NotifyPlugin::free_slot(sigc::slot<void>* slot)
+{
+	delete slot;
+}
+
+void NotifyPlugin::on_action_cb(NotifyNotification* notification, gchar* action, sigc::slot<void>* slot)
+{
+	(*slot)();
+}
+
+void NotifyPlugin::on_open_location(const Glib::ustring& path)
+{
+	// duplicated in UI :(
+	#if HAVE_GNOME
+	Glib::ustring uri = Gnome::Vfs::Uri::make_from_input(path);
+	try
+	{
+		Gnome::Vfs::url_show(uri);
+	}
+	catch (Gnome::Vfs::exception& ex)
+	{
+		g_warning(ex.what().c_str());
+	}
+	#elif HAVE_EXO
+	GError* e = NULL;
+	if (!exo_url_show(path.c_str(), NULL, &e))
+	{
+		g_warning(e->message);
+	}
+	#endif
+
+	if (!HAVE_GNOME && !HAVE_EXO)
+	{
+		Glib::ustring app = Glib::find_program_in_path("nautilus");
+		if (app.empty())
+			app = Glib::find_program_in_path("thunar");
+		if (!app.empty())
+		{
+			Glib::ustring cmd = app + " \"" + path + "\"";
+			Glib::spawn_command_line_async(cmd);
+		}
+		else
+			g_warning(_("No suitable file manager found"));
+	}
+}
+
+void NotifyPlugin::on_stop_torrent(const libtorrent::sha1_hash& hash)
+{
+	Engine::get_session_manager()->stop_torrent(hash);
+}
+
+void NotifyPlugin::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)
+{
+	notify(_("Invalid bencoding"), msg, NOTIFY_URGENCY_CRITICAL);
+}
+
+void NotifyPlugin::on_missing_file(const Glib::ustring& msg, const Glib::ustring& file)
+{
+	notify(_("Missing file"), msg, NOTIFY_URGENCY_CRITICAL);
+}
+
+void NotifyPlugin::on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash)
+{
+	notify(_("Duplicate torrent"), msg, NOTIFY_URGENCY_NORMAL);
+}
+
+// FIXME: make sure all of these actually works ok
+void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
+{
+	Glib::ustring translated;
+	if (Glib::str_has_prefix(msg, "cannot listen on the given interface "))
+	{
+		Glib::ustring interface = msg.substr(37);
+		translated = String::ucompose(_("Cannot listen on given interface %1"), interface);
+	}
+	else if (Glib::str_has_prefix(msg, "none of the ports in the range "))
+	{
+		Glib::ustring::size_type pos = msg.find(" could be opened for listening");
+		Glib::ustring range = msg.substr(31, pos);
+		translated = String::ucompose(_("None of the ports in range %1 could be opened for listening"), range);
+	}
+	else if (Glib::str_has_prefix(msg, "failed to open listen port: "))
+	{
+		Glib::ustring what = msg.substr(28);
+		translated = String::ucompose(_("Failed to open port: %1"), what);
+	}
+
+	notify(_("Listen failed"), translated, NOTIFY_URGENCY_CRITICAL, "network.error");
+}
+
+void NotifyPlugin::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+{
+	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	Glib::ustring translated = String::ucompose(_("%1 is complete"), torrent->get_name());
+
+	Glib::ustring path = torrent->get_path();
+	if (torrent->get_info().num_files() > 1)
+		path = Glib::build_filename(path, torrent->get_name());
+
+	sigc::slot<void> slot = sigc::bind(sigc::mem_fun(this, &NotifyPlugin::on_open_location), path);
+
+	notify_with_action(_("Torrent finished"), translated,	NOTIFY_URGENCY_LOW,
+		"open", _("Open location"), slot, "transfer.complete");
+}
+
+void NotifyPlugin::on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+{
+	Glib::ustring what;
+	if (Glib::str_has_prefix(msg, "torrent paused: "))
+		what = msg.substr(16);
+	else
+		what = msg;
+
+	sigc::slot<void> slot = sigc::bind(sigc::mem_fun(this, &NotifyPlugin::on_stop_torrent), hash);
+
+	notify_with_action(_("File error"), what, NOTIFY_URGENCY_CRITICAL,
+		"stop", _("Stop torrent"), slot);
+}
+
+void NotifyPlugin::on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+{
+	Glib::ustring translated;
+	if (Glib::str_has_prefix(msg, "incompatible file version "))
+	{
+		Glib::ustring version = msg.substr(26);
+		translated = String::ucompose(_("Incompatible file version: %1"), version);
+	}
+	else if (Glib::str_has_prefix(msg, "mismatching info-hash: "))
+	{
+		Glib::ustring hash = msg.substr(23);
+		translated = String::ucompose(_("Mismatching hash: %1"), hash);
+	}
+	else if (Glib::str_has_prefix(msg, "checksum mismatch on piece "))
+	{
+		Glib::ustring index = msg.substr(27);
+		translated = String::ucompose(_("Checksum failed for piece %1"), index);
+	}
+	else if (Glib::str_has_prefix(msg, "the number of files does not match the torrent"))
+	{
+		translated = _("Mismatching number of files");
+	}
+	else if (Glib::str_has_prefix(msg, "file size for "))
+	{
+		Glib::ustring::size_type pos = msg.find(" was expected to be ");
+		Glib::ustring file = msg.substr(14, pos);
+		translated = String::ucompose(_("File size mismatch for %1"), file);
+	}
+	else // Other too detailed errors
+		translated = _("Fast resume rejected, content check forced");
+
+	notify(_("Fast resume failed"), translated, NOTIFY_URGENCY_NORMAL);
 }
 
 Plugin* create_plugin()
@@ -123,38 +315,3 @@ Plugin::Info plugin_info()
 		Plugin::PARENT_NONE);
 }
 
-void NotifyPlugin::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	notify("Invalid bencoding", msg, NOTIFY_ERROR);
-}
-
-void NotifyPlugin::on_missing_file(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	notify("Missing file", msg, NOTIFY_ERROR);
-}
-
-void NotifyPlugin::on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash)
-{
-	notify("Duplicate torrent", msg, NOTIFY_WARNING);
-}
-
-void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
-{
-	notify("Listen failed", msg, NOTIFY_ERROR);
-}
-
-void NotifyPlugin::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	notify("Torrent finished", torrent->get_name() + " is complete", NOTIFY_INFO);
-}
-
-void NotifyPlugin::on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("File error", msg, NOTIFY_ERROR);
-}
-
-void NotifyPlugin::on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("Fastresume failed", msg, NOTIFY_WARNING);
-}
