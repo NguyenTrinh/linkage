@@ -29,11 +29,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class NotifyPlugin : public Plugin
 {
-	enum NotifyType { NOTIFY_INFO, NOTIFY_WARNING, NOTIFY_ERROR };
+	NotifyNotification* build_notification(const Glib::ustring& title,
+		const Glib::ustring& message,
+		NotifyUrgency urgency,
+		const Glib::ustring& category);
 
 	void notify(const Glib::ustring& title,
-							const Glib::ustring& message,
-							NotifyType type);
+		const Glib::ustring& message,
+		NotifyUrgency urgency,
+		const Glib::ustring& category = Glib::ustring());
+
+	void notify_with_action(const Glib::ustring& title,
+		const Glib::ustring& message,
+		NotifyUrgency urgency,
+		const Glib::ustring& action,
+		const Glib::ustring& action_title,
+		const sigc::slot<void>& slot,
+		const Glib::ustring& category = Glib::ustring());
+
+	static void on_action_cb(NotifyNotification* notification, gchar* action, sigc::slot<void>* slot);
+	static void free_slot(sigc::slot<void>* slot);
+
+	void on_open_location(const Glib::ustring& path);
+	void on_stop_torrent(const libtorrent::sha1_hash& hash);
 
 	void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
 	void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);

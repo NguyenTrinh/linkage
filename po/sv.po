@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-20 01:27+0200\n"
+"POT-Creation-Date: 2007-08-20 15:54+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -348,6 +348,10 @@ msgstr "(1 fil)."
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
+#: ../src/UI.cc:970 ../plugins/notification/PluginNotification.cc:191
+msgid "No suitable file manager found"
+msgstr "Ingen passande filhanterare funnen"
+
 #. FIXME: make an EntryDialog class for this
 #: ../src/UI.cc:1108
 msgid "Add new tracker"
@@ -357,7 +361,7 @@ msgstr "Lägg till ny tracker"
 msgid "Tracker URL:"
 msgstr ""
 
-#: ../lib/DbusManager.cc:191
+#: ../lib/DbusManager.cc:192
 #, c-format
 msgid "Ignoring attempt to send message to self (%s: %s)"
 msgstr "Ignorerar försök att sicka meddelande till själv (%s: %s)"
@@ -467,9 +471,87 @@ msgstr ""
 "%1 (%2) nedladdningar, %3 uppladdningar\n"
 "NL: %4/s\tUL: %5/s"
 
-#: ../plugins/notification/PluginNotification.cc:33
+#: ../plugins/notification/PluginNotification.cc:43
 msgid "Displays notifications trough libnotify"
 msgstr "Visar notifieringar genom libnotify"
+
+#: ../plugins/notification/PluginNotification.cc:202
+msgid "Invalid bencoding"
+msgstr "Ogiltig bkodning"
+
+#: ../plugins/notification/PluginNotification.cc:207
+msgid "Missing file"
+msgstr "Fil ej funnen"
+
+#: ../plugins/notification/PluginNotification.cc:212
+msgid "Duplicate torrent"
+msgstr "Dubblett torrent"
+
+#: ../plugins/notification/PluginNotification.cc:222
+msgid "Cannot listen on given interface %1"
+msgstr "Kan inte lyssna på givet gränssnitt %1"
+
+#: ../plugins/notification/PluginNotification.cc:228
+msgid "None of the ports in range %1 could be opened for listening"
+msgstr "Ingen av portarna i området %1 kunde öppnas för lyssning"
+
+#: ../plugins/notification/PluginNotification.cc:233
+msgid "Failed to open port: %1"
+msgstr "Misslyckades med att öppna port %s"
+
+#: ../plugins/notification/PluginNotification.cc:236
+msgid "Listen failed"
+msgstr "Lyssning misslyckades"
+
+#: ../plugins/notification/PluginNotification.cc:242
+msgid "%1 is complete"
+msgstr "%1 är färdig"
+
+#: ../plugins/notification/PluginNotification.cc:250
+msgid "Torrent finished"
+msgstr "Torrent klar"
+
+#: ../plugins/notification/PluginNotification.cc:251
+#: ../data/linkage.glade.h:36
+msgid "Open location"
+msgstr "Öppna plats"
+
+#: ../plugins/notification/PluginNotification.cc:264
+msgid "File error"
+msgstr "Filfel"
+
+#: ../plugins/notification/PluginNotification.cc:265
+msgid "Stop torrent"
+msgstr "Stoppa torrent"
+
+#: ../plugins/notification/PluginNotification.cc:274
+msgid "Incompatible file version: %1"
+msgstr "Inkompitabel filversion: %1"
+
+#: ../plugins/notification/PluginNotification.cc:279
+msgid "Mismatching hash: %1"
+msgstr "Ej matchande kontrollsumma: %1"
+
+#: ../plugins/notification/PluginNotification.cc:284
+msgid "Checksum failed for piece %1"
+msgstr "Kontrollsumma misslyckades för del %1"
+
+#: ../plugins/notification/PluginNotification.cc:288
+msgid "Mismatching number of files"
+msgstr "Ej matchande antal filer"
+
+#: ../plugins/notification/PluginNotification.cc:294
+msgid "File size mismatch for %1"
+msgstr "Ej matchande fil storlek för %1"
+
+#. Other too detailed errors
+#: ../plugins/notification/PluginNotification.cc:297
+msgid "Fast resume rejected, content check forced"
+msgstr "Snabb återupptagning avvisades, tvingar kontroll av innehåll"
+
+#: ../plugins/notification/PluginNotification.cc:299
+msgid "Fast resume failed"
+msgstr "Snabb återupptagning misslyckades"
 
 #: ../plugins/upnp/PluginUPnP.cc:35
 msgid "Enables port forwarding through gupnp"
@@ -606,10 +688,6 @@ msgstr "Öppna en torrentfil"
 #: ../data/linkage.glade.h:35
 msgid "Open for seeding"
 msgstr "Öppna för uppladdning"
-
-#: ../data/linkage.glade.h:36
-msgid "Open location"
-msgstr "Öppna plats"
 
 #: ../data/linkage.glade.h:37
 msgid "Peers"

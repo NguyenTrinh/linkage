@@ -967,7 +967,7 @@ void UI::on_open_location()
 				Glib::spawn_command_line_async(cmd);
 			}
 			else
-				g_warning("No suitable file manager found");
+				g_warning(_("No suitable file manager found"));
 		}
 	}
 }
