@@ -1,0 +1,10 @@
+To start a new translation:
+cd linkage/po
+intltool-update --pot
+msginit -l da # where da is your locale code
+then start translating the strings in da.po (or whatever your locale is) with a text editor
+
+To update an existing translation:
+cd linkage/po
+intltool-update da
+Edit da.po with a text editor

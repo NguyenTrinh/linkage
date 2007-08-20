@@ -1,0 +1,8 @@
+* Add possibility for plugins to add dbus methods/signals
+* Extend dbus interface with methods/signals
+* Update TorrentCreator (DHT, multi tracker)
+* Make plugins configureable
+* Add RSS, Scheduler and Auto-file filter (like *.nfo etc...) plugins
+* Make it possible to add user-defined trackers
+* Add sort on time remaining
+* on_torrent_finished, if files are filtered and then unfiltered we should do set_complete(false)
