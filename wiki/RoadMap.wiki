@@ -3,16 +3,11 @@
 
 = Introduction =
 
-Latest release is 0.1.2 available from the [http://code.google.com/p/linkage/downloads/list downloads] page.
+Latest release is 0.1.4 available from the [http://code.google.com/p/linkage/downloads/list downloads] page.
 
 = Planned releases =
-  * *0.1.4*
-    * Use gconf and libglade
-    * Use gupnp instead of libupnp
-    * New group list with combobox/treeview
+  * *0.1.6*
     * Add torrent info to the save path dialog
-    * Finish new interface/plugin code
-  * *0.1.6* 
     * Clean up and review code
     * RSS plugin, Scheduler plugin
     * Merge library part into main app
