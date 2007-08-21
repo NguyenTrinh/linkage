@@ -52,7 +52,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/AlertManager.hh"
 #include "linkage/SessionManager.hh"
 #include "linkage/TorrentManager.hh"
-#include "linkage/DbusManager.hh"
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
 
@@ -96,8 +95,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	groups_xml->get_widget_derived("groups_win", groups_win);
 	groups_win->set_transient_for(*this);
 
-	menu_trackers = manage(new Gtk::Menu());
-	
 	// get the widgets we work with
 	glade_xml->get_widget_derived("torrent_list", torrent_list);
 	glade_xml->get_widget_derived("state_combobox", state_filter);
@@ -335,10 +332,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &UI::on_fastresume_rejected));
 	Engine::get_alert_manager()->signal_hash_failed().connect(sigc::mem_fun(this, &UI::on_hash_failed));
 	Engine::get_alert_manager()->signal_peer_ban().connect(sigc::mem_fun(this, &UI::on_peer_ban));
-
-	Engine::get_dbus_manager()->signal_open().connect(sigc::mem_fun(this, &UI::add_torrent));
-	Engine::get_dbus_manager()->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
-	Engine::get_dbus_manager()->signal_toggle_visible().connect(sigc::mem_fun(this, &UI::on_toggle_visible));
 
 	m_conn_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
 
@@ -609,12 +602,12 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 
 void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 {
-	std::list<Gtk::Widget*> children = menu_trackers->get_children();
+	std::list<Gtk::Widget*> children = menu_trackers.get_children();
 	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
 		iter != children.end(); ++iter)
 	{
 		Gtk::Widget* widget = *iter;
-		menu_trackers->remove(*widget);
+		menu_trackers.remove(*widget);
 		delete widget;
 	}
 
@@ -625,8 +618,8 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 	Gtk::MenuItem* item = manage(new Gtk::MenuItem(*label));
 	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
 		this, &UI::on_popup_tracker_selected), ""));
-	menu_trackers->append(*item);
-	menu_trackers->append(*manage(new Gtk::SeparatorMenuItem()));
+	menu_trackers.append(*item);
+	menu_trackers.append(*manage(new Gtk::SeparatorMenuItem()));
 
 	for (unsigned int i = 0; i < trackers.size(); i++)
 	{
@@ -634,9 +627,9 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 		item = manage(new Gtk::MenuItem(tracker));
 		item->signal_activate().connect(sigc::bind(sigc::mem_fun(
 			this, &UI::on_popup_tracker_selected), tracker));
-		menu_trackers->append(*item);
+		menu_trackers.append(*item);
 	}
-	menu_trackers->show_all_children();
+	menu_trackers.show_all_children();
 }
 
 void UI::add_torrent(const Glib::ustring& file)
@@ -1084,7 +1077,7 @@ bool UI::on_tracker_update(GdkEventButton* e)
 					break;
 				case 3:
 					build_tracker_menu(torrent);
-					menu_trackers->popup(e->button, e->time);
+					menu_trackers.popup(e->button, e->time);
 					break;
 			}
 		}
