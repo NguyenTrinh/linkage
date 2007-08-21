@@ -62,6 +62,8 @@ class NotifyPlugin : public Plugin
 	void on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 	void on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 
+	void on_dbus_disconnect();
+
 public:
 	Plugin::Info get_info();
 

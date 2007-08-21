@@ -89,7 +89,7 @@ static void send_files(const std::vector<Glib::ustring>& files, UI* recipient = 
 		if (recipient)
 			recipient->open(file);
 		else
-			Engine::get_dbus_manager()->send("Open", file);
+			Engine::get_dbus_manager()->send("Open", "Interface", file);
 	}
 }
 
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 	}
 	if (options.quit)
 	{
-		Engine::get_dbus_manager()->send("Quit");
+		Engine::get_dbus_manager()->send("Quit", "Interface");
 		return 0;
 	}
 

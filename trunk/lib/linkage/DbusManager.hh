@@ -25,29 +25,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/RefCounter.hh"
 
-#include <dbus/dbus-glib-bindings.h>
 #include <dbus/dbus-protocol.h>
 #include <dbus/dbus.h>
-#include <dbus/dbus-glib-lowlevel.h>
 
 class DbusManager : public RefCounter<DbusManager>
 {	
 	bool primary;
 	DBusConnection* m_connection;
 	
-	sigc::signal<void> m_signal_quit;
-	sigc::signal<void, const Glib::ustring&> m_signal_open;
-	sigc::signal<void> m_signal_toggle_visible;
+	sigc::signal<void> m_signal_disconnect;
 	
 	DbusManager();
 	
 public:
-	sigc::signal<void> signal_quit();
-	sigc::signal<void, const Glib::ustring&> signal_open();
-	sigc::signal<void> signal_toggle_visible();
+	sigc::signal<void> signal_disconnect();
 	
 	bool is_primary();
-	void send(const Glib::ustring& interface, const Glib::ustring& msg = Glib::ustring());
+	void send(const Glib::ustring& member, const Glib::ustring& object, const Glib::ustring& msg = Glib::ustring());
 
 	static DBusHandlerResult message_handler(DBusConnection* connection, DBusMessage* message, gpointer data);
 	

@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/AlertManager.hh"
 #include "linkage/PluginManager.hh"
 #include "linkage/TorrentManager.hh"
+#include "linkage/DbusManager.hh"
 #include "linkage/ucompose.hpp"
 
 #define PLUGIN_NAME		"NotifyPlugin"
@@ -59,6 +60,8 @@ NotifyPlugin::NotifyPlugin()
 	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &NotifyPlugin::on_torrent_finished));
 	Engine::get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &NotifyPlugin::on_file_error));
 	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &NotifyPlugin::on_fastresume_rejected));
+
+	Engine::get_dbus_manager()->signal_disconnect().connect(sigc::mem_fun(this, &NotifyPlugin::on_dbus_disconnect));
 }
 
 NotifyPlugin::~NotifyPlugin()
@@ -297,6 +300,11 @@ void NotifyPlugin::on_fastresume_rejected(const libtorrent::sha1_hash& hash, con
 		translated = _("Fast resume rejected, content check forced");
 
 	notify(_("Fast resume failed"), translated, NOTIFY_URGENCY_NORMAL);
+}
+
+void NotifyPlugin::on_dbus_disconnect()
+{
+	notify(_("DBus disconnectd"), _("Lost connection to the DBus session"), NOTIFY_URGENCY_NORMAL);
 }
 
 Plugin* create_plugin()
