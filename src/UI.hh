@@ -114,7 +114,7 @@ class UI : public Gtk::Window, public Interface
 	Gtk::Label* label_private;
 	Gtk::Label* label_date;
 
-	Gtk::Menu* menu_trackers;
+	Gtk::Menu menu_trackers;
 
 	Gtk::VPaned* main_vpane;
 	Gtk::HPaned* main_hpane;
