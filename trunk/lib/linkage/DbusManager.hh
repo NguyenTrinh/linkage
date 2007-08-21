@@ -24,26 +24,44 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/refptr.h>
 
 #include "linkage/RefCounter.hh"
+#include "linkage/WeakPtr.hh"
+#include "linkage/Torrent.hh"
 
 #include <dbus/dbus-protocol.h>
 #include <dbus/dbus.h>
 
 class DbusManager : public RefCounter<DbusManager>
-{	
+{
 	bool primary;
 	DBusConnection* m_connection;
 	
 	sigc::signal<void> m_signal_disconnect;
 	
 	DbusManager();
-	
+
+	friend class TorrentManager;
+	void register_torrent(Torrent* torrent);
+	void unregister_torrent(Torrent* torrent);
+
 public:
 	sigc::signal<void> signal_disconnect();
 	
 	bool is_primary();
-	void send(const Glib::ustring& member, const Glib::ustring& object, const Glib::ustring& msg = Glib::ustring());
+	void send(const Glib::ustring& interface,
+		const Glib::ustring& member,
+		const Glib::ustring& path,
+		const Glib::ustring& msg = Glib::ustring());
 
-	static DBusHandlerResult message_handler(DBusConnection* connection, DBusMessage* message, gpointer data);
+	static bool handler_common(DBusConnection* connection,
+		DBusMessage* message,
+		const char* introspect,
+		DbusManager* self);
+	static DBusHandlerResult handler_interface(DBusConnection* connection,
+		DBusMessage* message,
+		DbusManager* self);
+	static DBusHandlerResult handler_torrent(DBusConnection* connection,
+		DBusMessage* message,
+		Torrent* torrent);
 	
 	static Glib::RefPtr<DbusManager> create();
 	~DbusManager();
