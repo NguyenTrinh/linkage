@@ -294,38 +294,36 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 			Glib::RefPtr<Gtk::IconTheme> theme = Gtk::IconTheme::get_default();
 			row[columns.icon] = theme->load_icon(ICON_DIR, Gtk::ICON_SIZE_MENU, Gtk::ICON_LOOKUP_USE_BUILTIN);
 		}
-		
-		return;
 	}
-
-	libtorrent::file_entry file = data.info.file_at(index);
-	libtorrent::peer_request file_info = data.info.map_file(index, 0, file.size);
-
-	std::vector<bool> map;
-	unsigned int byte_pos_in_file = 0;
-	unsigned int piece_index = file_info.piece;
-	while (byte_pos_in_file < file.size)
+	else
 	{
-		if (data.pieces[piece_index])
-			map.push_back(true);
-		else
-			map.push_back(false);
+		libtorrent::file_entry file = data.info.file_at(index);
+		libtorrent::peer_request file_info = data.info.map_file(index, 0, file.size);
 
-		byte_pos_in_file += data.info.piece_size(piece_index);
-		piece_index++;
+		std::vector<bool> map;
+		unsigned int byte_pos_in_file = 0;
+		unsigned int piece_index = file_info.piece;
+		while (byte_pos_in_file < file.size)
+		{
+			if (data.pieces[piece_index])
+				map.push_back(true);
+			else
+				map.push_back(false);
+
+			byte_pos_in_file += data.info.piece_size(piece_index);
+			piece_index++;
+		}
+
+		row[columns.filter] = data.filter[index];
+		row[columns.map] = map;
+		row[columns.done] = (libtorrent::size_type)(data.file_progress[index] * file.size);
+		Glib::RefPtr<Gdk::Pixbuf> icon = row[columns.icon];
+		if (!icon)
+		{
+			Glib::RefPtr<Gtk::IconTheme> theme = Gtk::IconTheme::get_default();
+			row[columns.icon] = theme->load_icon(ICON_FILE, Gtk::ICON_SIZE_MENU, Gtk::ICON_LOOKUP_USE_BUILTIN);
+		}
 	}
-
-	row[columns.filter] = data.filter[index];
-	row[columns.map] = map;
-	row[columns.done] = (libtorrent::size_type)(data.file_progress[index] * file.size);
-	Glib::RefPtr<Gdk::Pixbuf> icon = row[columns.icon];
-	if (!icon)
-	{
-		Glib::RefPtr<Gtk::IconTheme> theme = Gtk::IconTheme::get_default();
-		row[columns.icon] = theme->load_icon(ICON_FILE, Gtk::ICON_SIZE_MENU, Gtk::ICON_LOOKUP_USE_BUILTIN);
-	}
-
-	return;
 }
 
 bool FileList::on_foreach(const Gtk::TreeModel::iterator& iter, IterList* list)
