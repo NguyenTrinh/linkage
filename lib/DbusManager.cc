@@ -24,12 +24,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/DbusManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Interface.hh"
+#include "linkage/Utils.hh"
 
 #define LINKAGE_BUS_NAME "org.linkage"
 #define LINKAGE_INTERFACE_INTERFACE "org.linkage.Interface"
+#define LINKAGE_INTERFACE_TORRENT "org.linkage.Torrent"
 #define LINKAGE_PATH_INTERFACE "/org/linkage/Interface"
 
-const char* xml_introspect = 
+const char* introspect_interface = 
 "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD DBUS Object Introspection 1.0//EN\"\n"
 "\"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
 "<node>\n"
@@ -38,7 +40,7 @@ const char* xml_introspect =
 "      <arg name=\"data\" direction=\"out\" type=\"s\"/>\n"
 "    </method>\n"
 "  </interface>\n"
-"  <interface name=\"org.linkage\">\n"
+"  <interface name=\"org.linkage.Interface\">\n"
 "    <method name=\"Open\">\n"
 "      <arg name=\"file\" direction=\"in\" type=\"s\"/>\n"
 "    </method>\n"
@@ -52,9 +54,57 @@ const char* xml_introspect =
 "  </interface>\n"
 "</node>\n";
 
-DBusHandlerResult DbusManager::message_handler(DBusConnection* connection, DBusMessage* message, gpointer data)
+const char* introspect_torrent = 
+"<!DOCTYPE node PUBLIC \"-//freedesktop//DTD DBUS Object Introspection 1.0//EN\"\n"
+"\"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
+"<node>\n"
+"  <interface name=\"org.freedesktop.DBus.Introspectable\">\n"
+"    <method name=\"Introspect\">\n"
+"      <arg name=\"data\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"  </interface>\n"
+"  <interface name=\"org.linkage.Torrent\">\n"
+"    <method name=\"GetName\">\n"
+"      <arg name=\"name\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"    <method name=\"GetState\">\n"
+"      <arg name=\"state\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"  </interface>\n"
+"</node>\n";
+
+bool DbusManager::handler_common(DBusConnection* connection,
+	DBusMessage* message,
+	const char* introspect,
+	DbusManager* self)
 {
-	DbusManager* self = static_cast<DbusManager*>(data);
+	if (dbus_message_is_signal(message, DBUS_INTERFACE_DBUS, "Disconnected")) 
+	{
+		if (self)
+			self->m_signal_disconnect.emit();
+	}
+	else if (dbus_message_is_method_call(message, DBUS_INTERFACE_INTROSPECTABLE, "Introspect"))
+	{
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_STRING, &introspect, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	else
+		return false;
+
+	return true;
+}
+
+DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
+	DBusMessage* message,
+	DbusManager* self)
+{
+	// Using some dbus c++ bindings would make this much easier,
+	// seems pointless to create wrapping GObjects just to use dbus-glib..
+
+	if (handler_common(connection, message, introspect_interface, self))
+		return DBUS_HANDLER_RESULT_HANDLED;
 
 	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_INTERFACE, "Open")) 
 	{
@@ -110,14 +160,44 @@ DBusHandlerResult DbusManager::message_handler(DBusConnection* connection, DBusM
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
 	}
-	else if (dbus_message_is_signal(message, DBUS_INTERFACE_DBUS, "Disconnected")) 
+	else
 	{
-		self->m_signal_disconnect.emit();
+		DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
 	}
-	else if (dbus_message_is_method_call(message, DBUS_INTERFACE_INTROSPECTABLE, "Introspect"))
+
+	return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
+	DBusMessage* message,
+	Torrent* torrent)
+{
+	// FIXME: don't pass NULL as self
+	if (handler_common(connection, message, introspect_torrent, NULL))
+		return DBUS_HANDLER_RESULT_HANDLED;
+	
+	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_TORRENT, "GetName")) 
 	{
+		const char* name = torrent->get_name().c_str();
 		DBusMessage* reply = dbus_message_new_method_return(message);
-		dbus_message_append_args(reply, DBUS_TYPE_STRING, &xml_introspect, DBUS_TYPE_INVALID);
+		dbus_message_append_args(reply, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_TORRENT, "GetState")) 
+	{
+		char* state = g_strdup(torrent->get_state_string().c_str());
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_STRING, &state, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+		g_free(state);
+	}
+	else
+	{
+		DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
 	}
@@ -161,7 +241,7 @@ DbusManager::DbusManager() : RefCounter<DbusManager>::RefCounter(this)
 		
 		DBusObjectPathVTable vtable = {
 			NULL,
-			DbusManager::message_handler,
+			(DBusObjectPathMessageFunction)DbusManager::handler_interface,
 			NULL,
 			NULL,
 			NULL,
@@ -176,17 +256,36 @@ DbusManager::~DbusManager()
 {
 }
 
-void DbusManager::send(const Glib::ustring& member, const Glib::ustring& object, const Glib::ustring& msg)
+void DbusManager::unregister_torrent(Torrent* torrent)
+{
+	Glib::ustring path = "/org/linkage/torrents/" + str(torrent->get_hash());
+	dbus_connection_unregister_object_path(m_connection, path.c_str());
+}
+
+void DbusManager::register_torrent(Torrent* torrent)
+{
+	DBusObjectPathVTable vtable = {
+		NULL,
+		(DBusObjectPathMessageFunction)DbusManager::handler_torrent,
+		NULL,
+		NULL,
+		NULL,
+		NULL 
+	};
+	Glib::ustring path = "/org/linkage/torrents/" + str(torrent->get_hash());
+	dbus_connection_register_object_path(m_connection, path.c_str(), &vtable, torrent);
+}
+
+void DbusManager::send(const Glib::ustring& interface,
+	const Glib::ustring& member,
+	const Glib::ustring& path,
+	const Glib::ustring& msg)
 {
 	// ignore messages past to self, should use Engine::get_interface()/Plugin::get_data() for those
 	if (!is_primary())
 	{
 		DBusMessage *message;
 		DBusError error;
-
-		Glib::ustring path, interface;
-		path = "/org/linkage/" + object;
-		interface = "org.linkage." + object;
 
 		message = dbus_message_new_method_call(LINKAGE_BUS_NAME, path.c_str(), interface.c_str(), member.c_str());
 		if (!msg.empty())

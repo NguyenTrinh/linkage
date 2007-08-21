@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/AlertManager.hh"
+#include "linkage/DbusManager.hh"
 #include "linkage/Utils.hh"
 
 Glib::RefPtr<TorrentManager> TorrentManager::create()
@@ -259,6 +260,7 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const libtorrent::entry& e, const l
 	libtorrent::sha1_hash hash = info.info_hash();
 	m_torrents[hash] = torrent;
 
+	Engine::get_dbus_manager()->register_torrent(torrent);
 	m_signal_added.emit(hash, torrent->get_name(), torrent->get_position());
 
 	return WeakPtr<Torrent>(torrent);
@@ -266,8 +268,12 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const libtorrent::entry& e, const l
 
 void TorrentManager::remove_torrent(const libtorrent::sha1_hash& hash)
 {
-	int pos = m_torrents[hash]->get_position();
-	delete m_torrents[hash];
+	Torrent* torrent = m_torrents[hash];
+	unsigned int pos = torrent->get_position();
+
+	Engine::get_dbus_manager()->unregister_torrent(torrent);
+
+	delete torrent;
 	m_torrents.erase(hash);
 
 	std::vector<Torrent*> torrents;
