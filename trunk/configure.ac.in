@@ -128,7 +128,10 @@ test x$prefix = "xNONE" && prefix="$ac_default_prefix"
 AC_DEFINE_UNQUOTED([FLAG_DIR], ["${prefix}/share/linkage/flags"], [Flag directory])
 AC_DEFINE_UNQUOTED([PIXMAP_DIR], ["${prefix}/share/pixmaps"], [Pixmap directory])
 AC_DEFINE_UNQUOTED([DATA_DIR], ["${prefix}/share/linkage"], [Data directory])
-AC_DEFINE_UNQUOTED([PLUGIN_DIR], ["${prefix}/lib/linkage/plugins"], [Plugin directory])
+# AC_DEFINE_UNQUOTED doesn't expand $libdir properly
+builtin([include],[m4/as-ac-expand.m4])
+AS_AC_EXPAND(LIBDIR, ${libdir})
+AC_DEFINE_UNQUOTED([PLUGIN_DIR], ["$LIBDIR/linkage/plugins"], [Plugin directory])
 
 GETTEXT_PACKAGE=$PACKAGE_NAME
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",GETTEXT_PACKAGE)
