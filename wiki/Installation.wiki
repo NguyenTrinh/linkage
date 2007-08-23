@@ -34,7 +34,7 @@ sudo apt-get install libboost-date-time-dev libboost-date-time1.33.1 \
 libboost-filesystem-dev libboost-filesystem1.33.1 libboost-regex-dev \
 libboost-regex1.33.1 libboost-signals-dev libboost-signals1.33.1 \
 libboost-iostreams-dev libboost-iostreams1.33.1 \
-libboost-thread-dev libboost-thread1.33.1 libboost-dev
+libboost-thread-dev libboost-thread1.33.1 libboost-dev libboost-serialization-dev
 cd libtorrent-0.12
 ./configure --prefix=/usr
 make
@@ -59,4 +59,3 @@ sudo make install
 
 = Gentoo =
 An ebuild is available in Portage, http://packages.gentoo.org/packages/?category=net-p2p;name=linkage
-
