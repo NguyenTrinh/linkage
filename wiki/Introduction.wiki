@@ -17,6 +17,8 @@ I guess Dave had a similar view of things when he started his own client, I saw 
 
 || [http://linkage.googlecode.com/svn/wiki/images/linkage-prefs.png http://linkage.googlecode.com/svn/wiki/images/linkage-prefs.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-groups.png http://linkage.googlecode.com/svn/wiki/images/linkage-groups.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-new.png http://linkage.googlecode.com/svn/wiki/images/linkage-new.th.png] ||
 
+Some more screenshots, and review is available here (in Chinese):  http://linuxtoy.org/archives/linkage.html
+
 = Installing =
 See [Installation]
 
