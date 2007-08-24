@@ -68,7 +68,7 @@
 			<applyto>/apps/linkage/network/max_connections</applyto>
 			<owner>linkage</owner>
 			<type>int</type>
-			<default>1000</default>
+			<default>500</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -188,7 +188,7 @@
 			<applyto>/apps/linkage/network/max_torrent_connections</applyto>
 			<owner>linkage</owner>
 			<type>int</type>
-			<default>0</default>
+			<default>50</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -641,7 +641,7 @@
 			<applyto>/apps/linkage/files/max_open</applyto>
 			<owner>linkage</owner>
 			<type>int</type>
-			<default>20</default>
+			<default>100</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
