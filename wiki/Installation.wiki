@@ -1,7 +1,13 @@
 #summary Installation instructions
 #labels Featured
 
-= Fedora Core 7 =
+= Fedora =
+
+== Binrary packages ==
+Thanks drago01 Linkage is now available in Fedora repos.
+{{{
+yum --enablerepo=development install linkage
+}}}
 
 == Source install ==
 Optional dependencies are curl, gupnp, exo, libgnomemm, gnome-vfsmm and libgnomeuimm.
