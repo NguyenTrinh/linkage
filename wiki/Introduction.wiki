@@ -13,9 +13,9 @@ I guess Dave had a similar view of things when he started his own client, I saw 
 
 = Screenshots =
 
-|| [http://linkage.googlecode.com/svn/wiki/images/linkage-small.png http://linkage.googlecode.com/svn/wiki/images/linkage-small.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-general.png http://linkage.googlecode.com/svn/wiki/images/linkage-general.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-transfer.png http://linkage.googlecode.com/svn/wiki/images/linkage-transfer.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-files.png http://linkage.googlecode.com/svn/wiki/images/linkage-files.th.png] ||
+|| [http://zeflunk.googlepages.com/linkage-small.png http://zeflunk.googlepages.com/linkage-small.th.png] || [http://zeflunk.googlepages.com/linkage-general.png http://zeflunk.googlepages.com/linkage-general.th.png] || [http://zeflunk.googlepages.com/linkage-transfer.png http://zeflunk.googlepages.com/linkage-transfer.th.png] || [http://zeflunk.googlepages.com/linkage-files.png http://zeflunk.googlepages.com/linkage-files.th.png] ||
 
-|| [http://linkage.googlecode.com/svn/wiki/images/linkage-prefs.png http://linkage.googlecode.com/svn/wiki/images/linkage-prefs.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-groups.png http://linkage.googlecode.com/svn/wiki/images/linkage-groups.th.png] || [http://linkage.googlecode.com/svn/wiki/images/linkage-new.png http://linkage.googlecode.com/svn/wiki/images/linkage-new.th.png] ||
+|| [http://zeflunk.googlepages.com/linkage-prefs.png http://zeflunk.googlepages.com/linkage-prefs.th.png] || [http://zeflunk.googlepages.com/linkage-groups.png http://zeflunk.googlepages.com/linkage-groups.th.png] || [http://zeflunk.googlepages.com/linkage-new.png http://zeflunk.googlepages.com/linkage-new.th.png] ||
 
 Some more screenshots, and review is available here (in Chinese):  http://linuxtoy.org/archives/linkage.html
 
