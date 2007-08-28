@@ -41,7 +41,10 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	m_position = e["position"].integer();
 	if (ri.resume.find_key("group"))
 		m_group = e["group"].string();
-
+	if (ri.resume.find_key("name"))
+		m_name = e["name"].string();
+	else
+		m_name = m_info.name();
 	m_up_limit = e["upload-limit"].integer();
 	m_down_limit = e["download-limit"].integer();
 
@@ -88,9 +91,14 @@ Torrent::~Torrent()
 {
 }
 
-Glib::PropertyProxy<libtorrent::torrent_handle> Torrent::property_handle()
+Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle> Torrent::property_handle()
 {
-	return m_prop_handle.get_proxy();
+	return Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle>(this, "handle");
+}
+
+sigc::signal<void, unsigned int, unsigned int> Torrent::signal_position_changed()
+{
+	return m_signal_position_changed;
 }
 
 libtorrent::torrent_handle Torrent::get_handle()
@@ -100,7 +108,7 @@ libtorrent::torrent_handle Torrent::get_handle()
 
 Glib::ustring Torrent::get_name()
 {
-	return m_info.name();
+	return m_name;
 }
 
 const Glib::ustring& Torrent::get_group()
@@ -315,6 +323,11 @@ void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 		get_handle().replace_trackers(m_trackers);
 }
 
+void Torrent::set_name(const Glib::ustring& name)
+{
+	m_name = name;
+}
+
 void Torrent::set_group(const Glib::ustring& group)
 {
 	m_group = group;
@@ -377,10 +390,9 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 
 void Torrent::set_position(unsigned int position)
 {
-	// diff should be either 1 or -1
-	int diff = m_position - position;
+	unsigned int old = m_position;
 	m_position = position;
-	Engine::get_torrent_manager()->set_torrent_position(m_info.info_hash(), diff);
+	m_signal_position_changed.emit(m_position, old);
 }
 
 void Torrent::set_filter(const std::vector<bool>& filter)
@@ -607,6 +619,9 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 	resume_entry["download-limit"] = m_down_limit;
 	resume_entry["upload-limit"] = m_up_limit;
 	resume_entry["completed"] = m_completed;
+
+	if (!m_name.empty())
+		resume_entry["name"] = m_name;
 
 	libtorrent::entry::list_type e_filter;
 	for (unsigned int i = 0; i < m_filter.size(); i++)
