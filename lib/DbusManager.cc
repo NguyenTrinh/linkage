@@ -254,6 +254,7 @@ DbusManager::DbusManager() : RefCounter<DbusManager>::RefCounter(this)
 
 DbusManager::~DbusManager()
 {
+	dbus_connection_unref(m_connection);
 }
 
 void DbusManager::unregister_torrent(Torrent* torrent)
