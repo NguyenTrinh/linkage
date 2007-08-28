@@ -36,7 +36,18 @@ class DbusManager : public RefCounter<DbusManager>
 	DBusConnection* m_connection;
 	
 	sigc::signal<void> m_signal_disconnect;
-	
+
+	static bool handler_common(DBusConnection* connection,
+		DBusMessage* message,
+		const char* introspect,
+		DbusManager* self);
+	static DBusHandlerResult handler_interface(DBusConnection* connection,
+		DBusMessage* message,
+		DbusManager* self);
+	static DBusHandlerResult handler_torrent(DBusConnection* connection,
+		DBusMessage* message,
+		Torrent* torrent);
+
 	DbusManager();
 
 	friend class TorrentManager;
@@ -51,17 +62,6 @@ public:
 		const Glib::ustring& member,
 		const Glib::ustring& path,
 		const Glib::ustring& msg = Glib::ustring());
-
-	static bool handler_common(DBusConnection* connection,
-		DBusMessage* message,
-		const char* introspect,
-		DbusManager* self);
-	static DBusHandlerResult handler_interface(DBusConnection* connection,
-		DBusMessage* message,
-		DbusManager* self);
-	static DBusHandlerResult handler_torrent(DBusConnection* connection,
-		DBusMessage* message,
-		Torrent* torrent);
 	
 	static Glib::RefPtr<DbusManager> create();
 	~DbusManager();
