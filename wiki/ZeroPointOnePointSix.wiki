@@ -9,8 +9,6 @@ Here is a bunch of stuff that are currently planned for the next release, feel f
 == New open/save path dialog ==
   * Having two filechooser dialogs popping up after one another is quite annoying. Instead we should integrate the two into one dialog and add some more advanced options like in Azureus or µTorrent.
   * The advanced options should at least include custom naming, allocation mode, file filtering and open for seeding.
-  * Mockups: http://groups.google.com/group/linkage-devel/attach/2a092dcb748ab584/opendialog.png?part=2&view=1
-http://groups.google.com/group/linkage-devel/attach/2a092dcb748ab584/opendialog2.png?part=3&view=1
 
 == UI class ==
   * This class should be cleaned up and possibly split up, perhaps into an App and MainWin class where the MainWin only contains widget related stuff?
@@ -32,7 +30,7 @@ http://groups.google.com/group/linkage-devel/attach/2a092dcb748ab584/opendialog2
 
 == TorrentList ==
   * Possibly add customizable text format in printf style.
-  * Make the view more easier to follow and utilize the width of the view more effectively (without introducing horizontal scrollbars!). See http://groups.google.com/group/linkage-devel/attach/48f4a7adf175ddea/Linkage.png?part=2&view=1
+  * Make the view more easier to follow and utilize the width of the view more effectively (without introducing horizontal scrollbars!)
   * Maybe add option to show different columns and reorder them. And option to show/hide column headers.
 
 == Groups ==
