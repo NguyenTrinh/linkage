@@ -7,14 +7,7 @@ Latest release is 0.1.4 available from the [http://code.google.com/p/linkage/dow
 
 = Planned releases =
   * *0.1.6*
-    * Add torrent info to the save path dialog
-    * Clean up and review code
-    * RSS plugin, Scheduler plugin
-    * Merge library part into main app
-    * Finalize plugin architecture
-    * Support for python plugins?
-    * Add more dbus calls/signals
-    * Merge library part into binary
+    * See [ZeroPointOnePointSix]
   * *0.1.8* Avahi support?
 
   * *0.2* Major rewrite
