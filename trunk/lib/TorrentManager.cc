@@ -142,6 +142,24 @@ void TorrentManager::on_handle_changed(Torrent* torrent)
 	check_queue();
 }
 
+void TorrentManager::on_position_changed(unsigned int position, unsigned int old, Torrent* torrent)
+{
+	int diff = (old > position) ? 1 : -1;
+	TorrentIter iter;
+	for (iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
+	{
+		unsigned int p = iter->second->get_position();
+		if (p == torrent->get_position() && iter->first != torrent->get_hash())
+		{
+			iter->second->set_position(position + diff);
+			break;
+		}
+	}
+
+	if (iter == m_torrents.end())
+		check_queue();
+}
+
 void TorrentManager::set_torrent_settings(Torrent* torrent)
 {
 	if (!torrent->is_stopped())
@@ -154,23 +172,6 @@ void TorrentManager::set_torrent_settings(Torrent* torrent)
 		/* FIXME: Make this configurable */
 		handle.resolve_countries(true);
 	}
-}
-
-void TorrentManager::set_torrent_position(const libtorrent::sha1_hash& hash, int diff)
-{
-	TorrentIter iter;
-	for (iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
-	{
-		unsigned int position = iter->second->get_position();
-		if (position == m_torrents[hash]->get_position() && iter->first != hash)
-		{
-			iter->second->set_position(position + diff);
-			break;
-		}
-	}
-
-	if (iter == m_torrents.end())
-		check_queue();
 }
 
 bool TorrentManager::exists(const libtorrent::sha1_hash& hash)
@@ -256,6 +257,8 @@ WeakPtr<Torrent> TorrentManager::add_torrent(const libtorrent::entry& e, const l
 	Torrent* torrent = new Torrent(ri, false);
 	torrent->property_handle().signal_changed().connect(sigc::bind(
 		sigc::mem_fun(this, &TorrentManager::on_handle_changed), torrent));
+	torrent->signal_position_changed().connect(sigc::bind(
+		sigc::mem_fun(this, &TorrentManager::on_position_changed), torrent));
 
 	libtorrent::sha1_hash hash = info.info_hash();
 	m_torrents[hash] = torrent;

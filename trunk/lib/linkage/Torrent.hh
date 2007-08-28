@@ -34,6 +34,47 @@ typedef std::list<libtorrent::sha1_hash> HashList;
 
 class Torrent : public Glib::Object
 {
+	friend class TorrentManager;
+	friend class SessionManager;
+
+	struct ResumeInfo
+	{
+		libtorrent::entry resume;
+		libtorrent::torrent_info info;
+		ResumeInfo(const libtorrent::entry& e, const libtorrent::torrent_info& i) : resume(e), info(i) {}
+	};
+
+	enum ReplyType { REPLY_ANY, REPLY_OK, REPLY_ANNOUNCING };
+	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring(), ReplyType type = REPLY_ANY);
+
+	void set_handle(const libtorrent::torrent_handle& handle);
+
+	libtorrent::size_type m_uploaded;
+	libtorrent::size_type m_downloaded;
+
+	Glib::Property<libtorrent::torrent_handle> m_prop_handle;
+	sigc::signal<void, unsigned int, unsigned int> m_signal_position_changed;
+
+	libtorrent::torrent_info m_info;
+
+	typedef std::map<Glib::ustring, Glib::ustring> ReplyMap;
+	ReplyMap m_replies;
+	int m_cur_tier;
+	bool m_announcing;
+
+	//std::vector<int> m_priorities;
+	std::vector<bool> m_filter;
+
+	bool m_is_queued;
+
+	unsigned int m_position;
+	Glib::ustring m_group, m_path, m_name;
+	int m_up_limit, m_down_limit;
+
+	bool m_completed;
+
+	std::vector<libtorrent::announce_entry> m_trackers;
+
 public:
 	enum State
 	{
@@ -50,16 +91,8 @@ public:
 		ERROR = 0x200
 	};
 
-	struct ResumeInfo
-	{
-		libtorrent::entry resume;
-		libtorrent::torrent_info info;
-		ResumeInfo(const libtorrent::entry& e, const libtorrent::torrent_info& i) : resume(e), info(i) {}
-	};
-
-	enum ReplyType { REPLY_ANY, REPLY_OK, REPLY_ANNOUNCING };
-
-	Glib::PropertyProxy<libtorrent::torrent_handle> property_handle();
+	Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle> property_handle();
+	sigc::signal<void, unsigned int, unsigned int> signal_position_changed();
 	libtorrent::torrent_handle get_handle();
 	std::pair<Glib::ustring, Glib::ustring> get_tracker_reply();
 	Glib::ustring get_name();
@@ -87,7 +120,7 @@ public:
 	const std::vector<libtorrent::partial_piece_info> get_download_queue();
 	const std::vector<float> get_file_progress();
 
-	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring(), ReplyType type = REPLY_ANY);
+	void set_name(const Glib::ustring& name);
 	void set_group(const Glib::ustring& group);
 	void set_path(const Glib::ustring& path);
 	void set_position(unsigned int position);
@@ -115,36 +148,8 @@ public:
 
 	const libtorrent::entry get_resume_entry(bool stopping = true, bool quitting = false);
 
-	/* FIXME: Friend access only? */
-	void set_handle(const libtorrent::torrent_handle& handle);
-
 	Torrent(const ResumeInfo& ri, bool queued = false);
 	~Torrent();
-
-private:
-	libtorrent::size_type m_uploaded;
-	libtorrent::size_type m_downloaded;
-
-	Glib::Property<libtorrent::torrent_handle> m_prop_handle;
-	libtorrent::torrent_info m_info;
-
-	typedef std::map<Glib::ustring, Glib::ustring> ReplyMap;
-	ReplyMap m_replies;
-	int m_cur_tier;
-	bool m_announcing;
-
-	//std::vector<int> m_priorities;
-	std::vector<bool> m_filter;
-
-	bool m_is_queued;
-
-	unsigned int m_position;
-	Glib::ustring m_group, m_path;
-	int m_up_limit, m_down_limit;
-
-	bool m_completed;
-
-	std::vector<libtorrent::announce_entry> m_trackers;
 };
 
 #endif /* TORRENT_HH */
