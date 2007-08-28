@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-20 15:54+0200\n"
+"POT-Creation-Date: 2007-08-29 01:09+0200\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>\n"
 "Language-Team: Swedish\n"
@@ -212,7 +212,7 @@ msgstr "Ansluter"
 msgid "Handshake"
 msgstr "Handskakning"
 
-#: ../src/PeerList.cc:239 ../lib/Torrent.cc:245
+#: ../src/PeerList.cc:239 ../lib/Torrent.cc:253
 msgid "Queued"
 msgstr "Köad"
 
@@ -288,80 +288,80 @@ msgstr ""
 msgid "<i>None</i>"
 msgstr "<i>Ingen</i>"
 
-#: ../src/UI.cc:355 ../src/UI.cc:421
+#: ../src/UI.cc:348 ../src/UI.cc:414
 msgid "Failed to connect to GNOME session"
 msgstr "Misslyckades att ansluta till GNOME sessionen"
 
-#: ../src/UI.cc:607
+#: ../src/UI.cc:600
 msgid "Yes"
 msgstr "Ja"
 
-#: ../src/UI.cc:607
+#: ../src/UI.cc:600
 msgid "No"
 msgstr "Nej"
 
-#: ../src/UI.cc:624
+#: ../src/UI.cc:617
 msgid "<i>Add tracker</i>"
 msgstr "<i>Lägg till tracker</i>"
 
-#: ../src/UI.cc:647 ../lib/SessionManager.cc:214
+#: ../src/UI.cc:640 ../lib/SessionManager.cc:214
 msgid "File not found, \"%1\""
 msgstr "Filen hittades inte, \"%1\""
 
-#: ../src/UI.cc:656
+#: ../src/UI.cc:649
 msgid "Select path for %1"
 msgstr "Välj sökväg för %1"
 
-#: ../src/UI.cc:680
+#: ../src/UI.cc:673
 msgid "Open torrent"
 msgstr "Öppna torrent"
 
-#: ../src/UI.cc:684
+#: ../src/UI.cc:677
 msgid "BitTorrent files"
 msgstr "BitTorrent filer"
 
-#: ../src/UI.cc:688
+#: ../src/UI.cc:681
 msgid "All files"
 msgstr "Alla filer"
 
-#: ../src/UI.cc:705
+#: ../src/UI.cc:698
 msgid "Select path"
 msgstr "Välj sökväg"
 
-#: ../src/UI.cc:744 ../data/linkage.desktop.in.h:1
+#: ../src/UI.cc:737 ../data/linkage.desktop.in.h:1
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
-#: ../src/UI.cc:811
+#: ../src/UI.cc:804
 msgid "Are you sure you wish to remove \"%1\" and it's content?"
 msgstr "Är du säker på att du vill ta bort \"%1\" och hela dess innehåll?"
 
-#: ../src/UI.cc:818
+#: ../src/UI.cc:811
 msgid "(%1 files)."
 msgstr "(%1 filer)."
 
-#: ../src/UI.cc:820
+#: ../src/UI.cc:813
 msgid "(1 file)."
 msgstr "(1 fil)."
 
-#: ../src/UI.cc:822
+#: ../src/UI.cc:815
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
-#: ../src/UI.cc:970 ../plugins/notification/PluginNotification.cc:191
+#: ../src/UI.cc:963 ../plugins/notification/PluginNotification.cc:194
 msgid "No suitable file manager found"
 msgstr "Ingen passande filhanterare funnen"
 
 #. FIXME: make an EntryDialog class for this
-#: ../src/UI.cc:1108
+#: ../src/UI.cc:1101
 msgid "Add new tracker"
 msgstr "Lägg till ny tracker"
 
-#: ../src/UI.cc:1115
+#: ../src/UI.cc:1108
 msgid "Tracker URL:"
 msgstr ""
 
-#: ../lib/DbusManager.cc:192
+#: ../lib/DbusManager.cc:303
 #, c-format
 msgid "Ignoring attempt to send message to self (%s: %s)"
 msgstr "Ignorerar försök att sicka meddelande till själv (%s: %s)"
@@ -398,48 +398,48 @@ msgstr "Slog samman %1 med %2"
 msgid "Could not create directory: %s"
 msgstr "Kunde inte skapa katalog: %s"
 
-#: ../lib/Torrent.cc:243
+#: ../lib/Torrent.cc:251
 msgid "Error"
 msgstr "Fel"
 
-#: ../lib/Torrent.cc:247
+#: ../lib/Torrent.cc:255
 msgid "Stopped"
 msgstr "Stoppad"
 
-#: ../lib/Torrent.cc:249
+#: ../lib/Torrent.cc:257
 msgid "Queued for checking"
 msgstr "Köad för kontroll"
 
-#: ../lib/Torrent.cc:251
+#: ../lib/Torrent.cc:259
 msgid "Checking"
 msgstr "Kontrollerar"
 
-#: ../lib/Torrent.cc:253 ../lib/TorrentManager.cc:94
+#: ../lib/Torrent.cc:261 ../lib/TorrentManager.cc:95
 #: ../data/settings.glade.h:14
 msgid "Announcing"
 msgstr "Annonerar"
 
-#: ../lib/Torrent.cc:255
+#: ../lib/Torrent.cc:263
 msgid "Finished"
 msgstr "Klar"
 
-#: ../lib/Torrent.cc:257
+#: ../lib/Torrent.cc:265
 msgid "Seeding"
 msgstr "Laddar upp"
 
-#: ../lib/Torrent.cc:259
+#: ../lib/Torrent.cc:267
 msgid "Allocating"
 msgstr "Allokerar"
 
-#: ../lib/Torrent.cc:262
+#: ../lib/Torrent.cc:270
 msgid "Downloading"
 msgstr "Laddar ned"
 
-#: ../lib/TorrentManager.cc:104
+#: ../lib/TorrentManager.cc:105
 msgid "OK, got %1 peers"
 msgstr "OK, fick %1 klienter"
 
-#: ../lib/TorrentManager.cc:126
+#: ../lib/TorrentManager.cc:127
 msgid "%1 (%2 times in a row)"
 msgstr "%1 (%2 gånger i rad)"
 
@@ -471,87 +471,95 @@ msgstr ""
 "%1 (%2) nedladdningar, %3 uppladdningar\n"
 "NL: %4/s\tUL: %5/s"
 
-#: ../plugins/notification/PluginNotification.cc:43
+#: ../plugins/notification/PluginNotification.cc:44
 msgid "Displays notifications trough libnotify"
 msgstr "Visar notifieringar genom libnotify"
 
-#: ../plugins/notification/PluginNotification.cc:202
+#: ../plugins/notification/PluginNotification.cc:205
 msgid "Invalid bencoding"
 msgstr "Ogiltig bkodning"
 
-#: ../plugins/notification/PluginNotification.cc:207
+#: ../plugins/notification/PluginNotification.cc:210
 msgid "Missing file"
 msgstr "Fil ej funnen"
 
-#: ../plugins/notification/PluginNotification.cc:212
+#: ../plugins/notification/PluginNotification.cc:215
 msgid "Duplicate torrent"
 msgstr "Dubblett torrent"
 
-#: ../plugins/notification/PluginNotification.cc:222
+#: ../plugins/notification/PluginNotification.cc:225
 msgid "Cannot listen on given interface %1"
 msgstr "Kan inte lyssna på givet gränssnitt %1"
 
-#: ../plugins/notification/PluginNotification.cc:228
+#: ../plugins/notification/PluginNotification.cc:231
 msgid "None of the ports in range %1 could be opened for listening"
 msgstr "Ingen av portarna i området %1 kunde öppnas för lyssning"
 
-#: ../plugins/notification/PluginNotification.cc:233
+#: ../plugins/notification/PluginNotification.cc:236
 msgid "Failed to open port: %1"
 msgstr "Misslyckades med att öppna port %s"
 
-#: ../plugins/notification/PluginNotification.cc:236
+#: ../plugins/notification/PluginNotification.cc:239
 msgid "Listen failed"
 msgstr "Lyssning misslyckades"
 
-#: ../plugins/notification/PluginNotification.cc:242
+#: ../plugins/notification/PluginNotification.cc:245
 msgid "%1 is complete"
 msgstr "%1 är färdig"
 
-#: ../plugins/notification/PluginNotification.cc:250
+#: ../plugins/notification/PluginNotification.cc:253
 msgid "Torrent finished"
 msgstr "Torrent klar"
 
-#: ../plugins/notification/PluginNotification.cc:251
+#: ../plugins/notification/PluginNotification.cc:254
 #: ../data/linkage.glade.h:36
 msgid "Open location"
 msgstr "Öppna plats"
 
-#: ../plugins/notification/PluginNotification.cc:264
+#: ../plugins/notification/PluginNotification.cc:267
 msgid "File error"
 msgstr "Filfel"
 
-#: ../plugins/notification/PluginNotification.cc:265
+#: ../plugins/notification/PluginNotification.cc:268
 msgid "Stop torrent"
 msgstr "Stoppa torrent"
 
-#: ../plugins/notification/PluginNotification.cc:274
+#: ../plugins/notification/PluginNotification.cc:277
 msgid "Incompatible file version: %1"
 msgstr "Inkompitabel filversion: %1"
 
-#: ../plugins/notification/PluginNotification.cc:279
+#: ../plugins/notification/PluginNotification.cc:282
 msgid "Mismatching hash: %1"
 msgstr "Ej matchande kontrollsumma: %1"
 
-#: ../plugins/notification/PluginNotification.cc:284
+#: ../plugins/notification/PluginNotification.cc:287
 msgid "Checksum failed for piece %1"
 msgstr "Kontrollsumma misslyckades för del %1"
 
-#: ../plugins/notification/PluginNotification.cc:288
+#: ../plugins/notification/PluginNotification.cc:291
 msgid "Mismatching number of files"
 msgstr "Ej matchande antal filer"
 
-#: ../plugins/notification/PluginNotification.cc:294
+#: ../plugins/notification/PluginNotification.cc:297
 msgid "File size mismatch for %1"
 msgstr "Ej matchande fil storlek för %1"
 
 #. Other too detailed errors
-#: ../plugins/notification/PluginNotification.cc:297
+#: ../plugins/notification/PluginNotification.cc:300
 msgid "Fast resume rejected, content check forced"
 msgstr "Snabb återupptagning avvisades, tvingar kontroll av innehåll"
 
-#: ../plugins/notification/PluginNotification.cc:299
+#: ../plugins/notification/PluginNotification.cc:302
 msgid "Fast resume failed"
 msgstr "Snabb återupptagning misslyckades"
+
+#: ../plugins/notification/PluginNotification.cc:307
+msgid "DBus disconnected"
+msgstr "DBus frånkopplat"
+
+#: ../plugins/notification/PluginNotification.cc:307
+msgid "Lost connection to the DBus session"
+msgstr "Tappade anslutningen till DBus sessionen"
 
 #: ../plugins/upnp/PluginUPnP.cc:35
 msgid "Enables port forwarding through gupnp"
