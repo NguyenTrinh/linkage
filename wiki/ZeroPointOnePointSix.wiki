@@ -1,0 +1,43 @@
+#summary Directions for the 0.1.6 release
+#labels Phase-Implementation
+
+= Introduction =
+
+Here is a bunch of stuff that are currently planned for the next release, feel free to add/remove/comment. If you start hacking on one of these ideas please add a note saying so so we don't duplicate our efforts, when a feature is completed that should be marked here as well.
+
+
+== New open/save path dialog ==
+  * Having two filechooser dialogs popping up after one another is quite annoying. Instead we should integrate the two into one dialog and add some more advanced options like in Azureus or µTorrent.
+  * The advanced options should at least include custom naming, allocation mode, file filtering and open for seeding.
+  * Mockups: http://groups.google.com/group/linkage-devel/attach/2a092dcb748ab584/opendialog.png?part=2&view=1
+http://groups.google.com/group/linkage-devel/attach/2a092dcb748ab584/opendialog2.png?part=3&view=1
+
+== UI class ==
+  * This class should be cleaned up and possibly split up, perhaps into an App and MainWin class where the MainWin only contains widget related stuff?
+
+== New Plugins ==
+  * RSS plugin seems to be quite popular
+  * Bandwidth scheduler plugin (which would be easier to code =)
+  * Also the Plugin API should be reviewed.
+  * Perhaps add some support for python plugins?
+
+== Add more DBus calls/signals ==
+  * We should export most of the backend API through DBus, the DBus API could then be used for other kind of interfaces etc (i.e. a web interface would be quite trivial to do this way). How the API should actually be structured is up for debate, my idea is to basically just use a kind torrent proxy object which would have members like stop/start/status and signals when a torrent is added/removed.
+  * Maybe add signals for alerts as well.
+
+== Preferences ==
+  * SettingsManager should have a signal for each setting, so that changing values through gconf-editor changes the values in linkage at the same time. This way preferences can be applied to when changed in the SettingsWin, and not when the window closes. 
+  * Add new options with libtorrent 0.13
+  * Add stop seeding at ratio "x" option
+
+== TorrentList ==
+  * Possibly add customizable text format in printf style.
+  * Make the view more easier to follow and utilize the width of the view more effectively (without introducing horizontal scrollbars!). See http://groups.google.com/group/linkage-devel/attach/48f4a7adf175ddea/Linkage.png?part=2&view=1
+  * Maybe add option to show different columns and reorder them. And option to show/hide column headers.
+
+== Groups ==
+  * Add sub/child groups which inherit their parents rules..
+  * Add more stuff to filter groups on, like ratio etc. 
+
+
+
