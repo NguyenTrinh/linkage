@@ -304,7 +304,7 @@ void NotifyPlugin::on_fastresume_rejected(const libtorrent::sha1_hash& hash, con
 
 void NotifyPlugin::on_dbus_disconnect()
 {
-	notify(_("DBus disconnectd"), _("Lost connection to the DBus session"), NOTIFY_URGENCY_NORMAL);
+	notify(_("DBus disconnected"), _("Lost connection to the DBus session"), NOTIFY_URGENCY_NORMAL);
 }
 
 Plugin* create_plugin()
