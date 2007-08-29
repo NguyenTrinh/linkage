@@ -54,6 +54,7 @@ public:
 				website(w),
 				has_options(h),
 				parent(p) {}
+		Info() {}
 	};
 
 	sigc::signal<void, Plugin*> signal_unloading();
