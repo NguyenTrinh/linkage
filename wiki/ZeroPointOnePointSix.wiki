@@ -37,5 +37,6 @@ Here is a bunch of stuff that are currently planned for the next release, feel f
   * Add sub/child groups which inherit their parents rules..
   * Add more stuff to filter groups on, like ratio etc. 
 
-
-
+== Glade files ==
+  * Merge all of them into one Glade XML
+  * Add build option to bake the XML into the binary
