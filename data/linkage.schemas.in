@@ -200,8 +200,8 @@
 
 
 		<schema>
-			<key>/schemas/apps/linkage/network/proxy/ip</key>
-			<applyto>/apps/linkage/network/proxy/ip</applyto>
+			<key>/schemas/apps/linkage/network/proxy/host</key>
+			<applyto>/apps/linkage/network/proxy/host</applyto>
 			<owner>linkage</owner>
 			<type>string</type>
 			<default></default>
@@ -224,8 +224,8 @@
 		</schema>
 
 		<schema>
-			<key>/schemas/apps/linkage/network/proxy/login</key>
-			<applyto>/apps/linkage/network/proxy/login</applyto>
+			<key>/schemas/apps/linkage/network/proxy/username</key>
+			<applyto>/apps/linkage/network/proxy/username</applyto>
 			<owner>linkage</owner>
 			<type>string</type>
 			<default></default>
@@ -236,11 +236,23 @@
 		</schema>
 
 		<schema>
-			<key>/schemas/apps/linkage/network/proxy/pass</key>
-			<applyto>/apps/linkage/network/proxy/pass</applyto>
+			<key>/schemas/apps/linkage/network/proxy/password</key>
+			<applyto>/apps/linkage/network/proxy/password</applyto>
 			<owner>linkage</owner>
 			<type>string</type>
 			<default></default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/network/proxy/type</key>
+			<applyto>/apps/linkage/network/proxy/type</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>0</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -293,6 +305,18 @@
 			<owner>linkage</owner>
 			<type>int</type>
 			<default>128</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/advanced_expanded</key>
+			<applyto>/apps/linkage/ui/advanced_expanded</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>false</default>
 			<locale name="C">
 				<short></short>
 				<long></long>

@@ -46,6 +46,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <libgnomevfsmm/uri.h>
 #endif
 
+#include <boost/date_time/posix_time/time_formatters.hpp>
+
+#include "Statusbar.hh"
+#include "PieceMap.hh"
+#include "GroupList.hh"
+#include "GroupsWin.hh"
+#include "PeerList.hh"
+#include "FileList.hh"
+#include "SettingsWin.hh"
+#include "TorrentCreator.hh"
+#include "TorrentMenu.hh"
+#include "StateFilter.hh"
+#include "AddDialog.hh"
 #include "UI.hh"
 
 #include "linkage/Engine.hh"
@@ -80,8 +93,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	settings_xml->get_widget_derived("settings_win", settings_win);
 	settings_win->set_transient_for(*this);
 	
-	glade_xml->get_widget_derived("torrent_creator", torrent_win);
-	torrent_win->set_transient_for(*this);
+	
 
 	Glib::RefPtr<Gnome::Glade::Xml> groups_xml;
 	try
@@ -96,6 +108,10 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	groups_win->set_transient_for(*this);
 
 	// get the widgets we work with
+	glade_xml->get_widget_derived("add_dialog", add_dialog);
+	add_dialog->set_transient_for(*this);
+	glade_xml->get_widget_derived("new_dialog", new_dialog);
+	add_dialog->set_transient_for(*this);
 	glade_xml->get_widget_derived("torrent_list", torrent_list);
 	glade_xml->get_widget_derived("state_combobox", state_filter);
 	glade_xml->get_widget_derived("groups_treeview", group_list);
@@ -142,7 +158,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
  	// attach menu and toolbar signal handlers coz glademm sux:(
  	glade_xml->connect_clicked
- 		("mnu_file_new", sigc::mem_fun(torrent_win, &TorrentCreator::show));
+ 		("mnu_file_new", sigc::mem_fun(new_dialog, &TorrentCreator::run));
  	glade_xml->connect_clicked
  		("mnu_file_open", sigc::mem_fun(this, &UI::on_add));
 	glade_xml->connect_clicked
@@ -253,6 +269,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	/* setup group and state stuff, this is ugly and should be changed */
 	groups_win->signal_groups_changed().connect(sigc::mem_fun(group_list, &GroupList::on_groups_changed));
 	groups_win->signal_groups_changed().connect(sigc::mem_fun(torrent_menu, &TorrentMenu::on_groups_changed));
+	groups_win->signal_groups_changed().connect(sigc::mem_fun(add_dialog, &AddDialog::on_groups_changed));
 	group_list->signal_filter_set().connect(sigc::mem_fun(torrent_list, &TorrentList::on_filter_set));
 	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(group_list, &GroupList::on_state_filter_changed));
 	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(torrent_list, &TorrentList::on_state_filter_changed));
@@ -285,9 +302,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	torrent_menu->signal_check().connect(sigc::mem_fun(this, &UI::on_check));
 
 	show_all_children();
-
-	file_chooser = new OpenDialog(this);
-	path_chooser = new SaveDialog(this);
 
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
@@ -381,12 +395,11 @@ UI::~UI()
 	delete peer_list;
 	delete file_list;
 	delete settings_win;
-	delete torrent_win;
+	delete new_dialog;
 	delete group_list;
 	delete groups_win;
 	delete torrent_menu;
-	delete file_chooser;
-	delete path_chooser;
+	delete add_dialog;
 
 	#if HAVE_EXO
 	g_object_unref(G_OBJECT(exo_client));
@@ -474,7 +487,47 @@ Gtk::Container* UI::get_container(Plugin::PluginParent parent)
 
 void UI::open(const Glib::ustring& uri)
 {
-	add_torrent(uri);
+	if (!is_visible())
+		show();
+
+	int response;
+	if (!uri.empty())
+		response = add_dialog->run_with_file(Glib::filename_from_utf8(uri));
+	else
+		response = add_dialog->run();
+
+	if (response == Gtk::RESPONSE_OK)
+	{
+		AddDialog::AddData data = add_dialog->get_data();
+		if (!Glib::file_test(data.file, Glib::FILE_TEST_EXISTS))
+		{
+			Engine::get_session_manager()->signal_missing_file().emit(
+				String::ucompose(_("File not found, \"%1\""), data.file), data.file);
+			return;
+		}
+
+		if (data.seed)
+		{
+			libtorrent::entry::dictionary_type er;
+			er["path"] = data.path;
+			er["downloaded"] = add_dialog->get_info().total_size();
+			er["completed"] = true;
+			save_entry(Glib::build_filename(get_data_dir(),
+				str(add_dialog->get_info().info_hash()) + ".resume"), er);
+		}
+
+		libtorrent::sha1_hash hash = Engine::get_session_manager()->open_torrent(data.file, data.path);
+		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+
+		if (!data.name.empty())
+			torrent->set_name(data.name);
+		if (!data.group.empty())
+			torrent->set_group(data.group);
+		torrent->set_filter(data.filter);
+
+		update(torrent, expander_details->get_expanded());
+	}
+	add_dialog->hide();
 }
 
 void UI::quit()
@@ -552,7 +605,7 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 				std::pair<Glib::ustring, Glib::ustring> p = torrent->get_tracker_reply();
 				label_tracker->set_text(p.first);
 				label_response->set_text(p.second);
-				label_next_announce->set_text(to_simple_string(stats.next_announce));
+				label_next_announce->set_text(boost::posix_time::to_simple_string(stats.next_announce));
 				break;
 			}
 			case PAGE_PEERS:
@@ -590,7 +643,7 @@ void UI::update_statics(const WeakPtr<Torrent>& torrent)
 	//FIXME: set tooltip to full comment
 
 	if (info.creation_date())
-		label_date->set_text(Glib::ustring(to_simple_string(*info.creation_date())) );
+		label_date->set_text(Glib::ustring(boost::posix_time::to_simple_string(*info.creation_date())) );
 	else
 		label_date->set_text("");
 	label_path->set_text(Glib::build_filename(torrent->get_path(), info.name()));
@@ -630,80 +683,6 @@ void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
 		menu_trackers.append(*item);
 	}
 	menu_trackers.show_all_children();
-}
-
-void UI::add_torrent(const Glib::ustring& file)
-{
-	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-	{
-		Engine::get_session_manager()->signal_missing_file().emit(
-			String::ucompose(_("File not found, \"%1\""), file), file);
-		return;
-	}
-
-	if (!is_visible())
-		show();
-
-	Glib::ustring save_path;
-	Glib::ustring name = file.substr(file.rfind("/") + 1, file.size());
-	path_chooser->set_title(String::ucompose(_("Select path for %1"), name));
-	if (!Engine::get_settings_manager()->get_bool("files/use_default_path"))
-	{
-		if (path_chooser->run() == Gtk::RESPONSE_OK)
-		{
-			save_path = path_chooser->get_filename();
-			path_chooser->hide();
-		}
-		else
-		{
-			path_chooser->hide();
-			return;
-		}
-	}
-	else
-		save_path = Engine::get_settings_manager()->get_string("files/default_path");
-
-	libtorrent::sha1_hash hash = Engine::get_session_manager()->open_torrent(file, save_path);
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	if (torrent)
-		update(torrent, expander_details->get_expanded());
-}
-
-OpenDialog::OpenDialog(Gtk::Window *parent)
-: Gtk::FileChooserDialog(*parent, _("Open torrent"))
-{
-	torrent_filter = new Gtk::FileFilter();
-	torrent_filter->add_mime_type("application/x-bittorrent");
-	torrent_filter->set_name(_("BitTorrent files"));
-
-	no_filter = new Gtk::FileFilter();
-	no_filter->add_pattern("*");
-	no_filter->set_name(_("All files"));
-
-	add_filter(*torrent_filter);
-	add_filter(*no_filter);
-
-	Gtk::Button *b = add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-	b->signal_clicked().connect(sigc::mem_fun(this, &OpenDialog::hide));
-	add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
-}
-
-OpenDialog::~OpenDialog()
-{
-	delete torrent_filter;
-	delete no_filter;
-}
-
-SaveDialog::SaveDialog(Gtk::Window *parent)
-: Gtk::FileChooserDialog(*parent, _("Select path"), Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER)
-{
-	Gtk::Button *b = add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-	b->signal_clicked().connect(sigc::mem_fun(this, &SaveDialog::hide));
-	add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
-}
-
-SaveDialog::~SaveDialog()
-{
 }
 
 /* CALLBACKS */
@@ -779,14 +758,7 @@ void UI::on_settings()
 
 void UI::on_add()
 {
-	if (file_chooser->run() == Gtk::RESPONSE_OK)
-	{
-		file_chooser->hide();
-		Glib::ustring file = file_chooser->get_filename();
-		add_torrent(file);
-	}
-	else
-		file_chooser->hide();
+	open();
 }
 
 void UI::on_remove(bool erase_content)
@@ -992,8 +964,7 @@ bool UI::on_delete_event(GdkEventAny*)
 
 void UI::on_quit()
 {
-	if (torrent_win->get_finished())
-		Gtk::Main::quit();
+	Gtk::Main::quit();
 }
 
 void UI::on_toggle_visible()
@@ -1174,11 +1145,11 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 			#if HAVE_GNOME
 			Glib::RefPtr<Gnome::Vfs::Uri> uri = Gnome::Vfs::Uri::create(*iter);
 			if (uri->is_local())
-				add_torrent(Gnome::Vfs::unescape_string(uri->get_path()));
+				open(Gnome::Vfs::unescape_string(uri->get_path()));
 			#else
 			gchar* f = g_filename_from_uri(iter->c_str(), NULL, NULL);
 			if (f)
-				add_torrent(f);
+				open(f);
 			#endif
 		}
 		success = true;
@@ -1227,7 +1198,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 					fclose(file);
 
 					if (ret == CURLE_OK)
-						add_torrent(name);
+						open(name);
 					else
 						notify("Download failed", err);
 

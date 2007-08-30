@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
+
 #ifndef UI_HH
 #define UI_HH
 
@@ -27,12 +28,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/notebook.h>
 #include <gtkmm/window.h>
 #include <gtkmm/button.h>
-#include <gtkmm/filechooserdialog.h>
 #include <gtkmm/expander.h>
 #include <gtkmm/messagedialog.h>
 #include <gdkmm/cursor.h>
 #include <gtkmm/menutoolbutton.h>
 #include <gtkmm/paned.h>
+#include <gtkmm/spinbutton.h>
 
 #include <libglademm.h>
 
@@ -44,39 +45,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <exo/exo.h>
 #endif
 
-#include "Statusbar.hh"
-#include "PieceMap.hh"
-#include "TorrentList.hh"
-#include "GroupList.hh"
-#include "GroupsWin.hh"
-#include "PeerList.hh"
-#include "FileList.hh"
-#include "SettingsWin.hh"
-#include "TorrentCreator.hh"
-#include "TorrentMenu.hh"
-#include "StateFilter.hh"
-
 #include "linkage/Torrent.hh"
 #include "linkage/WeakPtr.hh"
 #include "linkage/Plugin.hh"
 #include "linkage/Interface.hh"
 
-class OpenDialog : public Gtk::FileChooserDialog
-{
-	Gtk::FileFilter *torrent_filter;
-	Gtk::FileFilter *no_filter;
+#include "TorrentList.hh"
 
-public:
-	OpenDialog(Gtk::Window *parent);
-	virtual ~OpenDialog();
-};
-
-class SaveDialog : public Gtk::FileChooserDialog
-{
-public:
-	SaveDialog(Gtk::Window *parent);
-	virtual ~SaveDialog();
-};
+class Statusbar;
+class PieceMap;
+class GroupList;
+class GroupsWin;
+class PeerList;
+class FileList;
+class SettingsWin;
+class TorrentCreator;
+class TorrentMenu;
+class StateFilter;
+class AddDialog;
 
 class UI : public Gtk::Window, public Interface
 {
@@ -125,9 +111,6 @@ class UI : public Gtk::Window, public Interface
 	Gtk::SpinButton* spinbutton_down;
 	Gtk::SpinButton* spinbutton_up;
 
-	OpenDialog* file_chooser;
-	SaveDialog* path_chooser;
-
 	TorrentMenu* torrent_menu;
 
 	PieceMap* piecemap;
@@ -137,9 +120,10 @@ class UI : public Gtk::Window, public Interface
 	StateFilter* state_filter;
 	FileList* file_list;
 	PeerList* peer_list;
+	AddDialog* add_dialog;
+	TorrentCreator* new_dialog;
 
 	SettingsWin* settings_win;
-	TorrentCreator* torrent_win;
 
 	sigc::connection m_conn_tick;
 	sigc::connection m_conn_switch_page;
@@ -194,7 +178,6 @@ class UI : public Gtk::Window, public Interface
 	void build_tracker_menu(const WeakPtr<Torrent>& torrent);
 	void on_popup_tracker_selected(const Glib::ustring& tracker);
 
-	void add_torrent(const Glib::ustring& file);
 	void on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 											 int x, int y,
 											 const Gtk::SelectionData& selection_data,
@@ -240,7 +223,7 @@ public:
 	bool get_visible();
 	void set_visible(bool visible);
 	Gtk::Container* get_container(Plugin::PluginParent parent);
-	void open(const Glib::ustring& uri);
+	void open(const Glib::ustring& uri = Glib::ustring());
 	void quit();
 
 	UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
