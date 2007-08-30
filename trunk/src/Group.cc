@@ -154,12 +154,12 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 	return ret;
 }
 
-const Glib::ustring& Group::get_name()
+const Glib::ustring& Group::get_name() const
 {
 	return m_name;
 }
 
-const std::list<Group::Filter>& Group::get_filters()
+const std::list<Group::Filter>& Group::get_filters() const
 {
 	return m_filters;
 }

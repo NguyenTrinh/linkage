@@ -31,7 +31,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class FileList : public Gtk::TreeView
 {
-	enum Priority { P_NORMAL = 1, P_HIGH, P_MAX = 7};
+	enum Priority { P_SKIP, P_NORMAL, P_HIGH = 4, P_MAX = 6};
+
 	class ModelColumns : public Gtk::TreeModelColumnRecord
 	{
 	public:
@@ -89,7 +90,7 @@ public:
 	void update(const WeakPtr<Torrent>& torrent);
 	
 	FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
-	virtual ~FileList();
+	~FileList();
 };
 
 #endif /* FILELIST_HH */

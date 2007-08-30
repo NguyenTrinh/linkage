@@ -186,13 +186,20 @@ void SessionManager::on_settings()
 	sset.use_dht_as_fallback = sm->get_bool("network/dht_fallback");
 	sset.file_pool_size = sm->get_int("files/max_open");
 
-	Glib::ustring proxy = sm->get_string("network/proxy/ip");
+	Glib::ustring proxy = sm->get_string("network/proxy/host");
 	if (!proxy.empty())
 	{
-		sset.proxy_ip = proxy;
-		sset.proxy_port = sm->get_int("network/proxy/port");
-		sset.proxy_login = sm->get_string("network/proxy/login");
-		sset.proxy_password = sm->get_string("network/proxy/pass");
+		proxy_settings p;
+		p.hostname = proxy;
+		p.port = sm->get_int("network/proxy/port");
+		p.username = sm->get_string("network/proxy/login");
+		p.password = sm->get_string("network/proxy/pass");
+		p.type = libtorrent::proxy_settings::proxy_type(sm->get_int("network/proxy/type"));
+
+		set_peer_proxy(p);
+		set_web_seed_proxy(p);
+		set_tracker_proxy(p);
+		set_dht_proxy(p);
 	}
 	set_settings(sset);
 }
@@ -241,13 +248,14 @@ void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustr
 {
 	if (Engine::get_settings_manager()->get_bool("files/move_finished"))
 	{
+		//FIXME: 0.13 uses an alert for move_storage, also set new path to torrent
 		Glib::ustring path = Engine::get_settings_manager()->get_string("files/finished_path");
 		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		bool ret = false;
 		if (!torrent->is_stopped())
-			ret = torrent->get_handle().move_storage(path.c_str());
-		if (!ret)
-			g_warning(_("Failed to move content for %s to %s"), torrent->get_name().c_str(), path.c_str());
+			torrent->get_handle().move_storage(path.c_str());
+		//if (!ret)
+		//	g_warning(_("Failed to move content for %s to %s"), torrent->get_name().c_str(), path.c_str());
 	}
 }
 

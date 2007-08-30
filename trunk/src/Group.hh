@@ -51,8 +51,8 @@ public:
 
 	bool eval(const WeakPtr<Torrent>& torrent) const;
 
-	const Glib::ustring& get_name();
-	const std::list<Filter>& get_filters();
+	const Glib::ustring& get_name() const;
+	const std::list<Filter>& get_filters() const;
 	
 	operator bool() const
 	{

@@ -1,6 +1,19 @@
 bin_PROGRAMS = linkage
 
-AM_CXXFLAGS = -I$(top_srcdir)/lib $(CPPFLAGS) $(CXXFLAGS) $(GTKMM_CFLAGS) $(LIBTORRENT_CFLAGS) $(LIBCURL_CFLAGS) $(DBUSGLIB_CFLAGS) $(GTHREAD_CFLAGS) ${LIBGLADE_CFLAGS} ${GCONFMM_CFLAGS} $(EXO_CFLAGS) $(GNOME_CFLAGS) -DLOCALEDIR=\""$(datadir)/locale"\"
+AM_CXXFLAGS = -I$(top_srcdir)/lib \
+							$(CPPFLAGS) \
+							$(CXXFLAGS) \
+							$(GTKMM_CFLAGS) \
+							$(LIBTORRENT_CFLAGS) \
+							$(LIBCURL_CFLAGS)  \
+							$(DBUSGLIB_CFLAGS)  \
+							$(GTHREAD_CFLAGS)  \
+							${LIBGLADE_CFLAGS}  \
+							${GCONFMM_CFLAGS}  \
+							$(EXO_CFLAGS)  \
+							$(GNOME_CFLAGS)  \
+							$(LIBGTOP_CFLAGS) \
+							-DLOCALEDIR=\""$(datadir)/locale"\"
 
 linkage_SOURCES = CellRendererPieceMap.hh \
                   FileList.hh \
@@ -36,9 +49,23 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   TorrentMenu.cc \
                   StateFilter.hh \
                   StateFilter.cc \
+                  AddDialog.hh \
+                  AddDialog.cc \
+                  SimpleFileList.hh \
+                  SimpleFileList.cc \
                   main.cc
 
 
-linkage_LDADD = $(LDFLAGS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) \
-	 $(LIBCURL_LIBS) $(DBUSGLIB_LIBS) $(GTHREAD_LIBS) \
-	 ${LIBGLADE_LIBS} ${GCONFMM_LIBS} $(GNOME_LIBS) $(EXO_LIBS) -L$(top_srcdir)/lib -llinkage-1
+linkage_LDADD = $(LDFLAGS) \
+								$(GTKMM_LIBS) \
+								$(LIBTORRENT_LIBS) \
+								$(LIBCURL_LIBS) \
+								$(DBUSGLIB_LIBS) \
+								$(GTHREAD_LIBS) \
+	 							${LIBGLADE_LIBS} \
+								${GCONFMM_LIBS} \
+								$(GNOME_LIBS) \
+								$(EXO_LIBS) \
+								$(LIBGTOP_LIBS) \
+								-L$(top_srcdir)/lib -llinkage-1
+

@@ -36,11 +36,11 @@ Glib::ustring suffix_value(libtorrent::size_type value)
 	std::stringstream ss;
 	ss.imbue(std::locale(""));
 	if (value >= 1073741824)
-		ss << std::fixed << std::setprecision(2) << value/1073741824.0 << " GB";
+		ss << std::fixed << std::setprecision(2) << value/1073741824.0 << " " << _("GB");
 	else if (value >= 1048576)
-		ss << std::fixed << std::setprecision(2) << value/1048576.0 << " MB";
+		ss << std::fixed << std::setprecision(2) << value/1048576.0 << " " << _("MB");
 	else
-		ss << std::fixed << std::setprecision(2) << value/1024.0 << " kB";
+		ss << std::fixed << std::setprecision(2) << value/1024.0 << " " << _("kB");
 	return Glib::locale_to_utf8(ss.str());
 }
 
