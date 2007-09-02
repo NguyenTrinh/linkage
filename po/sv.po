@@ -392,7 +392,7 @@ msgstr "Kontrollerar"
 #: ../lib/Torrent.cc:261 ../lib/TorrentManager.cc:95
 #: ../data/settings.glade.h:14
 msgid "Announcing"
-msgstr "Annonerar"
+msgstr "Annonserar"
 
 #: ../lib/Torrent.cc:263
 msgid "Finished"
