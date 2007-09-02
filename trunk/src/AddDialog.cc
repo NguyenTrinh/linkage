@@ -123,8 +123,6 @@ void AddDialog::on_path_changed()
 	if (!m_info.is_valid())
 		return;
 
-	g_debug("on_path_changed: %s", button_path->get_filename().c_str());
-
 	std::string path = button_path->get_filename();
 	glibtop_fsusage usage;
 	glibtop_get_fsusage(&usage, path.c_str());
