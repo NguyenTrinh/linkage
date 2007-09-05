@@ -188,15 +188,17 @@ Glib::ustring get_ip(const Glib::ustring& iface)
 	if (sockfd == -1)
 		return Glib::ustring();
 
-	struct ifreq ifr;
+	ifreq ifr;
 	ifr.ifr_addr.sa_family = AF_INET;
 
 	strncpy(ifr.ifr_name, iface.c_str(), sizeof(ifr.ifr_name));
 
 	if (ioctl(sockfd, SIOCGIFADDR, &ifr) < 0)
 		return Glib::ustring();
-	
-	return ifr.ifr_addr.sa_data;
+
+	sockaddr_in sa;
+
+	return inet_ntoa(*(in_addr*)&ifr.ifr_addr.sa_data[sizeof(sa.sin_port)]);
 }
 
 Glib::ustring get_config_dir()
