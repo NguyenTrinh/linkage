@@ -32,7 +32,7 @@ Glib::RefPtr<SettingsManager> SettingsManager::create()
 	return Glib::RefPtr<SettingsManager>(new SettingsManager());
 }
 
-SettingsManager::SettingsManager() : RefCounter<SettingsManager>::RefCounter(this)
+SettingsManager::SettingsManager()
 {
 	/* Create data dir if it doesn't exists */
 	// FIXME: this belongs in SessionManager/TorrentManager

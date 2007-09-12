@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/DbusManager.hh"
 
-Glib::RefPtr<Engine> Engine::self					= Glib::RefPtr<Engine>();
+Engine* Engine::self = NULL;
 
 Glib::RefPtr<SettingsManager> Engine::ssm	= Glib::RefPtr<SettingsManager>();
 Glib::RefPtr<TorrentManager> Engine::tm		= Glib::RefPtr<TorrentManager>();
@@ -37,9 +37,7 @@ Glib::RefPtr<DbusManager> Engine::dbm			= Glib::RefPtr<DbusManager>();
 
 Interface* Engine::m_interface = NULL;
 
-sigc::signal<void> Engine::m_signal_tick	= sigc::signal<void>();
-
-Engine::Engine() : RefCounter<Engine>::RefCounter(this)
+Engine::Engine()
 {
 	/* FIXME: update interval on_settings() */
 	int interval = get_settings_manager()->get_int("ui/interval")*1000;
@@ -48,6 +46,7 @@ Engine::Engine() : RefCounter<Engine>::RefCounter(this)
 
 Engine::~Engine()
 {
+	g_debug("destructor engine");
 }
 
 void Engine::init()
@@ -56,9 +55,22 @@ void Engine::init()
 	if (!self && is_primary() && !creating)
 	{
 		creating = true;
-		self = Glib::RefPtr<Engine>(new Engine());
+		self = new Engine();
 		creating = false;
 	}
+}
+
+void Engine::uninit()
+{
+	// Kill them of in order due to depencies
+	pm.clear();
+	tm.clear();
+	dbm.clear();
+	sm.clear();
+	am.clear();
+	ssm.clear();
+
+	delete self;
 }
 
 bool Engine::is_primary()
@@ -80,7 +92,7 @@ sigc::signal<void> Engine::signal_tick()
 	if (!self)
 		init();
 
-	return m_signal_tick;
+	return self->m_signal_tick;
 }
 
 Glib::RefPtr<AlertManager> Engine::get_alert_manager()
@@ -131,9 +143,9 @@ Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
 	return dbm;
 }
 
-WeakPtr<Interface> Engine::get_interface()
+Interface& Engine::get_interface()
 {
-	return WeakPtr<Interface>(m_interface);
+	return *m_interface;
 }
 
 void Engine::register_interface(Interface* interface)

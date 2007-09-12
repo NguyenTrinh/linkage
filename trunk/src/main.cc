@@ -188,6 +188,8 @@ int main(int argc, char *argv[])
 		kit.run();
 		#endif
 		delete ui;
+
+		Engine::uninit();
 	}
 
 	return 0;

@@ -35,6 +35,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class SettingsWin : public Gtk::Window
 {
+	//Hack to let us use comboboxtext with glade
+	class ComboBoxTextGlade : public Gtk::ComboBoxText
+	{
+	public:
+		ComboBoxTextGlade(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml)
+			: Gtk::ComboBoxText(cobject) {}
+	};
+
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::SpinButton *update_interval, *name_width;
@@ -43,15 +51,17 @@ class SettingsWin : public Gtk::Window
 	Gtk::ColorButton *color_check_queue, *color_checking, *color_finished;
 	Gtk::ColorButton *color_allocating, *color_announcing, *color_stopped;
 
-	Gtk::ComboBoxText* interfaces;
+	ComboBoxTextGlade *interfaces, *enc_policy, *enc_level, *proxy_type;
 	Gtk::SpinButton *min_port, *max_port;
-	Gtk::SpinButton *tracker_timeout;
 	Gtk::CheckButton *enable_dht, *dht_fallback, *enable_pex, *multiple_connections;
-	Gtk::SpinButton *max_connections, *max_uploads, *max_active;
+	Gtk::SpinButton *max_connections, *max_uploads;
 	Gtk::SpinButton *up_rate, *down_rate;
-	Gtk::SpinButton *max_torrent_connections, *max_torrent_uploads, *seed_ratio;
+	Gtk::SpinButton *max_torrent_connections, *max_torrent_uploads;
+	Gtk::SpinButton *max_active;
+	Gtk::SpinButton *desired_ratio, *stop_ratio;
+	Gtk::CheckButton *lazy_bitfields;
 	Gtk::SpinButton	*proxy_port;
-	Gtk::Entry *proxy_ip, *proxy_user, *proxy_pass;
+	Gtk::Entry *proxy_host, *proxy_username, *proxy_password;
 
 	Gtk::CheckButton *default_path, *move_finished, *allocate;
 	Gtk::FileChooserButton *button_default_path, *button_move_finished;

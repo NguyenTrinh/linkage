@@ -34,14 +34,16 @@ typedef std::list<libtorrent::sha1_hash> HashList;
 
 class Torrent : public Glib::Object
 {
+private:
 	friend class TorrentManager;
 	friend class SessionManager;
 
 	struct ResumeInfo
 	{
 		libtorrent::entry resume;
-		libtorrent::torrent_info info;
-		ResumeInfo(const libtorrent::entry& e, const libtorrent::torrent_info& i) : resume(e), info(i) {}
+		boost::intrusive_ptr<libtorrent::torrent_info> info;
+		ResumeInfo(const libtorrent::entry& e,
+			const boost::intrusive_ptr<libtorrent::torrent_info>& i) : resume(e), info(i) {}
 	};
 
 	enum ReplyType { REPLY_ANY, REPLY_OK, REPLY_ANNOUNCING };
@@ -49,31 +51,36 @@ class Torrent : public Glib::Object
 
 	void set_handle(const libtorrent::torrent_handle& handle);
 
+	// FIXME: some of these fields are duplicated in torrent_handle, maybe
+	// we should remove them here and read them from the .resume file when needed?
+
 	libtorrent::size_type m_uploaded;
 	libtorrent::size_type m_downloaded;
 
 	Glib::Property<libtorrent::torrent_handle> m_prop_handle;
-	sigc::signal<void, unsigned int, unsigned int> m_signal_position_changed;
+	Glib::Property<unsigned int> m_prop_position;
 
-	libtorrent::torrent_info m_info;
+	boost::intrusive_ptr<libtorrent::torrent_info> m_info;
 
 	typedef std::map<Glib::ustring, Glib::ustring> ReplyMap;
 	ReplyMap m_replies;
 	int m_cur_tier;
 	bool m_announcing;
 
-	//std::vector<int> m_priorities;
-	std::vector<bool> m_filter;
+	std::vector<int> m_priorities;
 
 	bool m_is_queued;
 
-	unsigned int m_position;
 	Glib::ustring m_group, m_path, m_name;
 	int m_up_limit, m_down_limit;
 
 	bool m_completed;
 
 	std::vector<libtorrent::announce_entry> m_trackers;
+
+	Torrent(const Torrent&);
+	Torrent& operator=(const Torrent);
+	Torrent(const ResumeInfo& ri, bool queued);
 
 public:
 	enum State
@@ -91,16 +98,16 @@ public:
 		ERROR = 0x200
 	};
 
-	Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle> property_handle();
-	sigc::signal<void, unsigned int, unsigned int> signal_position_changed();
+	Glib::PropertyProxy<libtorrent::torrent_handle> property_handle();
+	Glib::PropertyProxy<unsigned int> property_position();
+
 	libtorrent::torrent_handle get_handle();
 	std::pair<Glib::ustring, Glib::ustring> get_tracker_reply();
 	Glib::ustring get_name();
 	const Glib::ustring& get_group();
 	const Glib::ustring& get_path();
 	unsigned int get_position();
-	//const std::vector<int>& get_priorities();
-	const std::vector<bool>& get_filter();
+	const std::vector<int>& get_priorities();
 	int get_up_limit();
 	int get_down_limit();
 	libtorrent::sha1_hash get_hash();
@@ -115,7 +122,7 @@ public:
 	static Glib::ustring state_string(State state);
 	Glib::ustring get_state_string(State state);
 
-	const libtorrent::torrent_info& get_info();
+	const boost::intrusive_ptr<libtorrent::torrent_info>& get_info();
 	const libtorrent::torrent_status get_status();
 	const std::vector<libtorrent::partial_piece_info> get_download_queue();
 	const std::vector<float> get_file_progress();
@@ -124,9 +131,8 @@ public:
 	void set_group(const Glib::ustring& group);
 	void set_path(const Glib::ustring& path);
 	void set_position(unsigned int position);
-	//void set_priorities(const std::vector<int>& p);
-	void set_filter(const std::vector<bool>& filter);
-	void filter_file(unsigned int index, bool filter = true);
+	void set_priorities(const std::vector<int>& p);
+	void set_file_priority(int index, int priority);
 	void set_up_limit(int limit);
 	void set_down_limit(int limit);
 
@@ -148,7 +154,7 @@ public:
 
 	const libtorrent::entry get_resume_entry(bool stopping = true, bool quitting = false);
 
-	Torrent(const ResumeInfo& ri, bool queued = false);
+	static Glib::RefPtr<Torrent> create(const ResumeInfo& ri, bool queued = false);
 	~Torrent();
 };
 

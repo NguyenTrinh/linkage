@@ -29,7 +29,7 @@ Glib::RefPtr<PluginManager> PluginManager::create()
 	return Glib::RefPtr<PluginManager>(new PluginManager());
 }
 
-PluginManager::PluginManager() : RefCounter<PluginManager>::RefCounter(this)
+PluginManager::PluginManager()
 {
 	refresh_info();
 
@@ -41,20 +41,16 @@ PluginManager::PluginManager() : RefCounter<PluginManager>::RefCounter(this)
 
 PluginManager::~PluginManager()
 {
-	for (PluginPtrList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
-	{
-		delete *iter;
-	}
-
-	m_plugins.clear();
+	//m_plugins.clear();
+	g_debug("destructor pm");
 }
 
-sigc::signal<void, WeakPtr<Plugin> > PluginManager::signal_plugin_load()
+sigc::signal<void, Glib::RefPtr<Plugin> > PluginManager::signal_plugin_load()
 {
 	return m_signal_plugin_load;
 }
 
-sigc::signal<void, WeakPtr<Plugin> > PluginManager::signal_plugin_unload()
+sigc::signal<void, Glib::RefPtr<Plugin> > PluginManager::signal_plugin_unload()
 {
 	return m_signal_plugin_unload;
 }
@@ -91,14 +87,9 @@ void PluginManager::refresh_info()
 	}
 }
 
-PluginManager::PluginList PluginManager::get_plugins()
+const PluginManager::PluginList& PluginManager::get_plugins()
 {
-	PluginList list;
-	for (PluginPtrList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
-	{
-		list.push_back(WeakPtr<Plugin>(*iter));
-	}
-	return list;
+	return m_plugins;
 }
 
 PluginManager::PluginInfoList PluginManager::list_plugins()
@@ -126,7 +117,7 @@ void PluginManager::load_plugin(const Glib::ustring& file)
 	{
 		if (module.get_symbol("create_plugin", (void*&)create_plugin))
 		{
-			Plugin* plugin = create_plugin();
+			Glib::RefPtr<Plugin> plugin(create_plugin());
 
 			Glib::ustring name = plugin->get_info().name;
 			if (!is_loaded(name))
@@ -139,26 +130,21 @@ void PluginManager::load_plugin(const Glib::ustring& file)
 					if (name == info.name)
 						info.loaded = true;
 				}
-				plugin->signal_unloading().connect(sigc::bind(sigc::mem_fun(this, &PluginManager::unload_plugin), false));
 				m_signal_plugin_load.emit(plugin);
 			}
 		}
 	}
 }
 
-void PluginManager::unload_plugin(Plugin* plugin, bool destroy)
+void PluginManager::unload_plugin(const Glib::RefPtr<Plugin>& plugin)
 {
-	PluginPtrList::iterator iter = std::find(m_plugins.begin(), m_plugins.end(), plugin);
+	PluginList::iterator iter = std::find(m_plugins.begin(), m_plugins.end(), plugin);
 	if (iter != m_plugins.end())
 	{
 		Glib::ustring name = plugin->get_info().name;
 
 		m_signal_plugin_unload.emit(plugin);
-		if (destroy)
-		{
-			m_plugins.erase(iter);
-			delete plugin;
-		}
+		m_plugins.erase(iter);
 
 		for (PluginInfoList::iterator info_iter = m_info.begin(); info_iter != m_info.end(); ++info_iter)
 		{
@@ -180,15 +166,15 @@ bool PluginManager::is_loaded(const Glib::ustring& name)
 	return false;
 }
 
-WeakPtr<Plugin> PluginManager::get_plugin(const Glib::ustring& name)
+Glib::RefPtr<Plugin> PluginManager::get_plugin(const Glib::ustring& name)
 {
-	for (PluginPtrList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
+	for (PluginList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
 	{
-		Plugin* plugin = *iter;
+		Glib::RefPtr<Plugin> plugin = *iter;
 		if (name == plugin->get_info().name)
-			return WeakPtr<Plugin>(plugin);
+			return plugin;
 	}
-	return  WeakPtr<Plugin>();
+	return  Glib::RefPtr<Plugin>();
 }
 
 void PluginManager::on_settings()
@@ -209,17 +195,17 @@ void PluginManager::on_settings()
 	}
 
 	/* Unload all old */
-	PluginPtrList unload_list;
-	for (PluginPtrList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
+	PluginList unload_list;
+	for (PluginList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
 	{
-		Plugin* plugin = *iter;
+		Glib::RefPtr<Plugin> plugin = *iter;
 		std::list<Glib::ustring>::iterator search;
 		search = std::find(plugins.begin(), plugins.end(), plugin->get_info().name);
 		if (search == plugins.end())
 			unload_list.push_back(plugin);
 	}
 	
-	for (PluginPtrList::iterator iter = unload_list.begin(); iter != unload_list.end(); ++iter)
+	for (PluginList::iterator iter = unload_list.begin(); iter != unload_list.end(); ++iter)
 	{
 		unload_plugin(*iter);
 	}

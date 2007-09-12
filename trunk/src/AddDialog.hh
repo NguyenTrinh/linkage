@@ -40,8 +40,8 @@ class AddDialog : public Gtk::Dialog
 	class ComboBoxTextGlade : public Gtk::ComboBoxText
 	{
 	public:
-		ComboBoxTextGlade(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml);
-		~ComboBoxTextGlade();
+		ComboBoxTextGlade(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml)
+			: Gtk::ComboBoxText(cobject) {}
 	};
 
 	SimpleFileList* file_list;
@@ -53,7 +53,7 @@ class AddDialog : public Gtk::Dialog
 	Gtk::Expander* expander;
 	Gtk::Button* button_ok;
 
-	libtorrent::torrent_info m_info;
+	boost::intrusive_ptr<libtorrent::torrent_info> m_info;
 
 	void on_show();
 
@@ -75,7 +75,7 @@ public:
 	} AddData;
 
 	AddData get_data();
-	const libtorrent::torrent_info& get_info();
+	const boost::intrusive_ptr<libtorrent::torrent_info>& get_info();
 
 	int run_with_file(const std::string& file);
 	int run();

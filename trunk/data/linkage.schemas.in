@@ -76,18 +76,6 @@
 		</schema>
 
 		<schema>
-			<key>/schemas/apps/linkage/network/max_active</key>
-			<applyto>/apps/linkage/network/max_active</applyto>
-			<owner>linkage</owner>
-			<type>int</type>
-			<default>3</default>
-			<locale name="C">
-				<short></short>
-				<long></long>
-			</locale>
-		</schema>
-
-		<schema>
 			<key>/schemas/apps/linkage/network/tracker_timeout</key>
 			<applyto>/apps/linkage/network/tracker_timeout</applyto>
 			<owner>linkage</owner>
@@ -148,18 +136,6 @@
 		</schema>
 
 		<schema>
-			<key>/schemas/apps/linkage/network/seed_ratio</key>
-			<applyto>/apps/linkage/network/seed_ratio</applyto>
-			<owner>linkage</owner>
-			<type>float</type>
-			<default>0</default>
-			<locale name="C">
-				<short></short>
-				<long></long>
-			</locale>
-		</schema>
-
-		<schema>
 			<key>/schemas/apps/linkage/network/multiple_connections_per_ip</key>
 			<applyto>/apps/linkage/network/multiple_connections_per_ip</applyto>
 			<owner>linkage</owner>
@@ -197,7 +173,6 @@
 
 
 		<!-- network/proxy -->
-
 
 		<schema>
 			<key>/schemas/apps/linkage/network/proxy/host</key>
@@ -253,6 +228,97 @@
 			<owner>linkage</owner>
 			<type>int</type>
 			<default>0</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+
+		<!-- network/encryption -->
+
+		<schema>
+			<key>/schemas/apps/linkage/network/encryption/policy</key>
+			<applyto>/apps/linkage/network/encryption/policy</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>1</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/network/encryption/level</key>
+			<applyto>/apps/linkage/network/encryption/level</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>2</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/network/encryption/prefer_rc4</key>
+			<applyto>/apps/linkage/network/encryption/prefer_rc4</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<!-- torrent -->
+
+		<schema>
+			<key>/schemas/apps/linkage/torrent/desired_ratio</key>
+			<applyto>/apps/linkage/torrent/desired_ratio</applyto>
+			<owner>linkage</owner>
+			<type>float</type>
+			<default>0</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/torrent/stop_ratio</key>
+			<applyto>/apps/linkage/torrent/stop_ratio</applyto>
+			<owner>linkage</owner>
+			<type>float</type>
+			<default>0</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/torrent/lazy_bitfields</key>
+			<applyto>/apps/linkage/torrent/lazy_bitfields</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<!-- torrent/queue -->
+
+		<schema>
+			<key>/schemas/apps/linkage/torrent/queue/max_active</key>
+			<applyto>/apps/linkage/torrent/queue/max_active</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>3</default>
 			<locale name="C">
 				<short></short>
 				<long></long>

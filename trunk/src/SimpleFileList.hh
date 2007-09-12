@@ -57,7 +57,7 @@ class SimpleFileList : public Gtk::TreeView
 public:
 	std::vector<bool> get_filter();
 
-	void populate(const libtorrent::torrent_info& info);
+	void populate(const boost::intrusive_ptr<libtorrent::torrent_info>& info);
 	void clear();
 
 	SimpleFileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);

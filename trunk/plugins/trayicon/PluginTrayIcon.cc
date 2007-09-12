@@ -91,8 +91,8 @@ Plugin::Info TrayPlugin::get_info()
 
 void TrayPlugin::on_activate(GtkStatusIcon* status_icon, gpointer data)
 {
-	WeakPtr<Interface> ui = Engine::get_interface();
-	ui->set_visible(!ui->get_visible());
+	Interface& ui = Engine::get_interface();
+	ui.set_visible(!ui.get_visible());
 }
 
 void TrayPlugin::on_popup(GtkStatusIcon* status_icon, guint button, guint time, gpointer data)
@@ -110,7 +110,7 @@ void TrayPlugin::on_tick()
 	unsigned int num_active = 0, num_queued = 0, num_seeds = 0;
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin(); iter != torrents.end(); ++iter)
 	{
-		WeakPtr<Torrent> torrent = *iter;
+		Glib::RefPtr<Torrent> torrent = *iter;
 		Torrent::State state = torrent->get_state();
 
 		if (state == Torrent::SEEDING)
@@ -138,8 +138,7 @@ void TrayPlugin::on_tick()
 
 void TrayPlugin::on_quit()
 {
-	WeakPtr<Interface> ui = Engine::get_interface();
-	ui->quit();
+	Engine::get_interface().quit();
 }
 
 void TrayPlugin::on_torrents_stop()
@@ -148,7 +147,7 @@ void TrayPlugin::on_torrents_stop()
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
 				iter != torrents.end(); ++iter)
 	{
-		WeakPtr<Torrent> torrent = *iter;
+		Glib::RefPtr<Torrent> torrent = *iter;
 		if (!torrent->is_stopped())
 			Engine::get_session_manager()->stop_torrent(torrent->get_hash());
 	}
@@ -160,7 +159,7 @@ void TrayPlugin::on_torrents_start()
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
 				iter != torrents.end(); ++iter)
 	{
-		WeakPtr<Torrent> torrent = *iter;
+		Glib::RefPtr<Torrent> torrent = *iter;
 		if (torrent->is_stopped())
 			Engine::get_session_manager()->resume_torrent(torrent->get_hash());
 	}

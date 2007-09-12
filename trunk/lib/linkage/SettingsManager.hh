@@ -20,17 +20,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define SETTINGSMANAGER_HH
 
 #include <sigc++/signal.h>
+
 #include <glibmm/ustring.h>
+#include <glibmm/object.h>
 
 #include <gconfmm.h>
-
-#include "linkage/RefCounter.hh"
 
 typedef Gnome::Conf::SListHandle_ValueString UStringArray;
 typedef Gnome::Conf::SListHandle_ValueInt IntArray;
 typedef Gnome::Conf::SListHandle_ValueBool BoolArray;
 
-class SettingsManager : public RefCounter<SettingsManager>
+class SettingsManager : public Glib::Object
 {
 	SettingsManager();
 

@@ -24,14 +24,15 @@ Interface::Interface()
 
 Interface::~Interface()
 {
+	g_debug("destructor interface");
 }
 
-std::list<libtorrent::sha1_hash> Interface::get_selected_list()
+SelectionList Interface::get_selected() const
 {
-	return HashList();
+	return SelectionList();
 }
 
-bool Interface::get_visible()
+bool Interface::get_visible() const
 {
 	return false;
 }

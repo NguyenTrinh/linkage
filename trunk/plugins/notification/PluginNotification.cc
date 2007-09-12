@@ -103,7 +103,7 @@ NotifyNotification* NotifyPlugin::build_notification(const Glib::ustring& title,
 	NotifyNotification* notification = notify_notification_new(
 		title.c_str(), message.c_str(), icon, NULL);
 
-	WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
+	Glib::RefPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
 	if (plugin)
 	{
 		GtkStatusIcon* status_icon = static_cast<GtkStatusIcon*>(plugin->get_user_data());
@@ -241,11 +241,11 @@ void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
 
 void NotifyPlugin::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	Glib::ustring translated = String::ucompose(_("%1 is complete"), torrent->get_name());
 
 	Glib::ustring path = torrent->get_path();
-	if (torrent->get_info().num_files() > 1)
+	if (torrent->get_info()->num_files() > 1)
 		path = Glib::build_filename(path, torrent->get_name());
 
 	sigc::slot<void> slot = sigc::bind(sigc::mem_fun(this, &NotifyPlugin::on_open_location), path);

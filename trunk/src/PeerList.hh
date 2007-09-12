@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "libtorrent/peer_id.hpp"
 
 #include "linkage/Torrent.hh"
-#include "linkage/WeakPtr.hh"
 
 class PeerList : public Gtk::TreeView
 {
@@ -38,6 +37,7 @@ class PeerList : public Gtk::TreeView
 		ModelColumns()
 		{
 			add(flag);
+			add(encryption);
 			add(address);
 			add(down);
 			add(up);
@@ -46,10 +46,11 @@ class PeerList : public Gtk::TreeView
 			add(progress);
 			add(client);
 			add(flags);
-			add(has_flag);
+			add(source);
 			add(remove);
 		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > flag;
+		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > encryption;
 		Gtk::TreeModelColumn<Glib::ustring> address;
 		Gtk::TreeModelColumn<libtorrent::size_type> down;
 		Gtk::TreeModelColumn<libtorrent::size_type> up;
@@ -58,7 +59,7 @@ class PeerList : public Gtk::TreeView
 		Gtk::TreeModelColumn<double> progress;
 		Gtk::TreeModelColumn<Glib::ustring> client;
 		Gtk::TreeModelColumn<Glib::ustring> flags;
-		Gtk::TreeModelColumn<bool> has_flag;
+		Gtk::TreeModelColumn<Glib::ustring> source;
 		Gtk::TreeModelColumn<bool> remove;
 	};
 
@@ -77,7 +78,7 @@ class PeerList : public Gtk::TreeView
 
 	Glib::ustring peer_as_string(const libtorrent::peer_info& peer);
 public:
-	void update(const WeakPtr<Torrent>& torrent);
+	void update(const Glib::RefPtr<Torrent>& torrent);
 
 	PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~PeerList();

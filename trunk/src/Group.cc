@@ -41,9 +41,9 @@ bool Group::is_valid() const
 	return !m_name.empty();
 }
 
-bool Group::eval(const WeakPtr<Torrent>& torrent) const
+bool Group::eval(const Glib::RefPtr<Torrent>& torrent) const
 {
-	const libtorrent::torrent_info& info = torrent->get_info();
+	boost::intrusive_ptr<libtorrent::torrent_info> info = torrent->get_info();
 	std::vector<libtorrent::announce_entry> trackers = torrent->get_trackers();
 
 	if (m_name.empty())
@@ -72,10 +72,10 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 						}
 						break;
 					case TAG_NAME:
-						tmp = (f.filter == info.name());
+						tmp = (f.filter == info->name());
 						break;
 					case TAG_COMMENT:
-						tmp = (f.filter == info.comment());
+						tmp = (f.filter == info->comment());
 						break;
 				}
 				break;
@@ -90,10 +90,10 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 						}
 						break;
 					case TAG_NAME:
-						tmp = (info.name().find(f.filter) != Glib::ustring::npos);
+						tmp = (info->name().find(f.filter) != Glib::ustring::npos);
 						break;
 					case TAG_COMMENT:
-						tmp = (info.comment().find(f.filter) != Glib::ustring::npos);
+						tmp = (info->comment().find(f.filter) != Glib::ustring::npos);
 						break;
 				}
 				break;
@@ -108,10 +108,10 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 						}
 						break;
 					case TAG_NAME:
-						tmp = Glib::str_has_prefix(info.name(), f.filter);
+						tmp = Glib::str_has_prefix(info->name(), f.filter);
 						break;
 					case TAG_COMMENT:
-						tmp = Glib::str_has_prefix(info.comment(), f.filter);
+						tmp = Glib::str_has_prefix(info->comment(), f.filter);
 						break;
 				}
 				break;
@@ -126,10 +126,10 @@ bool Group::eval(const WeakPtr<Torrent>& torrent) const
 						}
 						break;
 					case TAG_NAME:
-						tmp = Glib::str_has_suffix(info.name(), f.filter);
+						tmp = Glib::str_has_suffix(info->name(), f.filter);
 						break;
 					case TAG_COMMENT:
-						tmp = Glib::str_has_suffix(info.comment(), f.filter);
+						tmp = Glib::str_has_suffix(info->comment(), f.filter);
 						break;
 				}
 				break;

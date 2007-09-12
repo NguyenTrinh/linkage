@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <libglademm/xml.h>
 
 #include "linkage/Torrent.hh"
-#include "linkage/WeakPtr.hh"
 
 #include "Group.hh"
 
@@ -76,11 +75,11 @@ class TorrentList : public Gtk::TreeView
 	Group m_active_group;
 	Torrent::State m_cur_state;
 
-	void on_added(const libtorrent::sha1_hash& hash, const Glib::ustring& name, unsigned int position);
-	void on_removed(const libtorrent::sha1_hash& hash);
+	void on_added(const Glib::RefPtr<Torrent>& torrent);
+	void on_removed(const Glib::RefPtr<Torrent>& torrent);
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
-	Glib::ustring get_formated_name(const WeakPtr<Torrent>& torrent);
+	Glib::ustring get_formated_name(const Glib::RefPtr<Torrent>& torrent);
 
 	bool on_button_press_event(GdkEventButton *event);
 

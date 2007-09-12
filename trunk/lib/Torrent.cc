@@ -23,8 +23,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/SessionManager.hh"
 #include "linkage/TorrentManager.hh"
+#include "linkage/compose.hpp"
 
-Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*this, "handle")
+Glib::RefPtr<Torrent> Torrent::create(const ResumeInfo& ri, bool queued)
+{
+	return Glib::RefPtr<Torrent>(new Torrent(ri, queued));
+}
+
+Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued)
+	: m_prop_handle(*this, "handle"), m_prop_position(*this, "position")
 {
 	m_cur_tier = 0;
 	m_announcing = false;
@@ -38,33 +45,29 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 	m_uploaded = e["uploaded"].integer();
 
 	m_path = e["path"].string();
-	m_position = e["position"].integer();
+	m_prop_position = e["position"].integer();
 	if (ri.resume.find_key("group"))
 		m_group = e["group"].string();
 	if (ri.resume.find_key("name"))
 		m_name = e["name"].string();
 	else
-		m_name = m_info.name();
+		m_name = m_info->name();
 	m_up_limit = e["upload-limit"].integer();
 	m_down_limit = e["download-limit"].integer();
 
 	m_completed = (bool)e["completed"].integer();
 
-	std::list<libtorrent::entry> f;
-	try
+	if (ri.resume.find_key("priorities"))
 	{
-		f = e["filter"].list();
+		libtorrent::entry::list_type p = e["priorities"].list();
+		for (libtorrent::entry::list_type::iterator iter = p.begin();
+			iter != p.end(); ++iter)
+		{
+			m_priorities.push_back(iter->integer());
+		}
 	}
-	catch (std::exception& e) {}
-
-	m_filter.assign(m_info.num_files(), false);
-	std::list<libtorrent::entry>::iterator iter = f.begin();
-	while (iter != f.end())
-	{
-		libtorrent::entry e = *iter;
-		m_filter[e.integer()] = true;
-		iter++;
-	}
+	else
+		m_priorities.assign(m_info->num_files(), 1);
 
 	// make sure it's a list, old version used dictionary
 	if (ri.resume.find_key("trackers") && e["trackers"].type() == libtorrent::entry::list_t)
@@ -81,7 +84,7 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 		}
 	}
 	else
-		m_trackers = m_info.trackers();
+		m_trackers = m_info->trackers();
 
 	for (unsigned int i = 0; i < m_trackers.size(); i++)
 		m_replies[m_trackers[i].url] = "";
@@ -89,16 +92,17 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued) : m_prop_handle(*th
 
 Torrent::~Torrent()
 {
+	g_debug("destructor torrent");
 }
 
-Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle> Torrent::property_handle()
+Glib::PropertyProxy<libtorrent::torrent_handle> Torrent::property_handle()
 {
-	return Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle>(this, "handle");
+	return m_prop_handle.get_proxy();
 }
 
-sigc::signal<void, unsigned int, unsigned int> Torrent::signal_position_changed()
+Glib::PropertyProxy<unsigned int> Torrent::property_position()
 {
-	return m_signal_position_changed;
+	return m_prop_position.get_proxy();
 }
 
 libtorrent::torrent_handle Torrent::get_handle()
@@ -138,12 +142,12 @@ std::pair<Glib::ustring, Glib::ustring> Torrent::get_tracker_reply()
 
 unsigned int Torrent::get_position()
 {
-	return m_position;
+	return m_prop_position.get_value();
 }
 
-const std::vector<bool>& Torrent::get_filter()
+const std::vector<int>& Torrent::get_priorities()
 {
-	return m_filter;
+	return m_priorities;
 }
 
 int Torrent::get_up_limit()
@@ -158,7 +162,7 @@ int Torrent::get_down_limit()
 
 libtorrent::sha1_hash Torrent::get_hash()
 {
-	return m_info.info_hash();
+	return m_info->info_hash();
 }
 
 libtorrent::size_type Torrent::get_total_downloaded()
@@ -189,7 +193,7 @@ Torrent::State Torrent::get_state()
 		libtorrent::torrent_status status = get_handle().status();
 
 		/* libtorrent only says it's seeding after it's announced to the tracker */
-		if (status.total_done == m_info.total_size())
+		if (status.total_done == m_info->total_size())
 			return SEEDING;
 
 		libtorrent::torrent_status::state_t state = status.state;
@@ -271,7 +275,7 @@ Glib::ustring Torrent::state_string(State state)
 	}
 }
 
-const libtorrent::torrent_info& Torrent::get_info()
+const boost::intrusive_ptr<libtorrent::torrent_info>& Torrent::get_info()
 {
 	return m_info;
 }
@@ -299,7 +303,7 @@ const std::vector<float> Torrent::get_file_progress()
 	if (!is_stopped())
 		get_handle().file_progress(fp);
 	else
-		fp.assign(m_info.num_files(), 0);
+		fp.assign(m_info->num_files(), 0);
 
 	return fp;
 }
@@ -308,7 +312,7 @@ void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 {
 	m_prop_handle = handle;
 
-	set_filter(m_filter);
+	set_priorities(m_priorities);
 	set_up_limit(m_up_limit);
 	set_down_limit(m_down_limit);
 
@@ -337,7 +341,7 @@ void Torrent::set_path(const Glib::ustring& path)
 {
 	if (m_path != path)
 	{
-		libtorrent::sha1_hash hash = m_info.info_hash();
+		libtorrent::sha1_hash hash = m_info->info_hash();
 
 		bool stopped = is_stopped();
 		if (!stopped)
@@ -345,7 +349,7 @@ void Torrent::set_path(const Glib::ustring& path)
 
 		m_path = path;
 		libtorrent::entry e = get_resume_entry(false);
-		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
+		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
 
 		if (!stopped)
 			Engine::get_session_manager()->resume_torrent(hash);
@@ -390,25 +394,23 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 
 void Torrent::set_position(unsigned int position)
 {
-	unsigned int old = m_position;
-	m_position = position;
-	m_signal_position_changed.emit(m_position, old);
+	m_prop_position = position;
 }
 
-void Torrent::set_filter(const std::vector<bool>& filter)
+void Torrent::set_priorities(const std::vector<int>& priorities)
 {
-	if (filter != m_filter)
-		m_filter.assign(filter.begin(), filter.end());
+	if (m_priorities != priorities)
+		m_priorities.assign(priorities.begin(), priorities.end());
 
-	/* TODO: Thread this? It completly freezes UI on large files.. */
 	if (!is_stopped())
-		get_handle().filter_files(m_filter);
+		get_handle().prioritize_files(m_priorities);
 }
 
-void Torrent::filter_file(unsigned int index, bool filter)
+void Torrent::set_file_priority(int index, int priority)
 {
-	m_filter[index] = filter;
-	set_filter(m_filter);
+	m_priorities[index] = priority;
+
+	set_priorities(m_priorities);
 }
 
 void Torrent::set_up_limit(int limit)
@@ -568,6 +570,8 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 
 const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 {
+	// FIXME: when we pause we should wait for torrent_paused_alert
+
 	libtorrent::entry::dictionary_type resume_entry;
 
 	if (!is_stopped())
@@ -591,7 +595,7 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 	else
 	{
 		std::ifstream in;
-		Glib::ustring file = Glib::build_filename(get_data_dir(), str(m_info.info_hash()) + ".resume");
+		Glib::ustring file = Glib::build_filename(get_data_dir(), String::compose("%1", m_info->info_hash()) + ".resume");
 		try
 		{
 			in.open(file.c_str(), std::ios_base::binary);
@@ -608,11 +612,11 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 
 	if (resume_entry.empty())
 	{
-		resume_entry["info-hash"] = std::string(m_info.info_hash().begin(), m_info.info_hash().end());
+		resume_entry["info-hash"] = std::string(m_info->info_hash().begin(), m_info->info_hash().end());
 	}
 
 	resume_entry["path"] = m_path;
-	resume_entry["position"] = m_position;
+	resume_entry["position"] = get_position();
 	resume_entry["stopped"] = stopping;
 	resume_entry["downloaded"] = m_downloaded;
 	resume_entry["uploaded"] = m_uploaded;
@@ -623,11 +627,8 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 	if (!m_name.empty())
 		resume_entry["name"] = m_name;
 
-	libtorrent::entry::list_type e_filter;
-	for (unsigned int i = 0; i < m_filter.size(); i++)
-		if (m_filter[i])
-			e_filter.push_back(i);
-	resume_entry["filter"] = e_filter;
+	libtorrent::entry::list_type e_priorities(m_priorities.begin(), m_priorities.end());
+	resume_entry["priorities"] = e_priorities;
 
 	if (!m_group.empty())
 		resume_entry["group"] = m_group;

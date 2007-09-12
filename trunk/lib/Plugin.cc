@@ -24,12 +24,7 @@ Plugin::Plugin()
 
 Plugin::~Plugin()
 {
-	m_signal_unloading.emit(this);
-}
-
-sigc::signal<void, Plugin*> Plugin::signal_unloading()
-{
-	return m_signal_unloading;
+	g_debug("destructor plugin");
 }
 
 Plugin::Info Plugin::get_info()

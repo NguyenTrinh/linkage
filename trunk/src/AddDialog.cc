@@ -28,16 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "Group.hh"
 #include "AddDialog.hh"
 
-AddDialog::ComboBoxTextGlade::ComboBoxTextGlade(BaseObjectType* cobject,
-	const Glib::RefPtr<Gnome::Glade::Xml>& xml)
-	: Gtk::ComboBoxText(cobject)
-{
-}
-
-AddDialog::ComboBoxTextGlade::~ComboBoxTextGlade()
-{
-}
-
 AddDialog::AddDialog(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml)
 	: Gtk::Dialog(cobject)
 {
@@ -82,7 +72,7 @@ AddDialog::~AddDialog()
 
 void AddDialog::on_show()
 {
-	m_info = libtorrent::torrent_info();
+	m_info = boost::intrusive_ptr<libtorrent::torrent_info>(NULL);
 	if (Engine::get_settings_manager()->get_bool("files/use_default_path"))
 	{
 		Glib::ustring path = Engine::get_settings_manager()->get_string("files/default_path");
@@ -98,12 +88,12 @@ void AddDialog::on_file_changed()
 	libtorrent::entry entry;
 	if (load_entry(file, entry))
 	{
-		m_info = libtorrent::torrent_info(entry);
-		entry_name->set_text(m_info.name());
+		m_info = boost::intrusive_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(entry));
+		entry_name->set_text(m_info->name());
 		file_list->populate(m_info);
 		label_size->set_markup(String::ucompose(
 			_("<i>%1 free disk space required</i>"),
-			suffix_value(m_info.total_size())));
+			suffix_value(m_info->total_size())));
 		button_ok->set_sensitive(true);
 
 		//update label_free if save path was set before torrent file
@@ -120,7 +110,7 @@ void AddDialog::on_file_changed()
 void AddDialog::on_path_changed()
 {
 	//only continue if a valid torrent is selected
-	if (!m_info.is_valid())
+	if (!m_info->is_valid())
 		return;
 
 	std::string path = button_path->get_filename();
@@ -131,7 +121,7 @@ void AddDialog::on_path_changed()
 		_("<i>%1 free disk space available</i>"),
 		suffix_value(free));
 
-	if (free < m_info.total_size())
+	if (free < m_info->total_size())
 	{
 		Glib::ustring color = Engine::get_settings_manager()->get_string("ui/colors/error");
 		markup = "<span color='" + color + "'>" + markup + "</span>";
@@ -175,7 +165,7 @@ AddDialog::AddData AddDialog::get_data()
 	return data;
 }
 
-const libtorrent::torrent_info& AddDialog::get_info()
+const boost::intrusive_ptr<libtorrent::torrent_info>& AddDialog::get_info()
 {
 	return m_info;
 }

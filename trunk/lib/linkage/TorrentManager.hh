@@ -20,24 +20,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define TORRENTMANAGER_HH
 
 #include <map>
+#include <vector>
 #include <list>
 
-#include "linkage/Torrent.hh"
-#include "linkage/RefCounter.hh"
-#include "linkage/WeakPtr.hh"
-#include "linkage/SessionManager.hh"
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
 
-class TorrentManager : public RefCounter<TorrentManager>
+#include "linkage/Torrent.hh"
+
+class TorrentManager : public Glib::Object
 {
-	typedef std::map<libtorrent::sha1_hash, Torrent*> TorrentMap;
-	typedef TorrentMap::iterator TorrentIter;
-	
+	typedef std::vector<Glib::RefPtr<Torrent> > TorrentVector;
+	typedef std::map<libtorrent::sha1_hash, Glib::RefPtr<Torrent> > TorrentMap;
+
 	TorrentMap m_torrents;
 
-	void sort(std::vector<Torrent*>& torrents);
+	static bool pred(const Glib::RefPtr<Torrent>& rhs, const Glib::RefPtr<Torrent>& lhs)
+	{
+		return rhs->get_position() < lhs->get_position();
+	}
 
-	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, unsigned int> m_signal_added;
-	sigc::signal<void, const libtorrent::sha1_hash&> m_signal_removed;
+	sigc::signal<void, Glib::RefPtr<Torrent> > m_signal_added;
+	sigc::signal<void, Glib::RefPtr<Torrent> > m_signal_removed;
 
 	void on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 	void on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int peers);
@@ -46,38 +50,30 @@ class TorrentManager : public RefCounter<TorrentManager>
 
 	void on_update_queue(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 
-	void on_handle_changed(Torrent* torrent);
-	void on_position_changed(unsigned int position, unsigned int old, Torrent* torrent);
-	void set_torrent_settings(Torrent* torrent);
+	void on_handle_changed(const libtorrent::sha1_hash& hash);
+	void on_position_changed(const libtorrent::sha1_hash& hash);
+	void set_torrent_settings(const Glib::RefPtr<Torrent>& torrent);
 	
 	void on_settings();
 
 	TorrentManager();
-	
-	/* FIXME: hack to make sure SessionManager goes out of reference _after_ TorrentManager */
-	Glib::RefPtr<SessionManager> m_session_manager;
 
 	friend class SessionManager;
 
-	WeakPtr<Torrent> add_torrent(const libtorrent::entry& e, const libtorrent::torrent_info& info);
+	Glib::RefPtr<Torrent> add_torrent(const libtorrent::entry& e, const boost::intrusive_ptr<libtorrent::torrent_info>& info);
 	void remove_torrent(const libtorrent::sha1_hash& hash);
 	void check_queue();
 
 public:
-	typedef std::list<WeakPtr<Torrent> > TorrentList;
+	typedef std::list<Glib::RefPtr<Torrent> > TorrentList;
 
-	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, unsigned int> signal_added();
-	sigc::signal<void, const libtorrent::sha1_hash&> signal_removed();
-	
-	void set_torrent_position(const libtorrent::sha1_hash& hash, int diff);
+	sigc::signal<void, Glib::RefPtr<Torrent> > signal_added();
+	sigc::signal<void, Glib::RefPtr<Torrent> > signal_removed();
 	
 	bool exists(const libtorrent::sha1_hash& hash);
 	bool exists(const Glib::ustring& hash_str);
 	
-	//FIXME: Should be removed, or at least friends only.
-	libtorrent::torrent_handle get_handle(const libtorrent::sha1_hash& hash);
-	
-	WeakPtr<Torrent> get_torrent(const libtorrent::sha1_hash& hash);
+	Glib::RefPtr<Torrent> get_torrent(const libtorrent::sha1_hash& hash);
 	TorrentList get_torrents();
 	
 	unsigned int get_torrents_count();

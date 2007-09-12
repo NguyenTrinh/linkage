@@ -28,13 +28,14 @@ Glib::RefPtr<AlertManager> AlertManager::create()
 	return Glib::RefPtr<AlertManager>(new AlertManager());
 }
 
-AlertManager::AlertManager() : RefCounter<AlertManager>::RefCounter(this)
+AlertManager::AlertManager()
 {
 	Engine::signal_tick().connect(sigc::mem_fun(this, &AlertManager::check_alerts));
 }
 
 AlertManager::~AlertManager()
 {
+	g_debug("destructor am");
 }
 
 sigc::signal<void, const Glib::ustring&>
@@ -129,7 +130,7 @@ void AlertManager::check_alerts()
 		else if (torrent_finished_alert* p = dynamic_cast<torrent_finished_alert*>(a.get()))
 		{
 			sha1_hash hash = p->handle.info_hash();
-			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 			if (torrent && !torrent->get_completed())
 			{
 				torrent->set_completed(true);
@@ -143,7 +144,7 @@ void AlertManager::check_alerts()
 		else if (fastresume_rejected_alert* p = dynamic_cast<fastresume_rejected_alert*>(a.get()))
 		{
 			sha1_hash hash = p->handle.info_hash();
-			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 			if (torrent)
 				torrent->set_completed(false);
 
