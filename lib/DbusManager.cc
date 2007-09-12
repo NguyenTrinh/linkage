@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/Interface.hh"
 #include "linkage/Utils.hh"
+#include "linkage/compose.hpp"
 
 #define LINKAGE_BUS_NAME "org.linkage"
 #define LINKAGE_INTERFACE_INTERFACE "org.linkage.Interface"
@@ -113,7 +114,7 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		char *file;
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &file, DBUS_TYPE_INVALID))
 		{
-			Engine::get_interface()->open(file);
+			Engine::get_interface().open(file);
 			DBusMessage* reply = dbus_message_new_method_return(message);
 			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 			dbus_connection_send(connection, reply, NULL);
@@ -127,7 +128,7 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 	}
 	else if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_INTERFACE, "GetVisible")) 
 	{
-		gboolean visible = Engine::get_interface()->get_visible();
+		gboolean visible = Engine::get_interface().get_visible();
 		DBusMessage* reply = dbus_message_new_method_return(message);
 		dbus_message_append_args(reply, DBUS_TYPE_BOOLEAN, &visible, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
@@ -140,7 +141,7 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		gboolean visible;
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_BOOLEAN, &visible, DBUS_TYPE_INVALID))
 		{
-			Engine::get_interface()->set_visible(visible);
+			Engine::get_interface().set_visible(visible);
 			DBusMessage* reply = dbus_message_new_method_return(message);
 			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 			dbus_connection_send(connection, reply, NULL);
@@ -154,7 +155,7 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 	}
 	else if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_INTERFACE, "Quit")) 
 	{
-		Engine::get_interface()->quit();
+		Engine::get_interface().quit();
 		DBusMessage* reply = dbus_message_new_method_return(message);
 		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
@@ -172,15 +173,14 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 
 DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 	DBusMessage* message,
-	Torrent* torrent)
+	UserData* data)
 {
-	// FIXME: don't pass NULL as self
-	if (handler_common(connection, message, introspect_torrent, NULL))
+	if (handler_common(connection, message, introspect_torrent, data->self))
 		return DBUS_HANDLER_RESULT_HANDLED;
 	
 	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_TORRENT, "GetName")) 
 	{
-		const char* name = torrent->get_name().c_str();
+		const char* name = data->torrent->get_name().c_str();
 		DBusMessage* reply = dbus_message_new_method_return(message);
 		dbus_message_append_args(reply, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
@@ -188,7 +188,7 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 	}
 	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_TORRENT, "GetState")) 
 	{
-		char* state = g_strdup(torrent->get_state_string().c_str());
+		char* state = g_strdup(data->torrent->get_state_string().c_str());
 		DBusMessage* reply = dbus_message_new_method_return(message);
 		dbus_message_append_args(reply, DBUS_TYPE_STRING, &state, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
@@ -210,7 +210,7 @@ Glib::RefPtr<DbusManager> DbusManager::create()
 	return Glib::RefPtr<DbusManager>(new DbusManager());
 }
 
-DbusManager::DbusManager() : RefCounter<DbusManager>::RefCounter(this)
+DbusManager::DbusManager()
 {
 	DBusError error;
 
@@ -255,15 +255,21 @@ DbusManager::DbusManager() : RefCounter<DbusManager>::RefCounter(this)
 DbusManager::~DbusManager()
 {
 	dbus_connection_unref(m_connection);
+	g_debug("destructor dbm");
 }
 
-void DbusManager::unregister_torrent(Torrent* torrent)
+void DbusManager::unregister_torrent(const Glib::RefPtr<Torrent>& torrent)
 {
-	Glib::ustring path = "/org/linkage/torrents/" + str(torrent->get_hash());
+	Glib::ustring path = "/org/linkage/torrents/" + String::compose("%1", torrent->get_hash());
+	// delete the allocated data
+	UserData* data = NULL;
+	dbus_connection_get_object_path_data(m_connection, path.c_str(), (gpointer*)&data);
+	delete data;
+	// FIXME: check that path is accutally registered before we try to unregister
 	dbus_connection_unregister_object_path(m_connection, path.c_str());
 }
 
-void DbusManager::register_torrent(Torrent* torrent)
+void DbusManager::register_torrent(const Glib::RefPtr<Torrent>& torrent)
 {
 	DBusObjectPathVTable vtable = {
 		NULL,
@@ -273,8 +279,9 @@ void DbusManager::register_torrent(Torrent* torrent)
 		NULL,
 		NULL 
 	};
-	Glib::ustring path = "/org/linkage/torrents/" + str(torrent->get_hash());
-	dbus_connection_register_object_path(m_connection, path.c_str(), &vtable, torrent);
+	Glib::ustring path = "/org/linkage/torrents/" + String::compose("%1", torrent->get_hash());
+	UserData* hash = new UserData(torrent, this);
+	dbus_connection_register_object_path(m_connection, path.c_str(), &vtable, hash);
 }
 
 void DbusManager::send(const Glib::ustring& interface,

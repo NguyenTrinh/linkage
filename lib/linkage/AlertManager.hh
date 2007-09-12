@@ -21,15 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <sigc++/signal.h>
 
+#include <glibmm/object.h>
 #include <glibmm/ustring.h>
 #include <glibmm/refptr.h>
 
 #include "libtorrent/peer_id.hpp"
 
-#include "linkage/RefCounter.hh"
 
-class AlertManager : public RefCounter<AlertManager>
+class AlertManager : public Glib::Object
 {
+	// FIXME: this class should implement libtorrent::handle_alert
+
 	void check_alerts();
 
 	sigc::signal<void, const Glib::ustring&> m_signal_listen_failed;

@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <iostream>
 #include <list>
 
+#include <glibmm/object.h>
 #include <glibmm/thread.h>
 
 #include "libtorrent/entry.hpp"
@@ -34,17 +35,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/SettingsManager.hh"
 #include "linkage/Torrent.hh"
-#include "linkage/RefCounter.hh"
-#include "linkage/WeakPtr.hh"
 
-class SessionManager : public RefCounter<SessionManager>, public libtorrent::session
+class SessionManager : public Glib::Object, public libtorrent::session
 {
 	void on_settings();
 
 	bool decode(const Glib::ustring& file, libtorrent::entry& e);
 	bool decode(const Glib::ustring& file, libtorrent::entry& e, std::vector<char>& buffer);
 
-	void erase_content(const Glib::ustring& path, const libtorrent::torrent_info& info);
+	void erase_content(const Glib::ustring& path, const boost::intrusive_ptr<libtorrent::torrent_info>& info);
 
 	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 

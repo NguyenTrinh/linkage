@@ -37,16 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <libglademm.h>
 
-#if HAVE_GNOME
-#include <libgnomeuimm/client.h>
-#endif
-
-#if HAVE_EXO
-#include <exo/exo.h>
-#endif
-
 #include "linkage/Torrent.hh"
-#include "linkage/WeakPtr.hh"
 #include "linkage/Plugin.hh"
 #include "linkage/Interface.hh"
 
@@ -64,13 +55,13 @@ class TorrentMenu;
 class StateFilter;
 class AddDialog;
 
+class SessionClient;
+
 class UI : public Gtk::Window, public Interface
 {
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::MenuToolButton* tb_sort;
-
-	Statusbar* statusbar;
 
 	Gtk::Button* button_add;
 	Gtk::Button* button_remove;
@@ -112,7 +103,6 @@ class UI : public Gtk::Window, public Interface
 	Gtk::SpinButton* spinbutton_up;
 
 	TorrentMenu* torrent_menu;
-
 	PieceMap* piecemap;
 	TorrentList* torrent_list;
 	GroupList* group_list;
@@ -122,8 +112,10 @@ class UI : public Gtk::Window, public Interface
 	PeerList* peer_list;
 	AddDialog* add_dialog;
 	TorrentCreator* new_dialog;
-
+	Statusbar* statusbar;
 	SettingsWin* settings_win;
+
+	SessionClient* session_client;
 
 	sigc::connection m_conn_tick;
 	sigc::connection m_conn_switch_page;
@@ -164,8 +156,8 @@ class UI : public Gtk::Window, public Interface
 	void on_sort_item_selected(TorrentList::Column col);
 	void on_sort();
 
-	void update(const WeakPtr<Torrent>& torrent, bool update_lists = false);
-	void update_statics(const WeakPtr<Torrent>& torrent);
+	void update(const Glib::RefPtr<Torrent>& torrent, bool update_lists = false);
+	void update_statics(const Glib::RefPtr<Torrent>& torrent);
 
 	bool on_delete_event(GdkEventAny*);
 
@@ -175,7 +167,7 @@ class UI : public Gtk::Window, public Interface
 
 	void on_switch_page(GtkNotebookPage* child, int page);
 
-	void build_tracker_menu(const WeakPtr<Torrent>& torrent);
+	void build_tracker_menu(const Glib::RefPtr<Torrent>& torrent);
 	void on_popup_tracker_selected(const Glib::ustring& tracker);
 
 	void on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
@@ -190,39 +182,13 @@ class UI : public Gtk::Window, public Interface
 	void on_toggle_visible();
 
 	void on_settings();
-
-	void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
-	void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
-	void on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash);
-
-	void on_listen_failed(const Glib::ustring& msg);
-	void on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int code, int times);
-	void on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int peers);
-	void on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_hash_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int piece);
-	void on_peer_ban(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
-
-	#if HAVE_GNOME
-	void on_die_gnome();
-	bool on_save_yourself_gnome(int phase, Gnome::UI::SaveStyle save_style,
-		bool shutdown, Gnome::UI::InteractStyle interact_style, bool fast);
-	#endif
-
-	#if HAVE_EXO
-	ExoXsessionClient* exo_client;
-	static void on_save_yourself_exo(ExoXsessionClient *client, gpointer data);
-	#endif
  
 public:
 	// Interface stuff
-	HashList get_selected_list();
-	bool get_visible();
+	SelectionList get_selected()  const;
+	bool get_visible()  const;
 	void set_visible(bool visible);
-	Gtk::Container* get_container(Plugin::PluginParent parent);
+	Gtk::Container* get_container(Plugin::PluginParent parent) const;
 	void open(const Glib::ustring& uri = Glib::ustring());
 	void quit();
 

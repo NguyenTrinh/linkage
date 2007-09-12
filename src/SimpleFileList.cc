@@ -84,13 +84,13 @@ std::vector<bool> SimpleFileList::get_filter()
 	return filter;
 }
 
-void SimpleFileList::populate(const libtorrent::torrent_info& info)
+void SimpleFileList::populate(const boost::intrusive_ptr<libtorrent::torrent_info>& info)
 {
 	model->clear();
 
-	for (unsigned int i = 0; i < info.num_files(); i++)
+	for (unsigned int i = 0; i < info->num_files(); i++)
 	{
-		libtorrent::file_entry file = info.file_at(i);
+		libtorrent::file_entry file = info->file_at(i);
 		Gtk::TreeRow row = *(model->append());
 		row[columns.name] = file.path.string();
 		row[columns.size] = file.size;

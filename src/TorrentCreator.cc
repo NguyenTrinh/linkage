@@ -44,6 +44,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/SessionManager.hh"
 #include "linkage/Utils.hh"
+#include "linkage/compose.hpp"
 
 TorrentCreator::TorrentCreator(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::Dialog(cobject),
@@ -128,17 +129,17 @@ void TorrentCreator::run()
 	}
 	else
 	{
-		torrent_info info;
+		boost::intrusive_ptr<torrent_info> info(new torrent_info());
 		
 		Glib::ustring root = content.substr(0, content.rfind("/"));
 		content.erase(0, root.size()+1);
 		add_files(info, root, content);
 
-		info.set_creator(PACKAGE_NAME "/" PACKAGE_VERSION);
-		info.set_piece_size(piece_size);
-		info.add_tracker(tracker.c_str());
-		info.set_comment(comment.c_str());
-		info.set_priv(priv);
+		info->set_creator(PACKAGE_NAME "/" PACKAGE_VERSION);
+		info->set_piece_size(piece_size);
+		info->add_tracker(tracker.c_str());
+		info->set_comment(comment.c_str());
+		info->set_priv(priv);
 
 		progress_hashing->set_text(_("Hashing..."));
 
@@ -147,18 +148,18 @@ void TorrentCreator::run()
 
 		std::vector<char> buf(piece_size);
 		
-		for (unsigned int i = 0; i < info.num_pieces(); i++)
+		for (unsigned int i = 0; i < info->num_pieces(); i++)
 		{
-			double progress = (double)i/info.num_pieces();
+			double progress = (double)i/info->num_pieces();
 			progress_hashing->set_fraction(progress);
 			while (Gtk::Main::events_pending())
 				Gtk::Main::iteration(false);
-			st->read(&buf[0], i, 0, info.piece_size(i));
-			hasher h(&buf[0], info.piece_size(i));
-			info.set_hash(i, h.final());
+			st->read(&buf[0], i, 0, info->piece_size(i));
+			hasher h(&buf[0], info->piece_size(i));
+			info->set_hash(i, h.final());
 		}
 		
-		entry e = info.create_torrent();
+		entry e = info->create_torrent();
 		
 		save_dialog->set_current_name(content + ".torrent");
 		if (save_dialog->run() == Gtk::RESPONSE_OK)
@@ -176,9 +177,9 @@ void TorrentCreator::run()
 				{
 					entry::dictionary_type er;
 					er["path"] = root;
-					er["downloaded"] = info.total_size();
+					er["downloaded"] = info->total_size();
 					er["completed"] = true;
-					save_entry(Glib::build_filename(get_data_dir(), str(info.info_hash()) + ".resume"), er);
+					save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", info->info_hash()) + ".resume"), er);
 					Engine::get_session_manager()->open_torrent(file, root);
 				}
 			}
@@ -192,7 +193,7 @@ void TorrentCreator::run()
 	}
 }
 
-void TorrentCreator::add_files(libtorrent::torrent_info& info, const Glib::ustring& root, const Glib::ustring& child)
+void TorrentCreator::add_files(boost::intrusive_ptr<libtorrent::torrent_info>& info, const Glib::ustring& root, const Glib::ustring& child)
 {
 	Glib::ustring path = root;
 	if (root != child)
@@ -202,7 +203,7 @@ void TorrentCreator::add_files(libtorrent::torrent_info& info, const Glib::ustri
 	{
 		struct stat results;
 		if (g_stat(path.c_str(), &results) == 0)
-			info.add_file(child.c_str(), results.st_size);
+			info->add_file(child.c_str(), results.st_size);
 	}
 	else
 	{

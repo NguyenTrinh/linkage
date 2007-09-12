@@ -64,7 +64,7 @@ class TorrentCreator : public Gtk::Dialog
 
 	TorrentSaveDialog* save_dialog;
 
-	void add_files(libtorrent::torrent_info& info, const Glib::ustring& root, const Glib::ustring& child);
+	void add_files(boost::intrusive_ptr<libtorrent::torrent_info>& info, const Glib::ustring& root, const Glib::ustring& child);
 
 	void on_radio_toggled();
 

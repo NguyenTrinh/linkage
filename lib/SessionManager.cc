@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/AlertManager.hh"
 #include "linkage/TorrentManager.hh"
 #include "linkage/Utils.hh"
+#include "linkage/compose.hpp"
 
 #include <libtorrent/extensions/ut_pex.hpp>
 
@@ -30,7 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/fileutils.h>
 #include <glibmm/i18n.h>
 
-// FIXME: Remove using statement
 using namespace libtorrent;
 
 Glib::RefPtr<SessionManager> SessionManager::create()
@@ -38,8 +38,13 @@ Glib::RefPtr<SessionManager> SessionManager::create()
 	return Glib::RefPtr<SessionManager>(new SessionManager());
 }
 
-SessionManager::SessionManager() : RefCounter<SessionManager>::RefCounter(this),
-	session(fingerprint("LK", LINKAGE_VERSION_MAJOR, LINKAGE_VERSION_MINOR, LINKAGE_VERSION_MICRO, 0))
+SessionManager::SessionManager()
+	:	session(fingerprint(
+			"LK", 
+			LINKAGE_VERSION_MAJOR, 
+			LINKAGE_VERSION_MINOR, 
+			LINKAGE_VERSION_MICRO, 
+			0))
 {
 	set_severity_level(alert::info);
 
@@ -68,6 +73,7 @@ SessionManager::~SessionManager()
 		thread->join();
 	}
 	m_threads.clear();
+	g_debug("destructor sm");
 }
 
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
@@ -128,7 +134,6 @@ void SessionManager::on_settings()
 	dht_settings settings;
 	settings.service_port = listen_port();
 
-
 	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
 	entry e;
 	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
@@ -136,18 +141,11 @@ void SessionManager::on_settings()
 
 	if (sm->get_bool("network/use_dht"))
 	{
-		try
-		{
-			set_dht_settings(settings);
-			start_dht(e);
-			add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
-			add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
-			add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
-		}
-		catch (asio::error& error)
-		{
-			g_warning(_("Failed to start DHT"));
-		}
+		set_dht_settings(settings);
+		start_dht(e);
+		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
+		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
+		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
 	}
 	else
 		/* FIXME: check if dht is running, if so save state */
@@ -185,6 +183,15 @@ void SessionManager::on_settings()
 	sset.allow_multiple_connections_per_ip = sm->get_bool("network/multiple_connections_per_ip");
 	sset.use_dht_as_fallback = sm->get_bool("network/dht_fallback");
 	sset.file_pool_size = sm->get_int("files/max_open");
+	sset.lazy_bitfields = sm->get_bool("torrent/lazy_bitfields");
+	set_settings(sset);
+
+	pe_settings pe;
+	pe.out_enc_policy = (pe_settings::enc_policy)sm->get_int("network/encryption/policy");
+	pe.in_enc_policy = (pe_settings::enc_policy)sm->get_int("network/encryption/policy");
+	pe.allowed_enc_level = (pe_settings::enc_level)sm->get_int("network/encryption/level");
+	pe.prefer_rc4 = sm->get_bool("network/encryption/prefer_rc4");
+	set_pe_settings(pe);
 
 	Glib::ustring proxy = sm->get_string("network/proxy/host");
 	if (!proxy.empty())
@@ -194,14 +201,14 @@ void SessionManager::on_settings()
 		p.port = sm->get_int("network/proxy/port");
 		p.username = sm->get_string("network/proxy/login");
 		p.password = sm->get_string("network/proxy/pass");
-		p.type = libtorrent::proxy_settings::proxy_type(sm->get_int("network/proxy/type"));
+		p.type = (proxy_settings::proxy_type)sm->get_int("network/proxy/type");
 
 		set_peer_proxy(p);
 		set_web_seed_proxy(p);
 		set_tracker_proxy(p);
 		set_dht_proxy(p);
 	}
-	set_settings(sset);
+	
 }
 
 bool SessionManager::decode(const Glib::ustring& file, entry& e)
@@ -250,7 +257,7 @@ void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustr
 	{
 		//FIXME: 0.13 uses an alert for move_storage, also set new path to torrent
 		Glib::ustring path = Engine::get_settings_manager()->get_string("files/finished_path");
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		bool ret = false;
 		if (!torrent->is_stopped())
 			torrent->get_handle().move_storage(path.c_str());
@@ -268,11 +275,11 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	if (!decode(file, e, buff))
 		return INVALID_HASH;
 
-	torrent_info info(e);
-	sha1_hash hash = info.info_hash();
+	boost::intrusive_ptr<torrent_info> info(new torrent_info(e));
+	sha1_hash hash = info->info_hash();
 
 	entry er;
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
 	{
 		bool allocate = !Engine::get_settings_manager()->get_bool("files/allocate");
@@ -280,7 +287,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 
 		// Check if a resume file exists and it's valid
 		bool no_resume = true;
-		Glib::ustring resume_file = Glib::build_filename(get_data_dir(), str(hash) + ".resume");
+		Glib::ustring resume_file = Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume");
 		if (Glib::file_test(resume_file, Glib::FILE_TEST_EXISTS))
 		{
 			decode(resume_file, er);
@@ -307,18 +314,18 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	}
 	else
 	{
-		std::vector<announce_entry> trackers = info.trackers();
+		std::vector<announce_entry> trackers = info->trackers();
 		for (unsigned int i = 0; i < trackers.size(); i++)
 		{
 			torrent->add_tracker(trackers[i].url);
 		}
 		m_signal_duplicate_torrent.emit(String::ucompose(_(
-			"Merged %1 with %2"), info.name(), torrent->get_name()), hash);
+			"Merged %1 with %2"), info->name(), torrent->get_name()), hash);
 		return hash;
 	}
 
 	/* Save metadata to ~/.config/linkage/data/hash */
-	Glib::ustring metafile = Glib::build_filename(get_data_dir(), str(hash));
+	Glib::ustring metafile = Glib::build_filename(get_data_dir(), String::compose("%1", hash));
 	std::ofstream out;
 	out.open(metafile.c_str(), std::ios_base::binary);
 	out.write(&buff[0], buff.size());
@@ -328,14 +335,15 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		Save an almost empty .resume file, so the torrent is resumed next session
 		even if something nasty happens to this session
 	*/
-	save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), er);
+	save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), er);
 
 	return hash;
 }
 
 sha1_hash SessionManager::resume_torrent(const sha1_hash& hash)
 {
-	return resume_torrent(str(hash));
+	Glib::ustring hash_str = String::compose("%1", hash);
+	return resume_torrent(hash_str);
 }
 
 sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
@@ -348,12 +356,12 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	if (!decode(file, e))
 		return INVALID_HASH;
 
-	torrent_info info = torrent_info(e);
+	boost::intrusive_ptr<torrent_info> info(new torrent_info(e));
 
 	/* Check if torrent is up an running, if so return */
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(info.info_hash());
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(info->info_hash());
 	if (torrent && !torrent->is_stopped())
-		return info.info_hash();
+		return info->info_hash();
 
 	file = file + ".resume";
 	/* If this fails we need to handle it better below */
@@ -379,18 +387,18 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 		}
 	}
 
-	return info.info_hash();
+	return info->info_hash();
 }
 
 void SessionManager::recheck_torrent(const sha1_hash& hash)
 {
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (torrent)
 	{
 		if (!torrent->is_stopped())
 			stop_torrent(hash);
 
-		torrent_info info = torrent->get_info();
+		boost::intrusive_ptr<torrent_info> info = torrent->get_info();
 		Glib::ustring path = torrent->get_path();
 		bool allocate = Engine::get_settings_manager()->get_bool("files/allocate");
 		torrent_handle handle = add_torrent(info, path.c_str(), entry(), !allocate);
@@ -402,8 +410,8 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 {
 	if (Engine::get_torrent_manager()->exists(hash))
 	{
-		Glib::ustring hash_str = str(hash);
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::ustring hash_str = String::compose("%1", hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
 		if (torrent->is_stopped())
 			return;
@@ -415,7 +423,7 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 		torrent->get_handle().pause();
 		entry e = torrent->get_resume_entry();
 
-		save_entry(Glib::build_filename(get_data_dir(), str(hash) + ".resume"), e);
+		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
 
 		remove_torrent(torrent->get_handle());
 
@@ -426,7 +434,7 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 
 void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 {
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
 	if (!torrent->is_stopped())
 		remove_torrent(torrent->get_handle());
@@ -443,15 +451,15 @@ void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 
 	Engine::get_torrent_manager()->remove_torrent(hash);
 
-	Glib::ustring file = Glib::build_filename(get_data_dir(), str(hash));
+	Glib::ustring file = Glib::build_filename(get_data_dir(), String::compose("%1", hash));
 	g_unlink(file.c_str());
 	g_unlink((file + ".resume").c_str());
 }
 
-void SessionManager::erase_content(const Glib::ustring& path, const torrent_info& info)
+void SessionManager::erase_content(const Glib::ustring& path, const boost::intrusive_ptr<torrent_info>& info)
 {
-	for (torrent_info::file_iterator iter = info.begin_files();
-				iter != info.end_files(); ++iter)
+	for (torrent_info::file_iterator iter = info->begin_files();
+				iter != info->end_files(); ++iter)
 	{
 		file_entry fe = *iter;
 		Glib::ustring file = fe.path.string();
@@ -463,7 +471,7 @@ void SessionManager::erase_content(const Glib::ustring& path, const torrent_info
 	}
 
 	/* Multi file torrents have their own root folder */
-	if (info.num_files() > 1)
-		g_remove(Glib::build_filename(path, info.name()).c_str());
+	if (info->num_files() > 1)
+		g_remove(Glib::build_filename(path, info->name()).c_str());
 }
 

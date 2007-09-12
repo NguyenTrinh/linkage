@@ -17,6 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include <gtkmm/main.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/image.h>
 #include <gtkmm/treeselection.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrendererprogress.h>
@@ -35,9 +37,10 @@ PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	set_model(model);
 
 	Gtk::TreeViewColumn* column = Gtk::manage(new Gtk::TreeViewColumn(_("Address")));
-	column->set_sort_column_id(columns.address);
+	column->set_sort_column(columns.address);
 	column->set_resizable(true);
 	column->pack_start(columns.flag, false);
+	column->pack_start(columns.encryption, false);
 	column->pack_start(columns.address);
 	append_column(*column);
 
@@ -58,16 +61,17 @@ PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
 	column->set_cell_data_func(*cell, sigc::bind(sigc::mem_fun(this, &PeerList::format_rates), columns.up_rate));
 
-	Gtk::CellRendererProgress* prender = new Gtk::CellRendererProgress();
-	col = append_column(_("Progress"), *Gtk::manage(prender));
-	get_column(col - 1)->add_attribute(*prender, "value", col);
+	Gtk::CellRendererProgress* prender = Gtk::manage(new Gtk::CellRendererProgress());
+	col = append_column(_("Progress"), *prender);
+	get_column(col - 1)->add_attribute(*prender, "value", columns.progress);
 	append_column(_("Client"), columns.client);
 	append_column(_("State"), columns.flags);
+	append_column(_("Source"), columns.source);
 
-	for (unsigned int i = 1; i < 8; i++)
+	for (unsigned int i = 1; i < 9; i++)
 	{
 		column = get_column(i);
-		column->set_sort_column_id(i + 1);
+		column->set_sort_column_id(i + 2);
 		column->set_resizable(true);
 	}
 }
@@ -115,7 +119,7 @@ bool PeerList::on_foreach(const Gtk::TreeModel::iterator& iter, PeerMap* peer_ma
 	return false;
 }
 
-void PeerList::update(const WeakPtr<Torrent>& torrent)
+void PeerList::update(const Glib::RefPtr<Torrent>& torrent)
 {
 	static bool working = false;
 
@@ -182,7 +186,8 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 {
 	row[columns.address] = peer_as_string(peer);
 
-	if (!row[columns.has_flag])
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf = row[columns.flag];
+	if (!pixbuf)
 	{
 		char c[3];
 		c[0] = peer.country[0];
@@ -195,7 +200,6 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 			try
 			{
 				row[columns.flag] = Gdk::Pixbuf::create_from_file(flag);
-				row[columns.has_flag] = true;
 			}
 			catch (Glib::Error& e)
 			{
@@ -204,11 +208,20 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 		}
 	}
 
+	pixbuf = row[columns.encryption];
+	if (!pixbuf &&
+		peer.flags & libtorrent::peer_info::rc4_encrypted ||
+		peer.flags & libtorrent::peer_info::plaintext_encrypted)
+	{
+		pixbuf = render_icon(Gtk::Stock::DIALOG_AUTHENTICATION, Gtk::ICON_SIZE_MENU);
+		row[columns.encryption] = pixbuf;
+	}
+
 	row[columns.down] = peer.total_download;
 	row[columns.up] = peer.total_upload;
 	row[columns.down_rate] = peer.payload_down_speed;
 	row[columns.up_rate] = peer.payload_up_speed;
-	if (!peer.seed)
+	if (!(peer.flags & libtorrent::peer_info::seed))
 	{
 		// this is a real time hog, if we have a lot of peers and many pieces =/
 		unsigned int completed = 0;
@@ -239,36 +252,66 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 		ss << _("Queued");
 	else
 	{
-		if (peer.flags & libtorrent::peer_info::interesting)
+		if (peer.flags & libtorrent::peer_info::interesting && peer.flags & libtorrent::peer_info::remote_interested)
 		{
 			if (ss.tellp())
 				ss << ", ";
-			ss << _("Interested");
+			ss << _("Both interested");
 		}
-		if (peer.flags & libtorrent::peer_info::choked)
+		else
 		{
-			if (ss.tellp())
-				ss << ", ";
-			ss << _("Choked");
+			if (peer.flags & libtorrent::peer_info::interesting)
+			{
+				if (ss.tellp())
+					ss << ", ";
+				ss << _("Interested");
+			}
+			if (peer.flags & libtorrent::peer_info::remote_interested)
+			{
+				if (ss.tellp())
+					ss << ", ";
+				ss << _("Remote interested");
+			}
 		}
-		if (peer.flags & libtorrent::peer_info::remote_interested)
+
+		if (peer.flags & libtorrent::peer_info::choked && peer.flags & libtorrent::peer_info::remote_choked)
 		{
 			if (ss.tellp())
 				ss << ", ";
-			ss << _("Remote interested");
+			ss << _("Both choked");
 		}
-		if (peer.flags & libtorrent::peer_info::remote_choked)
+		else
 		{
-			if (ss.tellp())
-				ss << ", ";
-			ss << _("Remote choked");
+			if (peer.flags & libtorrent::peer_info::choked)
+			{
+				if (ss.tellp())
+					ss << ", ";
+				ss << _("Choked");
+			}
+			if (peer.flags & libtorrent::peer_info::remote_choked)
+			{
+				if (ss.tellp())
+					ss << ", ";
+				ss << _("Remote choked");
+			}
 		}
 	}
 	row[columns.flags] = Glib::locale_to_utf8(ss.str());
+
+	if (peer.flags & libtorrent::peer_info::tracker)
+		row[columns.source] = _("Tracker");
+	else if (peer.flags & libtorrent::peer_info::dht)
+		row[columns.source] = _("DHT");
+	else if (peer.flags & libtorrent::peer_info::pex)
+		row[columns.source] = _("PEX");
+	else if (peer.flags & libtorrent::peer_info::lsd)
+		row[columns.source] = _("LSD");
+	else if (peer.flags & libtorrent::peer_info::resume_data)
+		row[columns.source] = _("Resume data");
 }
 
 Glib::ustring PeerList::peer_as_string(const libtorrent::peer_info& peer)
 {
-	return peer.ip.address().to_string() + ":" + str(peer.ip.port());
+	return peer.ip.address().to_string() + ":" + String::ucompose("%1", peer.ip.port());
 }
 

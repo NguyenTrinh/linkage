@@ -53,6 +53,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   AddDialog.cc \
                   SimpleFileList.hh \
                   SimpleFileList.cc \
+                  SessionClient.hh \
+                  SessionClient.cc \
                   main.cc
 
 

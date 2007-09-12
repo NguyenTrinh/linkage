@@ -19,20 +19,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef INTERFACE_HH
 #define INTERFACE_HH
 
+#include <list>
+
+#include <glibmm/refptr.h>
+#include <gtkmm/container.h>
+
 #include <linkage/Torrent.hh>
 #include <linkage/Plugin.hh>
 
-#include <gtkmm/container.h>
+typedef std::list<Glib::RefPtr<Torrent> > SelectionList;
 
 class Interface
 {
-public:
-	virtual HashList get_selected_list();
+private:
+	Interface(const Interface&);
+	Interface& operator=(const Interface&);
 
-	virtual bool get_visible();
+public:
+	virtual SelectionList get_selected() const;
+
+	virtual bool get_visible() const;
 	virtual void set_visible(bool visible);
 
-	virtual Gtk::Container* get_container(Plugin::PluginParent parent) = 0;
+	virtual Gtk::Container* get_container(Plugin::PluginParent parent) const = 0;
 
 	virtual void open(const Glib::ustring& uri);
 

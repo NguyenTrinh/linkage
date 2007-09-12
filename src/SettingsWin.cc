@@ -55,9 +55,11 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	glade_xml->get_widget("color_announcing", color_announcing);
 	glade_xml->get_widget("color_stopped", color_stopped);
 
+	glade_xml->get_widget_derived("interfaces", interfaces);
 	glade_xml->get_widget("min_port", min_port);
 	glade_xml->get_widget("max_port", max_port);
-	glade_xml->get_widget("tracker_timeout", tracker_timeout);
+	glade_xml->get_widget_derived("enc_policy", enc_policy);
+	glade_xml->get_widget_derived("enc_level", enc_level);
 	glade_xml->get_widget("enable_dht", enable_dht);
 	glade_xml->get_widget("dht_fallback", dht_fallback);
 	glade_xml->get_widget("enable_pex", enable_pex);
@@ -65,18 +67,22 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	glade_xml->get_widget("max_connections", max_connections);
 	glade_xml->get_widget("max_uploads", max_uploads);
-	glade_xml->get_widget("max_active", max_active);
 	glade_xml->get_widget("up_rate", up_rate);
 	glade_xml->get_widget("down_rate", down_rate);
 
 	glade_xml->get_widget("max_torrent_connections", max_torrent_connections);
 	glade_xml->get_widget("max_torrent_uploads", max_torrent_uploads);
-	glade_xml->get_widget("seed_ratio", seed_ratio);
 
 	glade_xml->get_widget("proxy_port", proxy_port);
-	glade_xml->get_widget("proxy_ip", proxy_ip);
-	glade_xml->get_widget("proxy_user", proxy_user);
-	glade_xml->get_widget("proxy_pass", proxy_pass);
+	glade_xml->get_widget("proxy_host", proxy_host);
+	glade_xml->get_widget("proxy_username", proxy_username);
+	glade_xml->get_widget("proxy_password", proxy_password);
+	glade_xml->get_widget_derived("proxy_type", proxy_type);
+
+	glade_xml->get_widget("max_active", max_active);
+	glade_xml->get_widget("desired_ratio", desired_ratio);
+	glade_xml->get_widget("stop_ratio", stop_ratio);
+	glade_xml->get_widget("lazy_bitfields", lazy_bitfields);
 
 	glade_xml->get_widget("move_finished", move_finished);
 	glade_xml->get_widget("allocate", allocate);
@@ -98,21 +104,28 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	glade_xml->get_widget("button_close", button);
 	button->signal_clicked().connect(sigc::mem_fun(this, &SettingsWin::on_button_close));
 
-	// populate the interfaces combobox
-	// cant be done with glade because ComboBoxText is gtkmm only
-	interfaces = manage(new Gtk::ComboBoxText());
+	// populate the comboboxes
 	interfaces->set_row_separator_func(sigc::mem_fun(this, &SettingsWin::is_separator));
 	interfaces->append_text(_("None specified"));
 	interfaces->append_text("-");
-	std::list<Glib::ustring> if_list = get_interfaces();
-	for (std::list<Glib::ustring>::iterator iter = if_list.begin();
-				iter != if_list.end(); ++iter)
+	std::list<Glib::ustring> devices = get_interfaces();
+	for (std::list<Glib::ustring>::iterator iter = devices.begin();
+		iter != devices.end(); ++iter)
 	{
 		interfaces->append_text(*iter);
 	}
-	Gtk::Table* table;
-	glade_xml->get_widget("table1", table);
-	table->attach(*interfaces, 1, 3, 0, 1, Gtk::FILL, Gtk::SHRINK);	
+	enc_policy->append_text(_("Forced"));
+	enc_policy->append_text(_("Enabled"));
+	enc_policy->append_text(_("Disabled"));
+	enc_level->append_text(_("Plain text"));
+	enc_level->append_text(_("RC4"));
+	enc_level->append_text(_("Both"));
+	proxy_type->append_text(_("None"));
+	proxy_type->append_text(_("SOCKS4"));
+	proxy_type->append_text(_("SOCKS5"));
+	proxy_type->append_text(_("SOCKS5 with password"));
+	proxy_type->append_text(_("HTTP"));
+	proxy_type->append_text(_("HTTP with password"));
 
 	// setup the plugins listview
 	model_plugins = Gtk::ListStore::create(plugin_columns);
@@ -197,7 +210,7 @@ void SettingsWin::on_configure_plugin()
 	{
 		Gtk::TreeRow row = *iter;
 
-		WeakPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
+		Glib::RefPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
 		if (plugin)
 		{
 			Gtk::Widget* widget = plugin->get_config_widget();
@@ -249,7 +262,8 @@ void SettingsWin::on_hide()
 			sm->set("network/interface", interfaces->get_active_text());
 	sm->set("network/min_port", (int)min_port->get_value());
 	sm->set("network/max_port", (int)max_port->get_value());
-	sm->set("network/tracker_timeout", (int)tracker_timeout->get_value());
+	sm->set("network/encryption/policy", enc_policy->get_active_row_number());
+	sm->set("network/encryption/level", enc_level->get_active_row_number());
 	sm->set("network/use_dht", enable_dht->get_active());
 	sm->set("network/dht_fallback", dht_fallback->get_active());
 	sm->set("network/use_pex", enable_pex->get_active());
@@ -267,7 +281,6 @@ void SettingsWin::on_hide()
 	else if (connections == 0)
 		connections = -1;
 	sm->set("network/max_connections", connections);
-	sm->set("network/max_active", (int)max_active->get_value());
 	
 	uploads = (int)max_torrent_uploads->get_value();
 	if (uploads == 0)
@@ -279,12 +292,20 @@ void SettingsWin::on_hide()
 	else if (connections == 0)
 		connections = -1;
 	sm->set("network/max_torrent_connections", connections);
-	sm->set("network/seed_ratio", seed_ratio->get_value());
 
-	sm->set("network/proxy/ip", proxy_ip->get_text());
+	sm->set("network/proxy/host", proxy_host->get_text());
 	sm->set("network/proxy/port", (int)proxy_port->get_value());
-	sm->set("network/proxy/login", proxy_user->get_text());
-	sm->set("network/proxy/pass", proxy_pass->get_text());
+	sm->set("network/proxy/username", proxy_username->get_text());
+	sm->set("network/proxy/password", proxy_password->get_text());
+	sm->set("network/proxy/type", proxy_type->get_active_row_number());
+
+	/* Torrents */
+	sm->set("torrent/queue/max_active", (int)max_active->get_value());
+
+	sm->set("network/desired_ratio", desired_ratio->get_value());
+	sm->set("network/stop_ratio", stop_ratio->get_value());
+	sm->set("torrent/lazy_bitfields", lazy_bitfields->get_active());
+
 	/* UI */
 	sm->set("ui/interval", (int)update_interval->get_value());
 	sm->set("ui/auto_expand", auto_expand->get_active());
@@ -301,6 +322,7 @@ void SettingsWin::on_hide()
 	sm->set("ui/colors/checking", hex_str(color_checking->get_color()));
 	sm->set("ui/colors/allocating", hex_str(color_allocating->get_color()));
 	sm->set("ui/colors/error", hex_str(color_error->get_color()));
+
 	/* Plugins */
 	Gtk::TreeNodeChildren children = model_plugins->children();
 	std::list<Glib::ustring> plugins;
@@ -311,6 +333,7 @@ void SettingsWin::on_hide()
 			plugins.push_back(row[plugin_columns.name]);
 	}
 	sm->set("ui/plugins", Glib::SListHandle<Glib::ustring>(plugins));
+
 	/* Files */
 	sm->set("files/use_default_path", default_path->get_active());
 	sm->set("files/default_path", button_default_path->get_filename());
@@ -328,9 +351,15 @@ void SettingsWin::on_show()
 
 	/* Network */
 	Glib::ustring interface = sm->get_string("network/interface");
+	// FIXME: make sure interface is in the list?
+	if (!interface.empty())
+		interfaces->set_active_text(interface);
+	else
+		interfaces->set_active(0);
 	max_port->set_value((double)sm->get_int("network/max_port"));
 	min_port->set_value((double)sm->get_int("network/min_port"));
-	tracker_timeout->set_value((double)sm->get_int("network/tracker_timeout"));
+	enc_policy->set_active(sm->get_int("network/encryption/policy"));
+	enc_level->set_active(sm->get_int("network/encryption/level"));
 	enable_dht->set_active(sm->get_bool("network/use_dht"));
 	dht_fallback->set_active(sm->get_bool("network/dht_fallback"));
 	enable_pex->set_active(sm->get_bool("network/use_pex"));
@@ -340,20 +369,23 @@ void SettingsWin::on_show()
 	down_rate->set_value((double)sm->get_int("network/max_down_rate"));
 	max_uploads->set_value((double)sm->get_int("network/max_uploads"));
 	max_connections->set_value((double)sm->get_int("network/max_connections"));
-	max_active->set_value((double)sm->get_int("network/max_active"));
 
 	max_torrent_uploads->set_value((double)sm->get_int("network/max_torrent_uploads"));
 	max_torrent_connections->set_value((double)sm->get_int("network/max_torrent_connections"));
-	seed_ratio->set_value(sm->get_float("network/seed_ratio"));
 
-	proxy_ip->set_text(sm->get_string("network/proxy/ip"));
+	proxy_host->set_text(sm->get_string("network/proxy/ip"));
 	proxy_port->set_value((double)sm->get_int("network/proxy/port"));
-	proxy_user->set_text(sm->get_string("network/proxy/login"));
-	proxy_pass->set_text(sm->get_string("network/proxy/pass"));
-	if (!interface.empty())
-		interfaces->set_active_text(interface);
-	else
-		interfaces->set_active(0);
+	proxy_username->set_text(sm->get_string("network/proxy/login"));
+	proxy_password->set_text(sm->get_string("network/proxy/pass"));
+	proxy_type->set_active(sm->get_int("network/proxy/type"));
+
+	/* Torrents */
+	max_active->set_value((double)sm->get_int("torrent/queue/max_active"));
+
+	desired_ratio->set_value(sm->get_float("torrent/desired_ratio"));
+	stop_ratio->set_value(sm->get_float("torrent/stop_ratio"));
+	lazy_bitfields->set_active(sm->get_bool("torrent/lazy_bitfields"));
+
 	/* UI */
 	update_interval->set_value((double)sm->get_int("ui/interval"));
 	auto_expand->set_active(sm->get_bool("ui/auto_expand"));
@@ -401,6 +433,7 @@ void SettingsWin::on_show()
 	colormap->alloc_color(color);
 	color_error->set_color(color);
 	colormap->free_color(color);
+
 	/* Files */
 	default_path->set_active(sm->get_bool("files/use_default_path"));
 	button_default_path->set_filename(sm->get_string("files/default_path"));
@@ -408,6 +441,7 @@ void SettingsWin::on_show()
 	button_move_finished->set_filename(sm->get_string("files/finished_path"));
 	allocate->set_active(sm->get_bool("files/allocate"));
 	max_open->set_value((double)sm->get_int("files/max_open"));
+
 	/* Plugins */
 	if (model_plugins->children().empty())
 	{

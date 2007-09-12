@@ -21,11 +21,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <list>
 
-#include "linkage/Plugin.hh"
-#include "linkage/WeakPtr.hh"
-#include "linkage/RefCounter.hh"
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
 
-class PluginManager : public RefCounter<PluginManager>
+#include "linkage/Plugin.hh"
+
+class PluginManager : public Glib::Object
 {
 public:
 	struct PluginInfo : public Plugin::Info
@@ -34,36 +35,35 @@ public:
 		bool loaded;
 	};
 	typedef std::list<PluginInfo> PluginInfoList;
+	typedef std::list<Glib::RefPtr<Plugin> > PluginList;
 
 private:
-	typedef std::list<Plugin*> PluginPtrList;
-
-	PluginPtrList m_plugins;
+	PluginList m_plugins;
 	PluginInfoList m_info;
 
 	void refresh_info();
 
 	void load_plugin(const Glib::ustring& file);
-	void unload_plugin(Plugin* plugin, bool destroy = true);
+	void unload_plugin(const Glib::RefPtr<Plugin>& plugin);
+	void on_plugin_destroyed(Plugin* plugin);
 	
 	Glib::ustring get_module(const Glib::ustring& name);
 	
-	sigc::signal<void, WeakPtr<Plugin> > m_signal_plugin_load;
-	sigc::signal<void, WeakPtr<Plugin> > m_signal_plugin_unload;
+	sigc::signal<void, Glib::RefPtr<Plugin> > m_signal_plugin_load;
+	sigc::signal<void, Glib::RefPtr<Plugin> > m_signal_plugin_unload;
 
 	void on_settings();
 	
 	PluginManager();
 	
 public:
-	typedef std::list<WeakPtr<Plugin> > PluginList;
-	PluginList get_plugins();
+	const PluginList& get_plugins();
 	
-	sigc::signal<void, WeakPtr<Plugin> > signal_plugin_load();
-	sigc::signal<void, WeakPtr<Plugin> > signal_plugin_unload();
+	sigc::signal<void, Glib::RefPtr<Plugin> > signal_plugin_load();
+	sigc::signal<void, Glib::RefPtr<Plugin> > signal_plugin_unload();
 
 	bool is_loaded(const Glib::ustring& name);
-	WeakPtr<Plugin> get_plugin(const Glib::ustring& name);
+	Glib::RefPtr<Plugin> get_plugin(const Glib::ustring& name);
 
 	PluginInfoList list_plugins();
 

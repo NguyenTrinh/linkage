@@ -24,6 +24,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glib/gstdio.h>
 #endif
 
+#if HAVE_GNOME
+#include <libgnomevfsmm/utils.h>
+#include <libgnomevfsmm/uri.h>
+#endif
+
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/menubar.h>
@@ -41,11 +46,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/i18n.h>
 #include <libglademm.h>
 
-#if HAVE_GNOME
-#include <libgnomevfsmm/utils.h>
-#include <libgnomevfsmm/uri.h>
-#endif
-
 #include <boost/date_time/posix_time/time_formatters.hpp>
 
 #include "Statusbar.hh"
@@ -59,6 +59,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "TorrentMenu.hh"
 #include "StateFilter.hh"
 #include "AddDialog.hh"
+#include "SessionClient.hh"
 #include "UI.hh"
 
 #include "linkage/Engine.hh"
@@ -67,6 +68,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
+#include "linkage/compose.hpp"
 
 const char* TARGET_URI_LIST = "text/uri-list";
 const char* TARGET_MOZ_URL = "text/x-moz-url-data";
@@ -332,43 +334,13 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
 
-	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &UI::on_invalid_bencoding));
-	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &UI::on_missing_file));
-	Engine::get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &UI::on_duplicate_torrent));
-
-	Engine::get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &UI::on_listen_failed));
-	Engine::get_alert_manager()->signal_tracker_failed().connect(sigc::mem_fun(this, &UI::on_tracker_failed));
-	Engine::get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(this, &UI::on_tracker_reply));
-	Engine::get_alert_manager()->signal_tracker_warning().connect(sigc::mem_fun(this, &UI::on_tracker_warning));
-	Engine::get_alert_manager()->signal_tracker_announce().connect(sigc::mem_fun(this, &UI::on_tracker_announce));
-	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &UI::on_torrent_finished));
-	Engine::get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &UI::on_file_error));
-	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &UI::on_fastresume_rejected));
-	Engine::get_alert_manager()->signal_hash_failed().connect(sigc::mem_fun(this, &UI::on_hash_failed));
-	Engine::get_alert_manager()->signal_peer_ban().connect(sigc::mem_fun(this, &UI::on_peer_ban));
-
 	m_conn_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
 
 	add_events(Gdk::VISIBILITY_NOTIFY_MASK);
 
-	#if HAVE_GNOME
-	Gnome::UI::Client* gnome_client = Gnome::UI::Client::master_client();
-	if (gnome_client)
-	{
-		gnome_client->signal_die().connect(sigc::mem_fun(this, &UI::on_die_gnome));
-		gnome_client->signal_save_yourself().connect(sigc::mem_fun(this, &UI::on_save_yourself_gnome));
-	}
-	else
-		g_warning(_("Failed to connect to GNOME session"));
-	#endif
-
-	#if HAVE_EXO
-	GdkDisplay* display = get_screen()->get_display()->gobj();
-	GdkWindow* leader = gdk_display_get_default_group(display);
-	exo_client = exo_xsession_client_new_with_group(leader);
-	g_signal_connect(G_OBJECT(exo_client), "save-yourself", 
-		G_CALLBACK(UI::on_save_yourself_exo), this);
-	#endif
+	// Set up desktop session support
+	session_client = new SessionClient();
+	session_client->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
 }
 
 UI::~UI()
@@ -401,57 +373,23 @@ UI::~UI()
 	delete torrent_menu;
 	delete add_dialog;
 
-	#if HAVE_EXO
-	g_object_unref(G_OBJECT(exo_client));
-	#endif
+	delete session_client;
+
+	g_debug("destructor ui");
 }
-
-#if HAVE_GNOME
-void UI::on_die_gnome()
-{
-	Gtk::Main::quit();
-}
-
-bool UI::on_save_yourself_gnome(int phase, Gnome::UI::SaveStyle save_style,
-	bool shutdown, Gnome::UI::InteractStyle interact_style, bool fast)
-{
-	Gnome::UI::Client* gnome_client = Gnome::UI::Client::master_client();
-	if (gnome_client)
-	{
-		std::vector<std::string> argv;
-		argv.push_back("linkage");
-		gnome_client->set_clone_command(argv);
-		gnome_client->set_restart_command(argv);
-	}
-	else
-		g_warning(_("Failed to connect to GNOME session"));
-
-	Gtk::Main::quit();
-
-	return true;
-}
-#endif
-
-#if HAVE_EXO
-void UI::on_save_yourself_exo(ExoXsessionClient* client, gpointer data)
-{
-	UI* ui = static_cast<UI*>(data);
-
-	gchar* argv = "linkage";
-	gint argc = 1;
-	exo_xsession_client_set_restart_command(ui->exo_client, &argv, argc);
-
-	Gtk::Main::quit();
-}
-#endif
 
 // Interface stuff
-HashList UI::get_selected_list()
+SelectionList UI::get_selected() const
 {
-	return torrent_list->get_selected_list();
+	HashList hs = torrent_list->get_selected_list();
+	SelectionList list;
+	for (HashList::iterator iter = hs.begin(); iter != hs.end(); ++iter)
+		list.push_back(Engine::get_torrent_manager()->get_torrent(*iter));
+
+	return list;
 }
 
-bool UI::get_visible()
+bool UI::get_visible() const
 {
 	return is_visible();
 }
@@ -467,7 +405,7 @@ void UI::set_visible(bool visible)
 		hide();
 }
 
-Gtk::Container* UI::get_container(Plugin::PluginParent parent)
+Gtk::Container* UI::get_container(Plugin::PluginParent parent) const
 {
 	switch (parent)
 	{
@@ -510,20 +448,24 @@ void UI::open(const Glib::ustring& uri)
 		{
 			libtorrent::entry::dictionary_type er;
 			er["path"] = data.path;
-			er["downloaded"] = add_dialog->get_info().total_size();
+			er["downloaded"] = add_dialog->get_info()->total_size();
 			er["completed"] = true;
 			save_entry(Glib::build_filename(get_data_dir(),
-				str(add_dialog->get_info().info_hash()) + ".resume"), er);
+				String::compose("%1", add_dialog->get_info()->info_hash()) + ".resume"), er);
 		}
 
 		libtorrent::sha1_hash hash = Engine::get_session_manager()->open_torrent(data.file, data.path);
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
 		if (!data.name.empty())
 			torrent->set_name(data.name);
 		if (!data.group.empty())
 			torrent->set_group(data.group);
-		torrent->set_filter(data.filter);
+		for (unsigned int i = 0; i < data.filter.size(); i++)
+		{
+			if (data.filter[i])
+				torrent->set_file_priority(i, 0);
+		}
 
 		update(torrent, expander_details->get_expanded());
 	}
@@ -551,7 +493,7 @@ void UI::on_tick()
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1)
 	{
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 		update(torrent, (tick == 0));
 	}
 
@@ -585,7 +527,7 @@ void UI::on_show()
 	m_conn_tick.unblock();
 }
 
-void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
+void UI::update(const Glib::RefPtr<Torrent>& torrent, bool update_lists)
 {
 	libtorrent::torrent_status stats = torrent->get_status();
 
@@ -615,11 +557,8 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 				label_up_rate->set_text(suffix_value(stats.upload_payload_rate) + "/s");
 				if (down)
 					ratio = (1.0f*up)/(1.0f*down);
-				label_ratio->set_text(str(ratio, 3));
-				if (stats.distributed_copies != -1)
-					label_copies->set_text(str(stats.distributed_copies, 3));
-				else
-					label_copies->set_text("-");
+				label_ratio->set_text(String::compose("%1", ratio));
+				label_copies->set_text(String::compose("%1", stats.distributed_copies));
 				if (update_lists)
 					peer_list->update(torrent);
 				break;
@@ -634,26 +573,26 @@ void UI::update(const WeakPtr<Torrent>& torrent, bool update_lists)
 	}
 }
 
-void UI::update_statics(const WeakPtr<Torrent>& torrent)
+void UI::update_statics(const Glib::RefPtr<Torrent>& torrent)
 {
-	libtorrent::torrent_info info = torrent->get_info();
+	boost::intrusive_ptr<libtorrent::torrent_info> info = torrent->get_info();
 
-	label_creator->set_text(info.creator());
-	label_comment->set_text(info.comment());
+	label_creator->set_text(info->creator());
+	label_comment->set_text(info->comment());
 	//FIXME: set tooltip to full comment
 
-	if (info.creation_date())
-		label_date->set_text(Glib::ustring(boost::posix_time::to_simple_string(*info.creation_date())) );
+	if (info->creation_date())
+		label_date->set_text(Glib::ustring(boost::posix_time::to_simple_string(*info->creation_date())) );
 	else
 		label_date->set_text("");
-	label_path->set_text(Glib::build_filename(torrent->get_path(), info.name()));
-	label_size->set_text(suffix_value(info.total_size()));
-	label_files->set_text(str(info.num_files()));
-	label_pieces->set_text(str(info.num_pieces()) + " x " + suffix_value(info.piece_length()));
-	label_private->set_text(info.priv() ? _("Yes") : _("No"));
+	label_path->set_text(Glib::build_filename(torrent->get_path(), info->name()));
+	label_size->set_text(suffix_value(info->total_size()));
+	label_files->set_text(String::ucompose("%1", info->num_files()));
+	label_pieces->set_text(String::ucompose("%1 x %2", info->num_pieces(), suffix_value(info->piece_length())));
+	label_private->set_text(info->priv() ? _("Yes") : _("No"));
 }
 
-void UI::build_tracker_menu(const WeakPtr<Torrent>& torrent)
+void UI::build_tracker_menu(const Glib::RefPtr<Torrent>& torrent)
 {
 	std::list<Gtk::Widget*> children = menu_trackers.get_children();
 	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
@@ -727,7 +666,7 @@ void UI::on_spin_down()
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
 	{
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 		torrent->set_down_limit((int)spinbutton_down->get_value());
 	}
 }
@@ -737,7 +676,7 @@ void UI::on_spin_up()
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
 	{
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 		torrent->set_up_limit((int)spinbutton_up->get_value());
 	}
 }
@@ -771,14 +710,14 @@ void UI::on_remove(bool erase_content)
 
 		if (erase_content)
 		{
-			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 			Glib::ustring title = String::ucompose(
 				_("Are you sure you wish to remove \"%1\" and it's content?"),
 				torrent->get_name());
 			Gtk::MessageDialog dialog(*this, title, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
 			// FIXME: this is not so good for translations
 			Glib::ustring files;
-			int n = torrent->get_info().num_files();
+			int n = torrent->get_info()->num_files();
 			if (n != 1)
 				files = String::ucompose(_("(%1 files)."), n);
 			else
@@ -810,7 +749,7 @@ void UI::on_start()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		if (torrent->is_stopped())
 		{
 			Engine::get_session_manager()->resume_torrent(hash);
@@ -843,7 +782,7 @@ void UI::on_up()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		int position = torrent->get_position();
 		if (position > 1)
 			torrent->set_position(position - 1);
@@ -858,7 +797,7 @@ void UI::on_down()
 	for (HashList::reverse_iterator iter = list.rbegin(); iter != list.rend(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		unsigned int position = torrent->get_position();
 		if (position < Engine::get_torrent_manager()->get_torrents_count())
 			torrent->set_position(position + 1);
@@ -873,7 +812,7 @@ void UI::on_set_group(const Glib::ustring& group)
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		torrent->set_group(group);
 	}
 	on_tick();
@@ -897,43 +836,13 @@ void UI::on_open_location()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		Glib::ustring path = torrent->get_path();
-		if (torrent->get_info().num_files() > 1)
-			path = Glib::build_filename(path, torrent->get_name());
+		boost::intrusive_ptr<libtorrent::torrent_info> info = torrent->get_info();
+		if (info->num_files() > 1)
+			path = Glib::build_filename(path, info->name());
 
-		// FIXME: show message dialog instead of g_warning
-		#if HAVE_GNOME
-		Glib::ustring uri = Gnome::Vfs::Uri::make_from_input(path);
-		try
-		{
-			Gnome::Vfs::url_show(uri);
-		}
-		catch (Gnome::Vfs::exception& ex)
-		{
-			g_warning(ex.what().c_str());
-		}
-		#elif HAVE_EXO
-		GError* e = NULL;
-		if (!exo_url_show(path.c_str(), NULL, &e))
-		{
-			g_warning(e->message);
-		}
-		#endif
-
-		if (!HAVE_GNOME && !HAVE_EXO)
-		{
-			Glib::ustring app = Glib::find_program_in_path("nautilus");
-			if (app.empty())
-				app = Glib::find_program_in_path("thunar");
-			if (!app.empty())
-			{
-				Glib::ustring cmd = app + " \"" + path + "\"";
-				Glib::spawn_command_line_async(cmd);
-			}
-			else
-				g_warning(_("No suitable file manager found"));
-		}
+		session_client->open_location(path);
 	}
 }
 
@@ -980,7 +889,7 @@ void UI::on_details_expanded()
 		HashList list = torrent_list->get_selected_list();
 		if (list.size() == 1) /* FIXME: This shouldn't be needed */
 		{
-			WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
+			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 			update(torrent, true);
 		}
 	}
@@ -1001,7 +910,7 @@ void UI::on_torrent_list_selection_changed()
 		if (Engine::get_settings_manager()->get_bool("ui/auto_expand"))
 			expander_details->set_expanded(true);
 
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		spinbutton_down->set_value((double)torrent->get_down_limit());
 		spinbutton_up->set_value((double)torrent->get_up_limit());
 
@@ -1035,7 +944,7 @@ bool UI::on_tracker_update(GdkEventButton* e)
 	if (list.size() == 1)
 	{
 		libtorrent::sha1_hash hash = *list.begin();
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		Torrent::State state = torrent->get_state();
 		if (state == Torrent::DOWNLOADING || state == Torrent::ANNOUNCING ||
 				state == Torrent::SEEDING || state == Torrent::FINISHED)
@@ -1062,7 +971,7 @@ void UI::on_popup_tracker_selected(const Glib::ustring& tracker)
 	if (list.size() == 1)
 	{
 		libtorrent::sha1_hash hash = *list.begin();
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
 		if (!tracker.empty())
 			torrent->reannounce(tracker);
@@ -1108,7 +1017,7 @@ void UI::on_switch_page(GtkNotebookPage*, int page_num)
 	HashList list = torrent_list->get_selected_list();
 	if (list.size() == 1)
 	{
-		WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
 		update(torrent, true);
 	}
 }
@@ -1216,68 +1125,3 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	context->drag_finish(true, false, time);
 }
 
-void UI::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	notify("Invalid bencoding", msg);
-}
-
-void UI::on_missing_file(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	notify("Missing file", msg);
-}
-
-void UI::on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash)
-{
-	notify("Duplicate torrent", msg);
-}
-
-void UI::on_listen_failed(const Glib::ustring& msg)
-{
-	notify("Listen failed", msg);
-}
-
-void UI::on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int code, int times)
-{
-	notify("Tracker failed", msg);
-}
-
-void UI::on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int peers)
-{
-	notify("Tracker response", msg);
-}
-
-void UI::on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("Tracker warning", msg);
-}
-
-void UI::on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("Tracker announce", msg);
-}
-
-void UI::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	notify("Torrent finished", torrent->get_name() + " is_complete");
-}
-
-void UI::on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("File error", msg);
-}
-
-void UI::on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	notify("Fastresume failed", msg);
-}
-
-void UI::on_hash_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int piece)
-{
-	notify("Hash failed", msg);
-}
-
-void UI::on_peer_ban(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip)
-{
-	notify("Peer banned", msg);
-}

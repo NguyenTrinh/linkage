@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define PLUGIN_HH
 
 #include <list>
+
+#include <glibmm/object.h>
+
 #include <gtkmm/widget.h>
 
-class Plugin : public sigc::trackable
+class Plugin : public Glib::Object
 {
-private:	
-	sigc::signal<void, Plugin*> m_signal_unloading;
-
 public:
 	enum PluginParent { PARENT_NONE, PARENT_MAIN, PARENT_DETAILS, PARENT_MENU, PARENT_TOOLBAR };
 
@@ -40,20 +40,20 @@ public:
 		bool has_options;
 		PluginParent parent;
 
-		Info(const Glib::ustring& n,
-			const Glib::ustring& d,
-			const Glib::ustring& v,
-			const Glib::ustring& a,
-			const Glib::ustring& w,
-			bool h,
-			PluginParent p) :
-				name(n),
-				description(d),
-				version(v),
-				author(a),
-				website(w),
-				has_options(h),
-				parent(p) {}
+		Info(const Glib::ustring& name_,
+			const Glib::ustring& description_,
+			const Glib::ustring& version_,
+			const Glib::ustring& author_,
+			const Glib::ustring& website_,
+			bool has_options_,
+			PluginParent parent_) :
+				name(name_),
+				description(description_),
+				version(version_),
+				author(author_),
+				website(website_),
+				has_options(has_options_),
+				parent(parent_) {}
 		Info() {}
 	};
 

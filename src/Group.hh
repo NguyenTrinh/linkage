@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define GROUP_HH
 
 #include "linkage/Torrent.hh"
-#include "linkage/WeakPtr.hh"
 
 class Group
 {
@@ -49,7 +48,7 @@ public:
 			operation(o) {}
 	};
 
-	bool eval(const WeakPtr<Torrent>& torrent) const;
+	bool eval(const Glib::RefPtr<Torrent>& torrent) const;
 
 	const Glib::ustring& get_name() const;
 	const std::list<Filter>& get_filters() const;

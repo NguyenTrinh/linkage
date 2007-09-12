@@ -20,23 +20,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define DBUS_MANAGER_HH
 
 #include <sigc++/signal.h>
+
+#include <glibmm/object.h>
 #include <glibmm/ustring.h>
 #include <glibmm/refptr.h>
 
-#include "linkage/RefCounter.hh"
-#include "linkage/WeakPtr.hh"
 #include "linkage/Torrent.hh"
 
 #include <dbus/dbus-protocol.h>
 #include <dbus/dbus.h>
 
-class DbusManager : public RefCounter<DbusManager>
+class DbusManager : public Glib::Object
 {
 	bool primary;
 	DBusConnection* m_connection;
 	
 	sigc::signal<void> m_signal_disconnect;
 
+	struct UserData
+	{
+		Glib::RefPtr<Torrent> torrent;
+		DbusManager* self;
+		UserData(const Glib::RefPtr<Torrent>& torrent_, DbusManager* self_)
+			: torrent(torrent_), self(self_) {}
+	};
 	static bool handler_common(DBusConnection* connection,
 		DBusMessage* message,
 		const char* introspect,
@@ -46,13 +53,13 @@ class DbusManager : public RefCounter<DbusManager>
 		DbusManager* self);
 	static DBusHandlerResult handler_torrent(DBusConnection* connection,
 		DBusMessage* message,
-		Torrent* torrent);
+		UserData* data);
 
 	DbusManager();
 
 	friend class TorrentManager;
-	void register_torrent(Torrent* torrent);
-	void unregister_torrent(Torrent* torrent);
+	void register_torrent(const Glib::RefPtr<Torrent>& torrent);
+	void unregister_torrent(const Glib::RefPtr<Torrent>& torrent);
 
 public:
 	sigc::signal<void> signal_disconnect();

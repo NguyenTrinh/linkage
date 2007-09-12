@@ -113,10 +113,6 @@ AS_IF([test "x$with_exo" != xno],
 AC_SUBST(EXO_CFLAGS)
 AC_SUBST(EXO_LIBS)
 
-builtin([include],[m4/sizeof.m4])
-AC_COMPILE_CHECK_SIZEOF(size_t)
-AC_COMPILE_CHECK_SIZEOF(unsigned int)
-
 dnl Checking for gconftool-2
 AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
 

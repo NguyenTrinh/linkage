@@ -19,12 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef ENGINE_HH
 #define ENGINE_HH
 
-#include <glibmm/refptr.h>
-
 #include <sigc++/signal.h>
 
-#include "linkage/RefCounter.hh"
-#include "linkage/WeakPtr.hh"
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
 
 class SettingsManager;
 class TorrentManager;
@@ -34,7 +32,7 @@ class PluginManager;
 class DbusManager;
 class Interface;
 
-class Engine : public RefCounter<Engine>
+class Engine : public Glib::Object
 {
 
 	static Glib::RefPtr<SettingsManager> ssm;
@@ -45,9 +43,9 @@ class Engine : public RefCounter<Engine>
 	static Glib::RefPtr<DbusManager> dbm;
 	static Interface* m_interface;
 
-	static Glib::RefPtr<Engine> self;
+	static Engine* self;
 	
-	static sigc::signal<void> m_signal_tick;
+	sigc::signal<void> m_signal_tick;
 
 	bool on_timeout();
 	
@@ -61,13 +59,13 @@ public:
 	static Glib::RefPtr<SettingsManager>	get_settings_manager();
 	static Glib::RefPtr<TorrentManager>	get_torrent_manager();
 	static Glib::RefPtr<DbusManager>	get_dbus_manager();
-	static WeakPtr<Interface> get_interface();
+	static Interface& get_interface();
 	static void register_interface(Interface* interface);
 
 	static sigc::signal<void> signal_tick();
 
+	static void uninit();
 	static bool is_primary();
-	static void destroy();
 	
 	~Engine();
 };

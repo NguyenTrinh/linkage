@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
+#include "linkage/compose.hpp"
 
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 
@@ -76,8 +77,7 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
 				iter != torrents.end(); ++iter)
 	{
-		WeakPtr<Torrent> torrent = *iter;
-		on_added(torrent->get_hash(), torrent->get_name(), torrent->get_position());
+		on_added(*iter);
 	}
 	PathList path_list = get_selection()->get_selected_rows();
 	if (!path_list.empty())
@@ -110,7 +110,8 @@ TorrentList::~TorrentList()
 		if (iter)
 		{
 			Gtk::TreeRow row = *iter;
-			sm->set("ui/torrent_view/selected", str(row[columns.hash]));
+			Glib::ustring hash_str = String::compose("%1", row[columns.hash]);
+			sm->set("ui/torrent_view/selected", hash_str);
 		}
 	}
 }
@@ -124,7 +125,7 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 {
 	Gtk::TreeRow row = *iter;
 	libtorrent::sha1_hash hash = row[columns.hash];
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
 		return false;
 
@@ -147,28 +148,28 @@ void TorrentList::on_state_filter_changed(Torrent::State state)
 	filter->refilter();
 }
 
-void TorrentList::on_added(const libtorrent::sha1_hash& hash, const Glib::ustring& name, unsigned int position)
+void TorrentList::on_added(const Glib::RefPtr<Torrent>& torrent)
 {
 	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("ui/torrent_view/selected");
 
 	Gtk::TreeIter iter = model->append();
-	Gtk::TreeRow new_row = *iter;
-	new_row[columns.hash] = hash;
-	new_row[columns.name] = name;
+	Gtk::TreeRow row = *iter;
+	row[columns.hash] = torrent->get_hash();
+	row[columns.name] = torrent->get_name();
 
-	if (selected_hash == str(hash))
+	if (selected_hash == String::compose("%1", torrent->get_hash()))
 		get_selection()->select(filter->convert_child_iter_to_iter(iter));
 
-	update_row(new_row);
+	update_row(row);
 }
 
-void TorrentList::on_removed(const libtorrent::sha1_hash& hash)
+void TorrentList::on_removed(const Glib::RefPtr<Torrent>& torrent)
 {
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
 		Gtk::TreeRow row = *iter;
-		if (hash == row[columns.hash])
+		if (torrent->get_hash() == row[columns.hash])
 		{
 			model->erase(iter);
 			break;
@@ -245,7 +246,7 @@ void TorrentList::set_sort_order(Gtk::SortType order)
 	model->set_sort_column_id(current_col_id, order);
 }
 
-Glib::ustring TorrentList::get_formated_name(const WeakPtr<Torrent>& torrent)
+Glib::ustring TorrentList::get_formated_name(const Glib::RefPtr<Torrent>& torrent)
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	Torrent::State state = torrent->get_state();
@@ -299,20 +300,20 @@ Glib::ustring TorrentList::get_formated_name(const WeakPtr<Torrent>& torrent)
 			format = String::ucompose(_(
 				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
 				"%4 (%5) connected seeds, %6 (%7) peers"),
-				color, name, suffix_value(torrent->get_info().total_size()),
+				color, name, suffix_value(torrent->get_info()->total_size()),
 				status.num_seeds, status.num_complete,
 				status.num_peers - status.num_seeds, status.num_incomplete);
 		else
 			format = String::ucompose(_(
 				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
 				"%4 connected seeds, %5 peers"),
-				color, name, suffix_value(torrent->get_info().total_size()),
+				color, name, suffix_value(torrent->get_info()->total_size()),
 				status.num_seeds, status.num_peers - status.num_seeds);
 	}
 	else
 		format = String::ucompose(
 			"<span foreground='%1'><b>%2</b> (%3)</span>\n%4",
-			color, name, suffix_value(torrent->get_info().total_size()),
+			color, name, suffix_value(torrent->get_info()->total_size()),
 			torrent->get_state_string(state));
 
 	return format;
@@ -381,7 +382,7 @@ void TorrentList::update()
 
 void TorrentList::update_row(Gtk::TreeRow& row)
 {
-	WeakPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
 
 	Glib::ustring old_state = row[columns.state];
 	unsigned int old_peers = row[columns.peers];
@@ -423,12 +424,13 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 			float progress = 0;
 			if (down)
 			{
-				libtorrent::size_type wanted_size = torrent->get_info().total_size();
-				std::vector<bool> filter = torrent->get_filter();
-				for (unsigned int i = 0; i < filter.size(); i++)
+				libtorrent::size_type wanted_size = torrent->get_info()->total_size();
+				std::vector<int> priorities = torrent->get_priorities();
+				for (unsigned int i = 0; i < priorities.size(); i++)
 				{
-					if (filter[i])
-						wanted_size -= torrent->get_info().file_at(i).size;
+					// priority 0 means "don't download"
+					if (!priorities[i])
+						wanted_size -= torrent->get_info()->file_at(i).size;
 				}
 				
 				progress = (1.0f*down)/(1.0f*wanted_size) * 100;
@@ -436,7 +438,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 					progress = 100;
 			}
 			row[columns.progress] = progress;
-			row[columns.eta] = str(progress, 2) + "%";
+			row[columns.eta] = String::ucompose("%1 %%", progress);
 			return;
 		}
 	}
@@ -452,12 +454,12 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 			if (ratio < 1.0f)
 			{
 				row[columns.progress] = ratio*100;
-				row[columns.eta] = str(ratio, 3) + " " + get_eta(size, status.upload_payload_rate);
+				row[columns.eta] = String::ucompose("%1 %2", ratio, get_eta(size, status.upload_payload_rate));
 			}
 		 	else
 		 	{
 		 		row[columns.progress] = 100;
-		 		row[columns.eta] = str(ratio, 3);
+		 		row[columns.eta] = String::ucompose("%1", ratio);
 		 	}
 		}
 		else
@@ -476,8 +478,10 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	}
 	else
 	{
-		row[columns.progress] = double(status.progress*100);
-		row[columns.eta] = str(double(status.progress*100), 2) + "% " + get_eta(status.total_wanted - status.total_wanted_done, status.download_payload_rate);
+		row[columns.progress] = (double)status.progress*100;
+		row[columns.eta] = String::ucompose("%1 %% %2", status.progress*100,
+			get_eta(status.total_wanted - status.total_wanted_done,
+				status.download_payload_rate));
 	}
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;

@@ -70,7 +70,7 @@ void GroupList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
 
-	cell_t->property_text() = row[columns.name] + " (" + str(row[columns.num]) + ")";
+	cell_t->property_text() = row[columns.name] + " (" + String::ucompose("%1", row[columns.num]) + ")";
 }
 
 
@@ -174,7 +174,7 @@ void GroupList::update()
 		unsigned int n = 0;
 		for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
 		{
-			WeakPtr<Torrent> torrent = *j;
+			Glib::RefPtr<Torrent> torrent = *j;
 			if (m_cur_state && m_cur_state != torrent->get_state())
 				continue;
 

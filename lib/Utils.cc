@@ -44,62 +44,6 @@ Glib::ustring suffix_value(libtorrent::size_type value)
 	return Glib::locale_to_utf8(ss.str());
 }
 
-Glib::ustring str(size_t value, bool localize)
-{
-	std::stringstream ss;
-	if (localize)
-		ss.imbue(std::locale(""));
-	ss << value;
-	return Glib::locale_to_utf8(ss.str());
-}
-
-#if SIZEOF_UNSIGNED_INT != SIZEOF_SIZE_T
-Glib::ustring str(unsigned int value, bool localize)
-{
-	std::stringstream ss;
-	if (localize)
-		ss.imbue(std::locale(""));
-	ss << value;
-	return Glib::locale_to_utf8(ss.str());
-}
-#endif
-
-Glib::ustring str(int value, bool localize)
-{
-	std::stringstream ss;
-	if (localize)
-		ss.imbue(std::locale(""));
-	ss << value;
-	return Glib::locale_to_utf8(ss.str());
-}
-
-Glib::ustring str(libtorrent::size_type value, bool localize)
-{
-	std::stringstream ss;
-	if (localize)
-		ss.imbue(std::locale(""));
-	ss << value;
-	return Glib::locale_to_utf8(ss.str());
-}
-
-Glib::ustring str(float value, int precision, bool localize)
-{
-	std::stringstream ss;
-	if (localize)
-		ss.imbue(std::locale(""));
-	ss << std::fixed << std::setprecision(precision) << value;
-	return Glib::locale_to_utf8(ss.str());
-}
-
-Glib::ustring str(const libtorrent::sha1_hash& hash)
-{
-	std::stringstream ss;
-	ss.imbue(std::locale(""));
-	ss << hash;
-	return Glib::locale_to_utf8(ss.str());
-}
-
-
 Glib::ustring get_eta(libtorrent::size_type size, float rate)
 {
 	if (!rate || !size)
