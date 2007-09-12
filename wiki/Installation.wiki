@@ -51,7 +51,7 @@ sudo make install
 {{{
 sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev \
 libdbus-glib-1-dev libgtkmm-2.4-1c2a libnotify1 libcurl3 libdbus-glib-1-2 \
-libgnomemm-2.6-1c2a libgnomemm-2.6-dev libgnomeuimm-2.6-1c2a libgnomeuimm-2.6-devel \
+libgnomemm-2.6-1c2a libgnomemm-2.6-dev libgnomeuimm-2.6-1c2a libgnomeuimm-2.6-dev \
 libgnome-vfsmm-2.6-1c2a libgnome-vfsmm-2.6-dev libexo-0.3-0 libexo-0.3-dev \
 libgconfmm-2.6-1c2 libgconfmm-2.6-dev libglademm-2.4-1c2a libglademm-2.4-dev
 wget http://linkage.googlecode.com/files/linkage-0.1.4.tar.gz
