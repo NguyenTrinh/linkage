@@ -557,8 +557,8 @@ void UI::update(const Glib::RefPtr<Torrent>& torrent, bool update_lists)
 				label_up_rate->set_text(suffix_value(stats.upload_payload_rate) + "/s");
 				if (down)
 					ratio = (1.0f*up)/(1.0f*down);
-				label_ratio->set_text(String::compose("%1", ratio));
-				label_copies->set_text(String::compose("%1", stats.distributed_copies));
+				label_ratio->set_text(String::ucompose("%1", std::fixed, std::setprecision(3), ratio));
+				label_copies->set_text(String::ucompose("%1", std::fixed, std::setprecision(3), stats.distributed_copies));
 				if (update_lists)
 					peer_list->update(torrent);
 				break;

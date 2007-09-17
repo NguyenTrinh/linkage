@@ -438,7 +438,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 					progress = 100;
 			}
 			row[columns.progress] = progress;
-			row[columns.eta] = String::ucompose("%1 %%", progress);
+			row[columns.eta] = String::ucompose("%1 %%", std::fixed, std::setprecision(2), progress);
 			return;
 		}
 	}
@@ -454,12 +454,14 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 			if (ratio < 1.0f)
 			{
 				row[columns.progress] = ratio*100;
-				row[columns.eta] = String::ucompose("%1 %2", ratio, get_eta(size, status.upload_payload_rate));
+				row[columns.eta] = String::ucompose("%1 %2", std::fixed,
+					std::setprecision(3),
+					ratio, get_eta(size, status.upload_payload_rate));
 			}
 		 	else
 		 	{
 		 		row[columns.progress] = 100;
-		 		row[columns.eta] = String::ucompose("%1", ratio);
+		 		row[columns.eta] = String::ucompose("%1", std::fixed, std::setprecision(3), ratio);
 		 	}
 		}
 		else
@@ -478,8 +480,11 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	}
 	else
 	{
-		row[columns.progress] = (double)status.progress*100;
-		row[columns.eta] = String::ucompose("%1 %% %2", status.progress*100,
+		double progress = status.progress*100;
+		row[columns.progress] = progress;
+		row[columns.eta] = String::ucompose("%1 %% %2", std::fixed,
+			std::setprecision(2),
+			progress,
 			get_eta(status.total_wanted - status.total_wanted_done,
 				status.download_payload_rate));
 	}
