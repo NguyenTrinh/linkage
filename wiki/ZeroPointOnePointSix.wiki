@@ -6,9 +6,10 @@
 Here is a bunch of stuff that are currently planned for the next release, feel free to add/remove/comment. If you start hacking on one of these ideas please add a note saying so so we don't duplicate our efforts, when a feature is completed that should be marked here as well.
 
 
+~~Strikethrough~~ means it's implemented in trunk
+
 == New open/save path dialog ==
-  * Having two filechooser dialogs popping up after one another is quite annoying. Instead we should integrate the two into one dialog and add some more advanced options like in Azureus or µTorrent.
-  * The advanced options should at least include custom naming, allocation mode, file filtering and open for seeding.
+  * ~~ Having two filechooser dialogs popping up after one another is quite annoying. Instead we should integrate the two into one dialog and add some more advanced options like in Azureus or µTorrent. ~~
 
 == UI class ==
   * This class should be cleaned up and possibly split up, perhaps into an App and MainWin class where the MainWin only contains widget related stuff?
@@ -24,8 +25,8 @@ Here is a bunch of stuff that are currently planned for the next release, feel f
   * Maybe add signals for alerts as well.
 
 == Preferences ==
-  * SettingsManager should have a signal for each setting, so that changing values through gconf-editor changes the values in linkage at the same time. This way preferences can be applied to when changed in the SettingsWin, and not when the window closes. 
-  * Add new options with libtorrent 0.13
+  * ~~SettingsManager should have a signal for each setting, so that changing values through gconf-editor changes the values in linkage at the same time. This way preferences can be applied to when changed in the SettingsWin, and not when the window closes.~~
+  * ~~Add new options with libtorrent 0.13~~ mostly done
   * Add stop seeding at ratio "x" option
 
 == TorrentList ==
@@ -40,3 +41,4 @@ Here is a bunch of stuff that are currently planned for the next release, feel f
 == Glade files ==
   * Merge all of them into one Glade XML
   * Add build option to bake the XML into the binary
+ 
