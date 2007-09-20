@@ -15,3 +15,5 @@ Or if you check out from svn
 Or as root
 # make install
 
+To fix broken gconf settings run:
+gconftool-2 --recursive-unset /apps/linkage/

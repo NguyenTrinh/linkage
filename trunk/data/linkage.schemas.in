@@ -4,23 +4,11 @@
 		<!-- network -->
 	
 		<schema>
-			<key>/schemas/apps/linkage/network/min_port</key>
-			<applyto>/apps/linkage/network/min_port</applyto>
+			<key>/schemas/apps/linkage/network/port</key>
+			<applyto>/apps/linkage/network/port</applyto>
 			<owner>linkage</owner>
 			<type>int</type>
 			<default>6881</default>
-			<locale name="C">
-				<short></short>
-				<long></long>
-			</locale>
-		</schema>
-		
-	 	<schema>
-			<key>/schemas/apps/linkage/network/max_port</key>
-			<applyto>/apps/linkage/network/max_port</applyto>
-			<owner>linkage</owner>
-			<type>int</type>
-			<default>6889</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -147,30 +135,6 @@
 			</locale>
 		</schema>
 
-		<schema>
-			<key>/schemas/apps/linkage/network/max_torrent_uploads</key>
-			<applyto>/apps/linkage/network/max_torrent_uploads</applyto>
-			<owner>linkage</owner>
-			<type>int</type>
-			<default>0</default>
-			<locale name="C">
-				<short></short>
-				<long></long>
-			</locale>
-		</schema>
-
-		<schema>
-			<key>/schemas/apps/linkage/network/max_torrent_connections</key>
-			<applyto>/apps/linkage/network/max_torrent_connections</applyto>
-			<owner>linkage</owner>
-			<type>int</type>
-			<default>50</default>
-			<locale name="C">
-				<short></short>
-				<long></long>
-			</locale>
-		</schema>
-
 
 		<!-- network/proxy -->
 
@@ -226,8 +190,8 @@
 			<key>/schemas/apps/linkage/network/proxy/type</key>
 			<applyto>/apps/linkage/network/proxy/type</applyto>
 			<owner>linkage</owner>
-			<type>int</type>
-			<default>0</default>
+			<type>string</type>
+			<default>PROXY_NONE</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -241,8 +205,8 @@
 			<key>/schemas/apps/linkage/network/encryption/policy</key>
 			<applyto>/apps/linkage/network/encryption/policy</applyto>
 			<owner>linkage</owner>
-			<type>int</type>
-			<default>1</default>
+			<type>string</type>
+			<default>POLICY_ENABLED</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -253,8 +217,8 @@
 			<key>/schemas/apps/linkage/network/encryption/level</key>
 			<applyto>/apps/linkage/network/encryption/level</applyto>
 			<owner>linkage</owner>
-			<type>int</type>
-			<default>2</default>
+			<type>string</type>
+			<default>LEVEL_BOTH</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -305,6 +269,30 @@
 			<owner>linkage</owner>
 			<type>bool</type>
 			<default>false</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/torrent/max_uploads</key>
+			<applyto>/apps/linkage/torrent/max_uploads</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>0</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/torrent/max_connections</key>
+			<applyto>/apps/linkage/torrent/max_connections</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>50</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -429,8 +417,8 @@
 			<key>/schemas/apps/linkage/ui/active_state</key>
 			<applyto>/apps/linkage/ui/active_state</applyto>
 			<owner>linkage</owner>
-			<type>int</type>
-			<default>0</default>
+			<type>string</type>
+			<default>STATE_ALL</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -479,11 +467,11 @@
 		</schema>
 
 		<schema>
-			<key>/schemas/apps/linkage/ui/torrent_view/sort_column</key>
-			<applyto>/apps/linkage/ui/torrent_view/sort_column</applyto>
+			<key>/schemas/apps/linkage/ui/torrent_view/column</key>
+			<applyto>/apps/linkage/ui/torrent_view/column</applyto>
 			<owner>linkage</owner>
-			<type>int</type>
-			<default>0</default>
+			<type>string</type>
+			<default>COLUMN_POSITION</default>
 			<locale name="C">
 				<short></short>
 				<long></long>
@@ -491,11 +479,11 @@
 		</schema>
 
 		<schema>
-			<key>/schemas/apps/linkage/ui/torrent_view/sort_order</key>
-			<applyto>/apps/linkage/ui/torrent_view/sort_order</applyto>
+			<key>/schemas/apps/linkage/ui/torrent_view/order</key>
+			<applyto>/apps/linkage/ui/torrent_view/order</applyto>
 			<owner>linkage</owner>
-			<type>int</type>
-			<default>0</default>
+			<type>string</type>
+			<default>SORT_ASCENDING</default>
 			<locale name="C">
 				<short></short>
 				<long></long>

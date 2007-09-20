@@ -33,12 +33,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "libtorrent/session_settings.hpp"
 #include "libtorrent/fingerprint.hpp"
 
-#include "linkage/SettingsManager.hh"
-#include "linkage/Torrent.hh"
+class Value;
+class Torrent;
 
 class SessionManager : public Glib::Object, public libtorrent::session
 {
-	void on_settings();
+	void on_key_changed(const Glib::ustring& key, const Value& value);
+	void update_pe_settings();
+	void update_proxy_settings();
+	void update_session_settings();
 
 	bool decode(const Glib::ustring& file, libtorrent::entry& e);
 	bool decode(const Glib::ustring& file, libtorrent::entry& e, std::vector<char>& buffer);

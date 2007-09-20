@@ -33,6 +33,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 
+static GConfEnumStringPair sort_order_table[] = {
+  { Gtk::SORT_ASCENDING, "SORT_ASCENDING" },
+  { Gtk::SORT_DESCENDING, "SORT_DESCENDING" }
+};
+
+static GConfEnumStringPair sort_column_table[] = {
+  { TorrentList::COL_POSITION, "COLUMN_POSITION" },
+  { TorrentList::COL_NAME, "COLUMN_NAME" },
+  { TorrentList::COL_NAME_FORMATED, "COLUMN_NAME_FORMATED" },
+  { TorrentList::COL_PROGRESS, "COLUMN_PROGRESS" },
+  { TorrentList::COL_STATUS, "COLUMN_STATUS" },
+  { TorrentList::COL_DOWNLOADED, "COLUMN_DOWNLOADED" },
+  { TorrentList::COL_UPLOADED, "COLUMN_UPLOADED" },
+  { TorrentList::COL_DOWNRATE, "COLUMN_DOWNRATE" },
+  { TorrentList::COL_UPRATE, "COLUMN_UPRATE" },
+  { TorrentList::COL_SEEDS, "COLUMN_SEEDS" },
+  { TorrentList::COL_PEERS, "COLUMN_PEERS" },
+  { TorrentList::COL_ETA, "COLUMN_ETA" },
+  { TorrentList::COL_HASH, "COLUMN_HASH"}
+};
+
 TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::TreeView(cobject),
 	glade_xml(refGlade)
@@ -69,8 +90,9 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	Gtk::SortType sort_order = Gtk::SortType(sm->get_int("ui/torrent_view/sort_order"));
-	model->set_sort_column_id(sm->get_int("ui/torrent_view/sort_column"), sort_order);
+	Gtk::SortType order = (Gtk::SortType)sm->get_enum("ui/torrent_view/order", sort_order_table);
+	gint col = sm->get_enum("ui/torrent_view/column", sort_column_table);
+	model->set_sort_column_id(col, order);
 
 	Glib::RefPtr<TorrentManager> tm = Engine::get_torrent_manager();
 	TorrentManager::TorrentList torrents = tm->get_torrents();
@@ -95,12 +117,11 @@ TorrentList::~TorrentList()
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	int column;
 	Gtk::SortType order;
+	int column;
 	model->get_sort_column_id(column, order);
-
-	sm->set("ui/torrent_view/sort_order", int(order));
-	sm->set("ui/torrent_view/sort_column", column);
+	sm->set("ui/torrent_view/order", sort_order_table, order);
+	sm->set("ui/torrent_view/column", sort_order_table, column);
 
 	PathList path_list = get_selection()->get_selected_rows();
 	if (path_list.size() == 1)

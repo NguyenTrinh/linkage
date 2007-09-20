@@ -35,7 +35,6 @@ AlertManager::AlertManager()
 
 AlertManager::~AlertManager()
 {
-	g_debug("destructor am");
 }
 
 sigc::signal<void, const Glib::ustring&>

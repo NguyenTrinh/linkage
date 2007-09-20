@@ -24,7 +24,6 @@ Interface::Interface()
 
 Interface::~Interface()
 {
-	g_debug("destructor interface");
 }
 
 SelectionList Interface::get_selected() const

@@ -24,7 +24,6 @@ Plugin::Plugin()
 
 Plugin::~Plugin()
 {
-	g_debug("destructor plugin");
 }
 
 Plugin::Info Plugin::get_info()

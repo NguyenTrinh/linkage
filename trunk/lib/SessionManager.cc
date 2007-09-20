@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/AlertManager.hh"
 #include "linkage/TorrentManager.hh"
+#include "linkage/SettingsManager.hh"
+#include "linkage/Torrent.hh"
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
 
@@ -32,6 +34,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/i18n.h>
 
 using namespace libtorrent;
+
+static GConfEnumStringPair enc_policy_table[] = {
+  { pe_settings::forced, "POLICY_FORCED" },
+  { pe_settings::enabled, "POLICY_ENABLED" },
+  { pe_settings::disabled, "POLICY_DISABLED" }
+};
+
+static GConfEnumStringPair enc_level_table[] = {
+  { pe_settings::plaintext, "LEVEL_PLAINTEXT" },
+  { pe_settings::rc4, "LEVEL_RC4" },
+  { pe_settings::both, "LEVEL_BOTH" }
+};
+
+static GConfEnumStringPair proxy_type_table[] = {
+  { proxy_settings::none, "PROXY_NONE" },
+  { proxy_settings::socks4, "PROXY_SOCKS4" },
+  { proxy_settings::socks5, "PROXY_SOCKS5" },
+  { proxy_settings::socks5_pw, "PROXY_SOCKS5_PW" },
+  { proxy_settings::http, "PROXY_HTTP" },
+  { proxy_settings::http_pw, "PROXY_HTTP_PW" }
+};
 
 Glib::RefPtr<SessionManager> SessionManager::create()
 {
@@ -47,12 +70,12 @@ SessionManager::SessionManager()
 			0))
 {
 	set_severity_level(alert::info);
-
 	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &SessionManager::on_torrent_finished));
-
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &SessionManager::on_settings));
-
-	on_settings(); //Apply settings on startup
+	Engine::get_settings_manager()->signal_key_changed().connect(sigc::mem_fun(this, &SessionManager::on_key_changed));
+	//Apply settings on startup
+	update_session_settings();
+	update_proxy_settings();
+	update_pe_settings();
 }
 
 SessionManager::~SessionManager()
@@ -73,7 +96,6 @@ SessionManager::~SessionManager()
 		thread->join();
 	}
 	m_threads.clear();
-	g_debug("destructor sm");
 }
 
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
@@ -105,24 +127,69 @@ void SessionManager::resume_session()
 	}
 }
 
-void SessionManager::on_settings()
+void SessionManager::on_key_changed(const Glib::ustring& key, const Value& value)
+{
+	if (Glib::str_has_prefix(key, "network/encryption/"))
+		update_pe_settings();
+	else if (Glib::str_has_prefix(key, "network/proxy/"))
+		update_proxy_settings();
+	else
+		update_session_settings();
+}
+
+void SessionManager::update_pe_settings()
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	int min_port = sm->get_int("network/min_port");
-	int max_port = sm->get_int("network/max_port");
+	pe_settings pe;
+	pe_settings::enc_policy policy = (pe_settings::enc_policy)sm->get_enum("network/encryption/policy", enc_policy_table);
+	pe.out_enc_policy = policy;
+	pe.in_enc_policy = policy;
+	pe_settings::enc_level level = (pe_settings::enc_level)sm->get_enum("network/encryption/level", enc_level_table);
+	pe.allowed_enc_level = level;
+	pe.prefer_rc4 = sm->get_bool("network/encryption/prefer_rc4");
+	set_pe_settings(pe);
+}
 
+void SessionManager::update_proxy_settings()
+{
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+
+	Glib::ustring proxy = sm->get_string("network/proxy/host");
+	proxy_settings px;
+	if (!proxy.empty())
+	{
+		px.hostname = proxy;
+		px.port = sm->get_int("network/proxy/port");
+		px.username = sm->get_string("network/proxy/login");
+		px.password = sm->get_string("network/proxy/pass");
+		proxy_settings::proxy_type type = (proxy_settings::proxy_type)sm->get_enum("network/proxy/type", proxy_type_table);
+		px.type = type;
+	}
+	else
+		px.type = proxy_settings::none;
+
+	set_peer_proxy(px);
+	set_web_seed_proxy(px);
+	set_tracker_proxy(px);
+	set_dht_proxy(px);
+}
+
+void SessionManager::update_session_settings()
+{
+	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+
+	int port = sm->get_int("network/port");
 	/* Only call listen_on if we really need to */
-	int port = listen_port();
-	if (!is_listening() || port < min_port || port > max_port)
+	if (!is_listening() || port != listen_port())
 	{
 		try
 		{
 			Glib::ustring ip = get_ip(sm->get_string("network/interface"));
 			if (!ip.empty())
-				listen_on(std::make_pair(min_port, max_port), ip.c_str());
+				listen_on(std::make_pair(port, port), ip.c_str());
 			else
-				listen_on(std::make_pair(min_port, max_port));
+				listen_on(std::make_pair(port, port));
 		}
 		catch (std::exception& e)
 		{
@@ -185,30 +252,6 @@ void SessionManager::on_settings()
 	sset.file_pool_size = sm->get_int("files/max_open");
 	sset.lazy_bitfields = sm->get_bool("torrent/lazy_bitfields");
 	set_settings(sset);
-
-	pe_settings pe;
-	pe.out_enc_policy = (pe_settings::enc_policy)sm->get_int("network/encryption/policy");
-	pe.in_enc_policy = (pe_settings::enc_policy)sm->get_int("network/encryption/policy");
-	pe.allowed_enc_level = (pe_settings::enc_level)sm->get_int("network/encryption/level");
-	pe.prefer_rc4 = sm->get_bool("network/encryption/prefer_rc4");
-	set_pe_settings(pe);
-
-	Glib::ustring proxy = sm->get_string("network/proxy/host");
-	if (!proxy.empty())
-	{
-		proxy_settings p;
-		p.hostname = proxy;
-		p.port = sm->get_int("network/proxy/port");
-		p.username = sm->get_string("network/proxy/login");
-		p.password = sm->get_string("network/proxy/pass");
-		p.type = (proxy_settings::proxy_type)sm->get_int("network/proxy/type");
-
-		set_peer_proxy(p);
-		set_web_seed_proxy(p);
-		set_tracker_proxy(p);
-		set_dht_proxy(p);
-	}
-	
 }
 
 bool SessionManager::decode(const Glib::ustring& file, entry& e)

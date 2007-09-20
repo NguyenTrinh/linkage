@@ -63,4 +63,6 @@ void save_entry(const Glib::ustring& file, const libtorrent::entry& e);
 
 Gdk::Color lighter(const Gdk::Color& color, double fac);
 
+Glib::ustring hex_color(const Gdk::Color& color);
+
 #endif /* UTILS_HH */

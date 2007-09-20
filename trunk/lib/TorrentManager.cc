@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/AlertManager.hh"
 #include "linkage/DbusManager.hh"
 #include "linkage/SessionManager.hh"
+#include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
 
@@ -44,12 +45,11 @@ TorrentManager::TorrentManager()
 	am->signal_torrent_finished().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
 	am->signal_file_error().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
 
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(*this, &TorrentManager::on_settings));
+	Engine::get_settings_manager()->signal_key_changed().connect(sigc::mem_fun(*this, &TorrentManager::on_key_changed));
 }
 
 TorrentManager::~TorrentManager()
 {
-	g_debug("destructor tm begin");
 	for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = iter->first;
@@ -64,7 +64,6 @@ TorrentManager::~TorrentManager()
 		if (!torrent->is_stopped())
 			Engine::get_session_manager()->remove_torrent(torrent->get_handle());
 	}
-	g_debug("destructor tm");
 }
 
 sigc::signal<void, Glib::RefPtr<Torrent> > TorrentManager::signal_added()
@@ -77,13 +76,16 @@ sigc::signal<void, Glib::RefPtr<Torrent> > TorrentManager::signal_removed()
 	return m_signal_removed;
 }
 
-void TorrentManager::on_settings()
+void TorrentManager::on_key_changed(const Glib::ustring& key, const Value& value)
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
-		set_torrent_settings(iter->second);
+	if (Glib::str_has_prefix(key, "torrent/"))
+	{
+		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+		for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
+			set_torrent_settings(iter->second);
 
-	check_queue();
+		check_queue();
+	}
 }
 
 void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
@@ -188,10 +190,10 @@ void TorrentManager::set_torrent_settings(const Glib::RefPtr<Torrent>& torrent)
 	{
 		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 		libtorrent::torrent_handle handle = torrent->get_handle();
-		handle.set_ratio(sm->get_float("network/seed_ratio"));
-		handle.set_max_uploads(sm->get_int("network/max_torrent_uploads"));
-		handle.set_max_connections(sm->get_int("network/max_torrent_connections"));
-		/* FIXME: Make this configurable */
+		handle.set_ratio(sm->get_float("torrent/seed_ratio"));
+		handle.set_max_uploads(sm->get_int("torrent/max_uploads"));
+		handle.set_max_connections(sm->get_int("torrent/max_connections"));
+		/* FIXME: Make this configurable ? */
 		handle.resolve_countries(true);
 	}
 }

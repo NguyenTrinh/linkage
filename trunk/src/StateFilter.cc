@@ -24,6 +24,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "StateFilter.hh"
 
+static GConfEnumStringPair active_state_table[] = {
+	{ -1, NULL },
+  { 0, "STATE_ALL" },
+  { 1, "STATE_ANNOUNCING" },
+  { 2, "STATE_DOWNLOADING" },
+  { 3, "STATE_FINISHED" },
+  { 4, "STATE_SEEDING" },
+  { 5, "STATE_CHECK_QUEUE" },
+  { 6, "STATE_CHECKING" },
+  { 7, "STATE_ALLOCATING" },
+  { 8, "STATE_ALLOCATING" },
+  { 9, "STATE_QUEUED" },
+  { 10, "STATE_ERROR" }
+};
+
 StateFilter::StateFilter(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::ComboBox(cobject),
 	glade_xml(refGlade)
@@ -54,8 +69,7 @@ StateFilter::StateFilter(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 StateFilter::~StateFilter()
 {
-	int active = get_active_row_number();
-	Engine::get_settings_manager()->set("ui/active_state", active);
+	Engine::get_settings_manager()->set("ui/active_state", active_state_table, get_active_row_number());
 }
 
 sigc::signal<void, Torrent::State> StateFilter::signal_state_filter_changed()
@@ -75,7 +89,7 @@ void StateFilter::on_selection_changed()
 
 void StateFilter::reselect()
 {
-	int active = Engine::get_settings_manager()->get_int("ui/active_state");
+	gint active = Engine::get_settings_manager()->get_enum("ui/active_state", active_state_table);
 	set_active(active);
 }
 

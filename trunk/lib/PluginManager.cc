@@ -34,15 +34,15 @@ PluginManager::PluginManager()
 	refresh_info();
 
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	sm->signal_update_settings().connect(sigc::mem_fun(this, &PluginManager::on_settings));
-	
-	on_settings();
+	sm->signal("ui/plugins").connect(sigc::mem_fun(this, &PluginManager::on_plugins_changed));
+
+	std::list<Glib::ustring> plugins = sm->get_string_list("ui/plugins");
+	update_plugins(plugins);
 }
 
 PluginManager::~PluginManager()
 {
 	//m_plugins.clear();
-	g_debug("destructor pm");
 }
 
 sigc::signal<void, Glib::RefPtr<Plugin> > PluginManager::signal_plugin_load()
@@ -174,16 +174,19 @@ Glib::RefPtr<Plugin> PluginManager::get_plugin(const Glib::ustring& name)
 		if (name == plugin->get_info().name)
 			return plugin;
 	}
-	return  Glib::RefPtr<Plugin>();
+	return Glib::RefPtr<Plugin>();
 }
 
-void PluginManager::on_settings()
+void PluginManager::on_plugins_changed(const Value& value)
 {
-	std::list<Glib::ustring> plugins;
- 	plugins = Engine::get_settings_manager()->get_string_list("ui/plugins");
+	std::list<Glib::ustring> plugins = value.get_string_list();
+	update_plugins(plugins);
+}
 
+void PluginManager::update_plugins(const std::list<Glib::ustring>& plugins)
+{
 	/* Load all new */
-	for (std::list<Glib::ustring>::iterator iter = plugins.begin();
+	for (std::list<Glib::ustring>::const_iterator iter = plugins.begin();
 		iter != plugins.end(); ++iter)
 	{
 		Glib::ustring name = *iter;
@@ -199,7 +202,7 @@ void PluginManager::on_settings()
 	for (PluginList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
 	{
 		Glib::RefPtr<Plugin> plugin = *iter;
-		std::list<Glib::ustring>::iterator search;
+		std::list<Glib::ustring>::const_iterator search;
 		search = std::find(plugins.begin(), plugins.end(), plugin->get_info().name);
 		if (search == plugins.end())
 			unload_list.push_back(plugin);

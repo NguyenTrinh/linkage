@@ -92,7 +92,6 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued)
 
 Torrent::~Torrent()
 {
-	g_debug("destructor torrent");
 }
 
 Glib::PropertyProxy<libtorrent::torrent_handle> Torrent::property_handle()
