@@ -161,12 +161,29 @@ void TorrentManager::on_position_changed(const libtorrent::sha1_hash& hash)
 
 	std::sort(torrents.begin(), torrents.end(), &TorrentManager::pred);
 
+	//find if the torrent was moved up or down, and how far
 	for (int i = 0; i < (int)torrents.size() - 1; i++)
 	{
 		unsigned int p1 = torrents[i]->get_position();
 		unsigned int p2 = torrents[i + 1]->get_position();
-		if (p1 != p2 && p1 != p2)
+		// special case, first torrent moved down
+		if (i == 0 && p1 > 1)
+		{
+			diff = 1 - p1;
+			break;
+		}
+		//special case, last torrent moved up
+		if (i == (int)(torrents.size() - 2) && p2 != torrents.size())
+		{
+			diff = p2 - p1 + 1;
+			break;
+		}
+		//otherwise
+		if (p1 != (p2-1) && p1 != p2)
+		{
 			diff = p2 - position - 1;
+			break;
+		}
 	}
 
 	TorrentMap::iterator iter;
