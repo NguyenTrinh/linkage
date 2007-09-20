@@ -41,7 +41,7 @@ public:
 	T get_value() const
 	{
 		/* TODO nullpointer is a horrible hack */
-		T* nullpointer = 0;
+		T* nullpointer = NULL;
 		return get_value(nullpointer);
 	}
 

@@ -214,8 +214,8 @@ void SettingsManager::set(const Glib::ustring& path, const Gnome::Conf::Client::
 void SettingsManager::set(const Glib::ustring& path, GConfEnumStringPair* table, gint value)
 {
 	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
-	Glib::ustring active = Glib::convert_const_gchar_ptr_to_ustring(
+	Glib::ustring enum_str = Glib::convert_const_gchar_ptr_to_ustring(
 		gconf_enum_to_string(table, value));
-	gconf->set(prefix + path, value);
+	gconf->set(prefix + path, enum_str);
 }
 
