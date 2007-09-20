@@ -28,6 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Torrent.hh"
 
+class Value;
+
 class TorrentManager : public Glib::Object
 {
 	typedef std::vector<Glib::RefPtr<Torrent> > TorrentVector;
@@ -54,7 +56,7 @@ class TorrentManager : public Glib::Object
 	void on_position_changed(const libtorrent::sha1_hash& hash);
 	void set_torrent_settings(const Glib::RefPtr<Torrent>& torrent);
 	
-	void on_settings();
+	void on_key_changed(const Glib::ustring& key, const Value& value);
 
 	TorrentManager();
 

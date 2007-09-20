@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "PeerList.hh"
 #include "linkage/Utils.hh"
+#include "linkage/compose.hpp"
 
 PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::TreeView(cobject)
@@ -312,6 +313,6 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 
 Glib::ustring PeerList::peer_as_string(const libtorrent::peer_info& peer)
 {
-	return peer.ip.address().to_string() + ":" + String::ucompose("%1", peer.ip.port());
+	return peer.ip.address().to_string() + ":" + String::compose("%1", peer.ip.port());
 }
 

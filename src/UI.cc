@@ -250,7 +250,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	// 	btn->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
 	
 	// set the sort image
-	if (Engine::get_settings_manager()->get_int("ui/torrent_view/sort_order") != 0)
+	if (Engine::get_settings_manager()->get_string("ui/torrent_view/order") != "SORT_ASCENDING")
 		tb_sort->set_stock_id(Gtk::Stock::SORT_DESCENDING);
 	
 	// torrent list signals
@@ -332,7 +332,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	label_comment->set_single_line_mode(!sm->get_bool("ui/allow_linebreak_comments"));
 
-	Engine::get_settings_manager()->signal_update_settings().connect(sigc::mem_fun(this, &UI::on_settings));
+	Engine::get_settings_manager()->signal_key_changed().connect(sigc::mem_fun(this, &UI::on_key_changed));
 
 	m_conn_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &UI::on_tick));
 
@@ -374,8 +374,6 @@ UI::~UI()
 	delete add_dialog;
 
 	delete session_client;
-
-	g_debug("destructor ui");
 }
 
 // Interface stuff
@@ -681,18 +679,24 @@ void UI::on_spin_up()
 	}
 }
 
-void UI::on_settings()
+void UI::on_key_changed(const Glib::ustring& key, const Value& value)
 {
-	int max_up = Engine::get_settings_manager()->get_int("network/max_up_rate");
-	if (max_up == 0)
-		max_up = 10000;
-	spinbutton_up->set_range(0, max_up);
-	int max_down = Engine::get_settings_manager()->get_int("network/max_down_rate");
-	if (max_down == 0)
-		max_down = 10000;
-	spinbutton_down->set_range(0, max_down);
-	label_comment->set_single_line_mode(
-		!Engine::get_settings_manager()->get_bool("ui/allow_linebreak_comments"));
+	if (key == "network/max_up_rate")
+	{
+		int max_up = value.get_int();
+		if (max_up == 0)
+			max_up = 10000;
+		spinbutton_up->set_range(0, max_up);
+	}
+	else if (key == "network/max_down_rate")
+	{
+		int max_down = value.get_int();
+		if (max_down == 0)
+			max_down = 10000;
+		spinbutton_down->set_range(0, max_down);
+	}
+	else if (key == "ui/allow_linebreak_comments")
+		label_comment->set_single_line_mode(value.get_bool());
 }
 
 void UI::on_add()

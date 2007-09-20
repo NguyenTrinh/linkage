@@ -33,39 +33,55 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <libglademm.h>
 
+#include "SettingsWidget.hh"
+
 class SettingsWin : public Gtk::Window
 {
 	//Hack to let us use comboboxtext with glade
-	class ComboBoxTextGlade : public Gtk::ComboBoxText
+	class ComboBoxTextGlade : public Gtk::ComboBoxText, public SettingsWidget<Glib::ustring>
 	{
+		//override so "None specified" returns as ""
+		Glib::ustring get_active_text()
+		{
+			Glib::ustring ret;
+			if (get_active_row_number() > 0)
+				ret = get_active_text();
+			return ret;
+		};
 	public:
+		void init(const Glib::ustring& key_ = Glib::ustring());
 		ComboBoxTextGlade(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml)
-			: Gtk::ComboBoxText(cobject) {}
+			: Gtk::ComboBoxText(cobject)
+		{
+			set_value_func = sigc::mem_fun(this, &Gtk::ComboBoxText::set_active_text);
+			get_value_func = sigc::mem_fun(this, &Gtk::ComboBoxText::get_active_text);
+		}
 	};
 
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
-	Gtk::SpinButton *update_interval, *name_width;
-	Gtk::CheckButton *auto_expand, *trunkate_names, *allow_linebreaks;
-	Gtk::ColorButton *color_downloading, *color_seeding, *color_queued, *color_error;
-	Gtk::ColorButton *color_check_queue, *color_checking, *color_finished;
-	Gtk::ColorButton *color_allocating, *color_announcing, *color_stopped;
+	SpinButtonSetting<int> *update_interval, *name_width;
+	CheckButtonSetting *auto_expand, *trunkate_names, *allow_linebreaks;
+	ColorButtonSetting *color_downloading, *color_seeding, *color_queued, *color_error;
+	ColorButtonSetting *color_check_queue, *color_checking, *color_finished;
+	ColorButtonSetting *color_allocating, *color_announcing, *color_stopped;
 
-	ComboBoxTextGlade *interfaces, *enc_policy, *enc_level, *proxy_type;
-	Gtk::SpinButton *min_port, *max_port;
-	Gtk::CheckButton *enable_dht, *dht_fallback, *enable_pex, *multiple_connections;
-	Gtk::SpinButton *max_connections, *max_uploads;
-	Gtk::SpinButton *up_rate, *down_rate;
-	Gtk::SpinButton *max_torrent_connections, *max_torrent_uploads;
-	Gtk::SpinButton *max_active;
-	Gtk::SpinButton *desired_ratio, *stop_ratio;
-	Gtk::CheckButton *lazy_bitfields;
-	Gtk::SpinButton	*proxy_port;
-	Gtk::Entry *proxy_host, *proxy_username, *proxy_password;
+	ComboBoxTextGlade *interfaces;
+	ComboBoxSetting *enc_policy, *enc_level, *proxy_type;
+	SpinButtonSetting<int> *port;
+	CheckButtonSetting *enable_dht, *dht_fallback, *enable_pex, *multiple_connections;
+	SpinButtonSetting<int> *max_connections, *max_uploads;
+	SpinButtonSetting<int> *up_rate, *down_rate;
+	SpinButtonSetting<int> *max_torrent_connections, *max_torrent_uploads;
+	SpinButtonSetting<int> *max_active;
+	SpinButtonSetting<float> *desired_ratio, *stop_ratio;
+	CheckButtonSetting *lazy_bitfields;
+	SpinButtonSetting<int>	*proxy_port;
+	EntrySetting *proxy_host, *proxy_username, *proxy_password;
 
-	Gtk::CheckButton *default_path, *move_finished, *allocate;
-	Gtk::FileChooserButton *button_default_path, *button_move_finished;
-	Gtk::SpinButton *max_open;
+	CheckButtonSetting *default_path, *move_finished, *allocate;
+	FileChooserButtonSetting *button_default_path, *button_move_finished;
+	SpinButtonSetting<int> *max_open;
 	
 	class PluginModelColumns : public Gtk::TreeModelColumnRecord
 	{
@@ -105,12 +121,10 @@ class SettingsWin : public Gtk::Window
 
 	bool on_delete_event(GdkEventAny*);
 	void on_button_close();
+	void setup_settings_widgets();
+
 	void on_hide();
 	void on_show();
-	void on_min_port_changed();
-	void on_max_port_changed();
-
-	Glib::ustring hex_str(const Gdk::Color& color);
 
 	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
 										const Gtk::TreeIter& iter);

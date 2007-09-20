@@ -241,3 +241,15 @@ Gdk::Color lighter(const Gdk::Color& color, double fac)
 	return c;
 }
 
+Glib::ustring hex_color(const Gdk::Color& color)
+{
+	char s[8];
+	s[0] = '#';
+
+	sprintf(&s[1], "%.2X", color.get_red() / 256);
+	sprintf(&s[3], "%.2X", color.get_green() / 256);
+	sprintf(&s[5], "%.2X", color.get_blue() / 256);
+
+	return s;
+}
+

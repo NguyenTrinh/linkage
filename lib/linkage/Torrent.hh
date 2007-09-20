@@ -85,17 +85,17 @@ private:
 public:
 	enum State
 	{
-		NONE = 0x0,
-		ANNOUNCING = 0x1,
-		DOWNLOADING = 0x2,
-		FINISHED = 0x4,
-		SEEDING = 0x8,
-		CHECK_QUEUE = 0x10,
-		CHECKING = 0x20,
-		ALLOCATING = 0x40,
-		STOPPED = 0x80,
-		QUEUED = 0x100,
-		ERROR = 0x200
+		NONE = 0,
+		ANNOUNCING = 1 << 0,
+		DOWNLOADING = 1 << 1,
+		FINISHED = 1 << 2,
+		SEEDING = 1 << 3,
+		CHECK_QUEUE = 1 << 4,
+		CHECKING = 1 << 5,
+		ALLOCATING = 1 << 6,
+		STOPPED = 1 << 7,
+		QUEUED = 1 << 8,
+		ERROR = 1 << 9
 	};
 
 	Glib::PropertyProxy<libtorrent::torrent_handle> property_handle();

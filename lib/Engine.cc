@@ -46,7 +46,6 @@ Engine::Engine()
 
 Engine::~Engine()
 {
-	g_debug("destructor engine");
 }
 
 void Engine::init()

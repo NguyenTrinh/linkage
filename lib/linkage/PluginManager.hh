@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Plugin.hh"
 
+class Value;
+
 class PluginManager : public Glib::Object
 {
 public:
@@ -52,8 +54,9 @@ private:
 	sigc::signal<void, Glib::RefPtr<Plugin> > m_signal_plugin_load;
 	sigc::signal<void, Glib::RefPtr<Plugin> > m_signal_plugin_unload;
 
-	void on_settings();
-	
+	void on_plugins_changed(const Value& value);
+	void update_plugins(const std::list<Glib::ustring>& plugins);
+
 	PluginManager();
 	
 public:

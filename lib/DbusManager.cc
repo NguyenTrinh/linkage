@@ -255,7 +255,6 @@ DbusManager::DbusManager()
 DbusManager::~DbusManager()
 {
 	dbus_connection_unref(m_connection);
-	g_debug("destructor dbm");
 }
 
 void DbusManager::unregister_torrent(const Glib::RefPtr<Torrent>& torrent)

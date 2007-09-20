@@ -57,6 +57,8 @@ class AddDialog;
 
 class SessionClient;
 
+class Value;
+
 class UI : public Gtk::Window, public Interface
 {
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
@@ -181,7 +183,7 @@ class UI : public Gtk::Window, public Interface
 
 	void on_toggle_visible();
 
-	void on_settings();
+	void on_key_changed(const Glib::ustring& key, const Value& value);
  
 public:
 	// Interface stuff

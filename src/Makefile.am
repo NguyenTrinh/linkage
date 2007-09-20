@@ -55,6 +55,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   SimpleFileList.cc \
                   SessionClient.hh \
                   SessionClient.cc \
+                  SettingsWidget.hh \
+                  SettingsWidget.cc \
                   main.cc
 
 
