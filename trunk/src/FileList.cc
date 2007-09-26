@@ -92,7 +92,7 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	m_menu.append(*item);
 	m_menu.append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	Gtk::RadioButtonGroup group;
-	Gtk::RadioMenuItem* m_radio_max = Gtk::manage(new Gtk::RadioMenuItem(group, _("Max")));
+	m_radio_max = Gtk::manage(new Gtk::RadioMenuItem(group, _("Max")));
 	m_radio_max->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_MAX));
 	m_menu.append(*m_radio_max);
 	m_radio_high = Gtk::manage(new Gtk::RadioMenuItem(group, _("High")));
