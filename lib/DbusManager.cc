@@ -21,16 +21,39 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <glibmm/i18n.h>
 
+#include <gtkmm/main.h>
+
 #include "linkage/DbusManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Interface.hh"
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
 
-#define LINKAGE_BUS_NAME "org.linkage"
-#define LINKAGE_INTERFACE_INTERFACE "org.linkage.Interface"
-#define LINKAGE_INTERFACE_TORRENT "org.linkage.Torrent"
-#define LINKAGE_PATH_INTERFACE "/org/linkage/Interface"
+#define LK_BUS_NAME "org.linkage"
+#define LK_INTERFACE_INTERFACE "org.linkage.Interface"
+#define LK_INTERFACE_TORRENT "org.linkage.Torrent"
+#define LK_INTERFACE_ENGINE "org.linkage.Engine"
+#define LK_PATH_INTERFACE "/org/linkage/Interface"
+#define LK_PATH_TORRENTS "/org/linkage/torrents/"
+#define LK_PATH_ENGINE "/org/linkage/Engine"
+
+const char* introspect_engine = 
+"<!DOCTYPE node PUBLIC \"-//freedesktop//DTD DBUS Object Introspection 1.0//EN\"\n"
+"\"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
+"<node>\n"
+"  <interface name=\"org.freedesktop.DBus.Introspectable\">\n"
+"    <method name=\"Introspect\">\n"
+"      <arg name=\"data\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"  </interface>\n"
+"  <interface name=\"org.linkage.Engine\">\n"
+"    <method name=\"Quit\"/>\n"
+"    <method name=\"LoadInterface\"/>\n"
+"    <method name=\"IsDaemon\">\n"
+"      <arg name=\"daemonized\" direction=\"out\" type=\"b\"/>\n"
+"    </method>\n"
+"  </interface>\n"
+"</node>\n";
 
 const char* introspect_interface = 
 "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD DBUS Object Introspection 1.0//EN\"\n"
@@ -107,7 +130,7 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 	if (handler_common(connection, message, introspect_interface, self))
 		return DBUS_HANDLER_RESULT_HANDLED;
 
-	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_INTERFACE, "Open")) 
+	if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "Open")) 
 	{
 		DBusError error;
 		dbus_error_init(&error);
@@ -126,7 +149,7 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 			dbus_error_free(&error);
 		}
 	}
-	else if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_INTERFACE, "GetVisible")) 
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "GetVisible")) 
 	{
 		gboolean visible = Engine::get_interface().get_visible();
 		DBusMessage* reply = dbus_message_new_method_return(message);
@@ -134,7 +157,7 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
 	}
-	else if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_INTERFACE, "SetVisible")) 
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "SetVisible")) 
 	{
 		DBusError error;
 		dbus_error_init(&error);
@@ -153,9 +176,10 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 			dbus_error_free(&error);
 		}
 	}
-	else if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_INTERFACE, "Quit")) 
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "Quit")) 
 	{
-		Engine::get_interface().quit();
+		if (!Engine::is_daemon())
+			Engine::get_interface().quit();
 		DBusMessage* reply = dbus_message_new_method_return(message);
 		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
@@ -178,7 +202,7 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 	if (handler_common(connection, message, introspect_torrent, data->self))
 		return DBUS_HANDLER_RESULT_HANDLED;
 	
-	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_TORRENT, "GetName")) 
+	if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetName")) 
 	{
 		const char* name = data->torrent->get_name().c_str();
 		DBusMessage* reply = dbus_message_new_method_return(message);
@@ -186,7 +210,7 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
 	}
-	if (dbus_message_is_method_call(message, LINKAGE_INTERFACE_TORRENT, "GetState")) 
+	if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetState")) 
 	{
 		char* state = g_strdup(data->torrent->get_state_string().c_str());
 		DBusMessage* reply = dbus_message_new_method_return(message);
@@ -194,6 +218,48 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
 		g_free(state);
+	}
+	else
+	{
+		DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+
+	return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+DBusHandlerResult DbusManager::handler_engine(DBusConnection* connection,
+	DBusMessage* message,
+	DbusManager* self)
+{
+	if (handler_common(connection, message, introspect_engine, self))
+		return DBUS_HANDLER_RESULT_HANDLED;
+
+	if (dbus_message_is_method_call(message, LK_INTERFACE_ENGINE, "Quit")) 
+	{
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+		Engine::uninit();
+		Gtk::Main::quit();
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_ENGINE, "LoadInterface")) 
+	{
+		self->m_signal_load_interface.emit();
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_ENGINE, "IsDaemon")) 
+	{
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		gboolean daemonized = Engine::is_daemon();
+		dbus_message_append_args(reply, DBUS_TYPE_BOOLEAN, &daemonized, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
 	}
 	else
 	{
@@ -223,7 +289,7 @@ DbusManager::DbusManager()
 	}
 	dbus_connection_setup_with_g_main(m_connection, NULL);
 
-	primary = !dbus_bus_name_has_owner(m_connection, LINKAGE_BUS_NAME, &error);
+	primary = !dbus_bus_name_has_owner(m_connection, LK_BUS_NAME, &error);
 	if (dbus_error_is_set(&error))
 	{
 		g_warning("Error querying DBus: (%s)", error.message);
@@ -232,14 +298,14 @@ DbusManager::DbusManager()
 
 	if (primary)
 	{
-		dbus_bus_request_name(m_connection, LINKAGE_BUS_NAME, DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
+		dbus_bus_request_name(m_connection, LK_BUS_NAME, DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
 		if (dbus_error_is_set(&error))
 		{
 			g_warning("Error requesting Dbus name: (%s)", error.message);
 			dbus_error_free(&error);
 		}
 		
-		DBusObjectPathVTable vtable = {
+		DBusObjectPathVTable vtable_interface = {
 			NULL,
 			(DBusObjectPathMessageFunction)DbusManager::handler_interface,
 			NULL,
@@ -247,7 +313,18 @@ DbusManager::DbusManager()
 			NULL,
 			NULL 
 		};
-		dbus_connection_register_object_path(m_connection, LINKAGE_PATH_INTERFACE, &vtable, this);
+		//FIXME: this should be registered on-demand, i.e. not if we start daemonized
+		dbus_connection_register_object_path(m_connection, LK_PATH_INTERFACE, &vtable_interface, this);
+
+		DBusObjectPathVTable vtable_engine = {
+			NULL,
+			(DBusObjectPathMessageFunction)DbusManager::handler_engine,
+			NULL,
+			NULL,
+			NULL,
+			NULL 
+		};
+		dbus_connection_register_object_path(m_connection, LK_PATH_ENGINE, &vtable_engine, this);
 	}
 }
 
@@ -259,7 +336,7 @@ DbusManager::~DbusManager()
 
 void DbusManager::unregister_torrent(const Glib::RefPtr<Torrent>& torrent)
 {
-	Glib::ustring path = "/org/linkage/torrents/" + String::compose("%1", torrent->get_hash());
+	Glib::ustring path = LK_PATH_TORRENTS + String::compose("%1", torrent->get_hash());
 	// delete the allocated data
 	UserData* data = NULL;
 	dbus_connection_get_object_path_data(m_connection, path.c_str(), (gpointer*)&data);
@@ -278,7 +355,7 @@ void DbusManager::register_torrent(const Glib::RefPtr<Torrent>& torrent)
 		NULL,
 		NULL 
 	};
-	Glib::ustring path = "/org/linkage/torrents/" + String::compose("%1", torrent->get_hash());
+	Glib::ustring path = LK_PATH_TORRENTS + String::compose("%1", torrent->get_hash());
 	UserData* hash = new UserData(torrent, this);
 	dbus_connection_register_object_path(m_connection, path.c_str(), &vtable, hash);
 }
@@ -294,7 +371,7 @@ void DbusManager::send(const Glib::ustring& interface,
 		DBusMessage *message;
 		DBusError error;
 
-		message = dbus_message_new_method_call(LINKAGE_BUS_NAME, path.c_str(), interface.c_str(), member.c_str());
+		message = dbus_message_new_method_call(LK_BUS_NAME, path.c_str(), interface.c_str(), member.c_str());
 		if (!msg.empty())
 		{
 			const char* c_msg = msg.c_str();
@@ -309,6 +386,37 @@ void DbusManager::send(const Glib::ustring& interface,
 		g_warning(_("Ignoring attempt to send message to self (%s: %s)"), member.c_str(), msg.c_str());
 }
 
+bool DbusManager::is_daemon_remote()
+{
+	gboolean daemonized;
+
+	DBusError error;
+	dbus_error_init(&error);
+
+	DBusMessage* message = dbus_message_new_method_call(LK_BUS_NAME,
+		LK_PATH_ENGINE,
+		LK_INTERFACE_ENGINE,
+		"IsDaemon");
+	DBusMessage* reply = dbus_connection_send_with_reply_and_block(m_connection,
+		message,
+		-1,
+		&error);
+
+  if (!reply)
+  {
+		g_printerr("DBus error: %s", error.message);
+		dbus_error_free(&error);
+	}
+	else
+	{
+		dbus_message_get_args(reply, NULL, DBUS_TYPE_BOOLEAN, &daemonized, DBUS_TYPE_INVALID);
+		dbus_message_unref(reply);
+	}
+	dbus_message_unref(message);
+
+	return daemonized;
+}
+
 bool DbusManager::is_primary()
 {
 	return primary;
@@ -317,5 +425,10 @@ bool DbusManager::is_primary()
 sigc::signal<void> DbusManager::signal_disconnect()
 {
 	return m_signal_disconnect;
+}
+
+sigc::signal<void> DbusManager::signal_load_interface()
+{
+	return m_signal_load_interface;
 }
 

@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SettingsManager.hh"
 #include "linkage/TorrentManager.hh"
 #include "linkage/DbusManager.hh"
+#include "linkage/Interface.hh"
 
 Engine* Engine::self = NULL;
 
@@ -61,6 +62,9 @@ void Engine::init()
 
 void Engine::uninit()
 {
+	if (m_interface)
+		delete m_interface;
+
 	// Kill them of in order due to depencies
 	pm.clear();
 	tm.clear();
@@ -142,14 +146,24 @@ Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
 	return dbm;
 }
 
-Interface& Engine::get_interface()
+bool Engine::is_daemon()
 {
-	return *m_interface;
+	return (m_interface == NULL);
+}
+
+Interface& Engine::get_interface() throw()
+{
+	if (m_interface)
+		return *m_interface;
+
+	throw InterfaceException();
 }
 
 void Engine::register_interface(Interface* interface)
 {
-	if (!m_interface && interface)
-		m_interface = interface;
+	if (m_interface)
+		delete m_interface;
+
+	m_interface = interface;
 }
 
