@@ -175,7 +175,10 @@ int AddDialog::run_with_file(const std::string& file)
 	//hack so users can press ok before the filename is set properly
 	button_ok->set_sensitive(false);
 
+	//FIXME: this doesn't always seem to work (even though it returns true)
+	//and when it does work ui is slow to show it
 	button_file->set_filename(file);
+
 	return run();
 }
 
