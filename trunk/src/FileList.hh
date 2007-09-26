@@ -63,6 +63,7 @@ class FileList : public Gtk::TreeView
 	Gtk::Menu m_menu;
 	Gtk::RadioMenuItem *m_radio_max, *m_radio_high, *m_radio_normal, *m_radio_skip;
 
+	void prioritize_children(Priority priority, const Gtk::TreeNodeChildren& children);
 	void on_set_priority(Priority priority);
 
 	bool on_button_press_event(GdkEventButton *event);
@@ -80,9 +81,6 @@ class FileList : public Gtk::TreeView
 	void on_reverse_foreach(const Gtk::TreeModel::iterator& iter, const FileData& data);
 
 	void refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>& info);
-
-	void on_filter_toggled(const Glib::ustring& path);
-	void filter_children(const Gtk::TreeNodeChildren& children, bool filter);
 
 	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<libtorrent::size_type>& column);
 	void format_priority(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);

@@ -133,6 +133,9 @@ bool FileList::on_button_press_event(GdkEventButton *event)
 	if (event->button == 3)
 	{
 		Gtk::TreeRow row = *(model->get_iter(path));
+		if (row[columns.index] == INDEX_FOLDER)
+			row = *(row.children().begin());
+
 		switch (row[columns.priority])
 		{
 			case P_SKIP:
@@ -155,23 +158,43 @@ bool FileList::on_button_press_event(GdkEventButton *event)
 	return (event->button != 1);
 }
 
+void FileList::prioritize_children(Priority priority, const Gtk::TreeNodeChildren& children)
+{
+	g_return_if_fail(m_cur_torrent);
+
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
+	{
+		Gtk::TreeRow row = *iter;
+		int index = row[columns.index];
+		if (index != INDEX_FOLDER)
+		{
+			m_cur_torrent->set_file_priority(index, (int)priority);
+			row[columns.priority] = priority;
+		}
+		else
+			prioritize_children(priority, row.children());
+	}
+}
+
 void FileList::on_set_priority(Priority priority)
 {
 	if (m_cur_torrent && !m_menu.is_visible())
 	{
-		std::vector<int> priorities =	m_cur_torrent->get_priorities();
 		Gtk::TreeSelection::ListHandle_Path paths = get_selection()->get_selected_rows();
 		Gtk::TreeSelection::ListHandle_Path::iterator iter = paths.begin();
 		while (iter != paths.end())
 		{
 			Gtk::TreeRow row = *(model->get_iter(*iter));
 			int index = row[columns.index];
-			g_return_if_fail(index != INDEX_FOLDER);
-			priorities[index] = (int)priority;
-			row[columns.priority] = priority;
+			if (index != INDEX_FOLDER)
+			{
+				m_cur_torrent->set_file_priority(index, (int)priority);
+				row[columns.priority] = priority;
+			}
+			else
+				prioritize_children(priority, row.children());
 			iter++;
 		}
-		m_cur_torrent->set_priorities(priorities);
 	}
 }
 
