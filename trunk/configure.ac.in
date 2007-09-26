@@ -133,6 +133,8 @@ builtin([include],[m4/as-ac-expand.m4])
 AS_AC_EXPAND(LIBDIR, ${libdir})
 AC_DEFINE_UNQUOTED([PLUGIN_DIR], ["$LIBDIR/linkage/plugins"], [Plugin directory])
 
+AC_DEFINE([NDEBUG], [], [Needs to be defined to link against non-debug build of libtorrent])
+
 GETTEXT_PACKAGE=$PACKAGE_NAME
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",GETTEXT_PACKAGE)
 AC_SUBST(GETTEXT_PACKAGE)

@@ -19,8 +19,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef ENGINE_HH
 #define ENGINE_HH
 
+#include <exception>
+
 #include <sigc++/signal.h>
 
+#include <glibmm/exception.h>
 #include <glibmm/object.h>
 #include <glibmm/refptr.h>
 
@@ -31,6 +34,16 @@ class AlertManager;
 class PluginManager;
 class DbusManager;
 class Interface;
+
+class InterfaceException : public Glib::Exception
+{
+public:
+  virtual Glib::ustring what() const throw()
+  {
+    return "No interface previously set";
+  }
+  virtual ~InterfaceException() throw() {}
+};
 
 class Engine : public Glib::Object
 {
@@ -59,7 +72,10 @@ public:
 	static Glib::RefPtr<SettingsManager>	get_settings_manager();
 	static Glib::RefPtr<TorrentManager>	get_torrent_manager();
 	static Glib::RefPtr<DbusManager>	get_dbus_manager();
-	static Interface& get_interface();
+
+	static bool is_daemon();
+
+	static Interface& get_interface() throw();
 	static void register_interface(Interface* interface);
 
 	static sigc::signal<void> signal_tick();
