@@ -8,6 +8,9 @@ Here is a bunch of stuff that are currently planned for the next release, feel f
 
 ~~Strikethrough~~ means it's implemented in trunk
 
+== Simple daemon mode ==
+  * ~~ linkage --daemon runs without GUI, any subsequent runs will attach a GUI to the running process ~~
+
 == New open/save path dialog ==
   * ~~ Having two filechooser dialogs popping up after one another is quite annoying. Instead we should integrate the two into one dialog and add some more advanced options like in Azureus or µTorrent. ~~
 
