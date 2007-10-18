@@ -325,7 +325,10 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
 	{
-		bool allocate = !Engine::get_settings_manager()->get_bool("files/allocate");
+		storage_mode_t storage_mode = storage_mode_sparse;
+		if (Engine::get_settings_manager()->get_bool("files/allocate"))
+			storage_mode = storage_mode_allocate;
+
 		torrent_handle handle;
 
 		// Check if a resume file exists and it's valid
@@ -336,7 +339,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 			decode(resume_file, er);
 			if (er.find_key("path") && er["path"].string() == save_path)
 			{
-				handle = add_torrent(info, save_path.c_str(), er, allocate);
+				handle = add_torrent(info, save_path.c_str(), er, storage_mode);
 				torrent = Engine::get_torrent_manager()->add_torrent(er, info);
 				no_resume = false;
 			}
@@ -346,7 +349,7 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		{
 			entry::dictionary_type de;
 			de["path"] = save_path;
-			handle = add_torrent(info, save_path.c_str(), entry(), allocate);
+			handle = add_torrent(info, save_path.c_str(), entry(), storage_mode);
 			torrent = Engine::get_torrent_manager()->add_torrent(de, info);
 		}	
 
@@ -410,13 +413,15 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 	/* If this fails we need to handle it better below */
 	decode(file, er);
 
-	bool allocate = Engine::get_settings_manager()->get_bool("files/allocate");
+	storage_mode_t storage_mode = storage_mode_sparse;
+	if (Engine::get_settings_manager()->get_bool("files/allocate"))
+		storage_mode = storage_mode_allocate;
 	/* FIXME: make sure that path is not empty */
 	Glib::ustring save_path = er.dict()["path"].string();
 
 	if (torrent) //Torrent was resumed from stopped state
 	{
-		torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
+		torrent_handle handle = add_torrent(info, save_path.c_str(), er, storage_mode);
 		torrent = Engine::get_torrent_manager()->get_torrent(handle.info_hash());
 		torrent->set_handle(handle);
 	}
@@ -425,7 +430,7 @@ sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
 		torrent = Engine::get_torrent_manager()->add_torrent(er, info);
 		if (er.find_key("stopped") && !er.dict()["stopped"].integer())
 		{
-			torrent_handle handle = add_torrent(info, save_path.c_str(), er, !allocate);
+			torrent_handle handle = add_torrent(info, save_path.c_str(), er, storage_mode);
 			torrent->set_handle(handle);
 		}
 	}
@@ -443,8 +448,10 @@ void SessionManager::recheck_torrent(const sha1_hash& hash)
 
 		boost::intrusive_ptr<torrent_info> info = torrent->get_info();
 		Glib::ustring path = torrent->get_path();
-		bool allocate = Engine::get_settings_manager()->get_bool("files/allocate");
-		torrent_handle handle = add_torrent(info, path.c_str(), entry(), !allocate);
+		storage_mode_t storage_mode = storage_mode_sparse;
+		if (Engine::get_settings_manager()->get_bool("files/allocate"))
+			storage_mode = storage_mode_allocate;
+		torrent_handle handle = add_torrent(info, path.c_str(), entry(), storage_mode);
 		torrent->set_handle(handle);
 	}
 }
