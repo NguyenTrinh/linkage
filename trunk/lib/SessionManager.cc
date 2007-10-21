@@ -486,42 +486,17 @@ void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
 {
 	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 
-	if (!torrent->is_stopped())
-		remove_torrent(torrent->get_handle());
-
+	int options = none;
 	if (erase_content)
-	{
-		sigc::slot<void> thread_slot =	sigc::bind(
-			sigc::mem_fun(this, &SessionManager::erase_content),
-			torrent->get_path(),
-			torrent->get_info());
-		Glib::Thread* thread = Glib::Thread::create(thread_slot, true);
-		m_threads.push_back(thread);
-	}
+		options = delete_files;
+
+	if (!torrent->is_stopped())
+		remove_torrent(torrent->get_handle(), options);
 
 	Engine::get_torrent_manager()->remove_torrent(hash);
 
 	Glib::ustring file = Glib::build_filename(get_data_dir(), String::compose("%1", hash));
 	g_unlink(file.c_str());
 	g_unlink((file + ".resume").c_str());
-}
-
-void SessionManager::erase_content(const Glib::ustring& path, const boost::intrusive_ptr<torrent_info>& info)
-{
-	for (torrent_info::file_iterator iter = info->begin_files();
-				iter != info->end_files(); ++iter)
-	{
-		file_entry fe = *iter;
-		Glib::ustring file = fe.path.string();
-		g_remove(Glib::build_filename(path, file).c_str());
-
-		/* Try to remove parent dir */
-		if (file.find("/") != Glib::ustring::npos)
-			g_remove(Glib::build_filename(path, Glib::path_get_dirname(file)).c_str());
-	}
-
-	/* Multi file torrents have their own root folder */
-	if (info->num_files() > 1)
-		g_remove(Glib::build_filename(path, info->name()).c_str());
 }
 
