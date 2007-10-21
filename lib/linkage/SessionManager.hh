@@ -46,8 +46,6 @@ class SessionManager : public Glib::Object, public libtorrent::session
 	bool decode(const Glib::ustring& file, libtorrent::entry& e);
 	bool decode(const Glib::ustring& file, libtorrent::entry& e, std::vector<char>& buffer);
 
-	void erase_content(const Glib::ustring& path, const boost::intrusive_ptr<libtorrent::torrent_info>& info);
-
 	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 
 	std::list<Glib::Thread*> m_threads;
