@@ -27,7 +27,7 @@ make
 su -c 'make install'
 }}}
 
-= Ubuntu =
+= Ubuntu (Gutsy Gibbon)=
 
 == Source install ==
 Currently there are no packages for rb_libtorrent nor linkage for Ubuntu. So if you want to install linkage you have to build them both from source.
@@ -36,11 +36,11 @@ Libtorrent can be downloaded [http://sourceforge.net/project/downloading.php?gro
 
 {{{
 sudo apt-get install build-essential libtool autoconf automake
-sudo apt-get install libboost-date-time-dev libboost-date-time1.33.1 \
-libboost-filesystem-dev libboost-filesystem1.33.1 libboost-regex-dev \
-libboost-regex1.33.1 libboost-signals-dev libboost-signals1.33.1 \
-libboost-iostreams-dev libboost-iostreams1.33.1 \
-libboost-thread-dev libboost-thread1.33.1 libboost-dev libboost-serialization-dev
+apt-get install libboost-date-time-dev libboost-date-time1.34.1 \
+libboost-filesystem-dev libboost-filesystem1.34.1 libboost-regex-dev \
+libboost-regex1.34.1 libboost-signals-dev libboost-signals1.34.1 \
+libboost-iostreams-dev libboost-iostreams1.34.1 libboost-thread-dev\
+libboost-thread1.34.1 libboost-dev libboost-signals-dev
 cd libtorrent-0.12
 ./configure --prefix=/usr
 make
@@ -49,7 +49,7 @@ sudo make install
 
 (I might have missed some package below, if you notice anything missing please let me know :)
 {{{
-sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl3-dev \
+sudo apt-get install libgtkmm-2.4-dev libnotify-dev libcurl4-openssl-dev \
 libdbus-glib-1-dev libgtkmm-2.4-1c2a libnotify1 libcurl3 libdbus-glib-1-2 \
 libgnomemm-2.6-1c2a libgnomemm-2.6-dev libgnomeuimm-2.6-1c2a libgnomeuimm-2.6-dev \
 libgnome-vfsmm-2.6-1c2a libgnome-vfsmm-2.6-dev libexo-0.3-0 libexo-0.3-dev \
