@@ -110,8 +110,8 @@ void AddDialog::on_file_changed()
 void AddDialog::on_path_changed()
 {
 	//only continue if a valid torrent is selected
-	g_return_if_fail(m_info);
-	g_return_if_fail(!m_info->is_valid());
+	if (!m_info || !m_info->is_valid())
+		return;
 
 	std::string path = button_path->get_filename();
 	glibtop_fsusage usage;
