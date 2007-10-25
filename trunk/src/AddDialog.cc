@@ -110,8 +110,8 @@ void AddDialog::on_file_changed()
 void AddDialog::on_path_changed()
 {
 	//only continue if a valid torrent is selected
-	if (!m_info->is_valid())
-		return;
+	g_return_if_fail(m_info);
+	g_return_if_fail(!m_info->is_valid());
 
 	std::string path = button_path->get_filename();
 	glibtop_fsusage usage;
@@ -172,7 +172,7 @@ const boost::intrusive_ptr<libtorrent::torrent_info>& AddDialog::get_info()
 
 int AddDialog::run_with_file(const std::string& file)
 {
-	//hack so users can press ok before the filename is set properly
+	//hack so users can't press ok before the filename is set properly
 	button_ok->set_sensitive(false);
 
 	//FIXME: this doesn't always seem to work (even though it returns true)
