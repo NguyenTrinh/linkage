@@ -85,23 +85,23 @@ NotifyNotification* NotifyPlugin::build_notification(const Glib::ustring& title,
 	NotifyUrgency urgency,
 	const Glib::ustring& category)
 {
-	gchar* icon = NULL;
+	Glib::ustring icon;
 	switch (urgency)
 	{
 		case NOTIFY_URGENCY_CRITICAL:
-			icon = g_strdup("dialog-error");
+			icon = "dialog-error";
 			break;
 		case NOTIFY_URGENCY_NORMAL:
-			icon = g_strdup("dialog-warning");
+			icon = "dialog-warning";
 			break;
 		case NOTIFY_URGENCY_LOW:
 		default:
-			icon = g_strdup("dialog-information");
+			icon = "dialog-information";
 			break;
 	}
 
 	NotifyNotification* notification = notify_notification_new(
-		title.c_str(), message.c_str(), icon, NULL);
+		title.c_str(), message.c_str(), icon.c_str(), NULL);
 
 	Glib::RefPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
 	if (plugin)
@@ -115,8 +115,6 @@ NotifyNotification* NotifyPlugin::build_notification(const Glib::ustring& title,
 	notify_notification_set_timeout(notification, NOTIFY_EXPIRES_DEFAULT);
 	if (!category.empty())
 		notify_notification_set_category(notification, category.c_str());
-
-	g_free(icon);
 
 	return notification;
 }
