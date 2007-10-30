@@ -102,7 +102,7 @@ public:
 	Glib::PropertyProxy<unsigned int> property_position();
 
 	libtorrent::torrent_handle get_handle();
-	std::pair<Glib::ustring, Glib::ustring> get_tracker_reply();
+	Glib::ustring get_tracker_reply(const Glib::ustring& tracker);
 	Glib::ustring get_name();
 	const Glib::ustring& get_group();
 	const Glib::ustring& get_path();
@@ -115,12 +115,13 @@ public:
 	libtorrent::size_type get_total_downloaded();
 	libtorrent::size_type get_total_uploaded();
 
-	bool get_completed();
+	//FIXME: remove this, use composite States (w/ FINISHED) instead
+	bool is_completed();
 
-	State get_state();
+	int get_state();
 	Glib::ustring get_state_string();
-	static Glib::ustring state_string(State state);
-	Glib::ustring get_state_string(State state);
+	static Glib::ustring state_string(int state);
+	Glib::ustring get_state_string(int state);
 
 	const boost::intrusive_ptr<libtorrent::torrent_info>& get_info();
 	const libtorrent::torrent_status get_status();

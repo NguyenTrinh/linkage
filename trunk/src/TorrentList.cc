@@ -150,7 +150,7 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 	if (!torrent)
 		return false;
 
-	if (m_cur_state && m_cur_state != torrent->get_state())
+	if (m_cur_state && !(m_cur_state & torrent->get_state()))
 		return false;
 
 	return (m_active_group) ? m_active_group.eval(torrent) : true;
@@ -270,7 +270,7 @@ void TorrentList::set_sort_order(Gtk::SortType order)
 Glib::ustring TorrentList::get_formated_name(const Glib::RefPtr<Torrent>& torrent)
 {
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
-	Torrent::State state = torrent->get_state();
+	int state = torrent->get_state();
 	Glib::ustring color;
 	switch (state)
 	{
@@ -304,6 +304,9 @@ Glib::ustring TorrentList::get_formated_name(const Glib::RefPtr<Torrent>& torren
 		case Torrent::ERROR:
 			color = sm->get_string("ui/colors/error");
 			break;
+		default:
+			color = sm->get_string("ui/colors/stopped");
+			break;
 	}
 
 	Glib::ustring name = torrent->get_name();
@@ -315,7 +318,8 @@ Glib::ustring TorrentList::get_formated_name(const Glib::RefPtr<Torrent>& torren
 
 	Glib::ustring format;
 	libtorrent::torrent_status status = torrent->get_status();
-	if (state == Torrent::DOWNLOADING || state == Torrent::SEEDING || state == Torrent::FINISHED)
+	if (state & Torrent::DOWNLOADING || state & Torrent::SEEDING ||
+		(state & Torrent::FINISHED && !torrent->is_stopped()))
 	{
 		if (status.num_complete != -1 && status.num_incomplete != -1)
 			format = String::ucompose(_(
@@ -424,8 +428,8 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	}
 
 	// don't continue if we don't need to, possibly include more states here..
-	Torrent::State state = torrent->get_state();
-	if (!state_changed && state == Torrent::STOPPED)
+	int state = torrent->get_state();
+	if (!state_changed && state & Torrent::STOPPED)
 		return;
 
 	libtorrent::size_type up = torrent->get_total_uploaded();
@@ -440,7 +444,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 		row[columns.up_rate] = 0;
 		row[columns.seeds] = 0;
 		row[columns.peers] = 0;
-		if (!torrent->get_completed())
+		if (!torrent->is_completed())
 		{
 			float progress = 0;
 			if (down)
@@ -465,7 +469,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	}
 
 	libtorrent::torrent_status status = torrent->get_status();
-	if (state == Torrent::SEEDING || (state == Torrent::STOPPED && torrent->get_completed()))
+	if (state & Torrent::SEEDING || state & Torrent::FINISHED)
 	{
 		libtorrent::size_type size = down - up;
 		if (down != 0)

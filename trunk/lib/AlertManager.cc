@@ -130,7 +130,7 @@ void AlertManager::check_alerts()
 		{
 			sha1_hash hash = p->handle.info_hash();
 			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-			if (torrent && !torrent->get_completed())
+			if (torrent && !torrent->is_completed())
 			{
 				torrent->set_completed(true);
 				m_signal_torrent_finished.emit(p->handle.info_hash(), p->msg());

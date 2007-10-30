@@ -329,8 +329,6 @@ void FileList::update(const Glib::RefPtr<Torrent>& torrent)
 		model->clear();
 		refill_tree(data.info);
 	}
-	
-	Torrent::State state = torrent->get_state();
 
 	// sorting mess up iteration when we change the values in the sort column
 	Gtk::SortType order;

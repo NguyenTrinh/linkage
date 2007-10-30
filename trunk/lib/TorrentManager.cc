@@ -336,8 +336,8 @@ void TorrentManager::check_queue()
 	for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
 		Glib::RefPtr<Torrent> torrent = iter->second;
-		Torrent::State state = torrent->get_state();
-		if (state == Torrent::SEEDING || state == Torrent::STOPPED || state == Torrent::ERROR)
+		int state = torrent->get_state();
+		if (state & (Torrent::SEEDING|Torrent::STOPPED|Torrent::ERROR))
 			continue;
 
 		torrents.push_back(torrent);

@@ -111,13 +111,13 @@ void TrayPlugin::on_tick()
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin(); iter != torrents.end(); ++iter)
 	{
 		Glib::RefPtr<Torrent> torrent = *iter;
-		Torrent::State state = torrent->get_state();
+		int state = torrent->get_state();
 
-		if (state == Torrent::SEEDING)
+		if (state & Torrent::SEEDING)
 			num_seeds++;
-		else if (state != Torrent::STOPPED)
+		else if (!(state & Torrent::STOPPED))
 		{
-			if (state == Torrent::DOWNLOADING || state == Torrent::ANNOUNCING || state == Torrent::FINISHED)
+			if (state & (Torrent::DOWNLOADING | Torrent::ANNOUNCING | Torrent::FINISHED))
 				num_active++;
 			else
 				num_queued++;

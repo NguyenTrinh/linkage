@@ -73,6 +73,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 const char* TARGET_URI_LIST = "text/uri-list";
 const char* TARGET_MOZ_URL = "text/x-moz-url-data";
 
+//for adding separators to comboboxes, pretty retarded
+static bool 
+is_separator(const Glib::RefPtr<Gtk::TreeModel>& model, const Gtk::TreeIter& iter)
+{
+	Gtk::TreeRow row = *iter;
+	Glib::ustring data;
+	row.get_value(0, data);
+	return (data == "-");
+}
+
 UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::Window(cobject),
 	glade_xml(refGlade)
@@ -122,17 +132,15 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->get_widget_derived("file_list", file_list);
 	glade_xml->get_widget_derived("peer_list", peer_list);
 	glade_xml->get_widget_derived("torrent_menu", torrent_menu);
+	glade_xml->get_widget_derived("combo_trackers", combo_trackers);
 
 	glade_xml->get_widget("main_vpane", main_vpane);
 	main_vpane->set_position(-1);
 	glade_xml->get_widget("main_hpane", main_hpane);
 
 	glade_xml->get_widget("notebook_details", notebook_details);
-	m_conn_switch_page = notebook_details->signal_switch_page().connect(
-		sigc::mem_fun(this, &UI::on_switch_page));
 	glade_xml->get_widget("expander_details", expander_details);
-	glade_xml->get_widget("button_tracker", button_tracker);
-	glade_xml->get_widget("label_tracker", label_tracker);
+	glade_xml->get_widget("button_announce", button_announce);
 	glade_xml->get_widget("label_private", label_private);
 	glade_xml->get_widget("label_response", label_response);
 	glade_xml->get_widget("label_next_announce", label_next_announce);
@@ -284,11 +292,10 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	
 	expander_details->property_expanded().signal_changed().connect(sigc::mem_fun(this, &UI::on_details_expanded));
 
-	// setup the tracker button
-	button_tracker->add_events(Gdk::BUTTON_RELEASE_MASK);
-	button_tracker->signal_button_release_event().connect(sigc::mem_fun(this, &UI::on_tracker_update), false);
-	button_tracker->signal_enter().connect(sigc::mem_fun(this, &UI::on_tracker_enter));
-	button_tracker->signal_leave().connect(sigc::mem_fun(this, &UI::on_tracker_leave));
+	// setup the tracker combo and (re)announce button
+	button_announce->signal_clicked().connect(sigc::mem_fun(this, &UI::on_announce_clicked));
+	combo_trackers->signal_changed().connect(sigc::mem_fun(this, &UI::on_tracker_changed));
+	combo_trackers->set_row_separator_func(sigc::ptr_fun(&is_separator));
 
 	spinbutton_down->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_down));
 	spinbutton_up->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_up));
@@ -310,6 +317,9 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	resize(sm->get_int("ui/win_width"), sm->get_int("ui/win_width"));
 
 	notebook_details->set_current_page(sm->get_int("ui/page"));
+	m_conn_switch_page = notebook_details->signal_switch_page().connect(
+		sigc::mem_fun(this, &UI::on_switch_page));
+
 	HashList list = torrent_list->get_selected_list();
 	expander_details->set_sensitive(!list.empty());
 	expander_details->set_expanded(sm->get_bool("ui/expanded"));
@@ -488,12 +498,8 @@ void UI::on_tick()
 	static int tick;
 	tick = (tick + 1) % 3;
 
-	HashList list = torrent_list->get_selected_list();
-	if (list.size() == 1)
-	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
-		update(torrent, (tick == 0));
-	}
+	if (expander_details->get_expanded())
+		update(get_selected_single(), (tick == 0));
 
 	torrent_list->update();
 
@@ -542,9 +548,12 @@ void UI::update(const Glib::RefPtr<Torrent>& torrent, bool update_lists)
 					piecemap->set_map(*stats.pieces);
 				else
 					piecemap->set_map(std::vector<bool>(1, false));
-				std::pair<Glib::ustring, Glib::ustring> p = torrent->get_tracker_reply();
-				label_tracker->set_text(p.first);
-				label_response->set_text(p.second);
+
+				Glib::ustring tracker = combo_trackers->get_active_text();
+				if (!tracker.empty())
+					label_response->set_text(torrent->get_tracker_reply(tracker));
+				else
+					combo_trackers->set_active_text(stats.current_tracker);
 				label_next_announce->set_text(boost::posix_time::to_simple_string(stats.next_announce));
 				break;
 			}
@@ -580,7 +589,7 @@ void UI::update_statics(const Glib::RefPtr<Torrent>& torrent)
 	//FIXME: set tooltip to full comment
 
 	if (info->creation_date())
-		label_date->set_text(Glib::ustring(boost::posix_time::to_simple_string(*info->creation_date())) );
+		label_date->set_text(Glib::ustring(boost::posix_time::to_simple_string(*info->creation_date())));
 	else
 		label_date->set_text("");
 	label_path->set_text(Glib::build_filename(torrent->get_path(), info->name()));
@@ -590,36 +599,13 @@ void UI::update_statics(const Glib::RefPtr<Torrent>& torrent)
 	label_private->set_text(info->priv() ? _("Yes") : _("No"));
 }
 
-void UI::build_tracker_menu(const Glib::RefPtr<Torrent>& torrent)
+inline Glib::RefPtr<Torrent> UI::get_selected_single()
 {
-	std::list<Gtk::Widget*> children = menu_trackers.get_children();
-	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
-		iter != children.end(); ++iter)
-	{
-		Gtk::Widget* widget = *iter;
-		menu_trackers.remove(*widget);
-		delete widget;
-	}
+	HashList list = torrent_list->get_selected_list();
 
-	std::vector<libtorrent::announce_entry> trackers = torrent->get_trackers();
+	g_assert(list.size() == 1);
 
-	Gtk::Label* label = manage(new Gtk::Label());
-	label->set_markup(_("<i>Add tracker</i>"));
-	Gtk::MenuItem* item = manage(new Gtk::MenuItem(*label));
-	item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-		this, &UI::on_popup_tracker_selected), ""));
-	menu_trackers.append(*item);
-	menu_trackers.append(*manage(new Gtk::SeparatorMenuItem()));
-
-	for (unsigned int i = 0; i < trackers.size(); i++)
-	{
-		Glib::ustring tracker = trackers[i].url;
-		item = manage(new Gtk::MenuItem(tracker));
-		item->signal_activate().connect(sigc::bind(sigc::mem_fun(
-			this, &UI::on_popup_tracker_selected), tracker));
-		menu_trackers.append(*item);
-	}
-	menu_trackers.show_all_children();
+	return Engine::get_torrent_manager()->get_torrent(*list.begin());
 }
 
 /* CALLBACKS */
@@ -661,22 +647,14 @@ void UI::on_about()
 
 void UI::on_spin_down()
 {
-	HashList list = torrent_list->get_selected_list();
-	if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
-	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
-		torrent->set_down_limit((int)spinbutton_down->get_value());
-	}
+	Glib::RefPtr<Torrent> torrent = get_selected_single();
+	torrent->set_down_limit((int)spinbutton_down->get_value());
 }
 
 void UI::on_spin_up()
 {
-	HashList list = torrent_list->get_selected_list();
-	if (list.size() == 1) /* FIXME: This check _shouldn't_ be/(isn't?) needed! */
-	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
-		torrent->set_up_limit((int)spinbutton_up->get_value());
-	}
+	Glib::RefPtr<Torrent> torrent = get_selected_single();
+	torrent->set_up_limit((int)spinbutton_up->get_value());
 }
 
 void UI::on_key_changed(const Glib::ustring& key, const Value& value)
@@ -757,7 +735,7 @@ void UI::on_start()
 		if (torrent->is_stopped())
 		{
 			Engine::get_session_manager()->resume_torrent(hash);
-			button_tracker->set_sensitive(true);
+			button_announce->set_sensitive(true);
 		}
 	}
 	on_tick();
@@ -774,7 +752,7 @@ void UI::on_stop()
 	}
 
 	if (!list.empty())
-		button_tracker->set_sensitive(false);
+		button_announce->set_sensitive(false);
 
 	on_tick();
 }
@@ -880,22 +858,12 @@ void UI::on_quit()
 	Gtk::Main::quit();
 }
 
-void UI::on_toggle_visible()
-{
-	// this will also unminimize window
-	set_visible(is_visible());
-}
-
 void UI::on_details_expanded()
 {
 	if (expander_details->get_expanded())
 	{
-		HashList list = torrent_list->get_selected_list();
-		if (list.size() == 1) /* FIXME: This shouldn't be needed */
-		{
-			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
-			update(torrent, true);
-		}
+		Glib::RefPtr<Torrent> torrent = get_selected_single();
+		update(torrent, true);
 	}
 	else
 	{
@@ -918,7 +886,16 @@ void UI::on_torrent_list_selection_changed()
 		spinbutton_down->set_value((double)torrent->get_down_limit());
 		spinbutton_up->set_value((double)torrent->get_up_limit());
 
-		button_tracker->set_sensitive(!torrent->is_stopped());
+		combo_trackers->clear();
+		combo_trackers->append_text(_("Add new tracker"));
+		combo_trackers->append_text("-");
+		std::vector<libtorrent::announce_entry> trackers = torrent->get_trackers();
+		for (int i = 0; i <(int)trackers.size(); i++)
+			combo_trackers->append_text(trackers[i].url);
+
+		button_announce->set_sensitive(!torrent->is_stopped());
+
+		label_response->set_text("");
 
 		update_statics(torrent);
 		update(torrent, expander_details->get_expanded());
@@ -927,6 +904,7 @@ void UI::on_torrent_list_selection_changed()
 	{
 		expander_details->set_expanded(false);
 		expander_details->set_sensitive(false);
+		button_announce->set_sensitive(false);
 	}
 }
 
@@ -942,88 +920,57 @@ void UI::on_torrent_list_right_clicked(GdkEventButton* event)
 		torrent_menu->popup(event->button, event->time);
 }
 
-bool UI::on_tracker_update(GdkEventButton* e)
+void UI::on_announce_clicked()
 {
-	HashList list = torrent_list->get_selected_list();
-	if (list.size() == 1)
-	{
-		libtorrent::sha1_hash hash = *list.begin();
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		Torrent::State state = torrent->get_state();
-		if (state == Torrent::DOWNLOADING || state == Torrent::ANNOUNCING ||
-				state == Torrent::SEEDING || state == Torrent::FINISHED)
-		{
-			switch (e->button)
-			{
-				case 1:
-					/* TODO: add timeout to prevent hammering */
-					torrent->reannounce();
-					break;
-				case 3:
-					build_tracker_menu(torrent);
-					menu_trackers.popup(e->button, e->time);
-					break;
-			}
-		}
-	}
-	return false;
+	get_selected_single()->reannounce(combo_trackers->get_active_text());
 }
 
-void UI::on_popup_tracker_selected(const Glib::ustring& tracker)
+void UI::on_tracker_changed()
 {
-	HashList list = torrent_list->get_selected_list();
-	if (list.size() == 1)
+	if (combo_trackers->get_active_row_number() == 0)
 	{
-		libtorrent::sha1_hash hash = *list.begin();
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		// FIXME: make an EntryDialog class for this
+		Gtk::Dialog dialog(_("Add new tracker"), *this, true, true);
+		dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+		dialog.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
 
-		if (!tracker.empty())
-			torrent->reannounce(tracker);
+		Gtk::VBox* vbox = dialog.get_vbox();
+		Gtk::HBox hbox;
+		vbox->pack_start(hbox, false, false);
+		Gtk::Label label(_("Tracker URL:"));
+		hbox.pack_start(label, false, false);
+		Gtk::Entry entry;
+		hbox.pack_start(entry, true, true);
+		vbox->show_all_children();
+
+		if (dialog.run() == Gtk::RESPONSE_OK)
+		{
+			Glib::ustring tracker = entry.get_text();
+			// FIXME: notify user if the entered url is rejected
+			if (Glib::str_has_prefix(tracker, "http://") || Glib::str_has_prefix(tracker, "udp://"))
+			{
+				get_selected_single()->add_tracker(tracker);
+				combo_trackers->append_text(tracker);
+				combo_trackers->set_active_text(tracker);
+			}
+			else
+				combo_trackers->set_active(-1);
+		}
 		else
-		{
-			// FIXME: make an EntryDialog class for this
-			Gtk::Dialog dialog(_("Add new tracker"), *this, true, true);
-			dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-			dialog.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
-
-			Gtk::VBox* vbox = dialog.get_vbox();
-			Gtk::HBox hbox;
-			vbox->pack_start(hbox, false, false);
-			Gtk::Label label(_("Tracker URL:"));
-			hbox.pack_start(label, false, false);
-			Gtk::Entry entry;
-			hbox.pack_start(entry, true, true);
-			vbox->show_all_children();
-
-			if (dialog.run() == Gtk::RESPONSE_OK)
-			{
-				Glib::ustring tracker = entry.get_text();
-				// FIXME: notify user if the entered url is rejected
-				if (Glib::str_has_prefix(tracker, "http://") || Glib::str_has_prefix(tracker, "udp://"))
-					torrent->add_tracker(entry.get_text());
-			}
-		}
+			combo_trackers->set_active(-1);
 	}
-}
-
-void UI::on_tracker_enter()
-{
-	button_tracker->set_relief(Gtk::RELIEF_NORMAL);
-}
-
-void UI::on_tracker_leave()
-{
-	button_tracker->set_relief(Gtk::RELIEF_NONE);
+	else
+	{
+		Glib::ustring tracker = combo_trackers->get_active_text();
+		Glib::RefPtr<Torrent> torrent = get_selected_single();
+		label_response->set_text(torrent->get_tracker_reply(tracker));
+	}
 }
 
 void UI::on_switch_page(GtkNotebookPage*, int page_num)
 {
-	HashList list = torrent_list->get_selected_list();
-	if (list.size() == 1)
-	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*list.begin());
-		update(torrent, true);
-	}
+	Glib::RefPtr<Torrent> torrent = get_selected_single();
+	update(torrent, true);
 }
 
 void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
@@ -1032,7 +979,8 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 												 guint info, guint time)
 {
 	// TreeModelFilter doesn't support DnD, this suppresses default handler/warning
-	g_signal_stop_emission_by_name(G_OBJECT(torrent_list->gobj()), "drag-data-received");
+	torrent_list->signal_drag_data_received().emission_stop();
+	//g_signal_stop_emission_by_name(G_OBJECT(torrent_list->gobj()), "drag-data-received");
 
 	bool success = false;
 

@@ -175,7 +175,7 @@ void GroupList::update()
 		for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
 		{
 			Glib::RefPtr<Torrent> torrent = *j;
-			if (m_cur_state && m_cur_state != torrent->get_state())
+			if (m_cur_state && !(m_cur_state & torrent->get_state()))
 				continue;
 
 			if (group.is_valid()) // not "All" row
@@ -185,7 +185,7 @@ void GroupList::update()
 			}
 			else if (m_cur_state) // "All" row with state filter set
 			{
-				if (m_cur_state == torrent->get_state())
+				if (m_cur_state & torrent->get_state())
 					n++;
 			}
 			else // "All" row without any state filter
