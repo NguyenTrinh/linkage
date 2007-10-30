@@ -287,44 +287,47 @@ DbusManager::DbusManager()
 		g_warning("Failed to connect to Dbus session: %s", error.message);
 		dbus_error_free(&error);
 	}
-	dbus_connection_setup_with_g_main(m_connection, NULL);
-
-	primary = !dbus_bus_name_has_owner(m_connection, LK_BUS_NAME, &error);
-	if (dbus_error_is_set(&error))
+	else
 	{
-		g_warning("Error querying DBus: (%s)", error.message);
-		dbus_error_free(&error);
-	}
+		dbus_connection_setup_with_g_main(m_connection, NULL);
 
-	if (primary)
-	{
-		dbus_bus_request_name(m_connection, LK_BUS_NAME, DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
+		primary = !dbus_bus_name_has_owner(m_connection, LK_BUS_NAME, &error);
 		if (dbus_error_is_set(&error))
 		{
-			g_warning("Error requesting Dbus name: (%s)", error.message);
+			g_warning("Error querying DBus: (%s)", error.message);
 			dbus_error_free(&error);
 		}
-		
-		DBusObjectPathVTable vtable_interface = {
-			NULL,
-			(DBusObjectPathMessageFunction)DbusManager::handler_interface,
-			NULL,
-			NULL,
-			NULL,
-			NULL 
-		};
-		//FIXME: this should be registered on-demand, i.e. not if we start daemonized
-		dbus_connection_register_object_path(m_connection, LK_PATH_INTERFACE, &vtable_interface, this);
 
-		DBusObjectPathVTable vtable_engine = {
-			NULL,
-			(DBusObjectPathMessageFunction)DbusManager::handler_engine,
-			NULL,
-			NULL,
-			NULL,
-			NULL 
-		};
-		dbus_connection_register_object_path(m_connection, LK_PATH_ENGINE, &vtable_engine, this);
+		if (primary)
+		{
+			dbus_bus_request_name(m_connection, LK_BUS_NAME, DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
+			if (dbus_error_is_set(&error))
+			{
+				g_warning("Error requesting Dbus name: (%s)", error.message);
+				dbus_error_free(&error);
+			}
+			
+			DBusObjectPathVTable vtable_interface = {
+				NULL,
+				(DBusObjectPathMessageFunction)DbusManager::handler_interface,
+				NULL,
+				NULL,
+				NULL,
+				NULL 
+			};
+			//FIXME: this should be registered on-demand, i.e. not if we start daemonized
+			dbus_connection_register_object_path(m_connection, LK_PATH_INTERFACE, &vtable_interface, this);
+
+			DBusObjectPathVTable vtable_engine = {
+				NULL,
+				(DBusObjectPathMessageFunction)DbusManager::handler_engine,
+				NULL,
+				NULL,
+				NULL,
+				NULL 
+			};
+			dbus_connection_register_object_path(m_connection, LK_PATH_ENGINE, &vtable_engine, this);
+		}
 	}
 }
 
