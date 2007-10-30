@@ -89,14 +89,14 @@ NotifyNotification* NotifyPlugin::build_notification(const Glib::ustring& title,
 	switch (urgency)
 	{
 		case NOTIFY_URGENCY_CRITICAL:
-			icon = "dialog-error";
+			icon = g_strdup("dialog-error");
 			break;
 		case NOTIFY_URGENCY_NORMAL:
-			icon = "dialog-warning";
+			icon = g_strdup("dialog-warning");
 			break;
 		case NOTIFY_URGENCY_LOW:
 		default:
-			icon = "dialog-information";
+			icon = g_strdup("dialog-information");
 			break;
 	}
 
@@ -115,6 +115,8 @@ NotifyNotification* NotifyPlugin::build_notification(const Glib::ustring& title,
 	notify_notification_set_timeout(notification, NOTIFY_EXPIRES_DEFAULT);
 	if (!category.empty())
 		notify_notification_set_category(notification, category.c_str());
+
+	g_free(icon);
 
 	return notification;
 }
