@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/menutoolbutton.h>
 #include <gtkmm/paned.h>
 #include <gtkmm/spinbutton.h>
+#include <gtkmm/comboboxtext.h>
 
 #include <libglademm.h>
 
@@ -61,6 +62,14 @@ class Value;
 
 class UI : public Gtk::Window, public Interface
 {
+	//Hack to let us use comboboxtext with glade
+	class ComboBoxTextGlade : public Gtk::ComboBoxText
+	{
+	public:
+		ComboBoxTextGlade(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml)
+			: Gtk::ComboBoxText(cobject) {}
+	};
+
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::MenuToolButton* tb_sort;
@@ -71,6 +80,7 @@ class UI : public Gtk::Window, public Interface
 	Gtk::Button* button_stop;
 	Gtk::Button* button_up;
 	Gtk::Button* button_down;
+	Gtk::Button* button_announce;
 
 	Gtk::Label* label_down;
 	Gtk::Label* label_down_rate;
@@ -78,8 +88,6 @@ class UI : public Gtk::Window, public Interface
 	Gtk::Label* label_up_rate;
 	Gtk::Label* label_ratio;
 	Gtk::Label* label_copies;
-	Gtk::Button* button_tracker;
-	Gtk::Label* label_tracker;
 	Gtk::Label* label_path;
 	Gtk::Label* label_creator;
 	Gtk::Label* label_comment;
@@ -93,8 +101,6 @@ class UI : public Gtk::Window, public Interface
 	Gtk::Label* label_private;
 	Gtk::Label* label_date;
 
-	Gtk::Menu menu_trackers;
-
 	Gtk::VPaned* main_vpane;
 	Gtk::HPaned* main_hpane;
 
@@ -104,6 +110,7 @@ class UI : public Gtk::Window, public Interface
 	Gtk::SpinButton* spinbutton_down;
 	Gtk::SpinButton* spinbutton_up;
 
+	ComboBoxTextGlade* combo_trackers;
 	TorrentMenu* torrent_menu;
 	PieceMap* piecemap;
 	TorrentList* torrent_list;
@@ -163,14 +170,10 @@ class UI : public Gtk::Window, public Interface
 
 	bool on_delete_event(GdkEventAny*);
 
-	bool on_tracker_update(GdkEventButton* e);
-	void on_tracker_enter();
-	void on_tracker_leave();
+	void on_announce_clicked();
+	void on_tracker_changed();
 
 	void on_switch_page(GtkNotebookPage* child, int page);
-
-	void build_tracker_menu(const Glib::RefPtr<Torrent>& torrent);
-	void on_popup_tracker_selected(const Glib::ustring& tracker);
 
 	void on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 											 int x, int y,
@@ -181,10 +184,11 @@ class UI : public Gtk::Window, public Interface
 	void notify(const Glib::ustring& title,
 							const Glib::ustring& msg);
 
-	void on_toggle_visible();
-
 	void on_key_changed(const Glib::ustring& key, const Value& value);
- 
+
+	//asserts that num selected torrents are one only
+	inline Glib::RefPtr<Torrent> get_selected_single();
+
 public:
 	// Interface stuff
 	SelectionList get_selected()  const;

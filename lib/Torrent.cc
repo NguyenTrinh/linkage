@@ -34,7 +34,6 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued)
 	: m_prop_handle(*this, "handle"), m_prop_position(*this, "position")
 {
 	m_cur_tier = 0;
-	m_announcing = false;
 
 	m_is_queued = queued;
 
@@ -124,19 +123,13 @@ const Glib::ustring& Torrent::get_path()
 	return m_path;
 }
 
-std::pair<Glib::ustring, Glib::ustring> Torrent::get_tracker_reply()
+Glib::ustring Torrent::get_tracker_reply(const Glib::ustring& tracker)
 {
-	static int offset = 0;
+	ReplyMap::iterator iter = m_replies.find(tracker);
+	if (iter != m_replies.end())
+		return iter->second;
 
-	ReplyMap::const_iterator iter = m_replies.begin();
-	for (int i = 0; i < offset; i++)
-		iter++;
-	if (iter == m_replies.end())
-		iter = m_replies.begin();
-
-	offset = (offset + 1) % m_replies.size();
-
-	return *iter;
+	return Glib::ustring();
 }
 
 unsigned int Torrent::get_position()
@@ -180,12 +173,12 @@ libtorrent::size_type Torrent::get_total_uploaded()
 	return total;
 }
 
-bool Torrent::get_completed()
+bool Torrent::is_completed()
 {
 	return m_completed;
 }
 
-Torrent::State Torrent::get_state()
+int Torrent::get_state()
 {
 	if (!is_stopped())
 	{
@@ -233,7 +226,7 @@ Torrent::State Torrent::get_state()
 		}
 	}
 	else
-		return STOPPED;
+		return m_completed ? (STOPPED|FINISHED) : STOPPED;
 }
 
 Glib::ustring Torrent::get_state_string()
@@ -241,13 +234,14 @@ Glib::ustring Torrent::get_state_string()
 	return Torrent::state_string(get_state());
 }
 
-Glib::ustring Torrent::get_state_string(State state)
+Glib::ustring Torrent::get_state_string(int state)
 {
 	return Torrent::state_string(state);
 }
 
-Glib::ustring Torrent::state_string(State state)
+Glib::ustring Torrent::state_string(int state)
 {
+	//FIXME: don't do case, generalize with if state&E .. ", " if state&Q .. ", "
 	switch (state)
 	{
 		case ERROR:
@@ -268,9 +262,12 @@ Glib::ustring Torrent::state_string(State state)
 			return _("Seeding");
 		case ALLOCATING:
 			return _("Allocating");
+		case STOPPED | FINISHED:
+			return String::ucompose("%1, %2", _("Stopped"), _("Finished"));
 		case DOWNLOADING:
-		default:
 			return _("Downloading");
+		default:
+			g_assert_not_reached();
 	}
 }
 
@@ -382,7 +379,7 @@ void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring&
 	if (type == REPLY_OK)
 	{
 		m_announcing = false;
-		m_cur_tier = 0;
+ 		m_cur_tier = 0;
 	}
 	/* All trackers failed, cycle stops */
 	else if (m_cur_tier == 0 && type != REPLY_ANNOUNCING)
@@ -563,7 +560,7 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 
 	m_cur_tier = 0;
 	// FIXME: if someone else calls force_reannounce while we are announcing it
-	// will mess up the iteration in this method, maybe we should wrap the handle?
+	// will mess up the iteration in set_tracker_reply maybe we should wrap the handle?
 	get_handle().force_reannounce();
 }
 
