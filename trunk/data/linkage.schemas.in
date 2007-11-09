@@ -726,5 +726,17 @@
 			</locale>
 		</schema>
 
+		<schema>
+			<key>/schemas/apps/linkage/files/prioritize_firstlast</key>
+			<applyto>/apps/linkage/files/prioritize_firstlast</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
 	</schemalist>
 </gconfschemafile>
