@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
 #include "linkage/SessionManager.hh"
+#include "linkage/SettingsManager.hh"
 #include "linkage/TorrentManager.hh"
 #include "linkage/compose.hpp"
 
@@ -241,6 +242,7 @@ Glib::ustring Torrent::get_state_string(int state)
 
 Glib::ustring Torrent::state_string(int state)
 {
+	//TODO: add SEEDING | FINISHED state
 	//FIXME: don't do case, generalize with if state&E .. ", " if state&Q .. ", "
 	switch (state)
 	{
@@ -320,7 +322,7 @@ void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 		m_cur_tier = 0;
 	}
 	else
-		get_handle().replace_trackers(m_trackers);
+		handle.replace_trackers(m_trackers);
 }
 
 void Torrent::set_name(const Glib::ustring& name)
@@ -399,7 +401,28 @@ void Torrent::set_priorities(const std::vector<int>& priorities)
 		m_priorities.assign(priorities.begin(), priorities.end());
 
 	if (!is_stopped())
+	{
 		get_handle().prioritize_files(m_priorities);
+
+		if (Engine::get_settings_manager()->get_bool("files/prioritize_firstlast"))
+		{
+			//prioritize the first and last 5% of the files size
+			for (int i = 0; i < m_info->num_files(); i++)
+			{
+				const libtorrent::file_entry& file = m_info->file_at(i);
+				libtorrent::size_type size_prio = 0.05*file.size;
+				int front = m_info->map_file(i, 0, size_prio).piece;
+				int end = m_info->map_file(i, file.size - size_prio, size_prio).piece;
+				int num_prio = size_prio/m_info->piece_length();
+				while (num_prio--)
+				{
+					//priority 7, not P_MAX. See LT docs
+					get_handle().piece_priority(front++, 7);
+					get_handle().piece_priority(end++, 7);
+				}
+			}
+		}
+	}
 }
 
 void Torrent::set_file_priority(int index, int priority)

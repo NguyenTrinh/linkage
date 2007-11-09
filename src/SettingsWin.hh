@@ -79,7 +79,7 @@ class SettingsWin : public Gtk::Window
 	SpinButtonSetting<int>	*proxy_port;
 	EntrySetting *proxy_host, *proxy_username, *proxy_password;
 
-	CheckButtonSetting *default_path, *move_finished, *allocate;
+	CheckButtonSetting *default_path, *move_finished, *allocate, *prio_firstlast;
 	FileChooserButtonSetting *button_default_path, *button_move_finished;
 	SpinButtonSetting<int> *max_open;
 	

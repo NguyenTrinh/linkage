@@ -97,6 +97,7 @@ SettingsWin::SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	glade_xml->get_widget_derived("move_finished", move_finished);
 	glade_xml->get_widget_derived("allocate", allocate);
+	glade_xml->get_widget_derived("prio_firstlast", prio_firstlast);
 	glade_xml->get_widget_derived("use_default_path", default_path);
 	glade_xml->get_widget_derived("button_default_path", button_default_path);
 	glade_xml->get_widget_derived("button_move_finished", button_move_finished);
@@ -212,6 +213,7 @@ void SettingsWin::setup_settings_widgets()
 	move_finished->init("files/move_finished");
 	button_move_finished->init("files/finished_path");
 	allocate->init("files/allocate");
+	prio_firstlast->init("files/prioritize_firstlast");
 	max_open->init("files/max_open");
 }
 
