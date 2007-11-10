@@ -122,8 +122,9 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	// get the widgets we work with
 	glade_xml->get_widget_derived("add_dialog", add_dialog);
 	add_dialog->set_transient_for(*this);
+	add_dialog->set_focus_on_map(false);
 	glade_xml->get_widget_derived("new_dialog", new_dialog);
-	add_dialog->set_transient_for(*this);
+	new_dialog->set_transient_for(*this);
 	glade_xml->get_widget_derived("torrent_list", torrent_list);
 	glade_xml->get_widget_derived("state_combobox", state_filter);
 	glade_xml->get_widget_derived("groups_treeview", group_list);
