@@ -433,8 +433,7 @@ Gtk::Container* UI::get_container(Plugin::PluginParent parent) const
 
 void UI::open(const Glib::ustring& uri)
 {
-	if (!is_visible())
-		show();
+	set_visible(true);
 
 	int response;
 	if (!uri.empty())
@@ -475,7 +474,7 @@ void UI::open(const Glib::ustring& uri)
 				torrent->set_file_priority(i, 0);
 		}
 
-		update(torrent, expander_details->get_expanded());
+		//update(torrent, expander_details->get_expanded());
 	}
 	add_dialog->hide();
 }
@@ -855,6 +854,8 @@ bool UI::on_delete_event(GdkEventAny*)
 
 void UI::on_quit()
 {
+	hide();
+
 	Gtk::Main::quit();
 }
 
