@@ -75,7 +75,7 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 	{
 		Part& p = *iter;
 		int pw = (int)(scale*(p.last - p.first + 1));
-		int px = (int)(scale*p.first) + get_style()->get_xthickness();
+		int px = (int)(scale*p.first+0.5) + get_style()->get_xthickness();
 
 		/* Don't redraw unnecessary parts */
 		if (px > (x + w))
