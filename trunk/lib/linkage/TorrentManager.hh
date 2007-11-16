@@ -37,10 +37,14 @@ class TorrentManager : public Glib::Object
 
 	TorrentMap m_torrents;
 
-	static bool pred(const Glib::RefPtr<Torrent>& rhs, const Glib::RefPtr<Torrent>& lhs)
+	struct pred : public std::binary_function
+		<const Glib::RefPtr<Torrent>&, const Glib::RefPtr<Torrent>&, bool>
 	{
-		return rhs->get_position() < lhs->get_position();
-	}
+		bool operator()(const Glib::RefPtr<Torrent>& rhs, const Glib::RefPtr<Torrent>& lhs)
+		{
+			return rhs->get_position() < lhs->get_position();
+		}
+	};
 
 	sigc::signal<void, Glib::RefPtr<Torrent> > m_signal_added;
 	sigc::signal<void, Glib::RefPtr<Torrent> > m_signal_removed;

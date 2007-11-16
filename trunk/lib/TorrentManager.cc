@@ -159,7 +159,7 @@ void TorrentManager::on_position_changed(const libtorrent::sha1_hash& hash)
 		torrents.push_back(iter->second);
 	}
 
-	std::sort(torrents.begin(), torrents.end(), &TorrentManager::pred);
+	std::sort(torrents.begin(), torrents.end(), pred());
 
 	//find if the torrent was moved up or down, and how far
 	for (int i = 0; i < (int)torrents.size() - 1; i++)
@@ -290,7 +290,7 @@ void TorrentManager::remove_torrent(const libtorrent::sha1_hash& hash)
 			torrents.push_back(torrent);
 	}
 
-	std::sort(torrents.begin(), torrents.end(), &TorrentManager::pred);
+	std::sort(torrents.begin(), torrents.end(), pred());
 
 	for (unsigned int i = 0; i < torrents.size(); i++)
 	{
@@ -349,7 +349,7 @@ void TorrentManager::check_queue()
 		}
 	}
 
-	std::sort(torrents.begin(), torrents.end(), &TorrentManager::pred);
+	std::sort(torrents.begin(), torrents.end(), pred());
 
 	for (unsigned int k = 0; k < torrents.size(); k++)
 	{

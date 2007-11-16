@@ -414,6 +414,7 @@ void Torrent::set_priorities(const std::vector<int>& priorities)
 				int front = m_info->map_file(i, 0, size_prio).piece;
 				int end = m_info->map_file(i, file.size - size_prio, size_prio).piece;
 				int num_prio = size_prio/m_info->piece_length();
+				//this means file.size > ~piece_length*20 
 				while (num_prio--)
 				{
 					//priority 7, not P_MAX. See LT docs
