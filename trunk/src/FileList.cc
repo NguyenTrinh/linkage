@@ -30,6 +30,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/Utils.hh"
 
+#include <algorithm>
+#include <iostream>
+
+static void for_each(std::pair<int,int> pair)
+{
+	std::cout << "[" << pair.first << "," << pair.second << "]\n";
+}
+
 #define ICON_DIR "gnome-fs-directory"
 #define ICON_FILE "gnome-fs-regular"
 
@@ -77,6 +85,7 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	column->set_sort_column(columns.size);
 	column->set_resizable(true);
 
+	/*
 	cols_count = append_column(_("Priority"), columns.priority);
 	column = get_column(cols_count - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
@@ -84,7 +93,7 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	column->set_cell_data_func(*cell, sigc::mem_fun(this, &FileList::format_priority));
 	column->set_sort_column(columns.priority);
 	column->set_resizable(true);
-
+	*/
 
 	Gtk::Label* label = Gtk::manage(new Gtk::Label());
 	label->set_markup(_("<i>Priority</i>"));
@@ -233,6 +242,59 @@ void FileList::format_priority(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	cell_text->property_text() = priority;
 }
 
+int FileList::get_num_pieces(const Gtk::TreeRow& row, const FileData& data)
+{
+	int num_pieces = 0;
+	int index = row[columns.index];
+	if (index == INDEX_FOLDER)
+	{
+		Gtk::TreeNodeChildren children = row.children();
+		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
+		{
+			Gtk::TreeRow child_row = *iter;
+			num_pieces += get_num_pieces(child_row, data);
+		}
+	}
+	else
+	{
+		libtorrent::size_type size = row[columns.size];
+		int p_begin = data.info->map_file(index, 0, 0).piece;
+		int p_end = data.info->map_file(index, size, 0).piece;
+		num_pieces += p_end - p_begin + 1;
+	}
+
+	return num_pieces;
+}
+
+std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& row, const FileData& data)
+{
+	std::vector<std::pair<int,int> > ranges;
+
+	int index = row[columns.index];
+	if (index == INDEX_FOLDER)
+	{
+		Gtk::TreeNodeChildren children = row.children();
+		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
+		{
+			Gtk::TreeRow child_row = *iter;
+			std::vector<std::pair<int,int> > child_ranges = get_piece_ranges(child_row, data);
+			std::vector<std::pair<int,int> > merged(ranges.size() + child_ranges.size());
+			std::merge(ranges.begin(), ranges.end(), child_ranges.begin(), child_ranges.end(), merged.begin(), std::less<std::pair<int,int> >());
+			ranges.assign(merged.begin(), merged.end());
+		}
+	}
+	else
+	{
+		libtorrent::size_type size = row[columns.size];
+		int p_begin = data.info->map_file(index, 0, 0).piece;
+		int p_end = data.info->map_file(index, size, 0).piece;
+		ranges.push_back(std::make_pair(p_begin, p_end));
+		std::sort(ranges.begin(),ranges.end(),std::less<std::pair<int,int> >());
+	}
+
+	return ranges;
+}
+
 void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& data)
 {
 	if (!iter)
@@ -244,20 +306,41 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 	int index = row[columns.index];
 	if (index == INDEX_FOLDER)
 	{
-		std::vector<bool> map = row[columns.map];
-		if (map.empty())
-			map.assign(row.children().size(), false);
+		std::vector<std::pair<int,int> > ranges = get_piece_ranges(row, data);
 
-		int map_index = 0;
+		int n = 0;
+		std::vector<std::pair<int,int> >::iterator k = ranges.begin();
+		while (k != ranges.end())
+		{
+			std::vector<std::pair<int,int> >::iterator l = k+1;
+			if (l == ranges.end())
+				n += k->second - k->first + 1;
+			else
+			{
+				n += k->second - k->first + 1;
+				if (k->second == l->first)
+					n--;
+			}
+			k++;
+		}
+		std::vector<bool> map(n, false);
+
+		for (std::vector<std::pair<int,int> >::iterator iter = ranges.begin();
+			iter != ranges.end(); ++iter)
+		{
+			int piece_index = iter->first;
+			while (piece_index <= iter->second)
+			{
+				map[piece_index] = (bool)data.pieces[piece_index];
+				piece_index++;
+			}
+		}
+
 		libtorrent::size_type size = 0, done = 0;
 		Gtk::TreeNodeChildren children = row.children();
 		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 		{
 			Gtk::TreeRow child_row = *iter;
-
-			map[map_index] = (child_row[columns.size] == child_row[columns.done]);
-			map_index++;
-
 			size += child_row[columns.size];
 			done += child_row[columns.done];
 		}
@@ -274,17 +357,14 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 	else
 	{
 		libtorrent::file_entry file = data.info->file_at(index);
-		libtorrent::peer_request file_info = data.info->map_file(index, 0, file.size);
+		libtorrent::peer_request file_info = data.info->map_file(index, 0, 0);//, file.size);
 
 		std::vector<bool> map;
 		unsigned int byte_pos_in_file = 0;
 		unsigned int piece_index = file_info.piece;
 		while (byte_pos_in_file < file.size)
 		{
-			if (data.pieces[piece_index])
-				map.push_back(true);
-			else
-				map.push_back(false);
+			map.push_back((bool)data.pieces[piece_index]);
 
 			byte_pos_in_file += data.info->piece_size(piece_index);
 			piece_index++;
@@ -377,7 +457,7 @@ void FileList::refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>&
 		row[columns.size] = file.size;
 	}
 
-	Gtk::TreeNodeChildren children = model->children();
+/*	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
 		Gtk::TreeRow row = *iter;
@@ -386,7 +466,7 @@ void FileList::refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>&
 			std::vector<bool> map(row.children().size(), false);
 			row[columns.map] = map;
 		}
-	}
+	}*/
 
 	expand_all();
 }
