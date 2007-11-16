@@ -88,7 +88,10 @@ class FileList : public Gtk::TreeView
 	Glib::RefPtr<Torrent> m_cur_torrent;
 	
 	int compare_piece_map(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
-	
+
+	int get_num_pieces(const Gtk::TreeRow& row, const FileData& data);
+	std::vector<std::pair<int,int> > get_piece_ranges(const Gtk::TreeRow& row, const FileData& data);
+
 public:
 	void clear();
 	void update(const Glib::RefPtr<Torrent>& torrent);
