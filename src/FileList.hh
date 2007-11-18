@@ -63,7 +63,7 @@ class FileList : public Gtk::TreeView
 	Gtk::Menu m_menu;
 	Gtk::RadioMenuItem *m_radio_max, *m_radio_high, *m_radio_normal, *m_radio_skip;
 
-	void prioritize_children(Priority priority, const Gtk::TreeNodeChildren& children);
+	void prioritize_row(const Gtk::TreeRow& row, Priority priority);
 	void on_set_priority(Priority priority);
 
 	bool on_button_press_event(GdkEventButton *event);
@@ -89,8 +89,7 @@ class FileList : public Gtk::TreeView
 	
 	int compare_piece_map(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
 
-	int get_num_pieces(const Gtk::TreeRow& row, const FileData& data);
-	std::vector<std::pair<int,int> > get_piece_ranges(const Gtk::TreeRow& row, const FileData& data);
+	std::vector<std::pair<int,int> > get_piece_ranges(const Gtk::TreeRow& row);
 
 public:
 	void clear();

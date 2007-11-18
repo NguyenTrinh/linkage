@@ -33,11 +33,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <algorithm>
 #include <iostream>
 
-static void for_each(std::pair<int,int> pair)
-{
-	std::cout << "[" << pair.first << "," << pair.second << "]\n";
-}
-
 #define ICON_DIR "gnome-fs-directory"
 #define ICON_FILE "gnome-fs-regular"
 
@@ -85,7 +80,7 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	column->set_sort_column(columns.size);
 	column->set_resizable(true);
 
-	/*
+	
 	cols_count = append_column(_("Priority"), columns.priority);
 	column = get_column(cols_count - 1);
 	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
@@ -93,7 +88,7 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	column->set_cell_data_func(*cell, sigc::mem_fun(this, &FileList::format_priority));
 	column->set_sort_column(columns.priority);
 	column->set_resizable(true);
-	*/
+	
 
 	Gtk::Label* label = Gtk::manage(new Gtk::Label());
 	label->set_markup(_("<i>Priority</i>"));
@@ -167,21 +162,20 @@ bool FileList::on_button_press_event(GdkEventButton *event)
 	return (event->button != 1);
 }
 
-void FileList::prioritize_children(Priority priority, const Gtk::TreeNodeChildren& children)
+void FileList::prioritize_row(const Gtk::TreeRow& row, Priority priority)
 {
 	g_return_if_fail(m_cur_torrent);
 
-	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
+	int index = row[columns.index];
+	if (index != INDEX_FOLDER)
 	{
-		Gtk::TreeRow row = *iter;
-		int index = row[columns.index];
-		if (index != INDEX_FOLDER)
-		{
-			m_cur_torrent->set_file_priority(index, (int)priority);
-			row[columns.priority] = priority;
-		}
-		else
-			prioritize_children(priority, row.children());
+		m_cur_torrent->set_file_priority(index, (int)priority);
+		row[columns.priority] = priority;
+	}
+	else
+	{
+		Gtk::TreeNodeChildren children = row.children();
+		std::for_each(children.begin(), children.end(), sigc::bind(sigc::mem_fun(this, &FileList::prioritize_row), priority));
 	}
 }
 
@@ -194,14 +188,7 @@ void FileList::on_set_priority(Priority priority)
 		while (iter != paths.end())
 		{
 			Gtk::TreeRow row = *(model->get_iter(*iter));
-			int index = row[columns.index];
-			if (index != INDEX_FOLDER)
-			{
-				m_cur_torrent->set_file_priority(index, (int)priority);
-				row[columns.priority] = priority;
-			}
-			else
-				prioritize_children(priority, row.children());
+			prioritize_row(row, priority);
 			iter++;
 		}
 	}
@@ -242,31 +229,7 @@ void FileList::format_priority(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	cell_text->property_text() = priority;
 }
 
-int FileList::get_num_pieces(const Gtk::TreeRow& row, const FileData& data)
-{
-	int num_pieces = 0;
-	int index = row[columns.index];
-	if (index == INDEX_FOLDER)
-	{
-		Gtk::TreeNodeChildren children = row.children();
-		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
-		{
-			Gtk::TreeRow child_row = *iter;
-			num_pieces += get_num_pieces(child_row, data);
-		}
-	}
-	else
-	{
-		libtorrent::size_type size = row[columns.size];
-		int p_begin = data.info->map_file(index, 0, 0).piece;
-		int p_end = data.info->map_file(index, size, 0).piece;
-		num_pieces += p_end - p_begin + 1;
-	}
-
-	return num_pieces;
-}
-
-std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& row, const FileData& data)
+std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& row)
 {
 	std::vector<std::pair<int,int> > ranges;
 
@@ -277,17 +240,20 @@ std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& 
 		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 		{
 			Gtk::TreeRow child_row = *iter;
-			std::vector<std::pair<int,int> > child_ranges = get_piece_ranges(child_row, data);
+			std::vector<std::pair<int,int> > child_ranges = get_piece_ranges(child_row);
 			std::vector<std::pair<int,int> > merged(ranges.size() + child_ranges.size());
-			std::merge(ranges.begin(), ranges.end(), child_ranges.begin(), child_ranges.end(), merged.begin(), std::less<std::pair<int,int> >());
+			std::merge(ranges.begin(), ranges.end(),
+				child_ranges.begin(), child_ranges.end(),
+				merged.begin(),
+				std::less<std::pair<int,int> >());
 			ranges.assign(merged.begin(), merged.end());
 		}
 	}
 	else
 	{
 		libtorrent::size_type size = row[columns.size];
-		int p_begin = data.info->map_file(index, 0, 0).piece;
-		int p_end = data.info->map_file(index, size, 0).piece;
+		int p_begin = m_cur_torrent->get_info()->map_file(index, 0, 0).piece;
+		int p_end = m_cur_torrent->get_info()->map_file(index, size, 0).piece;
 		ranges.push_back(std::make_pair(p_begin, p_end));
 		std::sort(ranges.begin(),ranges.end(),std::less<std::pair<int,int> >());
 	}
@@ -306,7 +272,7 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 	int index = row[columns.index];
 	if (index == INDEX_FOLDER)
 	{
-		std::vector<std::pair<int,int> > ranges = get_piece_ranges(row, data);
+		std::vector<std::pair<int,int> > ranges = get_piece_ranges(row);
 
 		int n = 0;
 		std::vector<std::pair<int,int> >::iterator k = ranges.begin();
@@ -382,7 +348,7 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 	}
 }
 
-bool FileList::on_foreach(const Gtk::TreeModel::iterator& iter, IterList* list)
+bool FileList::on_foreach(const Gtk::TreeIter& iter, IterList* list)
 {
 	Gtk::TreeIter iter_copy(iter);
 	list->push_back(iter_copy);
@@ -419,8 +385,7 @@ void FileList::update(const Glib::RefPtr<Torrent>& torrent)
 	// FIXME: this is pretty inefficient
 	IterList list;
 	model->foreach_iter(sigc::bind(sigc::mem_fun(this, &FileList::on_foreach), &list));
-	for (IterList::reverse_iterator iter = list.rbegin(); iter != list.rend(); ++iter)
-		on_reverse_foreach(*iter, data);
+	std::for_each(list.rbegin(), list.rend(), sigc::bind(sigc::mem_fun(this, &FileList::on_reverse_foreach), data));
 
 	model->set_sort_column_id(col, order);
 }
