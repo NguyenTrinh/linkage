@@ -73,8 +73,6 @@ public:
 	static Glib::RefPtr<TorrentManager>	get_torrent_manager();
 	static Glib::RefPtr<DbusManager>	get_dbus_manager();
 
-	static bool is_daemon();
-
 	static Interface& get_interface() throw();
 	static void register_interface(Interface* interface);
 

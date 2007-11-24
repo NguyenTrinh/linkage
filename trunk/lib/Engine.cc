@@ -62,9 +62,6 @@ void Engine::init()
 
 void Engine::uninit()
 {
-	if (m_interface)
-		delete m_interface;
-
 	// Kill them of in order due to depencies
 	pm.clear();
 	tm.clear();
@@ -146,11 +143,6 @@ Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
 	return dbm;
 }
 
-bool Engine::is_daemon()
-{
-	return (m_interface == NULL);
-}
-
 Interface& Engine::get_interface() throw()
 {
 	if (m_interface)
@@ -161,9 +153,7 @@ Interface& Engine::get_interface() throw()
 
 void Engine::register_interface(Interface* interface)
 {
-	if (m_interface)
-		delete m_interface;
-
-	m_interface = interface;
+	if (!m_interface)
+		m_interface = interface;
 }
 
