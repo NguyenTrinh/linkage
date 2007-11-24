@@ -35,7 +35,6 @@ class DbusManager : public Glib::Object
 	bool primary;
 	DBusConnection* m_connection;
 
-	sigc::signal<void> m_signal_load_interface;
 	sigc::signal<void> m_signal_disconnect;
 
 	struct UserData
@@ -55,9 +54,6 @@ class DbusManager : public Glib::Object
 	static DBusHandlerResult handler_torrent(DBusConnection* connection,
 		DBusMessage* message,
 		UserData* data);
-	static DBusHandlerResult handler_engine(DBusConnection* connection,
-		DBusMessage* message,
-		DbusManager* self);
 
 	DbusManager();
 
@@ -67,15 +63,13 @@ class DbusManager : public Glib::Object
 
 public:
 	sigc::signal<void> signal_disconnect();
-	sigc::signal<void> signal_load_interface();
-
-	bool is_daemon_remote();
 
 	bool is_primary();
 	void send(const Glib::ustring& interface,
 		const Glib::ustring& member,
 		const Glib::ustring& path,
-		const Glib::ustring& msg = Glib::ustring());
+		int first,
+		...);
 	
 	static Glib::RefPtr<DbusManager> create();
 	~DbusManager();

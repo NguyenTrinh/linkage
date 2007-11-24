@@ -49,21 +49,15 @@ public:
 	Options();
 	~Options();
 
-	bool version, quit, daemon;
+	bool version, quit;
 	std::vector<Glib::ustring> files;
 };
 
 Options::Options()
 : Glib::OptionGroup(PACKAGE_NAME, "Command line options"),
 	version(false),
-	quit(false),
-	daemon(false)
+	quit(false)
 {
-	Glib::OptionEntry e_daemon;
-	e_daemon.set_long_name("daemon") ;
-	e_daemon.set_description(_("Run without user interface"));
-	add_entry(e_daemon, daemon);
-
 	Glib::OptionEntry e_version;
 	e_version.set_long_name("version") ;
 	e_version.set_description(_("Show version and quit"));
@@ -83,47 +77,23 @@ Options::~Options()
 {
 }
 
-static void send_files(const std::vector<Glib::ustring>& files)
+struct send_file : public std::unary_function<void, Glib::ustring>
 {
-	// FIXME: handle file:// style URIs
-	for (unsigned int i = 0; i < files.size(); i++)
+	void operator()(Glib::ustring file)
 	{
-		Glib::ustring file = files[i];
+		// FIXME: handle file:// style URIs
 		if (!Glib::path_is_absolute(file))
 			file = Glib::build_filename(Glib::get_current_dir(), file);
-		/* Pass file(s) to running instance */
+
 		if (Engine::is_primary())
 			Engine::get_interface().open(file);
 		else
-			Engine::get_dbus_manager()->send("org.linkage.Interface", "Open", "/org/linkage/Interface", file);
+		{
+			const char* c = file.c_str();
+			Engine::get_dbus_manager()->send("org.linkage.Interface", "Open", "/org/linkage/Interface", DBUS_TYPE_STRING, &c, DBUS_TYPE_INVALID);
+		}
 	}
-}
-
-static void attach_interface()
-{
-	if (!Engine::is_daemon())
-	{
-		g_warning("Ignoring attempt to attach new interface to non-daemonized instance");
-		return;
-	}
-
-	Glib::RefPtr<Gnome::Glade::Xml> xml;
-	try
-	{
-		xml = Gnome::Glade::Xml::create(DATA_DIR "/linkage.glade");
-	}
-	catch (const Gnome::Glade::XmlError& ex)
-	{
-		g_error(ex.what().c_str());
-	}
-
-	UI* ui = NULL;
-	xml->get_widget_derived("main_window", ui);
-	ui->show();
-
-	// just to wake it up
-	Engine::get_plugin_manager();
-}
+};
 
 int main(int argc, char *argv[])
 {
@@ -171,53 +141,43 @@ int main(int argc, char *argv[])
 	}
 	if (options.quit)
 	{
-		Engine::get_dbus_manager()->send("org.linkage.Interface", "Quit", "/org/linkage/Interface");
+		Engine::get_dbus_manager()->send("org.linkage.Interface", "Quit", "/org/linkage/Interface", DBUS_TYPE_INVALID);
 		return 0;
 	}
 
 	if (!Engine::is_primary())
 	{
-		bool attach = Engine::get_dbus_manager()->is_daemon_remote();
-		if (attach)
-		{
-			std::cout << _("Attaching interface to daemonized instance") << std::endl;
-			Engine::get_dbus_manager()->send("org.linkage.Engine", "LoadInterface", "/org/linkage/Engine");
-		}
-
 		if (!options.files.empty())
-		{
-			send_files(options.files);
-			std::cout << options.files.size() << _(" files passed to running instance.")  << std::endl;
-			return 0;
-		}
-		else
-		{
-			if (!attach)
-			{
-				std::cerr << _("Another process is already running. Quitting...")  << std::endl;
-				return 1;
-			}
-		}
+			std::for_each(options.files.begin(), options.files.end(), send_file());
+
+		gboolean b = 1;
+		Engine::get_dbus_manager()->send("org.linkage.Interface", "SetVisible", "/org/linkage/Interface", DBUS_TYPE_BOOLEAN, &b, DBUS_TYPE_INVALID);
+		return 0;
 	}
 	else
 	{
 		//FIXME: resume_session should be async
 		Engine::get_session_manager()->resume_session();
 
-		if (!options.daemon)
+		Glib::RefPtr<Gnome::Glade::Xml> xml;
+		try
 		{
-			attach_interface();
-
-			if (!options.files.empty())
-				send_files(options.files);
+			xml = Gnome::Glade::Xml::create(DATA_DIR "/linkage.glade");
 		}
-		else
+		catch (const Gnome::Glade::XmlError& ex)
 		{
-			Engine::get_dbus_manager()->signal_load_interface().connect(sigc::ptr_fun(&attach_interface));
-
-			if (!options.files.empty())
-				g_warning("Ignoring (%i) file(s) passed to daemon", options.files.size());
+			g_error(ex.what().c_str());
 		}
+
+		UI* ui = NULL;
+		xml->get_widget_derived("main_window", ui);
+		ui->show();
+
+		// just to wake it up
+		Engine::get_plugin_manager();
+
+		if (!options.files.empty())
+			std::for_each(options.files.begin(), options.files.end(), send_file());
 
 		#if HAVE_GNOME
 		Gtk::Main::run();
@@ -225,6 +185,7 @@ int main(int argc, char *argv[])
 		kit.run();
 		#endif
 
+		delete ui;
 		Engine::uninit();
 	}
 
