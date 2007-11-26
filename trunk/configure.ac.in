@@ -63,23 +63,6 @@ AS_IF([test "x$with_curl" != xno],
 AC_SUBST(LIBCURL_CFLAGS)
 AC_SUBST(LIBCURL_LIBS)
 
-AC_ARG_WITH([gupnp],
-	[AS_HELP_STRING([--with-gupnp],
-		[support for gupnp @<:@default=check@:>@])],
-	[],
-	[with_gupnp=check])
-AS_IF([test "x$with_gupnp" != xno],
-	[PKG_CHECK_MODULES(GUPNP, gupnp-1.0 >= 0.3,
-		USE_UPNP="yes",
-		[if test "x$with_gupnp" != xcheck; then
-			AC_MSG_FAILURE([--with-gupnp was given, but test for gupnp failed.])
-		else
-			USE_UPNP="no"
-	 	fi])], [USE_UPNP="no"])
-AM_CONDITIONAL(BUILDUPNP, test x$USE_UPNP = xyes)
-AC_SUBST(GUPNP_CFLAGS)
-AC_SUBST(GUPNP_LIBS)
-
 AC_ARG_WITH([gnome],
 	[AS_HELP_STRING([--with-gnome],
 		[gnome session support @<:@default=check@:>@])],
@@ -149,5 +132,5 @@ AC_DISABLE_STATIC()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
 
-AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile plugins/upnp/Makefile data/Makefile data/flags/Makefile po/Makefile.in)
+AC_OUTPUT(Makefile src/Makefile plugins/Makefile lib/Makefile lib/linkage/Makefile plugins/notification/Makefile plugins/trayicon/Makefile data/Makefile data/flags/Makefile po/Makefile.in)
 
