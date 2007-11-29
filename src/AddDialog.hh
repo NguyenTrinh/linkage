@@ -77,7 +77,7 @@ public:
 	AddData get_data();
 	const boost::intrusive_ptr<libtorrent::torrent_info>& get_info();
 
-	int run_with_file(const std::string& file);
+	int run_with_file(const Glib::ustring& file);
 	int run();
 
 	AddDialog(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml);

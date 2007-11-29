@@ -122,7 +122,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	// get the widgets we work with
 	glade_xml->get_widget_derived("add_dialog", add_dialog);
 	add_dialog->set_transient_for(*this);
-	add_dialog->set_focus_on_map(false);
 	glade_xml->get_widget_derived("new_dialog", new_dialog);
 	new_dialog->set_transient_for(*this);
 	glade_xml->get_widget_derived("torrent_list", torrent_list);
@@ -138,6 +137,8 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->get_widget("main_vpane", main_vpane);
 	main_vpane->set_position(-1);
 	glade_xml->get_widget("main_hpane", main_hpane);
+	main_hpane->property_position().signal_changed().connect(
+		sigc::mem_fun(this, &UI::on_main_hpane_changed));
 
 	glade_xml->get_widget("notebook_details", notebook_details);
 	glade_xml->get_widget("expander_details", expander_details);
@@ -176,6 +177,8 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 		("mnu_file_quit", sigc::mem_fun(this, &UI::on_quit));
 	glade_xml->connect_clicked
 		("mnu_view_details", sigc::mem_fun(this, &UI::on_info));
+	glade_xml->connect_clicked
+		("mnu_view_groups", sigc::mem_fun(this, &UI::on_view_groups_toggled));
 	glade_xml->connect_clicked
 		("mnu_edit_groups", sigc::mem_fun(groups_win, &GroupsWin::show));
 	glade_xml->connect_clicked
@@ -328,9 +331,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	if (expander_details->get_expanded())
 		on_torrent_list_selection_changed();
 
-	Gtk::HPaned* hpan;
-	glade_xml->get_widget("main_hpane",hpan);
-	hpan->set_position(sm->get_int("ui/groups_width"));
+	main_hpane->set_position(sm->get_int("ui/groups_width"));
 
 	int max_up = sm->get_int("network/max_up_rate");
 	if (max_up == 0)
@@ -435,10 +436,10 @@ Gtk::Container* UI::get_container(Plugin::PluginParent parent) const
 void UI::open(const Glib::ustring& uri)
 {
 	set_visible(true);
-
+	
 	int response;
 	if (!uri.empty())
-		response = add_dialog->run_with_file(Glib::filename_from_utf8(uri));
+		response = add_dialog->run_with_file(uri);
 	else
 		response = add_dialog->run();
 
@@ -478,6 +479,24 @@ void UI::open(const Glib::ustring& uri)
 		//update(torrent, expander_details->get_expanded());
 	}
 	add_dialog->hide();
+}
+
+void UI::on_view_groups_toggled()
+{
+	Gtk::CheckMenuItem* item;
+	glade_xml->get_widget("mnu_view_groups", item);
+
+	if (item->get_active())
+		main_hpane->set_position(Engine::get_settings_manager()->get_int("ui/groups_width"));
+	else
+		main_hpane->set_position(0);
+}
+
+void UI::on_main_hpane_changed()
+{
+	Gtk::CheckMenuItem* item;
+	glade_xml->get_widget("mnu_view_groups", item);
+	item->set_active(main_hpane->get_position());
 }
 
 void UI::quit()

@@ -110,7 +110,8 @@ int main(int argc, char *argv[])
 	if(!Glib::thread_supported()) 
 		Glib::thread_init();
 
-	Options options; 
+	Options options;
+	//work around for gnomemm bug
 	Glib::OptionContext* context = new Glib::OptionContext(
 		_("[FILE...] \n\nA BitTorrent client\n"));
 	context->set_main_group(options);
@@ -150,8 +151,9 @@ int main(int argc, char *argv[])
 		if (!options.files.empty())
 			std::for_each(options.files.begin(), options.files.end(), send_file());
 
-		gboolean b = 1;
-		Engine::get_dbus_manager()->send("org.linkage.Interface", "SetVisible", "/org/linkage/Interface", DBUS_TYPE_BOOLEAN, &b, DBUS_TYPE_INVALID);
+		/* for startup notification, auto called when we show a window */
+		gdk_notify_startup_complete();
+
 		return 0;
 	}
 	else

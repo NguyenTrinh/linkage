@@ -129,6 +129,8 @@ class UI : public Gtk::Window, public Interface
 	sigc::connection m_conn_tick;
 	sigc::connection m_conn_switch_page;
 
+	Glib::RefPtr<Gtk::WindowGroup> group;
+
 	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
 
 	bool on_visibility_notify_event(GdkEventVisibility* event);
@@ -149,6 +151,9 @@ class UI : public Gtk::Window, public Interface
 	void on_prefs();
 	void on_about();
 	void on_quit();
+
+	void on_view_groups_toggled();
+	void on_main_hpane_changed();
 
 	void on_open_location();
 	void on_check();

@@ -170,14 +170,17 @@ const boost::intrusive_ptr<libtorrent::torrent_info>& AddDialog::get_info()
 	return m_info;
 }
 
-int AddDialog::run_with_file(const std::string& file)
+int AddDialog::run_with_file(const Glib::ustring& file)
 {
 	//hack so users can't press ok before the filename is set properly
 	button_ok->set_sensitive(false);
 
 	//FIXME: this doesn't always seem to work (even though it returns true)
-	//and when it does work ui is slow to show it
-	button_file->set_filename(file);
+	button_file->set_filename(Glib::filename_from_utf8(file));
+	button_file->set_filename(Glib::filename_from_utf8(file));
+	button_file->set_filename(Glib::filename_from_utf8(file));
+	button_file->set_filename(Glib::filename_from_utf8(file));
+	button_file->set_filename(Glib::filename_from_utf8(file));
 
 	return run();
 }
