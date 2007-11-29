@@ -112,7 +112,8 @@ void TorrentCreator::run()
 	using namespace libtorrent;
 
 	int response = Gtk::Dialog::run();
-	g_return_if_fail(response == Gtk::RESPONSE_ACCEPT);
+	if (response != Gtk::RESPONSE_ACCEPT)
+		return;
 
 	Glib::ustring tracker = entry_tracker->get_text();
 	Glib::ustring comment = entry_comment->get_text();
