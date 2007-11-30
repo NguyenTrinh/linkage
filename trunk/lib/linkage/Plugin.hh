@@ -83,6 +83,8 @@ public:
 	virtual ~Plugin();
 };
 
+}; /* namespace */
+
 /* Glib::module needs standard C names */
 #ifdef __cplusplus
 extern "C" {
@@ -90,15 +92,13 @@ extern "C" {
 
 /* This is the function each plugin implements for the main app to
 	 create an instance of the plugin child class. */
-extern Plugin* create_plugin();
+extern Linkage::Plugin* create_plugin();
 
-extern Plugin::Info plugin_info();
+extern Linkage::Plugin::Info plugin_info();
 
 #ifdef __cplusplus
 }
 #endif
-
-}; /* namespace */
 
 #endif /* PLUGIN_HH */
 
