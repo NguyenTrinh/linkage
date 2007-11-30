@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "libtorrent/peer_id.hpp"
 
+namespace Linkage
+{
 
 class AlertManager : public Glib::Object
 {
@@ -62,6 +64,8 @@ public:
 	static Glib::RefPtr<AlertManager> create();
 	~AlertManager();
 };
+
+}; /* namespace */
 
 #endif /* ALERTMANAGER_HH */
 

@@ -42,6 +42,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/ucompose.hpp"
 
+namespace Linkage
+{
+
 Glib::ustring suffix_value(libtorrent::size_type value);
 Glib::ustring suffix_value(float value);
 
@@ -64,5 +67,7 @@ void save_entry(const Glib::ustring& file, const libtorrent::entry& e);
 Gdk::Color lighter(const Gdk::Color& color, double fac);
 
 Glib::ustring hex_color(const Gdk::Color& color);
+
+}; /* namespace */
 
 #endif /* UTILS_HH */

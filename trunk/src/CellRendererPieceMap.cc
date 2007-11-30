@@ -204,7 +204,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		if (px < expose_area.get_x())
 			continue;
 
-		Gdk::Color c = lighter(base, p.fac);
+		Gdk::Color c = Linkage::lighter(base, p.fac);
 
 		colormap->alloc_color(c);
 		gc->set_foreground(c);

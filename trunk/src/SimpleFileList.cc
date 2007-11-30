@@ -69,7 +69,7 @@ void SimpleFileList::format_data(Gtk::CellRenderer* cell,
 {
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_text = dynamic_cast<Gtk::CellRendererText*>(cell);
-	cell_text->property_text() = suffix_value(row[column]);
+	cell_text->property_text() = Linkage::suffix_value(row[column]);
 }
 
 std::vector<bool> SimpleFileList::get_filter()

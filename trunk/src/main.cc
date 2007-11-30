@@ -43,6 +43,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SessionManager.hh"
 #include "linkage/Utils.hh"
 
+using namespace Linkage;
+
 class Options : public Glib::OptionGroup
 {
 public:
@@ -187,6 +189,7 @@ int main(int argc, char *argv[])
 		kit.run();
 		#endif
 
+		ui->hide();
 		delete ui;
 		Engine::uninit();
 	}

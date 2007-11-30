@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
 
+using namespace Linkage;
+
 Glib::RefPtr<SettingsManager> SettingsManager::create()
 {
 	return Glib::RefPtr<SettingsManager>(new SettingsManager());

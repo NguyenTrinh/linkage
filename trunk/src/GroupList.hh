@@ -48,13 +48,13 @@ class GroupList : public Gtk::TreeView
 
 	sigc::signal<void, const Group&> m_signal_filter_set;
 
-	Torrent::State m_cur_state;
+	Linkage::Torrent::State m_cur_state;
 
 	void format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 
 	void on_selection_changed();
 
-	void on_state_filter_changed(Torrent::State state);
+	void on_state_filter_changed(Linkage::Torrent::State state);
 	void on_groups_changed(const std::list<Group>& groups);
 
 	friend class UI;

@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/compose.hpp"
 
+using namespace Linkage;
+
 Glib::RefPtr<Torrent> Torrent::create(const ResumeInfo& ri, bool queued)
 {
 	return Glib::RefPtr<Torrent>(new Torrent(ri, queued));

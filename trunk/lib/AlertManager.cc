@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SessionManager.hh"
 #include "linkage/TorrentManager.hh"
 
+using namespace Linkage;
+
 Glib::RefPtr<AlertManager> AlertManager::create()
 {
 	return Glib::RefPtr<AlertManager>(new AlertManager());
@@ -96,7 +98,6 @@ AlertManager::signal_peer_ban()
 {
 	return m_signal_peer_ban;
 }
-
 
 void AlertManager::check_alerts()
 {

@@ -43,6 +43,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Interface.hh"
 
 #include "TorrentList.hh"
+#include "Menu.hh"
 
 class Statusbar;
 class PieceMap;
@@ -58,9 +59,9 @@ class AddDialog;
 
 class SessionClient;
 
-class Value;
+class Linkage::Value;
 
-class UI : public Gtk::Window, public Interface
+class UI : public Gtk::Window, public Linkage::Interface
 {
 	//Hack to let us use comboboxtext with glade
 	class ComboBoxTextGlade : public Gtk::ComboBoxText
@@ -123,6 +124,7 @@ class UI : public Gtk::Window, public Interface
 	TorrentCreator* new_dialog;
 	Statusbar* statusbar;
 	SettingsWin* settings_win;
+	Menu* menu;
 
 	SessionClient* session_client;
 
@@ -146,15 +148,6 @@ class UI : public Gtk::Window, public Interface
 	void on_up();
 	void on_down();
 
-	void on_new();
-	void on_info();
-	void on_prefs();
-	void on_about();
-	void on_quit();
-
-	void on_view_groups_toggled();
-	void on_main_hpane_changed();
-
 	void on_open_location();
 	void on_check();
 	void on_set_group(const Glib::ustring& group);
@@ -170,8 +163,8 @@ class UI : public Gtk::Window, public Interface
 	void on_sort_item_selected(TorrentList::Column col);
 	void on_sort();
 
-	void update(const Glib::RefPtr<Torrent>& torrent, bool update_lists = false);
-	void update_statics(const Glib::RefPtr<Torrent>& torrent);
+	void update(const Glib::RefPtr<Linkage::Torrent>& torrent, bool update_lists = false);
+	void update_statics(const Glib::RefPtr<Linkage::Torrent>& torrent);
 
 	bool on_delete_event(GdkEventAny*);
 
@@ -189,17 +182,17 @@ class UI : public Gtk::Window, public Interface
 	void notify(const Glib::ustring& title,
 							const Glib::ustring& msg);
 
-	void on_key_changed(const Glib::ustring& key, const Value& value);
+	void on_key_changed(const Glib::ustring& key, const Linkage::Value& value);
 
 	//asserts that num selected torrents are one only
-	inline Glib::RefPtr<Torrent> get_selected_single();
+	inline Glib::RefPtr<Linkage::Torrent> get_selected_single();
 
 public:
 	// Interface stuff
-	SelectionList get_selected()  const;
+	Linkage::SelectionList get_selected()  const;
 	bool get_visible()  const;
 	void set_visible(bool visible);
-	Gtk::Container* get_container(Plugin::PluginParent parent) const;
+	Gtk::Container* get_container(Linkage::Plugin::PluginParent parent) const;
 	void open(const Glib::ustring& uri = Glib::ustring());
 	void quit();
 

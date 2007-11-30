@@ -26,6 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Plugin.hh"
 
+namespace Linkage
+{
+
 class Value;
 
 class PluginManager : public Glib::Object
@@ -73,5 +76,7 @@ public:
 	static Glib::RefPtr<PluginManager> create();
 	~PluginManager();
 };
+
+}; /* namespace */
 	
 #endif /* PLUGIN_MANAGER_HH */

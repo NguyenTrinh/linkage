@@ -28,6 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "Group.hh"
 #include "AddDialog.hh"
 
+using namespace Linkage;
+
 AddDialog::AddDialog(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml)
 	: Gtk::Dialog(cobject)
 {

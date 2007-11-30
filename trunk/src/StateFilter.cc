@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "StateFilter.hh"
 
+using namespace Linkage;
+
 static GConfEnumStringPair active_state_table[] = {
 	{ -1, NULL },
   { 0, "STATE_ALL" },

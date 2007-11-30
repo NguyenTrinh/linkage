@@ -39,17 +39,17 @@ class StateFilter : public Gtk::ComboBox
     	add(state);
     }
     Gtk::TreeModelColumn<Glib::ustring> name;
-    Gtk::TreeModelColumn<Torrent::State> state;
+    Gtk::TreeModelColumn<Linkage::Torrent::State> state;
   };
 	ModelColumns columns;
 	Glib::RefPtr<Gtk::ListStore> model;
 
-	sigc::signal<void, Torrent::State> m_signal_state_filter_changed;
+	sigc::signal<void, Linkage::Torrent::State> m_signal_state_filter_changed;
 
 	void on_selection_changed();
 
 public:
-	sigc::signal<void, Torrent::State> signal_state_filter_changed();
+	sigc::signal<void, Linkage::Torrent::State> signal_state_filter_changed();
 
 	void reselect();
 

@@ -35,6 +35,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/PluginManager.hh"
 #include "linkage/Utils.hh"
 
+using namespace Linkage;
+
 void SettingsWin::ComboBoxTextGlade::init(const Glib::ustring& key_)
 {
 	if (key.empty())

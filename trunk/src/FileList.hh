@@ -85,7 +85,7 @@ class FileList : public Gtk::TreeView
 	void format_data(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter, const Gtk::TreeModelColumn<libtorrent::size_type>& column);
 	void format_priority(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	
-	Glib::RefPtr<Torrent> m_cur_torrent;
+	Glib::RefPtr<Linkage::Torrent> m_cur_torrent;
 	
 	int compare_piece_map(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
 
@@ -93,7 +93,7 @@ class FileList : public Gtk::TreeView
 
 public:
 	void clear();
-	void update(const Glib::RefPtr<Torrent>& torrent);
+	void update(const Glib::RefPtr<Linkage::Torrent>& torrent);
 	
 	FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~FileList();

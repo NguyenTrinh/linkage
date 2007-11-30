@@ -78,7 +78,7 @@ class PeerList : public Gtk::TreeView
 
 	Glib::ustring peer_as_string(const libtorrent::peer_info& peer);
 public:
-	void update(const Glib::RefPtr<Torrent>& torrent);
+	void update(const Glib::RefPtr<Linkage::Torrent>& torrent);
 
 	PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~PeerList();

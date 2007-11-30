@@ -73,13 +73,13 @@ class TorrentList : public Gtk::TreeView
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Group m_active_group;
-	Torrent::State m_cur_state;
+	Linkage::Torrent::State m_cur_state;
 
-	void on_added(const Glib::RefPtr<Torrent>& torrent);
-	void on_removed(const Glib::RefPtr<Torrent>& torrent);
+	void on_added(const Glib::RefPtr<Linkage::Torrent>& torrent);
+	void on_removed(const Glib::RefPtr<Linkage::Torrent>& torrent);
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
-	Glib::ustring get_formated_name(const Glib::RefPtr<Torrent>& torrent);
+	Glib::ustring get_formated_name(const Glib::RefPtr<Linkage::Torrent>& torrent);
 
 	bool on_button_press_event(GdkEventButton *event);
 
@@ -89,7 +89,7 @@ class TorrentList : public Gtk::TreeView
 	sigc::signal<void, GdkEventButton*> m_signal_right_click;
 
 	void on_filter_set(const Group& group);
-	void on_state_filter_changed(Torrent::State state);
+	void on_state_filter_changed(Linkage::Torrent::State state);
 
 	void update_row(Gtk::TreeRow& row);
 
@@ -114,7 +114,7 @@ public:
 	};
 
 	bool is_selected(const libtorrent::sha1_hash& hash);
-	HashList get_selected_list();
+	Linkage::HashList get_selected_list();
 
 	void set_sort_column(Column col_id);
 	void set_sort_order(Gtk::SortType order);

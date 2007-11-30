@@ -83,7 +83,7 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 		if (px < x)
 			continue;
 
-		Gdk::Color c = lighter(base, p.fac);
+		Gdk::Color c = Linkage::lighter(base, p.fac);
 
 		colormap->alloc_color(c);
 		gc->set_foreground(c);

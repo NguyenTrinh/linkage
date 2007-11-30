@@ -48,7 +48,7 @@ public:
 			operation(o) {}
 	};
 
-	bool eval(const Glib::RefPtr<Torrent>& torrent) const;
+	bool eval(const Glib::RefPtr<Linkage::Torrent>& torrent) const;
 
 	const Glib::ustring& get_name() const;
 	const std::list<Filter>& get_filters() const;

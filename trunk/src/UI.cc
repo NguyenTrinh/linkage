@@ -42,7 +42,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/scrollbar.h>
 #include <gtkmm/box.h>
 #include <gtkmm/paned.h>
-#include <gtkmm/aboutdialog.h>
 #include <glibmm/i18n.h>
 #include <libglademm.h>
 
@@ -69,6 +68,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
+
+using namespace Linkage;
 
 const char* TARGET_URI_LIST = "text/uri-list";
 const char* TARGET_MOZ_URL = "text/x-moz-url-data";
@@ -111,12 +112,11 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->get_widget_derived("peer_list", peer_list);
 	glade_xml->get_widget_derived("torrent_menu", torrent_menu);
 	glade_xml->get_widget_derived("combo_trackers", combo_trackers);
-
+	glade_xml->get_widget_derived("menubar", menu);
+	
 	glade_xml->get_widget("main_vpane", main_vpane);
 	main_vpane->set_position(-1);
 	glade_xml->get_widget("main_hpane", main_hpane);
-	main_hpane->property_position().signal_changed().connect(
-		sigc::mem_fun(this, &UI::on_main_hpane_changed));
 
 	glade_xml->get_widget("notebook_details", notebook_details);
 	glade_xml->get_widget("expander_details", expander_details);
@@ -145,24 +145,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	glade_xml->get_widget("label_path", label_path);
 	glade_xml->get_widget("toolb_sort", tb_sort);
-
- 	// attach menu and toolbar signal handlers coz glademm sux:(
- 	glade_xml->connect_clicked
- 		("mnu_file_new", sigc::mem_fun(new_dialog, &TorrentCreator::run));
- 	glade_xml->connect_clicked
- 		("mnu_file_open", sigc::mem_fun(this, &UI::on_add));
-	glade_xml->connect_clicked
-		("mnu_file_quit", sigc::mem_fun(this, &UI::on_quit));
-	glade_xml->connect_clicked
-		("mnu_view_details", sigc::mem_fun(this, &UI::on_info));
-	glade_xml->connect_clicked
-		("mnu_view_groups", sigc::mem_fun(this, &UI::on_view_groups_toggled));
-	glade_xml->connect_clicked
-		("mnu_edit_groups", sigc::mem_fun(groups_win, &GroupsWin::show));
-	glade_xml->connect_clicked
-		("mnu_view_prefs", sigc::mem_fun(this, &UI::on_prefs));
- 	glade_xml->connect_clicked
- 		("mnu_help_about", sigc::mem_fun(this, &UI::on_about));
 
 	Gtk::ToolButton* toolb = 0;
 	glade_xml->get_widget("toolb_add", toolb);
@@ -199,8 +181,8 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	// attach sort menu to button
 	//Gtk::MenuToolButton* btn = 0;
-	Gtk::Menu* menu = 0;
-	glade_xml->get_widget("sort_menu", menu);
+	Gtk::Menu* sort_menu = 0;
+	glade_xml->get_widget("sort_menu", sort_menu);
 
 	// attach the sort menu signals
 	glade_xml->connect_clicked
@@ -236,7 +218,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 
 
-	tb_sort->set_menu(*menu);
+	tb_sort->set_menu(*sort_menu);
 	// 	btn->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
 	
 	// set the sort image
@@ -283,7 +265,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	spinbutton_up->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_up));
 
 	torrent_menu->signal_open().connect(sigc::mem_fun(this, &UI::on_open_location));
-	torrent_menu->signal_info().connect(sigc::mem_fun(this, &UI::on_info));
+	//FIXME: torrent_menu->signal_info().connect(sigc::mem_fun(this, &UI::on_info));
 	torrent_menu->signal_up().connect(sigc::mem_fun(this, &UI::on_up));
 	torrent_menu->signal_down().connect(sigc::mem_fun(this, &UI::on_down));
 	torrent_menu->signal_start().connect(sigc::mem_fun(this, &UI::on_start));
@@ -330,7 +312,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	// Set up desktop session support
 	session_client = new SessionClient();
-	session_client->signal_quit().connect(sigc::mem_fun(this, &UI::on_quit));
+	session_client->signal_quit().connect(sigc::mem_fun(this, &UI::quit));
 }
 
 UI::~UI()
@@ -459,27 +441,9 @@ void UI::open(const Glib::ustring& uri)
 	add_dialog->hide();
 }
 
-void UI::on_view_groups_toggled()
-{
-	Gtk::CheckMenuItem* item;
-	glade_xml->get_widget("mnu_view_groups", item);
-
-	if (item->get_active())
-		main_hpane->set_position(Engine::get_settings_manager()->get_int("ui/groups_width"));
-	else
-		main_hpane->set_position(0);
-}
-
-void UI::on_main_hpane_changed()
-{
-	Gtk::CheckMenuItem* item;
-	glade_xml->get_widget("mnu_view_groups", item);
-	item->set_active(main_hpane->get_position());
-}
-
 void UI::quit()
 {
-	on_quit();
+	Gtk::Main::quit();
 }
 
 void UI::notify(const Glib::ustring& title,
@@ -606,41 +570,6 @@ inline Glib::RefPtr<Torrent> UI::get_selected_single()
 }
 
 /* CALLBACKS */
-
-void UI::on_info()
-{
-	if (expander_details->is_sensitive())
-	{
-		expander_details->set_expanded(true);
-		notebook_details->set_current_page(0);
-	}
-}
-
-void UI::on_prefs()
-{
-	settings_win->show();
-}
-
-void UI::on_about()
-{
-	Gtk::AboutDialog about;
-	std::list<Glib::ustring> people;
-	people.push_back("Christian Lundgren");
-	people.push_back("Dave Moore");
-	about.set_authors(people);
-	people.clear();
-	people.push_back("Brian William Davis");
-	people.push_back("Ludvig Aleman");
-	about.set_artists(people);
-	people.clear();
-	about.set_comments(_("A BitTorrent client"));
-	about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
-	about.set_version(PACKAGE_VERSION);
-	about.set_copyright("Copyright \u00A9 2006-2007 Christian Lundgren, Dave Moore");
-	about.set_website("http://code.google.com/p/linkage");
-	about.set_name("Linkage");
-	about.run();
-}
 
 void UI::on_spin_down()
 {
@@ -846,15 +775,8 @@ void UI::on_sort_item_selected(TorrentList::Column col)
 
 bool UI::on_delete_event(GdkEventAny*)
 {
-	on_quit();
+	quit();
 	return false;
-}
-
-void UI::on_quit()
-{
-	hide();
-
-	Gtk::Main::quit();
 }
 
 void UI::on_details_expanded()

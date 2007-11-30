@@ -30,6 +30,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <dbus/dbus-protocol.h>
 #include <dbus/dbus.h>
 
+namespace Linkage
+{
+
 class DbusManager : public Glib::Object
 {
 	bool primary;
@@ -74,5 +77,7 @@ public:
 	static Glib::RefPtr<DbusManager> create();
 	~DbusManager();
 };
+
+}; /* namespace */
 
 #endif /* DBUS_MANAGER_HH */

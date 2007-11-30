@@ -27,6 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <linkage/Torrent.hh>
 #include <linkage/Plugin.hh>
 
+namespace Linkage
+{
+
 typedef std::list<Glib::RefPtr<Torrent> > SelectionList;
 
 class Interface
@@ -50,6 +53,8 @@ public:
 	Interface();
 	virtual ~Interface();
 };
+
+}; /* namespace */
 
 #endif /* INTERFACE_HH */
 
