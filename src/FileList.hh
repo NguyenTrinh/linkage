@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 class FileList : public Gtk::TreeView
 {
 	// See libtorrent docs for info about these values
-	enum Priority { P_SKIP, P_NORMAL, P_HIGH = 4, P_MAX = 6};
+	enum Priority { P_SKIP, P_NORMAL, P_HIGH = 3, P_MAX = 5};
 
 	class ModelColumns : public Gtk::TreeModelColumnRecord
 	{

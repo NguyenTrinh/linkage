@@ -1,6 +1,6 @@
 SUBDIRS = flags
 
-EXTRA_DIST = linkage.desktop.in linkage.svg linkage.glade settings.glade groups.glade linkage.schemas.in
+EXTRA_DIST = linkage.desktop.in linkage.svg linkage.glade linkage.schemas.in
 
 desktopdir = $(prefix)/share/applications
 desktop_in_files = linkage.desktop.in
@@ -11,7 +11,7 @@ pixmapdir = $(prefix)/share/pixmaps
 pixmap_DATA = linkage.svg
 
 gladedir = ${prefix}/share/linkage
-glade_DATA = linkage.glade settings.glade groups.glade
+glade_DATA = linkage.glade
 
 schemadir = $(GCONF_SCHEMA_FILE_DIR)
 schema_in_files = linkage.schemas.in

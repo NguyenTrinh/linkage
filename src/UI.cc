@@ -91,32 +91,10 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 
-	//FIXME: merge all glade files to linkage.glade ?
-
-	Glib::RefPtr<Gnome::Glade::Xml> settings_xml;
-	try
-	{
-		settings_xml = Gnome::Glade::Xml::create(DATA_DIR "/settings.glade");
-	}
-	catch (const Gnome::Glade::XmlError& ex)
-	{
-		g_warning(ex.what().c_str());
-	}
-	settings_xml->get_widget_derived("settings_win", settings_win);
+	glade_xml->get_widget_derived("settings_win", settings_win);
 	settings_win->set_transient_for(*this);
 	
-	
-
-	Glib::RefPtr<Gnome::Glade::Xml> groups_xml;
-	try
-	{
-		groups_xml = Gnome::Glade::Xml::create(DATA_DIR "/groups.glade");
-	}
-	catch (const Gnome::Glade::XmlError& ex)
-	{
-		g_warning(ex.what().c_str());
-	}
-	groups_xml->get_widget_derived("groups_win", groups_win);
+	glade_xml->get_widget_derived("groups_win", groups_win);
 	groups_win->set_transient_for(*this);
 
 	// get the widgets we work with
@@ -126,7 +104,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	new_dialog->set_transient_for(*this);
 	glade_xml->get_widget_derived("torrent_list", torrent_list);
 	glade_xml->get_widget_derived("state_combobox", state_filter);
-	glade_xml->get_widget_derived("groups_treeview", group_list);
+	glade_xml->get_widget_derived("groups_treeview1", group_list);
 	glade_xml->get_widget_derived("statusbar", statusbar);
 	glade_xml->get_widget_derived("piecemap", piecemap);
 	glade_xml->get_widget_derived("file_list", file_list);
