@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/i18n.h>
 
 using namespace libtorrent;
+using namespace Linkage;
 
 static GConfEnumStringPair enc_policy_table[] = {
   { pe_settings::forced, "POLICY_FORCED" },

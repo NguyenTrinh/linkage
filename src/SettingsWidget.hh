@@ -44,7 +44,7 @@ protected:
 
 	Glib::ustring key;
 
-	virtual void on_extern_changed(const Value& value)
+	virtual void on_extern_changed(const Linkage::Value& value)
 	{
 		T val = value.get_value<T>();
 		if (val != (T)get_value_func())
@@ -53,14 +53,14 @@ protected:
 public:
 	virtual void on_changed()
 	{
-		Engine::get_settings_manager()->set(key, (T)get_value_func());
+		Linkage::Engine::get_settings_manager()->set(key, (T)get_value_func());
 	}
 
 	virtual void init(const Glib::ustring& key_ = Glib::ustring()) = 0;
 	virtual void set_key(const Glib::ustring& key_)
 	{
 		key = key_;
-		Engine::get_settings_manager()->signal(key).connect(
+		Linkage::Engine::get_settings_manager()->signal(key).connect(
 			sigc::mem_fun(this, &SettingsWidget<T>::on_extern_changed));
 	}
 	virtual const Glib::ustring& get_key()
@@ -91,9 +91,9 @@ public:
 		g_return_if_fail(!SettingsWidget<T>::key.empty());
 
 		if (typeid(T) == typeid(int))
-			set_value((double)Engine::get_settings_manager()->get_int(SettingsWidget<T>::key));
+			set_value((double)Linkage::Engine::get_settings_manager()->get_int(SettingsWidget<T>::key));
 		else if (typeid(T) == typeid(float))
-			set_value((double)Engine::get_settings_manager()->get_float(SettingsWidget<T>::key));
+			set_value((double)Linkage::Engine::get_settings_manager()->get_float(SettingsWidget<T>::key));
 		else
 			g_warning("Unkown type value, ignoring.");
 
@@ -128,7 +128,7 @@ class ColorButtonSetting : public Gtk::ColorButton, public SettingsWidget<Glib::
 	}
 	Glib::ustring get_value()
 	{
-		return hex_color(get_color());
+		return Linkage::hex_color(get_color());
 	}
 public:
 	void init(const Glib::ustring& key_ = Glib::ustring());

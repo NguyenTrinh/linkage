@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "Group.hh"
 
+using namespace Linkage;
 
 Group::Group(const Glib::ustring& name, const std::list<Filter>& filters)
 {

@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gtkmm/widget.h>
 
+namespace Linkage
+{
+
 class Plugin : public Glib::Object
 {
 public:
@@ -94,6 +97,8 @@ extern Plugin::Info plugin_info();
 #ifdef __cplusplus
 }
 #endif
+
+}; /* namespace */
 
 #endif /* PLUGIN_HH */
 

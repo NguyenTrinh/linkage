@@ -26,12 +26,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Utils.hh"
 
-Glib::ustring suffix_value(float value)
+Glib::ustring Linkage::suffix_value(float value)
 {
 	return suffix_value((libtorrent::size_type)value);
 }
 
-Glib::ustring suffix_value(libtorrent::size_type value)
+Glib::ustring Linkage::suffix_value(libtorrent::size_type value)
 {
 	std::stringstream ss;
 	ss.imbue(std::locale(""));
@@ -44,7 +44,7 @@ Glib::ustring suffix_value(libtorrent::size_type value)
 	return Glib::locale_to_utf8(ss.str());
 }
 
-Glib::ustring get_eta(libtorrent::size_type size, float rate)
+Glib::ustring Linkage::get_eta(libtorrent::size_type size, float rate)
 {
 	if (!rate || !size)
 		return "\u221E";
@@ -55,7 +55,7 @@ Glib::ustring get_eta(libtorrent::size_type size, float rate)
 	return format_time(seconds);
 }
 
-Glib::ustring format_time(libtorrent::size_type seconds)
+Glib::ustring Linkage::format_time(libtorrent::size_type seconds)
 {
 	long long int days, hours, minutes;
 	std::lldiv_t div;
@@ -95,7 +95,7 @@ Glib::ustring format_time(libtorrent::size_type seconds)
 	}
 }
 
-libtorrent::sha1_hash info_hash(const std::string& chars)
+libtorrent::sha1_hash Linkage::info_hash(const std::string& chars)
 {
 	libtorrent::sha1_hash hash;
 
@@ -106,7 +106,7 @@ libtorrent::sha1_hash info_hash(const std::string& chars)
 }
 
 /* http://lists.alioth.debian.org/pipermail/pkg-gnome-maintainers/2005-June/014881.html */
-std::list<Glib::ustring> get_interfaces()
+std::list<Glib::ustring> Linkage::get_interfaces()
 {
 	std::list<Glib::ustring> list;
 
@@ -126,7 +126,7 @@ std::list<Glib::ustring> get_interfaces()
 }
 
 /* http://www.linuxquestions.org/questions/showthread.php?t=425637 */
-Glib::ustring get_ip(const Glib::ustring& iface)
+Glib::ustring Linkage::get_ip(const Glib::ustring& iface)
 {
 	int sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sockfd == -1)
@@ -145,17 +145,17 @@ Glib::ustring get_ip(const Glib::ustring& iface)
 	return inet_ntoa(*(in_addr*)&ifr.ifr_addr.sa_data[sizeof(sa.sin_port)]);
 }
 
-Glib::ustring get_config_dir()
+Glib::ustring Linkage::get_config_dir()
 {
 	return Glib::build_filename(g_get_user_config_dir(), "linkage");
 }
 
-Glib::ustring get_data_dir()
+Glib::ustring Linkage::get_data_dir()
 {
 	return Glib::build_filename(get_config_dir(), "data");
 }
 
-bool load_entry(const Glib::ustring& file, libtorrent::entry& e)
+bool Linkage::load_entry(const Glib::ustring& file, libtorrent::entry& e)
 {
 	bool ret = true;
 	std::ifstream in(file.c_str(), std::ios_base::binary);
@@ -174,7 +174,7 @@ bool load_entry(const Glib::ustring& file, libtorrent::entry& e)
 	return ret;
 }
 
-void save_entry(const Glib::ustring& file, const libtorrent::entry& e)
+void Linkage::save_entry(const Glib::ustring& file, const libtorrent::entry& e)
 {
 	std::ofstream out(file.c_str(), std::ios_base::binary);
 	out.unsetf(std::ios_base::skipws);
@@ -222,7 +222,7 @@ static void get_hsv(const Gdk::Color& color, double& h, double& s, double& v)
 }
 
 // Derived from QColor::light, Copyright (C) 1992-2006 Trolltech ASA
-Gdk::Color lighter(const Gdk::Color& color, double fac)
+Gdk::Color Linkage::lighter(const Gdk::Color& color, double fac)
 {
 	double hue = 0, sat = 0, val = 0;
 	get_hsv(color, hue, sat,  val);
@@ -241,7 +241,7 @@ Gdk::Color lighter(const Gdk::Color& color, double fac)
 	return c;
 }
 
-Glib::ustring hex_color(const Gdk::Color& color)
+Glib::ustring Linkage::hex_color(const Gdk::Color& color)
 {
 	char s[8];
 	s[0] = '#';

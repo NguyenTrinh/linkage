@@ -57,6 +57,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   SessionClient.cc \
                   SettingsWidget.hh \
                   SettingsWidget.cc \
+                  Menu.hh \
+                  Menu.cc \
                   main.cc
 
 

@@ -33,6 +33,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "libtorrent/session_settings.hpp"
 #include "libtorrent/fingerprint.hpp"
 
+namespace Linkage
+{
+
 class Value;
 class Torrent;
 
@@ -72,4 +75,7 @@ public:
 	static Glib::RefPtr<SessionManager> create();
 	virtual ~SessionManager();
 };
+
+}; /* namespace */
+
 #endif

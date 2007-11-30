@@ -29,6 +29,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <gconfmm.h>
 
+namespace Linkage
+{
+
 typedef Gnome::Conf::SListHandle_ValueString UStringArray;
 typedef Gnome::Conf::SListHandle_ValueInt IntArray;
 typedef Gnome::Conf::SListHandle_ValueBool BoolArray;
@@ -100,5 +103,7 @@ public:
 	static Glib::RefPtr<SettingsManager> create();
 	~SettingsManager();
 };
+
+}; /* namespace */
 
 #endif /* SETTINGSMANAGER_HH */

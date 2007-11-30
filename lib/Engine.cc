@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/DbusManager.hh"
 #include "linkage/Interface.hh"
 
+using namespace Linkage;
+
 Engine* Engine::self = NULL;
 
 Glib::RefPtr<SettingsManager> Engine::ssm	= Glib::RefPtr<SettingsManager>();

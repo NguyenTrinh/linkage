@@ -30,6 +30,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "libtorrent/torrent.hpp"
 
+namespace Linkage
+{
+
 typedef std::list<libtorrent::sha1_hash> HashList;
 
 class Torrent : public Glib::Object
@@ -158,5 +161,7 @@ public:
 	static Glib::RefPtr<Torrent> create(const ResumeInfo& ri, bool queued = false);
 	~Torrent();
 };
+
+}; /* namespace */
 
 #endif /* TORRENT_HH */

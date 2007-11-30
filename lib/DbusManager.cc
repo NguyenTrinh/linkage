@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
 
+using namespace Linkage;
+
 #define LK_BUS_NAME "org.linkage"
 #define LK_INTERFACE_INTERFACE "org.linkage.Interface"
 #define LK_INTERFACE_TORRENT "org.linkage.Torrent"

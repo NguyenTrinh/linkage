@@ -27,6 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/object.h>
 #include <glibmm/refptr.h>
 
+namespace Linkage
+{
+
 class SettingsManager;
 class TorrentManager;
 class SessionManager;
@@ -83,6 +86,8 @@ public:
 	
 	~Engine();
 };
+
+}; /* namespace */
 
 #endif /* ENGINE_HH */
 

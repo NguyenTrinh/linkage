@@ -31,6 +31,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
 
+using namespace Linkage;
+
 typedef Gtk::TreeSelection::ListHandle_Path PathList;
 
 static GConfEnumStringPair sort_order_table[] = {

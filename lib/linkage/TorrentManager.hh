@@ -28,6 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Torrent.hh"
 
+namespace Linkage
+{
+
 class Value;
 
 class TorrentManager : public Glib::Object
@@ -87,5 +90,7 @@ public:
 	static Glib::RefPtr<TorrentManager> create();
 	~TorrentManager();
 };
+
+}; /* namespace */
 
 #endif /* TORRENTMANAGER_HH */
