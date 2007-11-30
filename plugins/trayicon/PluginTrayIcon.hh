@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Plugin.hh"
 
-class TrayPlugin : public Plugin
+class TrayPlugin : public Linkage::Plugin
 {
 	Glib::RefPtr<Gtk::StatusIcon> icon;
 	Gtk::Menu* menu;
@@ -40,7 +40,7 @@ class TrayPlugin : public Plugin
 public:
 	gpointer get_user_data(gpointer arg = NULL) { return icon->gobj(); }
 	
-	Plugin::Info get_info();
+	Linkage::Plugin::Info get_info();
 	
 	TrayPlugin();
 	~TrayPlugin();

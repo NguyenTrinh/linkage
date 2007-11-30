@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Plugin.hh"
 #include "linkage/Torrent.hh"
 
-class NotifyPlugin : public Plugin
+class NotifyPlugin : public Linkage::Plugin
 {
 	NotifyNotification* build_notification(const Glib::ustring& title,
 		const Glib::ustring& message,
@@ -65,7 +65,7 @@ class NotifyPlugin : public Plugin
 	void on_dbus_disconnect();
 
 public:
-	Plugin::Info get_info();
+	Linkage::Plugin::Info get_info();
 
 	NotifyPlugin();
 	~NotifyPlugin();
