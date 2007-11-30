@@ -5,3 +5,4 @@
 * Add sort on time remaining
 * on_torrent_finished, if files are filtered and then unfiltered we should do set_complete(false)
 * Rewrite queueing algorithm, add seed queue (and group queue?)
+* Add key events to torrent list (space/enter - start/details, delete - remove)

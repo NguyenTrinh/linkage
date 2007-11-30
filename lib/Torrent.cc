@@ -406,6 +406,7 @@ void Torrent::set_priorities(const std::vector<int>& priorities)
 
 		if (Engine::get_settings_manager()->get_bool("files/prioritize_firstlast"))
 		{
+			//FIXME: prioritize 5%-10% at level 6?
 			//prioritize the first and last 5% of the files size
 			for (int i = 0; i < m_info->num_files(); i++)
 			{

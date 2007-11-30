@@ -78,6 +78,7 @@ sigc::signal<void, Glib::RefPtr<Torrent> > TorrentManager::signal_removed()
 
 void TorrentManager::on_key_changed(const Glib::ustring& key, const Value& value)
 {
+	//FIXME: also update priorities on key "files/prioritize_firstlast"
 	if (Glib::str_has_prefix(key, "torrent/"))
 	{
 		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();

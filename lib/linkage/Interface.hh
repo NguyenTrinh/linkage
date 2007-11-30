@@ -43,7 +43,7 @@ public:
 
 	virtual Gtk::Container* get_container(Plugin::PluginParent parent) const = 0;
 
-	virtual void open(const Glib::ustring& uri);
+	virtual void open(const Glib::ustring& uri = Glib::ustring());
 
 	virtual void quit();
 
