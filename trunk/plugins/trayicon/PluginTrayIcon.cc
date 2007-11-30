@@ -37,6 +37,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Interface.hh"
 #include "linkage/Utils.hh"
 
+using namespace Linkage;
+
 #define PLUGIN_NAME		"TrayPlugin"
 #define PLUGIN_DESC		_("Displays a tray icon")
 #define PLUGIN_VER		PACKAGE_VERSION
