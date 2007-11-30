@@ -17,6 +17,9 @@ src/TorrentCreator.cc
 src/TorrentList.cc
 src/TorrentMenu.cc
 src/UI.cc
+src/AddDialog.cc
+src/SessionClient.cc
+src/SimpleFileList.cc
 lib/AlertManager.cc
 lib/DbusManager.cc
 lib/Engine.cc
@@ -30,9 +33,6 @@ lib/TorrentManager.cc
 lib/Utils.cc
 plugins/trayicon/PluginTrayIcon.cc
 plugins/notification/PluginNotification.cc
-plugins/upnp/PluginUPnP.cc
 data/linkage.glade
-data/settings.glade
-data/groups.glade
 data/linkage.desktop.in
 data/linkage.schemas.in

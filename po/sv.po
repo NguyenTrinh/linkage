@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-09-20 23:22+0200\n"
+"POT-Creation-Date: 2007-11-30 20:29+0100\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>f\n"
 "Language-Team: Swedish\n"
@@ -16,45 +16,45 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/FileList.cc:47 ../src/FilterRow.cc:66 ../src/GroupList.cc:39
-#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:150 ../src/TorrentList.cc:72
-#: ../data/linkage.glade.h:36
+#: ../src/FileList.cc:50 ../src/FilterRow.cc:66 ../src/GroupList.cc:39
+#: ../src/GroupsWin.cc:38 ../src/SettingsWin.cc:151 ../src/TorrentList.cc:72
+#: ../src/SimpleFileList.cc:42 ../data/linkage.glade.h:86
 msgid "Name"
 msgstr "Namn"
 
-#: ../src/FileList.cc:59
+#: ../src/FileList.cc:62
 msgid "Pieces"
 msgstr "Delar"
 
-#: ../src/FileList.cc:66
+#: ../src/FileList.cc:69
 msgid "Done"
 msgstr "Klart"
 
-#: ../src/FileList.cc:73
+#: ../src/FileList.cc:76 ../src/SimpleFileList.cc:47
 msgid "Size"
 msgstr "Storlek"
 
-#: ../src/FileList.cc:80
+#: ../src/FileList.cc:84
 msgid "Priority"
 msgstr "Prioritet"
 
-#: ../src/FileList.cc:90
+#: ../src/FileList.cc:94
 msgid "<i>Priority</i>"
 msgstr "<i>Prioritet</i>"
 
-#: ../src/FileList.cc:95 ../src/FileList.cc:196
+#: ../src/FileList.cc:99 ../src/FileList.cc:215
 msgid "Max"
 msgstr ""
 
-#: ../src/FileList.cc:98 ../src/FileList.cc:199
+#: ../src/FileList.cc:102 ../src/FileList.cc:218
 msgid "High"
 msgstr "Hög"
 
-#: ../src/FileList.cc:101 ../src/FileList.cc:206
+#: ../src/FileList.cc:105 ../src/FileList.cc:225
 msgid "Normal"
 msgstr ""
 
-#: ../src/FileList.cc:105 ../src/FileList.cc:202
+#: ../src/FileList.cc:109 ../src/FileList.cc:221
 msgid "Skip"
 msgstr "Skippa"
 
@@ -166,7 +166,7 @@ msgstr "Visa version och avsluta"
 msgid "Tell the running instance to quit"
 msgstr "Säg åt den körande instansen att avsluta"
 
-#: ../src/main.cc:113
+#: ../src/main.cc:116
 msgid ""
 "[FILE...] \n"
 "\n"
@@ -176,7 +176,7 @@ msgstr ""
 "\n"
 "En BitTorrent klient\n"
 
-#: ../src/main.cc:129
+#: ../src/main.cc:132
 msgid ""
 "Run \"linkage --help\" to see a full list of available command line "
 "options.\n"
@@ -184,23 +184,15 @@ msgstr ""
 "Kör \"linkage --help\" för att se hela listan av tillgängliga "
 "kommandoradsflaggor.\n"
 
-#: ../src/main.cc:151
-msgid " files passed to running instance.\n"
-msgstr " filer skickade till körande instans.\n"
-
-#: ../src/main.cc:156
-msgid "Another process is already running. Quitting...\n"
-msgstr "En annan process kör redan. Avslutar...\n"
-
 #: ../src/PeerList.cc:40
 msgid "Address"
 msgstr "Adress"
 
-#: ../src/PeerList.cc:48 ../data/linkage.glade.h:22
+#: ../src/PeerList.cc:48 ../data/linkage.glade.h:45
 msgid "Downloaded"
 msgstr "Nedladdat"
 
-#: ../src/PeerList.cc:52 ../data/linkage.glade.h:79
+#: ../src/PeerList.cc:52 ../data/linkage.glade.h:147
 msgid "Uploaded"
 msgstr "Uppladdat"
 
@@ -212,7 +204,7 @@ msgstr "Nedladdningshastighet"
 msgid "Upload rate"
 msgstr "Uppladdningshastighet"
 
-#: ../src/PeerList.cc:66 ../src/TorrentList.cc:80 ../data/linkage.glade.h:50
+#: ../src/PeerList.cc:66 ../src/TorrentList.cc:80 ../data/linkage.glade.h:107
 msgid "Progress"
 msgstr "Förlopp"
 
@@ -236,7 +228,7 @@ msgstr "Ansluter"
 msgid "Handshake"
 msgstr "Handskakning"
 
-#: ../src/PeerList.cc:253 ../lib/Torrent.cc:256
+#: ../src/PeerList.cc:253 ../lib/Torrent.cc:252
 msgid "Queued"
 msgstr "Köad"
 
@@ -280,67 +272,67 @@ msgstr ""
 msgid "Resume data"
 msgstr "Återupptagningsdata"
 
-#: ../src/SettingsWin.cc:120
+#: ../src/SettingsWin.cc:121
 msgid "None specified"
 msgstr "Ingen specifierad"
 
-#: ../src/SettingsWin.cc:128
+#: ../src/SettingsWin.cc:129
 msgid "Forced"
 msgstr "Tvingad"
 
-#: ../src/SettingsWin.cc:129
+#: ../src/SettingsWin.cc:130
 msgid "Enabled"
 msgstr "Aktiverad"
 
-#: ../src/SettingsWin.cc:130
+#: ../src/SettingsWin.cc:131
 msgid "Disabled"
 msgstr "Avaktiverad"
 
-#: ../src/SettingsWin.cc:131
+#: ../src/SettingsWin.cc:132
 msgid "Plain text"
 msgstr "Vanlig text"
 
-#: ../src/SettingsWin.cc:132
+#: ../src/SettingsWin.cc:133
 msgid "RC4"
 msgstr ""
 
-#: ../src/SettingsWin.cc:133
+#: ../src/SettingsWin.cc:134
 msgid "Both"
 msgstr "Båda"
 
-#: ../src/SettingsWin.cc:134
+#: ../src/SettingsWin.cc:135
 msgid "None"
 msgstr "Ingen"
 
-#: ../src/SettingsWin.cc:135
+#: ../src/SettingsWin.cc:136
 msgid "SOCKS4"
 msgstr ""
 
-#: ../src/SettingsWin.cc:136
+#: ../src/SettingsWin.cc:137
 msgid "SOCKS5"
 msgstr ""
 
-#: ../src/SettingsWin.cc:137
+#: ../src/SettingsWin.cc:138
 msgid "SOCKS5 with password"
 msgstr "SOCKS5 med lösenord"
 
-#: ../src/SettingsWin.cc:138
+#: ../src/SettingsWin.cc:139
 msgid "HTTP"
 msgstr ""
 
-#: ../src/SettingsWin.cc:139
+#: ../src/SettingsWin.cc:140
 msgid "HTTP with password"
 msgstr "HTTP med lösenord"
 
-#: ../src/SettingsWin.cc:148
+#: ../src/SettingsWin.cc:149
 msgid "Load"
 msgstr "Ladda"
 
-#: ../src/SettingsWin.cc:151
+#: ../src/SettingsWin.cc:152
 msgid "Description"
 msgstr "Beskrivning"
 
-#: ../src/TorrentCreator.cc:101 ../data/linkage.glade.h:62
+#: ../src/TorrentCreator.cc:101 ../data/linkage.glade.h:124
 msgid "Select file"
 msgstr "Välj fil"
 
@@ -348,23 +340,23 @@ msgstr "Välj fil"
 msgid "Select folder"
 msgstr "Välj katalog"
 
-#: ../src/TorrentCreator.cc:126
+#: ../src/TorrentCreator.cc:127
 msgid "Incomplete information"
 msgstr "Inkomplett information"
 
-#: ../src/TorrentCreator.cc:127
+#: ../src/TorrentCreator.cc:128
 msgid "You must specify the tracker url and a file/folder."
 msgstr "Du måste specifiera trackerns url och en fil/katalog"
 
-#: ../src/TorrentCreator.cc:144
+#: ../src/TorrentCreator.cc:145
 msgid "Hashing..."
 msgstr "Hashar..."
 
-#: ../src/TorrentCreator.cc:219
+#: ../src/TorrentCreator.cc:220
 msgid "Save torrent"
 msgstr "Spara torrent"
 
-#: ../src/TorrentList.cc:322
+#: ../src/TorrentList.cc:326
 msgid ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 (%5) connected seeds, %6 (%7) peers"
@@ -372,7 +364,7 @@ msgstr ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 (%5) anslutna källor, %6 (%7) klienter"
 
-#: ../src/TorrentList.cc:329
+#: ../src/TorrentList.cc:333
 msgid ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 connected seeds, %5 peers"
@@ -384,55 +376,80 @@ msgstr ""
 msgid "<i>None</i>"
 msgstr "<i>Ingen</i>"
 
-#: ../src/UI.cc:441 ../lib/SessionManager.cc:271
+#: ../src/UI.cc:430 ../lib/SessionManager.cc:271
 msgid "File not found, \"%1\""
 msgstr "Filen hittades inte, \"%1\""
 
-#: ../src/UI.cc:590
+#: ../src/UI.cc:596
 msgid "Yes"
 msgstr "Ja"
 
-#: ../src/UI.cc:590
+#: ../src/UI.cc:596
 msgid "No"
 msgstr "Nej"
 
-#: ../src/UI.cc:607
-msgid "<i>Add tracker</i>"
-msgstr "<i>Lägg till tracker</i>"
-
-#: ../src/UI.cc:653 ../data/linkage.desktop.in.h:1
+#: ../src/UI.cc:636
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
-#: ../src/UI.cc:719
+#: ../src/UI.cc:694
 msgid "Are you sure you wish to remove \"%1\" and it's content?"
 msgstr "Är du säker på att du vill ta bort \"%1\" och hela dess innehåll?"
 
-#: ../src/UI.cc:726
+#: ../src/UI.cc:701
 msgid "(%1 files)."
 msgstr "(%1 filer)."
 
-#: ../src/UI.cc:728
+#: ../src/UI.cc:703
 msgid "(1 file)."
 msgstr "(1 fil)."
 
-#: ../src/UI.cc:730
+#: ../src/UI.cc:705
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
 #. FIXME: make an EntryDialog class for this
-#: ../src/UI.cc:985
+#: ../src/UI.cc:889 ../src/UI.cc:932
 msgid "Add new tracker"
 msgstr "Lägg till ny tracker"
 
-#: ../src/UI.cc:992
+#: ../src/UI.cc:939
 msgid "Tracker URL:"
 msgstr ""
 
-#: ../lib/DbusManager.cc:309
+#: ../src/AddDialog.cc:47
+msgid "BitTorrent files"
+msgstr "BitTorrent filer"
+
+#: ../src/AddDialog.cc:51
+msgid "All files"
+msgstr "Alla filer"
+
+#: ../src/AddDialog.cc:95
+msgid "<i>%1 free disk space required</i>"
+msgstr "<i>%1 ledigt diskutrymme behövs</i>"
+
+#: ../src/AddDialog.cc:121
+msgid "<i>%1 free disk space available</i>"
+msgstr "<i>%1 ledigt diskutrymme tillgängligt</i>"
+
+#: ../src/SessionClient.cc:42 ../src/SessionClient.cc:84
+msgid "Failed to connect to GNOME session"
+msgstr "Misslyckades med att ansluta till GNOME sessionen"
+
+#: ../src/SessionClient.cc:134
+#: ../plugins/notification/PluginNotification.cc:194
+msgid "No suitable file manager found"
+msgstr "Ingen passande filhanterare funnen"
+
+#: ../src/SimpleFileList.cc:36
+msgid "Filter"
+msgstr "Filter"
+
+#: ../lib/DbusManager.cc:311
 #, c-format
-msgid "Ignoring attempt to send message to self (%s: %s)"
-msgstr "Ignorerar försök att sicka meddelande till själv (%s: %s)"
+msgid "Ignoring attempt to send message to self (%s)"
+msgstr "Ignorerar försök att sicka meddelande till själv (%s)"
 
 #: ../lib/PluginManager.cc:86
 #, c-format
@@ -448,7 +465,7 @@ msgstr "Lyssning misslyckades: %s"
 msgid "Invalid bencoding in %1"
 msgstr "Ogiltig bkodning i %1"
 
-#: ../lib/SessionManager.cc:366
+#: ../lib/SessionManager.cc:369
 msgid "Merged %1 with %2"
 msgstr "Slog samman %1 med %2"
 
@@ -457,48 +474,48 @@ msgstr "Slog samman %1 med %2"
 msgid "Could not create directory: %s"
 msgstr "Kunde inte skapa katalog: %s"
 
-#: ../lib/Torrent.cc:254
+#: ../lib/Torrent.cc:250
 msgid "Error"
 msgstr "Fel"
 
-#: ../lib/Torrent.cc:258
+#: ../lib/Torrent.cc:254 ../lib/Torrent.cc:268
 msgid "Stopped"
 msgstr "Stoppad"
 
-#: ../lib/Torrent.cc:260
+#: ../lib/Torrent.cc:256
 msgid "Queued for checking"
 msgstr "Köad för kontroll"
 
-#: ../lib/Torrent.cc:262
+#: ../lib/Torrent.cc:258
 msgid "Checking"
 msgstr "Kontrollerar"
 
-#: ../lib/Torrent.cc:264 ../lib/TorrentManager.cc:99
-#: ../data/settings.glade.h:14
+#: ../lib/Torrent.cc:260 ../lib/TorrentManager.cc:100
+#: ../data/linkage.glade.h:29
 msgid "Announcing"
 msgstr "Annonserar"
 
-#: ../lib/Torrent.cc:266
+#: ../lib/Torrent.cc:262 ../lib/Torrent.cc:268
 msgid "Finished"
 msgstr "Klar"
 
-#: ../lib/Torrent.cc:268
+#: ../lib/Torrent.cc:264
 msgid "Seeding"
 msgstr "Laddar upp"
 
-#: ../lib/Torrent.cc:270
+#: ../lib/Torrent.cc:266
 msgid "Allocating"
 msgstr "Allokerar"
 
-#: ../lib/Torrent.cc:273
+#: ../lib/Torrent.cc:270
 msgid "Downloading"
 msgstr "Laddar ned"
 
-#: ../lib/TorrentManager.cc:109
+#: ../lib/TorrentManager.cc:110
 msgid "OK, got %1 peers"
 msgstr "OK, fick %1 klienter"
 
-#: ../lib/TorrentManager.cc:131
+#: ../lib/TorrentManager.cc:132
 msgid "%1 (%2 times in a row)"
 msgstr "%1 (%2 gånger i rad)"
 
@@ -546,10 +563,6 @@ msgstr ""
 msgid "Displays notifications trough libnotify"
 msgstr "Visar notifieringar genom libnotify"
 
-#: ../plugins/notification/PluginNotification.cc:194
-msgid "No suitable file manager found"
-msgstr "Ingen passande filhanterare funnen"
-
 #: ../plugins/notification/PluginNotification.cc:205
 msgid "Invalid bencoding"
 msgstr "Ogiltig bkodning"
@@ -587,7 +600,7 @@ msgid "Torrent finished"
 msgstr "Torrent klar"
 
 #: ../plugins/notification/PluginNotification.cc:254
-#: ../data/linkage.glade.h:42
+#: ../data/linkage.glade.h:94
 msgid "Open location"
 msgstr "Öppna plats"
 
@@ -636,435 +649,231 @@ msgstr "DBus frånkopplat"
 msgid "Lost connection to the DBus session"
 msgstr "Tappade anslutningen till DBus sessionen"
 
-#: ../plugins/upnp/PluginUPnP.cc:35
-msgid "Enables port forwarding through gupnp"
-msgstr "Vidarebefodrar portar genom gupnp"
-
 #: ../data/linkage.glade.h:1
-msgid "<b>Details</b>"
-msgstr "<b>Detaljer</b>"
-
-#: ../data/linkage.glade.h:2
-msgid "<b>Origin</b>"
-msgstr "<b>Ursprung</b>"
-
-#: ../data/linkage.glade.h:3
-msgid "<b>Pieces</b>"
-msgstr "<b>Delar</b>"
-
-#: ../data/linkage.glade.h:4
-msgid "<b>Save as</b>"
-msgstr "<b>Spara som</b>"
-
-#: ../data/linkage.glade.h:5
-msgid "<b>Torrent file</b>"
-msgstr "<b>Torrent file</b>"
-
-#: ../data/linkage.glade.h:6
-msgid "<b>Tracker</b>"
-msgstr ""
-
-#: ../data/linkage.glade.h:7
-msgid "<big><b>Create torrent</b></big>"
-msgstr "<big><b>Skapa torrent</b></big>"
-
-#: ../data/linkage.glade.h:8
-msgid "About"
-msgstr "Om"
-
-#: ../data/linkage.glade.h:9
-msgid "Add a torrent"
-msgstr "Lägg till en torrent"
-
-#: ../data/linkage.glade.h:10
-msgid "Add torrent"
-msgstr "Lägg till torrent"
-
-#: ../data/linkage.glade.h:11
-msgid "Advanced"
-msgstr "Avancerat"
-
-#: ../data/linkage.glade.h:12
-msgid "Check files"
-msgstr "Kontrollera filer"
-
-#: ../data/linkage.glade.h:13
-msgid "Comment:"
-msgstr "Kommentar:"
-
-#: ../data/linkage.glade.h:14
-msgid "Configure linkage"
-msgstr "Konfigurera linkage"
-
-#: ../data/linkage.glade.h:15
-msgid "Create a new torrent file"
-msgstr "Skapa en ny torrentfil"
-
-#: ../data/linkage.glade.h:16
-msgid "Created:"
-msgstr "Skapad:"
-
-#: ../data/linkage.glade.h:17
-msgid "Creator:"
-msgstr "Skapad av:"
-
-#: ../data/linkage.glade.h:18
-msgid "Details"
-msgstr "Detaljer"
-
-#: ../data/linkage.glade.h:19
-msgid "Done:"
-msgstr "Klart:"
-
-#: ../data/linkage.glade.h:20
-msgid "Download Rate"
-msgstr "Nedladdningshastighet"
-
-#: ../data/linkage.glade.h:21
-msgid "Download rate:"
-msgstr "Nedladdningshastighet:"
-
-#: ../data/linkage.glade.h:23
-msgid "Downloaded:"
-msgstr "Nedladdat:"
-
-#: ../data/linkage.glade.h:24
-msgid "Edit groups and filters"
-msgstr "Redigera grupper och filter"
-
-#: ../data/linkage.glade.h:25
-msgid "Files"
-msgstr "Filer"
-
-#: ../data/linkage.glade.h:26
-msgid "Files:"
-msgstr "Files:"
-
-#: ../data/linkage.glade.h:27
-msgid "Folder"
-msgstr "Katalog"
-
-#: ../data/linkage.glade.h:28
-msgid "General"
-msgstr "Generellt"
-
-#: ../data/linkage.glade.h:29 ../data/groups.glade.h:4
-msgid "Group"
-msgstr "Grupp"
-
-#: ../data/linkage.glade.h:30
-msgid "Group:"
-msgstr "Grupp:"
-
-#: ../data/linkage.glade.h:31
-msgid "Limit:"
-msgstr "Gräns:"
-
-#: ../data/linkage.glade.h:32
-msgid "Move down"
-msgstr "Flytta ned"
-
-#: ../data/linkage.glade.h:33
-msgid "Move selected torrents down"
-msgstr "Flytta ned markerade torrenter"
-
-#: ../data/linkage.glade.h:34
-msgid "Move selected torrents up"
-msgstr "Flytta upp markerade torrenter"
-
-#: ../data/linkage.glade.h:35
-msgid "Move up"
-msgstr "Flytta upp"
-
-#: ../data/linkage.glade.h:37
-msgid "Name:"
-msgstr "Namn:"
-
-#: ../data/linkage.glade.h:38
-msgid "New"
-msgstr "Ny"
-
-#: ../data/linkage.glade.h:39
-msgid "Next announce:"
-msgstr "Nästa annonsering:"
-
-#: ../data/linkage.glade.h:40
-msgid "Open a torrent file"
-msgstr "Öppna en torrentfil"
-
-#: ../data/linkage.glade.h:41
-msgid "Open for seeding"
-msgstr "Öppna för uppladdning"
-
-#: ../data/linkage.glade.h:43
-msgid "Peers"
-msgstr "Klienter"
-
-#: ../data/linkage.glade.h:44
-msgid "Piece size (kB):"
-msgstr "Delstorle (kB)"
-
-#: ../data/linkage.glade.h:45
-msgid "Pieces:"
-msgstr "Delar:"
-
-#: ../data/linkage.glade.h:46
-msgid "Position"
-msgstr ""
-
-#: ../data/linkage.glade.h:47
-msgid "Prefere_nces"
-msgstr "I_nställningar"
-
-#: ../data/linkage.glade.h:48
-msgid "Private tracker"
-msgstr "Privat tracker"
-
-#: ../data/linkage.glade.h:49
-msgid "Private:"
-msgstr "Privat:"
-
-#: ../data/linkage.glade.h:51
-msgid "Quit"
-msgstr "Avsluta"
-
-#: ../data/linkage.glade.h:52
-msgid "Ratio:"
-msgstr ""
-
-#: ../data/linkage.glade.h:53
-msgid "Remaining: "
-msgstr "Återstående: "
-
-#: ../data/linkage.glade.h:54
-msgid "Remove"
-msgstr "Ta bort"
-
-#: ../data/linkage.glade.h:55
-msgid "Remove selected torrents"
-msgstr "Stoppa markerade torrenter"
-
-#: ../data/linkage.glade.h:56
-msgid "Remove torrent"
-msgstr "Ta bort torrent"
-
-#: ../data/linkage.glade.h:57
-msgid "Remove torrent and content"
-msgstr "Ta bort torrent och innehåll"
-
-#: ../data/linkage.glade.h:58
-msgid "Saving as:"
-msgstr "Sparar som:"
-
-#: ../data/linkage.glade.h:59
-msgid "Seeds"
-msgstr "Källor"
-
-#: ../data/linkage.glade.h:60
-msgid "Seen copies:"
-msgstr "Synliga kopior:"
-
-#: ../data/linkage.glade.h:61
-msgid "Select content"
-msgstr "Välj innehåll"
-
-#: ../data/linkage.glade.h:63
-msgid "Select path"
-msgstr "Välj sökväg"
-
-#: ../data/linkage.glade.h:64
-msgid "Select sort order"
-msgstr "Välj sorteringsordning"
-
-#: ../data/linkage.glade.h:65
-msgid "Show detailed information"
-msgstr "Visa detaljerad information"
-
-#: ../data/linkage.glade.h:66
-msgid "Single file"
-msgstr "Ensam fil"
-
-#: ../data/linkage.glade.h:67
-msgid "Start"
-msgstr "Starta"
-
-#: ../data/linkage.glade.h:68
-msgid "Start selected torrents"
-msgstr "Starta markerade torrenter"
-
-#: ../data/linkage.glade.h:69
-msgid "Status"
-msgstr ""
-
-#: ../data/linkage.glade.h:70
-msgid "Status:"
-msgstr ""
-
-#: ../data/linkage.glade.h:71
-msgid "Stop"
-msgstr "Stoppa"
-
-#: ../data/linkage.glade.h:72
-msgid "Stop selected torrents"
-msgstr "Stoppa markerade torrenter"
-
-#: ../data/linkage.glade.h:73 ../data/settings.glade.h:58
-msgid "Torrents"
-msgstr "Torrenter"
-
-#: ../data/linkage.glade.h:74
-msgid "Total size:"
-msgstr "Total storlek:"
-
-#: ../data/linkage.glade.h:75
-msgid "Tracker:"
-msgstr ""
-
-#: ../data/linkage.glade.h:76
-msgid "Transfer"
-msgstr "Överföring"
-
-#: ../data/linkage.glade.h:77
-msgid "Upload Rate"
-msgstr "Uppladdningshastighet"
-
-#: ../data/linkage.glade.h:78
-msgid "Upload rate:"
-msgstr "Uppladdningshastighet:"
-
-#: ../data/linkage.glade.h:80
-msgid "Uploaded:"
-msgstr "Uppladdat:"
-
-#: ../data/linkage.glade.h:81
-msgid "_Details"
-msgstr "_Detaljer"
-
-#: ../data/linkage.glade.h:82
-msgid "_Edit"
-msgstr "R_edigera"
-
-#: ../data/linkage.glade.h:83
-msgid "_File"
-msgstr "_Arkiv"
-
-#: ../data/linkage.glade.h:84
-msgid "_Groups"
-msgstr "_Grupper"
-
-#: ../data/linkage.glade.h:85
-msgid "_Help"
-msgstr "_Hjälp"
-
-#: ../data/linkage.glade.h:86
-msgid "_View"
-msgstr "_Visa"
-
-#: ../data/settings.glade.h:1
 msgid "<b>Active plugins</b>"
 msgstr "<b>Aktiva insticksmoduler</b>"
 
-#: ../data/settings.glade.h:2
+#: ../data/linkage.glade.h:2
 msgid "<b>Connection</b>"
 msgstr "<b>Anslutning</b>"
 
-#: ../data/settings.glade.h:3
+#: ../data/linkage.glade.h:3
+msgid "<b>Details</b>"
+msgstr "<b>Detaljer</b>"
+
+#: ../data/linkage.glade.h:4
+msgid "<b>Edit group</b>"
+msgstr "<b>Redigera grupp</b>"
+
+#: ../data/linkage.glade.h:5
 msgid "<b>Files</b>"
 msgstr "<b>Filer</b>"
 
-#: ../data/settings.glade.h:4
+#: ../data/linkage.glade.h:6
+msgid "<b>Filters</b>"
+msgstr "<b>Filter</b>"
+
+#: ../data/linkage.glade.h:7
 msgid "<b>Folders</b>"
 msgstr "<b>Kataloger</b>"
 
-#: ../data/settings.glade.h:5
+#: ../data/linkage.glade.h:8
 msgid "<b>General</b>"
 msgstr "<b>Generellt</b>"
 
-#: ../data/settings.glade.h:6
+#: ../data/linkage.glade.h:9
+msgid "<b>Groups</b>"
+msgstr "<b>Grupper</b>"
+
+#: ../data/linkage.glade.h:10
+msgid "<b>Origin</b>"
+msgstr "<b>Ursprung</b>"
+
+#: ../data/linkage.glade.h:11
+msgid "<b>Pieces</b>"
+msgstr "<b>Delar</b>"
+
+#: ../data/linkage.glade.h:12
 msgid "<b>Queue</b>"
 msgstr "<b>Kö</b>"
 
-#: ../data/settings.glade.h:7
+#: ../data/linkage.glade.h:13
+msgid "<b>Save as</b>"
+msgstr "<b>Spara som</b>"
+
+#: ../data/linkage.glade.h:14
 msgid "<b>Session</b>"
 msgstr ""
 
-#: ../data/settings.glade.h:8
+#: ../data/linkage.glade.h:15
 msgid "<b>State Colors</b>"
 msgstr "<b>Tillstånds Färger</b>"
 
-#: ../data/settings.glade.h:9
+#: ../data/linkage.glade.h:16
+msgid "<b>Torrent file</b>"
+msgstr "<b>Torrent file</b>"
+
+#: ../data/linkage.glade.h:17
 msgid "<b>Torrent</b>"
 msgstr ""
 
-#: ../data/settings.glade.h:10
+#: ../data/linkage.glade.h:18
+msgid "<b>Tracker</b>"
+msgstr ""
+
+#: ../data/linkage.glade.h:19
+msgid "<big><b>Create torrent</b></big>"
+msgstr "<big><b>Skapa torrent</b></big>"
+
+#: ../data/linkage.glade.h:20
+msgid "About"
+msgstr "Om"
+
+#: ../data/linkage.glade.h:21
+msgid "Add a torrent"
+msgstr "Lägg till en torrent"
+
+#: ../data/linkage.glade.h:22
+msgid "Add torrent"
+msgstr "Lägg till torrent"
+
+#: ../data/linkage.glade.h:23
+msgid "Advanced"
+msgstr "Avancerat"
+
+#: ../data/linkage.glade.h:24
 msgid "Allocate disk space"
 msgstr "Allokera diskutrymme"
 
-#: ../data/settings.glade.h:11
+#: ../data/linkage.glade.h:25
 msgid "Allocating:"
 msgstr "Allokerar:"
 
-#: ../data/settings.glade.h:12
+#: ../data/linkage.glade.h:26
 msgid "Allow line breaks in comments"
 msgstr "Tillåt radbrytningar i kommentarer"
 
-#: ../data/settings.glade.h:13
+#: ../data/linkage.glade.h:27
 msgid "Allow multiple connections per IP"
 msgstr "Tillåt flera anslutningar per IP"
 
-#: ../data/settings.glade.h:15
+#: ../data/linkage.glade.h:28
+msgid "Announce"
+msgstr "Annonsera"
+
+#: ../data/linkage.glade.h:30
 msgid "Auto expand details"
 msgstr "Auto expandera detaljer"
 
-#: ../data/settings.glade.h:16
+#: ../data/linkage.glade.h:31
 msgid "C_onfigure Plugin"
 msgstr "K_onfigurera Insticksmodul"
 
-#: ../data/settings.glade.h:17
+#: ../data/linkage.glade.h:32
+msgid "Check files"
+msgstr "Kontrollera filer"
+
+#: ../data/linkage.glade.h:33
 msgid "Check queue:"
 msgstr "Kontrollkö:"
 
-#: ../data/settings.glade.h:18
+#: ../data/linkage.glade.h:34
 msgid "Checking:"
 msgstr "Kontrollerar:"
 
-#: ../data/settings.glade.h:19
+#: ../data/linkage.glade.h:35
+msgid "Comment:"
+msgstr "Kommentar:"
+
+#: ../data/linkage.glade.h:36
+msgid "Configure linkage"
+msgstr "Konfigurera linkage"
+
+#: ../data/linkage.glade.h:37
+msgid "Create a new torrent file"
+msgstr "Skapa en ny torrentfil"
+
+#: ../data/linkage.glade.h:38
+msgid "Created:"
+msgstr "Skapad:"
+
+#: ../data/linkage.glade.h:39
+msgid "Creator:"
+msgstr "Skapad av:"
+
+#: ../data/linkage.glade.h:40
 msgid "Desired ratio:"
 msgstr "Önskat ratio:"
 
-#: ../data/settings.glade.h:20
+#: ../data/linkage.glade.h:41
+msgid "Details"
+msgstr "Detaljer"
+
+#: ../data/linkage.glade.h:42
+msgid "Done:"
+msgstr "Klart:"
+
+#: ../data/linkage.glade.h:43
+msgid "Download Rate"
+msgstr "Nedladdningshastighet"
+
+#: ../data/linkage.glade.h:44
+msgid "Download rate:"
+msgstr "Nedladdningshastighet:"
+
+#: ../data/linkage.glade.h:46
+msgid "Downloaded:"
+msgstr "Nedladdat:"
+
+#: ../data/linkage.glade.h:47
 msgid "Downloading:"
 msgstr "Laddar ned:"
 
-#: ../data/settings.glade.h:21
+#: ../data/linkage.glade.h:48
+msgid "Edit groups and filters"
+msgstr "Redigera grupper och filter"
+
+#: ../data/linkage.glade.h:49
 msgid "Enable DHT"
 msgstr "Aktivera DHT"
 
-#: ../data/settings.glade.h:22
+#: ../data/linkage.glade.h:50
 msgid "Enable PEX"
 msgstr "Aktivera PEX"
 
-#: ../data/settings.glade.h:23
+#: ../data/linkage.glade.h:51
 msgid "Encryption level:"
 msgstr "Krypterings nivå"
 
-#: ../data/settings.glade.h:24
+#: ../data/linkage.glade.h:52
 msgid "Encryption policy:"
 msgstr "Krypterings policy"
 
-#: ../data/settings.glade.h:25
+#: ../data/linkage.glade.h:53
 msgid "Error:"
 msgstr "Fel:"
 
-#: ../data/settings.glade.h:26
+#: ../data/linkage.glade.h:54
+msgid "Files"
+msgstr "Filer"
+
+#: ../data/linkage.glade.h:55
 msgid "Files & Folders"
 msgstr "Filer & Kataloger"
 
-#: ../data/settings.glade.h:27
+#: ../data/linkage.glade.h:56
+msgid "Files:"
+msgstr "Files:"
+
+#: ../data/linkage.glade.h:57
 msgid "Finished:"
 msgstr "Klar:"
 
-#: ../data/settings.glade.h:28
+#: ../data/linkage.glade.h:58
+msgid "Folder"
+msgstr "Katalog"
+
+#: ../data/linkage.glade.h:59
 msgid ""
 "For a non-zero value n greater than or equal 1, linkage will try to upload n "
 "bytes for every byte received"
@@ -1072,175 +881,390 @@ msgstr ""
 "För ett värde n som inte är noll och större eller lika med 1, kommerlinkage "
 "försöka ladda upp n byte för varje byte mottaget"
 
-#: ../data/settings.glade.h:29
+#: ../data/linkage.glade.h:60
+msgid "General"
+msgstr "Generellt"
+
+#: ../data/linkage.glade.h:61
 msgid ""
 "Global limit of connections open, hard coded to at least two per torrent"
 msgstr ""
 "Global gräns för öppna anslutningar, hårdkodat till minst två per torrent"
 
-#: ../data/settings.glade.h:30
+#: ../data/linkage.glade.h:62
 msgid ""
 "Global limit on the number of uploads, hard coded to at least one per torrent"
 msgstr ""
 "Global gräns för antalet uppladdningar, hårdkodat till minst en per torrent"
 
-#: ../data/settings.glade.h:31
+#: ../data/linkage.glade.h:63
 msgid "Global maximum for the download rate in kB/s"
 msgstr "Globalt maximum för nedladdningshastigheten i kB/s"
 
-#: ../data/settings.glade.h:32
+#: ../data/linkage.glade.h:64
 msgid "Global maximum for the upload rate in kB/s"
 msgstr "Globalt maximum för uppladdningshastigheten i Kb/s"
 
-#: ../data/settings.glade.h:33
-msgid "Interface"
-msgstr "Gränssnitt"
+#: ../data/linkage.glade.h:65
+msgid "Group"
+msgstr "Grupp"
 
-#: ../data/settings.glade.h:34
-msgid "Interface:"
-msgstr "Gränssnitt:"
+#: ../data/linkage.glade.h:66
+msgid "Group:"
+msgstr "Grupp:"
 
-#: ../data/settings.glade.h:35
-msgid "Max active torrents:"
-msgstr "Max aktiva torrenter:"
-
-#: ../data/settings.glade.h:36
-msgid "Max connections:"
-msgstr "Max anslutningar:"
-
-#: ../data/settings.glade.h:37
-msgid "Max download rate:"
-msgstr "Max nedladdningshastighet:"
-
-#: ../data/settings.glade.h:38
-msgid "Max open files:"
-msgstr "Max öppna filer:"
-
-#: ../data/settings.glade.h:39
-msgid "Max upload rate:"
-msgstr "Max uppladdningshastighet:"
-
-#: ../data/settings.glade.h:40
-msgid "Max upload slots:"
-msgstr "Max uppladdningsplatser:"
-
-#: ../data/settings.glade.h:41
-msgid "Maximum number of connections per torrent"
-msgstr "Maximala antalet anslutningar per torrent"
-
-#: ../data/settings.glade.h:42
-msgid "Maximum number of simultaneously active torrents"
-msgstr "Maximala antalet samtidigt aktiva torrenter"
-
-#: ../data/settings.glade.h:43
-msgid "Maximum number of uploads per torrent"
-msgstr "Maximala antalet uppladdningar per torrent"
-
-#: ../data/settings.glade.h:44
-msgid "Move finished:"
-msgstr "Flytta klara:"
-
-#: ../data/settings.glade.h:45
-msgid "Network"
-msgstr "Nätverk"
-
-#: ../data/settings.glade.h:46
-msgid "Only as fallback"
-msgstr "Endast som reservutväg"
-
-#: ../data/settings.glade.h:47
-msgid "Password:"
-msgstr "Lösenord:"
-
-#: ../data/settings.glade.h:48
-msgid "Plugins"
-msgstr "Insticksmoduler"
-
-#: ../data/settings.glade.h:49
-msgid "Ports:"
-msgstr "Portar:"
-
-#: ../data/settings.glade.h:50
-msgid "Preferences"
-msgstr "Inställningar"
-
-#: ../data/settings.glade.h:51
-msgid "Proxy"
-msgstr ""
-
-#: ../data/settings.glade.h:52
-msgid "Proxy:"
-msgstr ""
-
-#: ../data/settings.glade.h:53
-msgid "Queued:"
-msgstr "Köad:"
-
-#: ../data/settings.glade.h:54
-msgid "Seeding:"
-msgstr "Laddar upp"
-
-#: ../data/settings.glade.h:55
-msgid "Select Folder"
-msgstr "Välj Katalog"
-
-#: ../data/settings.glade.h:56
-msgid "Stop seeding at ratio:"
-msgstr "Sluta ladda upp vid ratio:"
-
-#: ../data/settings.glade.h:57
-msgid "Stopped:"
-msgstr "Stoppad:"
-
-#: ../data/settings.glade.h:59
-msgid "Trunkate names, width:"
-msgstr "Kapa namn, bredd:"
-
-#: ../data/settings.glade.h:60
-msgid "Type:"
-msgstr "Typ:"
-
-#: ../data/settings.glade.h:61
-msgid "Update interval:"
-msgstr "Uppdateringsintervall:"
-
-#: ../data/settings.glade.h:62
-msgid "Use default path:"
-msgstr "Spara i standardsökväg:"
-
-#: ../data/settings.glade.h:63
-msgid "Use lazy bitfields"
-msgstr "Använd lata bitfält"
-
-#: ../data/settings.glade.h:64
-msgid "Username:"
-msgstr "Användarnamn:"
-
-#: ../data/settings.glade.h:65
-msgid "_About Plugin"
-msgstr "_Om Insticksmodul"
-
-#: ../data/groups.glade.h:1
-msgid "<b>Edit group</b>"
-msgstr "<b>Redigera grupp</b>"
-
-#: ../data/groups.glade.h:2
-msgid "<b>Filters</b>"
-msgstr "<b>Filter</b>"
-
-#: ../data/groups.glade.h:3
-msgid "<b>Groups</b>"
-msgstr "<b>Grupper</b>"
-
-#: ../data/groups.glade.h:5
+#: ../data/linkage.glade.h:67
 msgid "Groups"
 msgstr "Grupper"
 
-#: ../data/groups.glade.h:6
+#: ../data/linkage.glade.h:68
+msgid "Interface"
+msgstr "Gränssnitt"
+
+#: ../data/linkage.glade.h:69
+msgid "Interface:"
+msgstr "Gränssnitt:"
+
+#: ../data/linkage.glade.h:70
+msgid "Limit:"
+msgstr "Gräns:"
+
+#: ../data/linkage.glade.h:71
+msgid "Max active torrents:"
+msgstr "Max aktiva torrenter:"
+
+#: ../data/linkage.glade.h:72
+msgid "Max connections:"
+msgstr "Max anslutningar:"
+
+#: ../data/linkage.glade.h:73
+msgid "Max download rate:"
+msgstr "Max nedladdningshastighet:"
+
+#: ../data/linkage.glade.h:74
+msgid "Max open files:"
+msgstr "Max öppna filer:"
+
+#: ../data/linkage.glade.h:75
+msgid "Max upload rate:"
+msgstr "Max uppladdningshastighet:"
+
+#: ../data/linkage.glade.h:76
+msgid "Max upload slots:"
+msgstr "Max uppladdningsplatser:"
+
+#: ../data/linkage.glade.h:77
+msgid "Maximum number of connections per torrent"
+msgstr "Maximala antalet anslutningar per torrent"
+
+#: ../data/linkage.glade.h:78
+msgid "Maximum number of simultaneously active torrents"
+msgstr "Maximala antalet samtidigt aktiva torrenter"
+
+#: ../data/linkage.glade.h:79
+msgid "Maximum number of uploads per torrent"
+msgstr "Maximala antalet uppladdningar per torrent"
+
+#: ../data/linkage.glade.h:80
+msgid "Move down"
+msgstr "Flytta ned"
+
+#: ../data/linkage.glade.h:81
+msgid "Move finished:"
+msgstr "Flytta klara:"
+
+#: ../data/linkage.glade.h:82
+msgid "Move selected torrents down"
+msgstr "Flytta ned markerade torrenter"
+
+#: ../data/linkage.glade.h:83
+msgid "Move selected torrents up"
+msgstr "Flytta upp markerade torrenter"
+
+#: ../data/linkage.glade.h:84
+msgid "Move up"
+msgstr "Flytta upp"
+
+#: ../data/linkage.glade.h:85
 msgid "My New Group's Name"
 msgstr "Min Nya Grupps Namn"
+
+#: ../data/linkage.glade.h:87
+msgid "Name:"
+msgstr "Namn:"
+
+#: ../data/linkage.glade.h:88
+msgid "Network"
+msgstr "Nätverk"
+
+#: ../data/linkage.glade.h:89
+msgid "New"
+msgstr "Ny"
+
+#: ../data/linkage.glade.h:90
+msgid "Next announce:"
+msgstr "Nästa annonsering:"
+
+#: ../data/linkage.glade.h:91
+msgid "Only as fallback"
+msgstr "Endast som reservutväg"
+
+#: ../data/linkage.glade.h:92
+msgid "Open a torrent file"
+msgstr "Öppna en torrentfil"
+
+#: ../data/linkage.glade.h:93
+msgid "Open for seeding"
+msgstr "Öppna för uppladdning"
+
+#: ../data/linkage.glade.h:95
+msgid "Password:"
+msgstr "Lösenord:"
+
+#: ../data/linkage.glade.h:96
+msgid "Peers"
+msgstr "Klienter"
+
+#: ../data/linkage.glade.h:97
+msgid "Piece size (kB):"
+msgstr "Delstorle (kB)"
+
+#: ../data/linkage.glade.h:98
+msgid "Pieces:"
+msgstr "Delar:"
+
+#: ../data/linkage.glade.h:99
+msgid "Plugins"
+msgstr "Insticksmoduler"
+
+#: ../data/linkage.glade.h:100
+msgid "Ports:"
+msgstr "Portar:"
+
+#: ../data/linkage.glade.h:101
+msgid "Position"
+msgstr ""
+
+#: ../data/linkage.glade.h:102
+msgid "Prefere_nces"
+msgstr "I_nställningar"
+
+#: ../data/linkage.glade.h:103
+msgid "Preferences"
+msgstr "Inställningar"
+
+#: ../data/linkage.glade.h:104
+msgid "Prioritize first and last pieces"
+msgstr "Prioritera första och sista delarna"
+
+#: ../data/linkage.glade.h:105
+msgid "Private tracker"
+msgstr "Privat tracker"
+
+#: ../data/linkage.glade.h:106
+msgid "Private:"
+msgstr "Privat:"
+
+#: ../data/linkage.glade.h:108
+msgid "Proxy"
+msgstr ""
+
+#: ../data/linkage.glade.h:109
+msgid "Proxy:"
+msgstr ""
+
+#: ../data/linkage.glade.h:110
+msgid "Queued:"
+msgstr "Köad:"
+
+#: ../data/linkage.glade.h:111
+msgid "Quit"
+msgstr "Avsluta"
+
+#: ../data/linkage.glade.h:112
+msgid "Ratio:"
+msgstr ""
+
+#: ../data/linkage.glade.h:113
+msgid "Remaining: "
+msgstr "Återstående: "
+
+#: ../data/linkage.glade.h:114
+msgid "Remove"
+msgstr "Ta bort"
+
+#: ../data/linkage.glade.h:115
+msgid "Remove selected torrents"
+msgstr "Stoppa markerade torrenter"
+
+#: ../data/linkage.glade.h:116
+msgid "Remove torrent"
+msgstr "Ta bort torrent"
+
+#: ../data/linkage.glade.h:117
+msgid "Remove torrent and content"
+msgstr "Ta bort torrent och innehåll"
+
+#: ../data/linkage.glade.h:118
+msgid "Saving as:"
+msgstr "Sparar som:"
+
+#: ../data/linkage.glade.h:119
+msgid "Seeding:"
+msgstr "Laddar upp"
+
+#: ../data/linkage.glade.h:120
+msgid "Seeds"
+msgstr "Källor"
+
+#: ../data/linkage.glade.h:121
+msgid "Seen copies:"
+msgstr "Synliga kopior:"
+
+#: ../data/linkage.glade.h:122
+msgid "Select Folder"
+msgstr "Välj Katalog"
+
+#: ../data/linkage.glade.h:123
+msgid "Select content"
+msgstr "Välj innehåll"
+
+#: ../data/linkage.glade.h:125
+msgid "Select path"
+msgstr "Välj sökväg"
+
+#: ../data/linkage.glade.h:126
+msgid "Select sort order"
+msgstr "Välj sorteringsordning"
+
+#: ../data/linkage.glade.h:127
+msgid "Show detailed information"
+msgstr "Visa detaljerad information"
+
+#: ../data/linkage.glade.h:128
+msgid "Show the groups panel"
+msgstr "Visa grupperpanelen"
+
+#: ../data/linkage.glade.h:129
+msgid "Single file"
+msgstr "Ensam fil"
+
+#: ../data/linkage.glade.h:130
+msgid "Start"
+msgstr "Starta"
+
+#: ../data/linkage.glade.h:131
+msgid "Start selected torrents"
+msgstr "Starta markerade torrenter"
+
+#: ../data/linkage.glade.h:132
+msgid "Status"
+msgstr ""
+
+#: ../data/linkage.glade.h:133
+msgid "Status:"
+msgstr ""
+
+#: ../data/linkage.glade.h:134
+msgid "Stop"
+msgstr "Stoppa"
+
+#: ../data/linkage.glade.h:135
+msgid "Stop seeding at ratio:"
+msgstr "Sluta ladda upp vid ratio:"
+
+#: ../data/linkage.glade.h:136
+msgid "Stop selected torrents"
+msgstr "Stoppa markerade torrenter"
+
+#: ../data/linkage.glade.h:137
+msgid "Stopped:"
+msgstr "Stoppad:"
+
+#: ../data/linkage.glade.h:138
+msgid "Torrents"
+msgstr "Torrenter"
+
+#: ../data/linkage.glade.h:139
+msgid "Total size:"
+msgstr "Total storlek:"
+
+#: ../data/linkage.glade.h:140
+msgid "Tracker:"
+msgstr ""
+
+#: ../data/linkage.glade.h:141
+msgid "Transfer"
+msgstr "Överföring"
+
+#: ../data/linkage.glade.h:142
+msgid "Trunkate names, width:"
+msgstr "Kapa namn, bredd:"
+
+#: ../data/linkage.glade.h:143
+msgid "Type:"
+msgstr "Typ:"
+
+#: ../data/linkage.glade.h:144
+msgid "Update interval:"
+msgstr "Uppdateringsintervall:"
+
+#: ../data/linkage.glade.h:145
+msgid "Upload Rate"
+msgstr "Uppladdningshastighet"
+
+#: ../data/linkage.glade.h:146
+msgid "Upload rate:"
+msgstr "Uppladdningshastighet:"
+
+#: ../data/linkage.glade.h:148
+msgid "Uploaded:"
+msgstr "Uppladdat:"
+
+#: ../data/linkage.glade.h:149
+msgid "Use default path:"
+msgstr "Spara i standardsökväg:"
+
+#: ../data/linkage.glade.h:150
+msgid "Use lazy bitfields"
+msgstr "Använd lata bitfält"
+
+#: ../data/linkage.glade.h:151
+msgid "Username:"
+msgstr "Användarnamn:"
+
+#: ../data/linkage.glade.h:152
+msgid "_About Plugin"
+msgstr "_Om Insticksmodul"
+
+#: ../data/linkage.glade.h:153
+msgid "_Details"
+msgstr "_Detaljer"
+
+#: ../data/linkage.glade.h:154
+msgid "_Edit"
+msgstr "R_edigera"
+
+#: ../data/linkage.glade.h:155
+msgid "_File"
+msgstr "_Arkiv"
+
+#: ../data/linkage.glade.h:156
+msgid "_Groups"
+msgstr "_Grupper"
+
+#: ../data/linkage.glade.h:157
+msgid "_Help"
+msgstr "_Hjälp"
+
+#: ../data/linkage.glade.h:158
+msgid "_View"
+msgstr "_Visa"
+
+#: ../data/linkage.desktop.in.h:1
+msgid "Download and share content through BitTorrent"
+msgstr "Ladda ner och dela innehåll genom BittTorrent"
 
 #: ../data/linkage.desktop.in.h:2
 msgid "Linkage"
 msgstr ""
-
