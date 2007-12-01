@@ -100,11 +100,8 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	Glib::RefPtr<TorrentManager> tm = Engine::get_torrent_manager();
 	TorrentManager::TorrentList torrents = tm->get_torrents();
-	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
-				iter != torrents.end(); ++iter)
-	{
-		on_added(*iter);
-	}
+	std::for_each(torrents.begin(), torrents.end(), sigc::mem_fun(this, &TorrentList::on_added));
+
 	PathList path_list = get_selection()->get_selected_rows();
 	if (!path_list.empty())
 	{
@@ -284,42 +281,28 @@ Glib::ustring TorrentList::get_formated_name(const Glib::RefPtr<Torrent>& torren
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 	int state = torrent->get_state();
 	Glib::ustring color;
-	switch (state)
-	{
-		case Torrent::CHECK_QUEUE:
-			color = sm->get_string("ui/colors/check_queue");
-			break;
-		case Torrent::CHECKING:
-			color = sm->get_string("ui/colors/checking");
-			break;
-		case Torrent::ANNOUNCING:
-			color = sm->get_string("ui/colors/announcing");
-			break;
-		case Torrent::DOWNLOADING:
-			color = sm->get_string("ui/colors/downloading");
-			break;
-		case Torrent::FINISHED:
-			color = sm->get_string("ui/colors/finished");
-			break;
-		case Torrent::SEEDING:
-			color = sm->get_string("ui/colors/seeding");
-			break;
-		case Torrent::ALLOCATING:
-			color = sm->get_string("ui/colors/allocating");
-			break;
-		case Torrent::STOPPED:
-			color = sm->get_string("ui/colors/stopped");
-			break;
-		case Torrent::QUEUED:
-			color = sm->get_string("ui/colors/queued");
-			break;
-		case Torrent::ERROR:
-			color = sm->get_string("ui/colors/error");
-			break;
-		default:
-			color = sm->get_string("ui/colors/stopped");
-			break;
-	}
+
+
+	if (state & Torrent::CHECK_QUEUE)
+		color = sm->get_string("ui/colors/check_queue");
+	else if (state & Torrent::CHECKING)
+		color = sm->get_string("ui/colors/checking");
+	else if (state & Torrent::ANNOUNCING)
+		color = sm->get_string("ui/colors/announcing");
+	else if (state & Torrent::STOPPED)
+		color = sm->get_string("ui/colors/stopped");
+	else if (state & Torrent::DOWNLOADING)
+		color = sm->get_string("ui/colors/downloading");
+	else if (state & Torrent::FINISHED)
+		color = sm->get_string("ui/colors/finished");
+	else if (state & Torrent::SEEDING)
+		color = sm->get_string("ui/colors/seeding");
+	else if (state & Torrent::ALLOCATING)
+		color = sm->get_string("ui/colors/allocating");
+	else if (state & Torrent::QUEUED)
+		color = sm->get_string("ui/colors/queued");
+	else if (state & Torrent::ERROR)
+		color = sm->get_string("ui/colors/error");
 
 	Glib::ustring name = torrent->get_name();
 	int name_max = sm->get_int("ui/torrent_view/max_name_width");

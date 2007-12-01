@@ -216,7 +216,7 @@ int Torrent::get_state()
 			case libtorrent::torrent_status::checking_files:
 				return CHECKING;
 			case libtorrent::torrent_status::connecting_to_tracker:
-				return ANNOUNCING;
+				return ANNOUNCING | (m_completed ? FINISHED : DOWNLOADING);
 			case libtorrent::torrent_status::finished:
 				return FINISHED;
 			case libtorrent::torrent_status::seeding:
@@ -260,6 +260,10 @@ Glib::ustring Torrent::state_string(int state)
 			return _("Checking");
 		case ANNOUNCING:
 			return _("Announcing");
+		case ANNOUNCING | DOWNLOADING:
+			return String::ucompose("%1, %2", _("Downloading"), _("Announcing"));
+		case ANNOUNCING | FINISHED:
+			return String::ucompose("%1, %2", _("Finished"), _("Announcing"));
 		case FINISHED:
 			return _("Finished");
 		case SEEDING:
