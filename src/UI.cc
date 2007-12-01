@@ -92,13 +92,11 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
 
+	// get the widgets we work with
 	glade_xml->get_widget_derived("settings_win", settings_win);
 	settings_win->set_transient_for(*this);
-	
 	glade_xml->get_widget_derived("groups_win", groups_win);
 	groups_win->set_transient_for(*this);
-
-	// get the widgets we work with
 	glade_xml->get_widget_derived("add_dialog", add_dialog);
 	add_dialog->set_transient_for(*this);
 	glade_xml->get_widget_derived("new_dialog", new_dialog);
@@ -216,9 +214,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 		("sort_menu_progress", sigc::bind(sigc::mem_fun
 			(this, &UI::on_sort_item_selected), TorrentList::COL_PROGRESS));
 
-
-
-	tb_sort->set_menu(*sort_menu);
+	tb_sort->set_menu(*Gtk::manage(sort_menu));
 	// 	btn->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
 	
 	// set the sort image
@@ -240,14 +236,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	torrent_list->drag_dest_set(targets);
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), false);
 
-	/* setup group and state stuff, this is ugly and should be changed */
-	groups_win->signal_groups_changed().connect(sigc::mem_fun(group_list, &GroupList::on_groups_changed));
-	groups_win->signal_groups_changed().connect(sigc::mem_fun(torrent_menu, &TorrentMenu::on_groups_changed));
-	groups_win->signal_groups_changed().connect(sigc::mem_fun(add_dialog, &AddDialog::on_groups_changed));
-	group_list->signal_filter_set().connect(sigc::mem_fun(torrent_list, &TorrentList::on_filter_set));
-	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(group_list, &GroupList::on_state_filter_changed));
-	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(torrent_list, &TorrentList::on_state_filter_changed));
-
 	// hack to emit groups_changed signal
 	groups_win->notify();
 
@@ -265,7 +253,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	spinbutton_up->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_up));
 
 	torrent_menu->signal_open().connect(sigc::mem_fun(this, &UI::on_open_location));
-	//FIXME: torrent_menu->signal_info().connect(sigc::mem_fun(this, &UI::on_info));
 	torrent_menu->signal_up().connect(sigc::mem_fun(this, &UI::on_up));
 	torrent_menu->signal_down().connect(sigc::mem_fun(this, &UI::on_down));
 	torrent_menu->signal_start().connect(sigc::mem_fun(this, &UI::on_start));
@@ -333,6 +320,7 @@ UI::~UI()
 
 	// FIXME: sort out what auto-deleted through glade
 	// seems like derived widgets must be deleted to get destructors in order
+	// at least all top level widgets must be deleted!
 	delete state_filter;
 	delete torrent_list;
 	delete piecemap;

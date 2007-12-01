@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Engine.hh"
 #include "linkage/SettingsManager.hh"
 
+#include "GroupsWin.hh"
 #include "TorrentMenu.hh"
 
 using namespace Linkage;
@@ -42,11 +43,14 @@ TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	Gtk::MenuItem* item;
 	glade_xml->get_widget("torrent_menu_groups", item);
 	item->set_submenu(*submenu_groups);
-	
+
+	/* Connect update signal */
+	GroupsWin* groups_win;
+	glade_xml->get_widget_derived("groups_win", groups_win);
+	groups_win->signal_groups_changed().connect(sigc::mem_fun(this, &TorrentMenu::on_groups_changed));
+
 	glade_xml->connect_clicked
 		("torrent_menu_open", sigc::mem_fun(&m_signal_open, &sigc::signal<void>::emit));
-	glade_xml->connect_clicked
-		("torrent_menu_details", sigc::mem_fun(&m_signal_info, &sigc::signal<void>::emit));
 	glade_xml->connect_clicked
 		("torrent_menu_up", sigc::mem_fun(&m_signal_up, &sigc::signal<void>::emit));
 	glade_xml->connect_clicked
@@ -104,11 +108,6 @@ void TorrentMenu::on_groups_changed(const std::list<Group>& groups)
 sigc::signal<void> TorrentMenu::signal_open()
 {
 	return m_signal_open;
-}
-
-sigc::signal<void> TorrentMenu::signal_info()
-{
-	return m_signal_info;
 }
 
 sigc::signal<void> TorrentMenu::signal_up()
