@@ -389,6 +389,14 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 
 sha1_hash SessionManager::resume_torrent(const sha1_hash& hash)
 {
+	/* simply unpause if the torrent is in state ERROR */
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	if (torrent && torrent->get_state() & Torrent::ERROR)
+	{
+		torrent->get_handle().resume();
+		return hash;
+	}
+
 	Glib::ustring hash_str = String::compose("%1", hash);
 	return resume_torrent(hash_str);
 }
