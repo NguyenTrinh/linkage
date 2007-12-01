@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/cellrenderertext.h>
 #include <glibmm/i18n.h>
 
+#include "StateFilter.hh"
+#include "GroupList.hh"
 #include "CellRendererProgressText.hh"
 #include "TorrentList.hh"
 
@@ -113,6 +115,14 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 	tm->signal_added().connect(sigc::mem_fun(*this, &TorrentList::on_added));
 	tm->signal_removed().connect(sigc::mem_fun(*this, &TorrentList::on_removed));
+
+	/* Connect update signals */
+	GroupList* group_list;
+	glade_xml->get_widget_derived("groups_treeview1", group_list);
+	group_list->signal_filter_set().connect(sigc::mem_fun(this, &TorrentList::on_filter_set));
+	StateFilter* state_filter;
+	glade_xml->get_widget_derived("state_combobox", state_filter);
+	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(this, &TorrentList::on_state_filter_changed));
 }
 
 TorrentList::~TorrentList()
@@ -123,7 +133,7 @@ TorrentList::~TorrentList()
 	int column;
 	model->get_sort_column_id(column, order);
 	sm->set("ui/torrent_view/order", sort_order_table, order);
-	sm->set("ui/torrent_view/column", sort_order_table, column);
+	sm->set("ui/torrent_view/column", sort_column_table, column);
 
 	PathList path_list = get_selection()->get_selected_rows();
 	if (path_list.size() == 1)

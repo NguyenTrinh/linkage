@@ -124,6 +124,8 @@ GroupsWin::~GroupsWin()
 	}
 
 	save_entry(Glib::build_filename(get_config_dir(), "groups"), e_groups);
+
+	delete group_edit;
 }
 
 sigc::signal<void, const std::list<Group>& > GroupsWin::signal_groups_changed()

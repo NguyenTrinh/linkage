@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
 
+#include "GroupsWin.hh"
 #include "Group.hh"
 #include "AddDialog.hh"
 
@@ -43,6 +44,11 @@ AddDialog::AddDialog(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	xml->get_widget("add_okbutton", button_ok);
 	xml->get_widget_derived("add_treeview", file_list);
 	xml->get_widget_derived("add_combobox_group", combo_group);
+
+	/* Connect update signal */
+	GroupsWin* groups_win;
+	xml->get_widget_derived("groups_win", groups_win);
+	groups_win->signal_groups_changed().connect(sigc::mem_fun(this, &AddDialog::on_groups_changed));
 
 	Gtk::FileFilter torrent_filter;
 	torrent_filter.add_mime_type("application/x-bittorrent");

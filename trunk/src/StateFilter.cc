@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 using namespace Linkage;
 
 static GConfEnumStringPair active_state_table[] = {
-	{ -1, NULL },
   { 0, "STATE_ALL" },
   { 1, "STATE_ANNOUNCING" },
   { 2, "STATE_DOWNLOADING" },

@@ -31,7 +31,6 @@ class TorrentMenu : public Gtk::Menu
 	Gtk::Menu* submenu_groups;
 
 	sigc::signal<void> m_signal_open;
-	sigc::signal<void> m_signal_info;
 	sigc::signal<void> m_signal_up;
 	sigc::signal<void> m_signal_down;
 	sigc::signal<void> m_signal_start;
@@ -46,7 +45,6 @@ class TorrentMenu : public Gtk::Menu
 
 public:
 	sigc::signal<void> signal_open();
-	sigc::signal<void> signal_info();
 	sigc::signal<void> signal_up();
 	sigc::signal<void> signal_down();
 	sigc::signal<void> signal_start();

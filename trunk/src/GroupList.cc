@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <libtorrent/entry.hpp>
 
+#include "StateFilter.hh"
 #include "GroupList.hh"
+#include "GroupsWin.hh"
 
 #include "linkage/Engine.hh"
 #include "linkage/SettingsManager.hh"
@@ -51,6 +53,14 @@ GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	row[columns.group] = Group();
 
 	get_selection()->signal_changed().connect(sigc::mem_fun(this, &GroupList::on_selection_changed));
+
+	/* Connect update signals */
+	GroupsWin* groups_win;
+	glade_xml->get_widget_derived("groups_win", groups_win);
+	groups_win->signal_groups_changed().connect(sigc::mem_fun(this, &GroupList::on_groups_changed));
+	StateFilter* state_filter;
+	glade_xml->get_widget_derived("state_combobox", state_filter);
+	state_filter->signal_state_filter_changed().connect(sigc::mem_fun(this, &GroupList::on_state_filter_changed));
 
 	show_all_children();
 }
