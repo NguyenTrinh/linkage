@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibtop.h>
 #include <glibtop/fsusage.h>
 
+#include <gtkmm/main.h>
 #include <glibmm/i18n.h>
 
 #include "linkage/Engine.hh"
@@ -103,7 +104,6 @@ void AddDialog::on_file_changed()
 			_("<i>%1 free disk space required</i>"),
 			suffix_value(m_info->total_size())));
 		button_ok->set_sensitive(true);
-
 		//update label_free if save path was set before torrent file
 		on_path_changed();
 	}
@@ -183,15 +183,29 @@ int AddDialog::run_with_file(const Glib::ustring& file)
 	//hack so users can't press ok before the filename is set properly
 	button_ok->set_sensitive(false);
 
-	//FIXME: this doesn't always seem to work (even though it returns true)
+	//FIXME: uncomment when gtkfilechooser is fixed
+	//button_file->set_filename(Glib::filename_from_utf8(file));
+
+	// horrible hack to make sure file is selected
 	button_file->set_filename(Glib::filename_from_utf8(file));
+	while (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
+	{
+		while (Gtk::Main::events_pending())
+			Gtk::Main::iteration(false);
+
+		if (!button_file->get_filename().empty())
+			break;
+		else
+			button_file->set_filename(Glib::filename_from_utf8(file));
+	}
 
 	return run();
 }
 
 int AddDialog::run()
 {
-	button_ok->set_sensitive(false);
+	if (button_file->get_filename().empty())
+		button_ok->set_sensitive(false);
 
 	int response = Gtk::Dialog::run();
 
