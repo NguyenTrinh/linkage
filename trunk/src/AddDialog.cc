@@ -185,10 +185,6 @@ int AddDialog::run_with_file(const Glib::ustring& file)
 
 	//FIXME: this doesn't always seem to work (even though it returns true)
 	button_file->set_filename(Glib::filename_from_utf8(file));
-	button_file->set_filename(Glib::filename_from_utf8(file));
-	button_file->set_filename(Glib::filename_from_utf8(file));
-	button_file->set_filename(Glib::filename_from_utf8(file));
-	button_file->set_filename(Glib::filename_from_utf8(file));
 
 	return run();
 }
