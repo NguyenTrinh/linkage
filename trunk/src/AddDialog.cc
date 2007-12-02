@@ -158,7 +158,7 @@ void AddDialog::on_groups_changed(const std::list<Group>& groups)
 AddDialog::AddData AddDialog::get_data()
 {
 	AddData data;
-	data.file = button_file->get_filename();
+	data.file = Glib::filename_to_utf8(button_file->get_filename());
 	data.path = button_path->get_filename();
 	data.name = entry_name->get_text();
 	data.group = combo_group->get_active_text();
