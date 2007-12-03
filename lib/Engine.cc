@@ -64,6 +64,8 @@ void Engine::init()
 
 void Engine::uninit()
 {
+	ssm->disconnect();
+
 	// Kill them of in order due to depencies
 	pm.clear();
 	tm.clear();

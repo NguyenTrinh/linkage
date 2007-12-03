@@ -51,6 +51,11 @@ SettingsManager::SettingsManager()
 
 SettingsManager::~SettingsManager()
 {
+	gconf->suggest_sync();
+}
+
+void SettingsManager::disconnect()
+{
 	gconf->remove_dir("/apps/linkage");
 	gconf->notify_remove(notify_id);
 }
