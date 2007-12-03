@@ -297,9 +297,10 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 			int piece_index = iter->first;
 			while (piece_index <= iter->second)
 			{
-				g_assert(piece_index < map.size());
+				int map_index = piece_index % map.size();
+				g_assert(map_index < map.size());
 				g_assert(piece_index < data.pieces.size());
-				map[piece_index] = (bool)data.pieces[piece_index];
+				map[map_index] = (bool)data.pieces[piece_index];
 				piece_index++;
 			}
 		}
