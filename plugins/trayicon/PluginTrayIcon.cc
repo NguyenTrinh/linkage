@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <sstream>
 
+#include <gtkmm/main.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/menuitem.h>
 #include <gtkmm/imagemenuitem.h>
@@ -77,7 +78,12 @@ TrayPlugin::TrayPlugin()
 
 TrayPlugin::~TrayPlugin()
 {
+	icon->set_visible(false);
 	delete menu;
+
+	// make sure icon is hidden, since by now we have exited the main loop
+	while (Gtk::Main::events_pending())
+		Gtk::Main::iteration(false);
 }
 	
 Plugin::Info TrayPlugin::get_info()
