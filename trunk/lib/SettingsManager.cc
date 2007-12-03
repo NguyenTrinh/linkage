@@ -44,13 +44,15 @@ SettingsManager::SettingsManager()
 	Gnome::Conf::init();
 	gconf = Gnome::Conf::Client::get_default_client();
 
-	gconf->notify_add("/apps/linkage", sigc::mem_fun(this, &SettingsManager::on_changed));
+	notify_id = gconf->notify_add("/apps/linkage", sigc::mem_fun(this, &SettingsManager::on_changed));
 	gconf->add_dir("/apps/linkage", Gnome::Conf::CLIENT_PRELOAD_NONE);
 	/// TODO check gconf for the schema to make sure we have some defaults
 }
 
 SettingsManager::~SettingsManager()
 {
+	gconf->remove_dir("/apps/linkage");
+	gconf->notify_remove(notify_id);
 }
 
 void SettingsManager::on_changed(guint id, Gnome::Conf::Entry entry)

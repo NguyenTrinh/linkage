@@ -78,6 +78,8 @@ class SettingsManager : public Glib::Object
 	sigc::signal<void, const Glib::ustring&, const Value&> m_signal_key_changed;
 	std::map<Glib::ustring, sigc::signal<void, const Value&> > m_signals;
 
+	guint notify_id;
+
 	void on_changed(guint id, Gnome::Conf::Entry entry);
 
 public:
