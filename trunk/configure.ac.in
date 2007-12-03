@@ -47,22 +47,6 @@ PKG_CHECK_MODULES(LIBGTOP, libgtop-2.0 >= 2.12)
 AC_SUBST(LIBGTOP_CFLAGS)
 AC_SUBST(LIBGTOP_LIBS)
 
-AC_ARG_WITH([curl],
-	[AS_HELP_STRING([--with-curl],
-		[support for curl @<:@default=check@:>@])],
-	[],
-	[with_curl=check])
-AS_IF([test "x$with_curl" != xno],
-	[PKG_CHECK_MODULES(LIBCURL, libcurl >= 7.14.0,
-		AC_DEFINE([HAVE_CURL], [1], [Have curl]),
-		[if test "x$with_curl" != xcheck; then
-			AC_MSG_FAILURE([--with-curl was given, but test for curl failed.])
-		else
-			AC_DEFINE([HAVE_CURL], [0], [Have curl])
-	 	fi])], AC_DEFINE([HAVE_CURL], [0], [Have curl]))
-AC_SUBST(LIBCURL_CFLAGS)
-AC_SUBST(LIBCURL_LIBS)
-
 AC_ARG_WITH([gnome],
 	[AS_HELP_STRING([--with-gnome],
 		[gnome session support @<:@default=check@:>@])],

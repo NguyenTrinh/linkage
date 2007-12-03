@@ -58,6 +58,8 @@ std::list<Glib::ustring> get_interfaces();
 
 Glib::ustring get_ip(const Glib::ustring& iface);
 
+std::string http_get(const std::string& url, int timeout = 30);
+
 Glib::ustring get_config_dir();
 Glib::ustring get_data_dir();
 
