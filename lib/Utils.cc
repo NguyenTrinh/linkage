@@ -142,7 +142,11 @@ Glib::ustring Linkage::get_ip(const Glib::ustring& iface)
 
 	sockaddr_in sa;
 
-	return inet_ntoa(*(in_addr*)&ifr.ifr_addr.sa_data[sizeof(sa.sin_port)]);
+	const char* ip = inet_ntoa(*(in_addr*)&ifr.ifr_addr.sa_data[sizeof(sa.sin_port)]);
+
+	close(sockfd);
+
+	return ip;
 }
 
 Glib::ustring Linkage::get_config_dir()
