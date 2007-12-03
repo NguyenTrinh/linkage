@@ -90,15 +90,6 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	column->set_sort_column(columns.priority);
 	column->set_resizable(true);
 
-/*	cols_count = append_column(_("Priority"), columns.priority);
-	column = get_column(cols_count - 1);
-	cell = dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
-	//FIXME: this works but spouts g_warnings, should'nt this override the default func?
-	column->set_cell_data_func(*cell, sigc::mem_fun(this, &FileList::format_priority));
-	column->set_sort_column(columns.priority);
-	column->set_resizable(true);*/
-	
-
 	Gtk::Label* label = Gtk::manage(new Gtk::Label());
 	label->set_markup(_("<i>Priority</i>"));
 	Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(*label));
