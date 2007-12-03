@@ -18,11 +18,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <fstream>
 
+#include <glib/gstdio.h>
+
 #include <glibmm/convert.h>
 #include <glibmm/i18n.h>
 
 #include "libtorrent/hasher.hpp"
 #include "libtorrent/bencode.hpp"
+#include "libtorrent/http_connection.hpp"
 
 #include "linkage/Utils.hh"
 
@@ -147,6 +150,51 @@ Glib::ustring Linkage::get_ip(const Glib::ustring& iface)
 	close(sockfd);
 
 	return ip;
+}
+
+struct Handler
+{
+	std::vector<char>& content;
+
+	void operator()(asio::error_code const& error,
+		libtorrent::http_parser const& parser,
+		char const* data,
+		int size)
+	{
+		for (int i = 0; i < size && data; i++)
+			content.push_back(data[i]);
+		if (!data && error.value() != asio::error::eof)
+			g_warning(error.message().c_str());
+	}
+	Handler(std::vector<char>& c) : content(c) {}
+};
+
+std::string Linkage::http_get(const std::string& url, int timeout)
+{
+	std::string name;
+	int fd = Glib::file_open_tmp(name, "torrent");
+
+	std::vector<char> buff;
+	asio::io_service ios;
+	boost::shared_ptr<libtorrent::http_connection> conn;
+	libtorrent::connection_queue cc(ios);
+	cc.limit(1);
+	conn = boost::shared_ptr<libtorrent::http_connection>
+		(new libtorrent::http_connection(ios, cc, Handler(buff), false));
+	conn->get(url, libtorrent::seconds(30));
+	ios.run();
+
+	if (!buff.empty())
+	{
+		std::ofstream out;
+		out.open(name.c_str(), std::ios_base::binary);
+		out.write(&buff[0], buff.size());
+		out.close();
+	}
+
+	close(fd);
+
+	return name;
 }
 
 Glib::ustring Linkage::get_config_dir()

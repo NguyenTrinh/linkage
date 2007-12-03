@@ -19,10 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "config.h"
 
-#if HAVE_CURL
-#include <curl/curl.h>
 #include <glib/gstdio.h>
-#endif
 
 #if HAVE_GNOME
 #include <libgnomevfsmm/utils.h>
@@ -230,9 +227,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	std::list<Gtk::TargetEntry> targets;
 	targets.push_back(Gtk::TargetEntry(TARGET_URI_LIST));
 	// FIXME: check target string from KTHML/WebKit/Dillo etc..
-	#if HAVE_CURL
 	targets.push_back(Gtk::TargetEntry(TARGET_MOZ_URL)); 
-	#endif
 	torrent_list->drag_dest_set(targets);
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), false);
 
@@ -265,7 +260,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
 
-	resize(sm->get_int("ui/win_width"), sm->get_int("ui/win_width"));
+	resize(sm->get_int("ui/win_width"), sm->get_int("ui/win_height"));
 
 	notebook_details->set_current_page(sm->get_int("ui/page"));
 	m_conn_switch_page = notebook_details->signal_switch_page().connect(
@@ -889,9 +884,6 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 {
 	// TreeModelFilter doesn't support DnD, this suppresses default handler/warning
 	torrent_list->signal_drag_data_received().emission_stop();
-	//g_signal_stop_emission_by_name(G_OBJECT(torrent_list->gobj()), "drag-data-received");
-
-	bool success = false;
 
 	Glib::ustring data = selection_data.get_data_as_string();
 	Glib::ustring target = selection_data.get_target();
@@ -912,19 +904,37 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 		for (std::list<Glib::ustring>::iterator iter = uri_list.begin();
 			iter != uri_list.end(); ++iter)
 		{
+			bool is_url = false;
 			#if HAVE_GNOME
 			Glib::RefPtr<Gnome::Vfs::Uri> uri = Gnome::Vfs::Uri::create(*iter);
-			if (uri->is_local())
+			is_url = !uri->is_local();
+			if (!is_url)
 				open(Gnome::Vfs::unescape_string(uri->get_path()));
 			#else
-			gchar* f = g_filename_from_uri(iter->c_str(), NULL, NULL);
-			if (f)
+			GError* error;
+			gchar* f = g_filename_from_uri(iter->c_str(), NULL, &error);
+			if (error)
+			{
+				is_url = (error->code == G_CONVERT_ERROR_BAD_URI);
+				g_error_free(error);
+			}
+			else if (f)
+			{
 				open(f);
+				g_free(f);
+			}
 			#endif
+
+			// epiphany and firefox now sends TARGET_URI_LIST
+			if (is_url)
+			{
+				std::string name = http_get(*iter);
+				open(name);
+				g_unlink(name.c_str());
+
+			}
 		}
-		success = true;
 	}
-	#if HAVE_CURL
 	else if (target == TARGET_MOZ_URL)
 	{
 		// seems like x-moz-url-data is in UTF-16
@@ -934,54 +944,16 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 		if (!url)
 		{
 			g_warning(error->message);
+			g_error_free(error);
 		}
 		else
 		{
-			notify("Downloading torrent", "downloading " + Glib::ustring(url));
-
-			gchar* name = NULL;
-			gint fd = g_file_open_tmp("torrent-XXXXXX", &name, &error);
-			if (fd == -1)
-			{
-				g_warning(error->message);
-				g_error_free(error);
-			}
-			else
-			{
-				FILE* file = fdopen(fd, "wb");
-
-				CURL* curl = curl_easy_init();
-				if (curl && file)
-				{
-					char err[CURL_ERROR_SIZE];
-					curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err);
-					curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-					curl_easy_setopt(curl, CURLOPT_HEADER, 0);
-					curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
-
-					curl_easy_setopt(curl, CURLOPT_URL, url);
-
-					CURLcode ret = curl_easy_perform(curl);
-
-					curl_easy_cleanup(curl);
-
-					fclose(file);
-
-					if (ret == CURLE_OK)
-						open(name);
-					else
-						notify("Download failed", err);
-
-					g_unlink(name);
-					g_free(name);
-					g_free(url);
-
-					success = true;
-				}
-			}
+			std::string name = http_get(url);
+			open(name);
+			g_unlink(name.c_str());
+			g_free(url);
 		}
 	}
-	#endif
 
 	context->drag_finish(true, false, time);
 }

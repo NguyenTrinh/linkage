@@ -5,7 +5,6 @@ AM_CXXFLAGS = -I$(top_srcdir)/lib \
 							$(CXXFLAGS) \
 							$(GTKMM_CFLAGS) \
 							$(LIBTORRENT_CFLAGS) \
-							$(LIBCURL_CFLAGS)  \
 							$(DBUSGLIB_CFLAGS)  \
 							$(GTHREAD_CFLAGS)  \
 							${LIBGLADE_CFLAGS}  \
@@ -65,7 +64,6 @@ linkage_SOURCES = CellRendererPieceMap.hh \
 linkage_LDADD = $(LDFLAGS) \
 								$(GTKMM_LIBS) \
 								$(LIBTORRENT_LIBS) \
-								$(LIBCURL_LIBS) \
 								$(DBUSGLIB_LIBS) \
 								$(GTHREAD_LIBS) \
 	 							${LIBGLADE_LIBS} \
