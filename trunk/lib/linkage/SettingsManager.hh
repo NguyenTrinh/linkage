@@ -99,6 +99,8 @@ public:
 	void set(const Glib::ustring& path, const Gnome::Conf::Client::SListHandleInts &values);
 	void set(const Glib::ustring& path, GConfEnumStringPair* table, gint value);
 
+	void disconnect();
+
 	sigc::signal<void, const Value&> signal(const Glib::ustring& key);	
 	sigc::signal<void, const Glib::ustring&, const Value&> signal_key_changed();
 
