@@ -197,11 +197,11 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 	for (std::list<Part>::iterator iter = parts.begin(); iter != parts.end(); ++iter)
 	{
 		Part& p = *iter;
-		int pw = (int)(scale*(p.last - p.first + 1));
-		int px = (int)(scale*p.first+0.5) + bar_x;
+		int pw = (int)(scale*(p.last - p.first + 1) + 0.5);
+		int px = (int)(scale*p.first + 0.5) + bar_x;
 		if (px >= (bar_x + bar_width))
 			break;
-		if (px < expose_area.get_x())
+		if ((px + pw) < expose_area.get_x())
 			continue;
 
 		Gdk::Color c = Linkage::lighter(base, p.fac);
