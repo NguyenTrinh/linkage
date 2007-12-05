@@ -199,7 +199,7 @@ void CellRendererPieceMap::render_vfunc(const Glib::RefPtr<Gdk::Drawable>& windo
 		Part& p = *iter;
 		int pw = (int)(scale*(p.last - p.first + 1) + 0.5);
 		int px = (int)(scale*p.first + 0.5) + bar_x;
-		if (px >= (bar_x + bar_width))
+		if (px >= (expose_area.get_x() + expose_area.get_width()))
 			break;
 		if ((px + pw) < expose_area.get_x())
 			continue;
