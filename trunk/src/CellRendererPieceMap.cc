@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 CellRendererPieceMap::CellRendererPieceMap() :
 	Glib::ObjectBase(typeid(CellRendererPieceMap)),
 	Gtk::CellRenderer(),
-	m_prop_map(*this, "map")
+	m_prop_map(*this, "map", std::vector<bool>())
 {
 	property_xpad() = 0;
 	property_ypad() = 0;
