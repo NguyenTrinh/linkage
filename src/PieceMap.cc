@@ -60,12 +60,13 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 
 	std::list<Part> parts;
 	double scale = 1.0;
-	if (m_map.size() >= fw - (get_style()->get_xthickness() * 2))
+	int mw = fw - (get_style()->get_xthickness() * 2);
+	if (m_map.size() >= mw)
 		parts = more_pieces();
 	else
 	{
 		parts = more_pixels();
-		scale = (double)fw/m_map.size();
+		scale = (double)mw/m_map.size();
 	}
 		
 	Glib::RefPtr<Gdk::GC> gc = Gdk::GC::create(window);
@@ -74,7 +75,7 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 	for (std::list<Part>::iterator iter = parts.begin(); iter != parts.end(); ++iter)
 	{
 		Part& p = *iter;
-		int pw = (int)(scale*(p.last - p.first + 1)) - get_style()->get_xthickness();
+		int pw = (int)(scale*(p.last - p.first + 1) + 0.5);
 		int px = (int)(scale*p.first + 0.5) + get_style()->get_xthickness();
 
 		/* Don't redraw unnecessary parts */
