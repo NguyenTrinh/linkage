@@ -229,6 +229,7 @@ void FileList::format_priority(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	cell_text->property_text() = priority;
 }
 
+// FIXME: just return one pair, not a vector. see comment in on_reverse_foreach
 std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& row)
 {
 	std::vector<std::pair<int,int> > ranges;
@@ -274,35 +275,23 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 	{
 		std::vector<std::pair<int,int> > ranges = get_piece_ranges(row);
 
-		int n = 0;
-		std::vector<std::pair<int,int> >::iterator k = ranges.begin();
-		while (k != ranges.end())
-		{
-			std::vector<std::pair<int,int> >::iterator l = k+1;
-			if (l == ranges.end())
-				n += k->second - k->first + 1;
-			else
-			{
-				n += k->second - k->first + 1;
-				if (k->second == l->first)
-					n--;
-			}
-			k++;
-		}
-		std::vector<bool> map(n, false);
+		/*
+		This assumes that the contents of a subdir is sorted next to
+		each other in regards to their piece ranges.
+		*/
+		int start = ranges.begin()->first;
+		int stop = ranges.rbegin()->second;
 
-		for (std::vector<std::pair<int,int> >::iterator iter = ranges.begin();
-			iter != ranges.end(); ++iter)
+		std::vector<bool> map(stop - start + 1, false);
+
+		int piece_index = start;
+		while (piece_index <= stop)
 		{
-			int piece_index = iter->first;
-			while (piece_index <= iter->second)
-			{
-				int map_index = piece_index % map.size();
-				g_assert(map_index < map.size());
-				g_assert(piece_index < data.pieces.size());
-				map[map_index] = (bool)data.pieces[piece_index];
-				piece_index++;
-			}
+			int map_index = piece_index - start;
+			g_assert(map_index < map.size());
+			g_assert(piece_index < data.pieces.size());
+			map[map_index] = (bool)data.pieces[piece_index];
+			piece_index++;
 		}
 
 		libtorrent::size_type size = 0, done = 0;
