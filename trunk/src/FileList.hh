@@ -77,8 +77,7 @@ class FileList : public Gtk::TreeView
 	} FileData;
 
 	typedef std::list<Gtk::TreeIter> IterList;
-	bool on_foreach(const Gtk::TreeModel::iterator& iter, IterList* list);
-	void on_reverse_foreach(const Gtk::TreeModel::iterator& iter, const FileData& data);
+	bool on_foreach(const Gtk::TreeIter& iter, const FileData& data);
 
 	void refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>& info);
 
