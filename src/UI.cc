@@ -641,7 +641,7 @@ void UI::on_start()
 	{
 		libtorrent::sha1_hash hash = *iter;
 		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-		if (torrent->is_stopped())
+		if (torrent->is_stopped() || torrent->get_state() & Torrent::ERROR)
 		{
 			Engine::get_session_manager()->resume_torrent(hash);
 			button_announce->set_sensitive(true);

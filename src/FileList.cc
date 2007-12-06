@@ -229,7 +229,7 @@ void FileList::format_priority(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	cell_text->property_text() = priority;
 }
 
-// FIXME: just return one pair, not a vector. see comment in on_reverse_foreach
+// FIXME: just return one pair, not a vector. see comment in on_foreach
 std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& row)
 {
 	std::vector<std::pair<int,int> > ranges;
@@ -262,38 +262,29 @@ std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& 
 	return ranges;
 }
 
-void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& data)
+bool FileList::on_foreach(const Gtk::TreeIter& iter, const FileData& data)
 {
-	if (!iter)
-		return;
+	g_return_val_if_fail(iter, true);
 
 	Gtk::TreeRow row = *iter;
+
+	std::vector<std::pair<int,int> > ranges = get_piece_ranges(row);
+	/*
+	This assumes that the contents of a subdir is sorted next to
+	each other in regards to their piece ranges.
+	*/
+	int start = ranges.begin()->first;
+	int stop = ranges.rbegin()->second;
+
+	std::vector<bool> map;
+	for (int i = start; i <= stop; i++)
+		map.push_back((bool)data.pieces[i]);
 
 	// catch parent folders
 	int index = row[columns.index];
 	if (index == INDEX_FOLDER)
 	{
-		std::vector<std::pair<int,int> > ranges = get_piece_ranges(row);
-
-		/*
-		This assumes that the contents of a subdir is sorted next to
-		each other in regards to their piece ranges.
-		*/
-		int start = ranges.begin()->first;
-		int stop = ranges.rbegin()->second;
-
-		std::vector<bool> map(stop - start + 1, false);
-
-		int piece_index = start;
-		while (piece_index <= stop)
-		{
-			int map_index = piece_index - start;
-			g_assert(map_index < map.size());
-			g_assert(piece_index < data.pieces.size());
-			map[map_index] = (bool)data.pieces[piece_index];
-			piece_index++;
-		}
-
+		// FIXME: set size column in refill_tree
 		libtorrent::size_type size = 0, done = 0;
 		Gtk::TreeNodeChildren children = row.children();
 		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
@@ -315,19 +306,6 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 	else
 	{
 		libtorrent::file_entry file = data.info->file_at(index);
-		libtorrent::peer_request file_info = data.info->map_file(index, 0, 0);//, file.size);
-
-		std::vector<bool> map;
-		unsigned int byte_pos_in_file = 0;
-		unsigned int piece_index = file_info.piece;
-		while (byte_pos_in_file < file.size)
-		{
-			g_assert(piece_index < data.pieces.size());
-			map.push_back((bool)data.pieces[piece_index]);
-
-			byte_pos_in_file += data.info->piece_size(piece_index);
-			piece_index++;
-		}
 
 		row[columns.priority] = (Priority)data.priorities[index];
 		row[columns.map] = map;
@@ -339,12 +317,7 @@ void FileList::on_reverse_foreach(const Gtk::TreeIter& iter, const FileData& dat
 			row[columns.icon] = theme->load_icon(ICON_FILE, Gtk::ICON_SIZE_MENU, Gtk::ICON_LOOKUP_USE_BUILTIN);
 		}
 	}
-}
 
-bool FileList::on_foreach(const Gtk::TreeIter& iter, IterList* list)
-{
-	Gtk::TreeIter iter_copy(iter);
-	list->push_back(iter_copy);
 	return false;
 }
 
@@ -375,10 +348,7 @@ void FileList::update(const Glib::RefPtr<Torrent>& torrent)
 	model->get_sort_column_id(col, order);
 	model->set_sort_column_id(Gtk::TreeSortable::DEFAULT_UNSORTED_COLUMN_ID, order);
 
-	// FIXME: this is pretty inefficient
-	IterList list;
-	model->foreach_iter(sigc::bind(sigc::mem_fun(this, &FileList::on_foreach), &list));
-	std::for_each(list.rbegin(), list.rend(), sigc::bind(sigc::mem_fun(this, &FileList::on_reverse_foreach), data));
+	model->foreach_iter(sigc::bind(sigc::mem_fun(this, &FileList::on_foreach), data));
 
 	model->set_sort_column_id(col, order);
 }
@@ -414,17 +384,6 @@ void FileList::refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>&
 		row[columns.index] = i;
 		row[columns.size] = file.size;
 	}
-
-/*	Gtk::TreeNodeChildren children = model->children();
-	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
-	{
-		Gtk::TreeRow row = *iter;
-		if (row[columns.index] == INDEX_FOLDER)
-		{
-			std::vector<bool> map(row.children().size(), false);
-			row[columns.map] = map;
-		}
-	}*/
 
 	expand_all();
 }
