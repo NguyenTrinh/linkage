@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/DbusManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/Interface.hh"
+#include "linkage/SessionManager.hh"
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
 
@@ -34,7 +35,7 @@ using namespace Linkage;
 #define LK_BUS_NAME "org.linkage"
 #define LK_INTERFACE_INTERFACE "org.linkage.Interface"
 #define LK_INTERFACE_TORRENT "org.linkage.Torrent"
-#define LK_PATH_INTERFACE "/org/linkage/Interface"
+#define LK_PATH_INTERFACE "/org/linkage/interface"
 #define LK_PATH_TORRENTS "/org/linkage/torrents/"
 
 const char* introspect_interface = 
@@ -49,6 +50,10 @@ const char* introspect_interface =
 "  <interface name=\"org.linkage.Interface\">\n"
 "    <method name=\"Open\">\n"
 "      <arg name=\"file\" direction=\"in\" type=\"s\"/>\n"
+"    </method>\n"
+"    <method name=\"Add\">\n"
+"      <arg name=\"file\" direction=\"in\" type=\"s\"/>\n"
+"      <arg name=\"path\" direction=\"in\" type=\"s\"/>\n"
 "    </method>\n"
 "    <method name=\"GetVisible\">\n"
 "      <arg name=\"visible\" direction=\"out\" type=\"b\"/>\n"
@@ -75,6 +80,23 @@ const char* introspect_torrent =
 "    </method>\n"
 "    <method name=\"GetState\">\n"
 "      <arg name=\"state\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"    <method name=\"GetRates\">\n"
+"      <arg name=\"rates\" direction=\"out\" type=\"(uu)\"/>\n"
+"    </method>\n"
+"    <method name=\"GetTransfered\">\n"
+"      <arg name=\"rates\" direction=\"out\" type=\"(tt)\"/>\n"
+"    </method>\n"
+"    <method name=\"GetProgress\">\n"
+"      <arg name=\"progress\" direction=\"out\" type=\"d\"/>\n"
+"    </method>\n"
+"    <method name=\"GetPosition\">\n"
+"      <arg name=\"position\" direction=\"out\" type=\"u\"/>\n"
+"    </method>\n"
+"    <method name=\"Start\" />\n"
+"    <method name=\"Stop\" />\n"
+"    <method name=\"Remove\">\n"
+"      <arg name=\"erase_data\" direction=\"in\" type=\"b\"/>\n"
 "    </method>\n"
 "  </interface>\n"
 "</node>\n";
@@ -129,6 +151,33 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		{
 			g_warning("Error recieved from DBus: %s", error.message);
 			dbus_error_free(&error);
+			
+			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
+		}
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "Add")) 
+	{
+		DBusError error;
+		dbus_error_init(&error);
+		char *file, *path;
+		if (dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &file, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID))
+		{
+			Engine::get_session_manager()->open_torrent(file, path);
+			DBusMessage* reply = dbus_message_new_method_return(message);
+			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
+		} 
+		else 
+		{
+			g_warning("Error recieved from DBus: %s", error.message);
+			dbus_error_free(&error);
+
+			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
 		}
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "GetVisible")) 
@@ -156,6 +205,10 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		{
 			g_warning("Error recieved from DBus: %s", error.message);
 			dbus_error_free(&error);
+
+			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
 		}
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "Quit")) 
@@ -191,7 +244,7 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
 	}
-	if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetState")) 
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetState")) 
 	{
 		char* state = g_strdup(data->torrent->get_state_string().c_str());
 		DBusMessage* reply = dbus_message_new_method_return(message);
@@ -199,6 +252,98 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
 		g_free(state);
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetRates")) 
+	{
+		libtorrent::torrent_status status = data->torrent->get_status();
+		unsigned int down = status.download_payload_rate;
+		unsigned int up = status.upload_payload_rate;
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_UINT32, &down, DBUS_TYPE_UINT32, &up, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetTransfered")) 
+	{
+		libtorrent::size_type down = data->torrent->get_total_downloaded();
+		libtorrent::size_type up = data->torrent->get_total_uploaded();
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_UINT64, &down, DBUS_TYPE_UINT64, &up, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetProgress")) 
+	{
+		double progress;
+		if (data->torrent->is_stopped())
+		{
+			libtorrent::size_type wanted_size = data->torrent->get_info()->total_size();
+			const std::vector<int>& priorities = data->torrent->get_priorities();
+			for (unsigned int i = 0; i < priorities.size(); i++)
+			{
+				// priority 0 means "don't download"
+				if (!priorities[i])
+					wanted_size -= data->torrent->get_info()->file_at(i).size;
+			}
+
+			libtorrent::size_type down = data->torrent->get_total_downloaded();
+			progress = (double)down/wanted_size;
+			if (progress > 1)
+				progress = 1;
+		}
+		else
+			progress = data->torrent->get_status().progress;
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_DOUBLE, &progress, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetPosition")) 
+	{
+		unsigned int position = data->torrent->get_position();
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_UINT32, &position, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "Start")) 
+	{
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+		Engine::get_session_manager()->resume_torrent(data->torrent->get_hash());
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "Stop")) 
+	{
+		DBusMessage* reply = dbus_message_new_method_return(message);
+		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+		dbus_connection_send(connection, reply, NULL);
+		dbus_message_unref(reply);
+		Engine::get_session_manager()->stop_torrent(data->torrent->get_hash());
+	}
+	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "Remove")) 
+	{
+		DBusError error;
+		dbus_error_init(&error);
+		gboolean erase;
+		if (dbus_message_get_args(message, &error, DBUS_TYPE_BOOLEAN, &erase, DBUS_TYPE_INVALID))
+		{
+			DBusMessage* reply = dbus_message_new_method_return(message);
+			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
+			Engine::get_session_manager()->erase_torrent(data->torrent->get_hash(), erase);
+		} 
+		else 
+		{
+			g_warning("Error recieved from DBus: %s", error.message);
+			dbus_error_free(&error);
+
+			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
+			dbus_connection_send(connection, reply, NULL);
+			dbus_message_unref(reply);
+		}
 	}
 	else
 	{
