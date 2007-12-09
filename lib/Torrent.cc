@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <glibmm/i18n.h>
 
+#include "libtorrent/alert_types.hpp"
+
 #include "linkage/Torrent.hh"
 #include "linkage/Utils.hh"
 #include "linkage/Engine.hh"
@@ -416,17 +418,20 @@ void Torrent::set_priorities(const std::vector<int>& priorities)
 			//prioritize the first and last 5% of the files size
 			for (int i = 0; i < m_info->num_files(); i++)
 			{
+				if (!m_priorities[i])
+					continue;
+
 				const libtorrent::file_entry& file = m_info->file_at(i);
 				libtorrent::size_type size_prio = 0.05*file.size;
 				int front = m_info->map_file(i, 0, size_prio).piece;
-				int end = m_info->map_file(i, file.size - size_prio, size_prio).piece;
+				int end = m_info->map_file(i, file.size, 0).piece;
 				int num_prio = size_prio/m_info->piece_length();
 				//this means file.size > ~piece_length*20 
 				while (num_prio--)
 				{
 					//priority 7, not P_MAX. See LT docs
 					get_handle().piece_priority(front++, 7);
-					get_handle().piece_priority(end++, 7);
+					get_handle().piece_priority(end--, 7);
 				}
 			}
 		}
@@ -606,6 +611,16 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 		// only add current session data if we intend to stop the handle or quit
 		if (stopping || quitting)
 		{
+			get_handle().pause();
+			// FIXME: move to AlertManager::wait_for(alert_type)
+			// wait for torrent_paused_alert
+			const libtorrent::alert* a = NULL;
+			while (true)
+			{
+				const libtorrent::alert*a =	Engine::get_session_manager()->wait_for_alert(libtorrent::seconds(3));
+				if (const libtorrent::torrent_paused_alert* p = dynamic_cast<const libtorrent::torrent_paused_alert*>(a))
+					break;
+			}
 			m_downloaded += get_handle().status().total_download;
 			m_uploaded += get_handle().status().total_upload;
 		}

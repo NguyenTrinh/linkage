@@ -479,7 +479,6 @@ void SessionManager::stop_torrent(const sha1_hash& hash)
 		if (torrent->is_queued())
 			torrent->unqueue();
 
-		torrent->get_handle().pause();
 		entry e = torrent->get_resume_entry();
 
 		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
