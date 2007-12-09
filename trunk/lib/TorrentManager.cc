@@ -59,8 +59,6 @@ TorrentManager::~TorrentManager()
 
 		Engine::get_dbus_manager()->unregister_torrent(torrent);
 
-		if (!torrent->is_stopped())
-			torrent->get_handle().pause();
 		libtorrent::entry e = torrent->get_resume_entry(torrent->is_stopped(), true);
 		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
 		if (!torrent->is_stopped())
