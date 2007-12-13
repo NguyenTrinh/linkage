@@ -92,7 +92,7 @@ struct send_file : public std::unary_function<void, Glib::ustring>
 		else
 		{
 			const char* c = file.c_str();
-			Engine::get_dbus_manager()->send("org.linkage.Interface", "Open", "/org/linkage/Interface", DBUS_TYPE_STRING, &c, DBUS_TYPE_INVALID);
+			Engine::get_dbus_manager()->send("org.linkage.Interface", "Open", "/org/linkage/interface", DBUS_TYPE_STRING, &c, DBUS_TYPE_INVALID);
 		}
 	}
 };
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 	}
 	if (options.quit)
 	{
-		Engine::get_dbus_manager()->send("org.linkage.Interface", "Quit", "/org/linkage/Interface", DBUS_TYPE_INVALID);
+		Engine::get_dbus_manager()->send("org.linkage.Interface", "Quit", "/org/linkage/interface", DBUS_TYPE_INVALID);
 		return 0;
 	}
 
