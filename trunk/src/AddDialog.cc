@@ -117,10 +117,6 @@ void AddDialog::on_file_changed()
 
 void AddDialog::on_path_changed()
 {
-	//only continue if a valid torrent is selected
-	if (!m_info || !m_info->is_valid())
-		return;
-
 	std::string path = button_path->get_filename();
 	glibtop_fsusage usage;
 	glibtop_get_fsusage(&usage, path.c_str());
@@ -129,7 +125,7 @@ void AddDialog::on_path_changed()
 		_("<i>%1 free disk space available</i>"),
 		suffix_value(free));
 
-	if (free < m_info->total_size())
+	if (m_info && m_info->is_valid() && free < m_info->total_size())
 	{
 		Glib::ustring color = Engine::get_settings_manager()->get_string("ui/colors/error");
 		markup = "<span color='" + color + "'>" + markup + "</span>";
