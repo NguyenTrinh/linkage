@@ -175,7 +175,8 @@ void FileList::prioritize_row(const Gtk::TreeRow& row, Priority priority)
 	else
 	{
 		Gtk::TreeNodeChildren children = row.children();
-		std::for_each(children.begin(), children.end(), sigc::bind(sigc::mem_fun(this, &FileList::prioritize_row), priority));
+		std::for_each(children.begin(), children.end(), 
+			sigc::bind(sigc::mem_fun(this, &FileList::prioritize_row), priority));
 	}
 }
 
@@ -229,10 +230,13 @@ void FileList::format_priority(Gtk::CellRenderer* cell, const Gtk::TreeIter& ite
 	cell_text->property_text() = priority;
 }
 
-// FIXME: just return one pair, not a vector. see comment in on_foreach
-std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& row)
+/*
+ * This assumes that the contents of a subdir is sorted next to
+ * each other in regards to their piece range.
+ */
+std::pair<int,int> FileList::get_piece_range(const Gtk::TreeRow& row)
 {
-	std::vector<std::pair<int,int> > ranges;
+	int p_begin = G_MAXINT, p_end = G_MININT;
 
 	int index = row[columns.index];
 	if (index == INDEX_FOLDER)
@@ -241,40 +245,28 @@ std::vector<std::pair<int,int> > FileList::get_piece_ranges(const Gtk::TreeRow& 
 		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 		{
 			Gtk::TreeRow child_row = *iter;
-			std::vector<std::pair<int,int> > child_ranges = get_piece_ranges(child_row);
-			std::vector<std::pair<int,int> > merged(ranges.size() + child_ranges.size());
-			std::merge(ranges.begin(), ranges.end(),
-				child_ranges.begin(), child_ranges.end(),
-				merged.begin(),
-				std::less<std::pair<int,int> >());
-			ranges.assign(merged.begin(), merged.end());
+			std::pair<int,int> range = get_piece_range(child_row);
+			p_begin = std::min(p_begin, range.first);
+			p_end = std::max(p_end, range.second);
 		}
 	}
 	else
 	{
 		libtorrent::size_type size = row[columns.size];
-		int p_begin = m_cur_torrent->get_info()->map_file(index, 0, 0).piece;
-		int p_end = m_cur_torrent->get_info()->map_file(index, size, 0).piece;
-		ranges.push_back(std::make_pair(p_begin, p_end));
-		std::sort(ranges.begin(),ranges.end(),std::less<std::pair<int,int> >());
+		p_begin = m_cur_torrent->get_info()->map_file(index, 0, 0).piece;
+		p_end = m_cur_torrent->get_info()->map_file(index, size, 0).piece;
 	}
 
-	return ranges;
+	return std::make_pair(p_begin, p_end);
 }
 
 bool FileList::on_foreach(const Gtk::TreeIter& iter, const FileData& data)
 {
-	g_return_val_if_fail(iter, true);
-
 	Gtk::TreeRow row = *iter;
 
-	std::vector<std::pair<int,int> > ranges = get_piece_ranges(row);
-	/*
-	This assumes that the contents of a subdir is sorted next to
-	each other in regards to their piece ranges.
-	*/
-	int start = ranges.begin()->first;
-	int stop = ranges.rbegin()->second;
+	std::pair<int,int> range = get_piece_range(row);
+	int start = range.first;
+	int stop = range.second;
 
 	std::vector<bool> map;
 	for (int i = start; i <= stop; i++)
@@ -284,17 +276,12 @@ bool FileList::on_foreach(const Gtk::TreeIter& iter, const FileData& data)
 	int index = row[columns.index];
 	if (index == INDEX_FOLDER)
 	{
-		// FIXME: set size column in refill_tree
-		libtorrent::size_type size = 0, done = 0;
-		Gtk::TreeNodeChildren children = row.children();
-		for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
-		{
-			Gtk::TreeRow child_row = *iter;
-			size += child_row[columns.size];
-			done += child_row[columns.done];
-		}
+		libtorrent::size_type done;
+		// add up all pieces in range except the last
+		done = std::accumulate(map.begin(), --map.end(), 0)*data.info->piece_length();
+		// add last piece (might be smaller than piece_length)
+		done += (map.back())*data.info->piece_size(stop);
 		row[columns.map] = map;
-		row[columns.size] = size;
 		row[columns.done] = done;
 		Glib::RefPtr<Gdk::Pixbuf> icon = row[columns.icon];
 		if (!icon)
@@ -364,23 +351,27 @@ void FileList::refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>&
 		Gtk::TreeIter parent = tree[*file.path.begin()];
 		Gtk::TreeRow row;
 
+		boost::filesystem::path base = file.path.branch_path();
 		boost::filesystem::path::iterator iter;
-		for (iter = file.path.begin(); iter != file.path.end(); ++iter)
+		for (iter = base.begin(); iter != base.end(); ++iter)
 		{
 			Glib::ustring name = *iter;
 			if (!tree[name])
 			{
 				if (!parent)
-					tree[name] = *(model->append());
+					tree[name] = model->append();
 				else
-					tree[name] = *(model->append((*parent).children()));
+					tree[name] = model->append(parent->children());
 			}
 			row = *tree[name];
 			row[columns.name] = name;
 			row[columns.index] = INDEX_FOLDER;
+			row[columns.size] = row[columns.size] + file.size;
 
 			parent = tree[name];
 		}
+		row = *(model->append(parent->children()));
+		row[columns.name] = file.path.leaf();
 		row[columns.index] = i;
 		row[columns.size] = file.size;
 	}

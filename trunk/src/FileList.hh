@@ -88,7 +88,7 @@ class FileList : public Gtk::TreeView
 	
 	int compare_piece_map(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
 
-	std::vector<std::pair<int,int> > get_piece_ranges(const Gtk::TreeRow& row);
+	std::pair<int,int> get_piece_range(const Gtk::TreeRow& row);
 
 public:
 	void clear();
