@@ -611,15 +611,18 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 		// only add current session data if we intend to stop the handle or quit
 		if (stopping || quitting)
 		{
-			get_handle().pause();
-			// FIXME: move to AlertManager::wait_for(alert_type)
-			// wait for torrent_paused_alert
-			const libtorrent::alert* a = NULL;
-			while (true)
+			if (!get_handle().is_paused())
 			{
-				const libtorrent::alert*a =	Engine::get_session_manager()->wait_for_alert(libtorrent::seconds(3));
-				if (const libtorrent::torrent_paused_alert* p = dynamic_cast<const libtorrent::torrent_paused_alert*>(a))
-					break;
+				get_handle().pause();
+				// FIXME: move to AlertManager::wait_for(alert_type)
+				// wait for torrent_paused_alert
+				const libtorrent::alert* a = NULL;
+				while (true)
+				{
+					const libtorrent::alert*a =	Engine::get_session_manager()->wait_for_alert(libtorrent::seconds(3));
+					if (const libtorrent::torrent_paused_alert* p = dynamic_cast<const libtorrent::torrent_paused_alert*>(a))
+						break;
+				}
 			}
 			m_downloaded += get_handle().status().total_download;
 			m_uploaded += get_handle().status().total_upload;
