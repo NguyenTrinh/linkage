@@ -226,6 +226,29 @@ bool Linkage::load_entry(const Glib::ustring& file, libtorrent::entry& e)
 	return ret;
 }
 
+bool Linkage::load_entry(const Glib::ustring& file, libtorrent::entry& e, std::vector<char>& buff)
+{
+	std::ifstream in(file.c_str(), std::ios_base::binary|std::ios_base::ate);
+	in.unsetf(std::ios_base::skipws);
+	std::streampos size = in.tellg();
+	in.seekg(0, std::ios::beg);
+	buff.resize(size);
+
+	in.read(&buff[0], size);
+	in.close();
+
+	try
+	{
+		e = libtorrent::bdecode(buff.begin(), buff.end());
+	}
+	catch (libtorrent::invalid_encoding& ex)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void Linkage::save_entry(const Glib::ustring& file, const libtorrent::entry& e)
 {
 	std::ofstream out(file.c_str(), std::ios_base::binary);
@@ -234,6 +257,7 @@ void Linkage::save_entry(const Glib::ustring& file, const libtorrent::entry& e)
 	out.close();
 }
 
+/* FIXME: put everythin below in a LinkageColor or something instead... */
 static void get_hsv(const Gdk::Color& color, double& h, double& s, double& v)
 {
 	// thanks to wikipedia, why doesn't GdkColor do this?

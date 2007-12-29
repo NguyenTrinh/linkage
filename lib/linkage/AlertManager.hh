@@ -25,7 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/ustring.h>
 #include <glibmm/refptr.h>
 
+#include "libtorrent/alert_types.hpp"
 #include "libtorrent/peer_id.hpp"
+#include "libtorrent/time.hpp"
+
+#include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
 
 namespace Linkage
 {
@@ -60,7 +65,18 @@ public:
 	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&> signal_fastresume_rejected();
 	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, int> signal_hash_failed();
 	sigc::signal<void, const libtorrent::sha1_hash&, const Glib::ustring&, const Glib::ustring&> signal_peer_ban();
-	
+
+	/* use with caution, potential endless loop */
+	template<class T> const T* wait_for_alert(libtorrent::time_duration t)
+	{
+		while (true)
+		{
+			const libtorrent::alert* a =	Engine::get_session_manager()->wait_for_alert(t);
+			if (const T* p = dynamic_cast<const T*>(a))
+				return p;
+		}
+	}
+
 	static Glib::RefPtr<AlertManager> create();
 	~AlertManager();
 };

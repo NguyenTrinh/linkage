@@ -37,55 +37,9 @@ typedef std::list<libtorrent::sha1_hash> HashList;
 
 class Torrent : public Glib::Object
 {
-private:
-	friend class TorrentManager;
-	friend class SessionManager;
-
-	struct ResumeInfo
-	{
-		libtorrent::entry resume;
-		boost::intrusive_ptr<libtorrent::torrent_info> info;
-		ResumeInfo(const libtorrent::entry& e,
-			const boost::intrusive_ptr<libtorrent::torrent_info>& i) : resume(e), info(i) {}
-	};
-
-	enum ReplyType { REPLY_ANY, REPLY_OK, REPLY_ANNOUNCING };
-	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring(), ReplyType type = REPLY_ANY);
-
-	void set_handle(const libtorrent::torrent_handle& handle);
-
-	// FIXME: some of these fields are duplicated in torrent_handle, maybe
-	// we should remove them here and read them from the .resume file when needed?
-
-	libtorrent::size_type m_uploaded;
-	libtorrent::size_type m_downloaded;
-
-	Glib::Property<libtorrent::torrent_handle> m_prop_handle;
-	Glib::Property<unsigned int> m_prop_position;
-
-	boost::intrusive_ptr<libtorrent::torrent_info> m_info;
-
-	typedef std::map<Glib::ustring, Glib::ustring> ReplyMap;
-	ReplyMap m_replies;
-	int m_cur_tier;
-	bool m_announcing;
-
-	std::vector<int> m_priorities;
-
-	bool m_is_queued;
-
-	Glib::ustring m_group, m_path, m_name;
-	int m_up_limit, m_down_limit;
-
-	bool m_completed;
-
-	std::vector<libtorrent::announce_entry> m_trackers;
-
-	Torrent(const Torrent&);
-	Torrent& operator=(const Torrent);
-	Torrent(const ResumeInfo& ri, bool queued);
-
 public:
+	typedef boost::intrusive_ptr<libtorrent::torrent_info> InfoPtr;
+
 	enum State
 	{
 		NONE = 0,
@@ -100,9 +54,21 @@ public:
 		QUEUED = 1 << 8,
 		ERROR = 1 << 9
 	};
+	enum Priority
+	{
+		P_SKIP,
+		P_NORMAL,
+		P_FAVOURED,
+		P_AS_PARTIAL,
+		P_HIGH,
+		/* P_HIGHER, same as 4 see docs */
+		P_AS_RARE = 6,
+		P_MAX = 7
+	};
 
 	Glib::PropertyProxy<libtorrent::torrent_handle> property_handle();
 	Glib::PropertyProxy<unsigned int> property_position();
+	//Glib::PropertyProxy<State> property_state();
 
 	libtorrent::torrent_handle get_handle();
 	Glib::ustring get_tracker_reply(const Glib::ustring& tracker);
@@ -126,23 +92,18 @@ public:
 	static Glib::ustring state_string(int state);
 	Glib::ustring get_state_string(int state);
 
-	const boost::intrusive_ptr<libtorrent::torrent_info>& get_info();
-	const libtorrent::torrent_status get_status();
-	const std::vector<libtorrent::partial_piece_info> get_download_queue();
-	const std::vector<float> get_file_progress();
+	const Torrent::InfoPtr& get_info();
+	libtorrent::torrent_status get_status();
+	std::vector<float> get_file_progress();
 
 	void set_name(const Glib::ustring& name);
 	void set_group(const Glib::ustring& group);
-	void set_path(const Glib::ustring& path);
+	void set_path(const Glib::ustring& path); /* This does NOT move storage */
 	void set_position(unsigned int position);
-	void set_priorities(const std::vector<int>& p);
+	void set_priorities(const std::vector<int>& priorities);
 	void set_file_priority(int index, int priority);
 	void set_up_limit(int limit);
 	void set_down_limit(int limit);
-
-	/* This is safe to have public since this isn't the same data the tracker gets */
-	void set_total_downloaded(libtorrent::size_type bytes);
-	void set_total_uploaded(libtorrent::size_type bytes);
 
 	void set_completed(bool completed = true);
 
@@ -158,8 +119,55 @@ public:
 
 	const libtorrent::entry get_resume_entry(bool stopping = true, bool quitting = false);
 
-	static Glib::RefPtr<Torrent> create(const ResumeInfo& ri, bool queued = false);
+	static Glib::RefPtr<Torrent> create(const libtorrent::entry& e, const InfoPtr& info, bool queued = false);
 	~Torrent();
+
+private:
+	friend class TorrentManager;
+	friend class SessionManager;
+
+	enum ReplyType { REPLY_ANY, REPLY_OK, REPLY_ANNOUNCING };
+	void set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker = Glib::ustring(), ReplyType type = REPLY_ANY);
+
+	void set_handle(const libtorrent::torrent_handle& handle);
+
+	/* FIXME: use a StoppedInfo struct so we don't duplicate info with handles */
+	struct StoppedCache
+	{
+		std::vector<libtorrent::announce_entry> trackers;
+		std::vector<float> file_progress;
+		libtorrent::torrent_status status;
+		std::vector<bool> pieces;
+		/* no need to have m_info here since it's a ref ptr */
+	};
+	StoppedCache* m_cache;
+
+	libtorrent::size_type m_uploaded;
+	libtorrent::size_type m_downloaded;
+
+	Glib::Property<libtorrent::torrent_handle> m_prop_handle;
+	Glib::Property<unsigned int> m_prop_position;
+	//Glib::Property<State> m_prop_state;
+
+	InfoPtr m_info;
+
+	std::vector<int> m_priorities;
+
+	typedef std::map<Glib::ustring, Glib::ustring> ReplyMap;
+	ReplyMap m_replies;
+	int m_cur_tier;
+	bool m_announcing;
+
+	bool m_is_queued;
+
+	Glib::ustring m_group, m_path, m_name;
+	int m_up_limit, m_down_limit;
+
+	bool m_completed;
+
+	Torrent(const Torrent&);
+	Torrent& operator=(const Torrent);
+	Torrent(const libtorrent::entry& e, const InfoPtr& info, bool queued);
 };
 
 }; /* namespace */

@@ -73,7 +73,8 @@ SessionManager::SessionManager()
 	set_severity_level(alert::info);
 	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &SessionManager::on_torrent_finished));
 	Engine::get_settings_manager()->signal_key_changed().connect(sigc::mem_fun(this, &SessionManager::on_key_changed));
-	//Apply settings on startup
+
+	/* apply settings on startup */
 	update_session_settings();
 	update_proxy_settings();
 	update_pe_settings();
@@ -89,14 +90,6 @@ SessionManager::~SessionManager()
 		save_entry(file, e);
 	}
 	#endif
-
-	for (std::list<Glib::Thread*>::iterator iter = m_threads.begin();
-				iter != m_threads.end(); ++iter)
-	{
-		Glib::Thread* thread = *iter;
-		thread->join();
-	}
-	m_threads.clear();
 }
 
 sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
@@ -115,17 +108,6 @@ sigc::signal<void, const Glib::ustring&, const sha1_hash&>
 SessionManager::signal_duplicate_torrent()
 {
 	return m_signal_duplicate_torrent;
-}
-
-void SessionManager::resume_session()
-{
-	Glib::Dir dir(get_data_dir());
-	for (Glib::DirIterator iter = dir.begin(); iter != dir.end(); ++iter)
-	{
-		Glib::ustring file = Glib::build_filename(get_data_dir(), *iter + ".resume");
-		if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-			resume_torrent((*iter).c_str());
-	}
 }
 
 void SessionManager::on_key_changed(const Glib::ustring& key, const Value& value)
@@ -205,7 +187,7 @@ void SessionManager::update_session_settings()
 	Glib::ustring file = Glib::build_filename(get_config_dir(), "dht.resume");
 	entry e;
 	if (Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-		decode(file, e);
+		load_entry(file, e);
 
 	if (sm->get_bool("network/use_dht"))
 	{
@@ -255,46 +237,6 @@ void SessionManager::update_session_settings()
 	set_settings(sset);
 }
 
-bool SessionManager::decode(const Glib::ustring& file, entry& e)
-{
-	std::vector<char> buffer;
-	return decode(file, e, buffer);
-}
-
-bool SessionManager::decode(const Glib::ustring& file,
-	entry& e,
-	std::vector<char>& buffer)
-{
-	static std::ifstream in;
-
-	if (!Glib::file_test(file, Glib::FILE_TEST_EXISTS))
-	{
-		m_signal_missing_file.emit(String::ucompose(_("File not found, \"%1\""), file), file);
-		return false;
-	}
-
-	in.open(file.c_str(), std::ios_base::binary|std::ios_base::ate);
-	in.unsetf(std::ios_base::skipws);
-	std::streampos size = in.tellg();
-	in.seekg(0, std::ios::beg);
-	buffer.resize(size);
-
-	in.read(&buffer[0], size);
-	in.close();
-
-	try
-	{
-		e = bdecode(buffer.begin(), buffer.end());
-	}
-	catch (std::exception& err)
-	{
-		m_signal_invalid_bencoding.emit(String::ucompose(_("Invalid bencoding in %1"), file), file);
-		return false;
-	}
-
-	return true;
-}
-
 void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
 {
 	if (Engine::get_settings_manager()->get_bool("files/move_finished"))
@@ -304,62 +246,65 @@ void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustr
 		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		bool ret = false;
 		if (!torrent->is_stopped())
+		{
 			torrent->get_handle().move_storage(path.c_str());
-		//if (!ret)
-		//	g_warning(_("Failed to move content for %s to %s"), torrent->get_name().c_str(), path.c_str());
+			// FIXME: add wait for alert
+			// FIXME: set path only on success
+			torrent->set_path(path);
+		}
 	}
 }
 
-sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
+void SessionManager::resume_torrent(const Glib::RefPtr<Torrent>& torrent, const entry& resume)
+{
+	g_return_if_fail(torrent);
+
+	/* simply unpause torrents in error state */
+	if (torrent->get_state() & Torrent::ERROR)
+	{
+		torrent->get_handle().resume();
+		return;
+	}
+
+	entry er;
+	if (resume.type() == entry::undefined_t)
+	{
+		Glib::ustring file = Glib::build_filename(get_data_dir(), 
+			String::compose("%1", torrent->get_hash()) + ".resume");
+		/* FIXME: handle failed load_entry */
+		load_entry(file, er);
+	}
+	else
+		er = resume;
+
+	storage_mode_t storage_mode = storage_mode_sparse;
+	if (Engine::get_settings_manager()->get_bool("files/allocate"))
+		storage_mode = storage_mode_allocate;
+
+
+	torrent_handle handle = add_torrent(torrent->get_info(),
+		torrent->get_path().c_str(),
+		er,
+		storage_mode);
+	torrent->set_handle(handle);
+}
+
+Glib::RefPtr<Torrent> SessionManager::open_torrent(
+	const Glib::ustring& file,
 	const Glib::ustring& save_path)
 {
 	std::vector<char> buff;
-	entry e;
+	entry e, er;
 
-	if (!decode(file, e, buff))
-		return INVALID_HASH;
+	if (!load_entry(file, e, buff))
+		return Glib::RefPtr<Torrent>();
 
-	boost::intrusive_ptr<torrent_info> info(new torrent_info(e));
+	Torrent::InfoPtr info(new torrent_info(e));
 	sha1_hash hash = info->info_hash();
 
-	entry er;
 	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	if (!torrent)
-	{
-		storage_mode_t storage_mode = storage_mode_sparse;
-		if (Engine::get_settings_manager()->get_bool("files/allocate"))
-			storage_mode = storage_mode_allocate;
-
-		torrent_handle handle;
-
-		// Check if a resume file exists and it's valid
-		bool no_resume = true;
-		Glib::ustring resume_file = Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume");
-		if (Glib::file_test(resume_file, Glib::FILE_TEST_EXISTS))
-		{
-			decode(resume_file, er);
-			if (er.find_key("path") && er["path"].string() == save_path)
-			{
-				handle = add_torrent(info, save_path.c_str(), er, storage_mode);
-				torrent = Engine::get_torrent_manager()->add_torrent(er, info);
-				no_resume = false;
-			}
-		}
-
-		if (no_resume)
-		{
-			entry::dictionary_type de;
-			de["path"] = save_path;
-			handle = add_torrent(info, save_path.c_str(), entry(), storage_mode);
-			torrent = Engine::get_torrent_manager()->add_torrent(de, info);
-		}	
-
-		// see below, get entry before we set the handle
-		er = torrent->get_resume_entry(false);
-
-		torrent->set_handle(handle);
-	}
-	else
+	/* merge trackers and return if torrent exists */
+	if (torrent)
 	{
 		std::vector<announce_entry> trackers = info->trackers();
 		for (unsigned int i = 0; i < trackers.size(); i++)
@@ -368,8 +313,36 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 		}
 		m_signal_duplicate_torrent.emit(String::ucompose(_(
 			"Merged %1 with %2"), info->name(), torrent->get_name()), hash);
-		return hash;
+		return torrent;
 	}
+
+	/* use a .resume file if we find one */
+	Glib::ustring resume_file = Glib::build_filename(get_data_dir(),
+		String::compose("%1", hash) + ".resume");
+	if (Glib::file_test(resume_file, Glib::FILE_TEST_EXISTS))
+	{
+		load_entry(resume_file, er);
+		if (!(er.find_key("path") && er["path"].string() == save_path))
+		{
+			er = entry();
+			er["path"] = save_path;
+		}
+	}
+	else
+		er["path"] = save_path;
+
+	storage_mode_t storage_mode = storage_mode_sparse;
+	if (Engine::get_settings_manager()->get_bool("files/allocate"))
+		storage_mode = storage_mode_allocate;
+
+	torrent_handle handle = add_torrent(info, save_path.c_str(), er, storage_mode);
+
+	torrent = Engine::get_torrent_manager()->add_torrent(er, info);
+
+	/* see below, get entry before we set the handle */
+	er = torrent->get_resume_entry(false);
+
+	torrent->set_handle(handle);
 
 	/* Save metadata to ~/.config/linkage/data/hash */
 	Glib::ustring metafile = Glib::build_filename(get_data_dir(), String::compose("%1", hash));
@@ -384,127 +357,66 @@ sha1_hash SessionManager::open_torrent(const Glib::ustring& file,
 	*/
 	save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), er);
 
-	return hash;
+	return torrent;
 }
 
-sha1_hash SessionManager::resume_torrent(const sha1_hash& hash)
+void SessionManager::stop_torrent(const Glib::RefPtr<Torrent>& torrent)
 {
-	/* simply unpause if the torrent is in state ERROR */
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	if (torrent && torrent->get_state() & Torrent::ERROR)
-	{
-		torrent->get_handle().resume();
-		return hash;
-	}
+	g_return_if_fail(torrent);
 
-	Glib::ustring hash_str = String::compose("%1", hash);
-	return resume_torrent(hash_str);
+	if (torrent->is_stopped())
+		return;
+
+	// to make sure Torrent::m_is_queued is false
+	if (torrent->is_queued())
+		torrent->unqueue();
+
+	entry e = torrent->get_resume_entry();
+
+	Glib::ustring file = Glib::build_filename(get_data_dir(),
+		String::compose("%1", torrent->get_hash()) + ".resume");
+	save_entry(file, e);
+
+	/* notify TorrentManager and Torrent before we invalidate the old handle */
+	torrent_handle handle = torrent->get_handle();
+	torrent->set_handle(torrent_handle());
+
+	remove_torrent(handle);
 }
 
-sha1_hash SessionManager::resume_torrent(const Glib::ustring& hash_str)
+void SessionManager::erase_torrent(const Glib::RefPtr<Torrent>& torrent, bool erase_content)
 {
-	std::ifstream in;
-	Glib::ustring file = Glib::build_filename(get_data_dir(), hash_str);
-
-	entry e, er;
-
-	if (!decode(file, e))
-		return INVALID_HASH;
-
-	boost::intrusive_ptr<torrent_info> info(new torrent_info(e));
-
-	/* Check if torrent is up an running, if so return */
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(info->info_hash());
-	if (torrent && !torrent->is_stopped())
-		return info->info_hash();
-
-	file = file + ".resume";
-	/* If this fails we need to handle it better below */
-	decode(file, er);
-
-	storage_mode_t storage_mode = storage_mode_sparse;
-	if (Engine::get_settings_manager()->get_bool("files/allocate"))
-		storage_mode = storage_mode_allocate;
-	/* FIXME: make sure that path is not empty */
-	Glib::ustring save_path = er.dict()["path"].string();
-
-	if (torrent) //Torrent was resumed from stopped state
-	{
-		torrent_handle handle = add_torrent(info, save_path.c_str(), er, storage_mode);
-		torrent = Engine::get_torrent_manager()->get_torrent(handle.info_hash());
-		torrent->set_handle(handle);
-	}
-	else //Torrent was resumed from previous session
-	{
-		torrent = Engine::get_torrent_manager()->add_torrent(er, info);
-		if (er.find_key("stopped") && !er.dict()["stopped"].integer())
-		{
-			torrent_handle handle = add_torrent(info, save_path.c_str(), er, storage_mode);
-			torrent->set_handle(handle);
-		}
-	}
-
-	return info->info_hash();
-}
-
-void SessionManager::recheck_torrent(const sha1_hash& hash)
-{
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	if (torrent)
-	{
-		if (!torrent->is_stopped())
-			stop_torrent(hash);
-
-		boost::intrusive_ptr<torrent_info> info = torrent->get_info();
-		Glib::ustring path = torrent->get_path();
-		storage_mode_t storage_mode = storage_mode_sparse;
-		if (Engine::get_settings_manager()->get_bool("files/allocate"))
-			storage_mode = storage_mode_allocate;
-		torrent_handle handle = add_torrent(info, path.c_str(), entry(), storage_mode);
-		torrent->set_handle(handle);
-	}
-}
-
-void SessionManager::stop_torrent(const sha1_hash& hash)
-{
-	if (Engine::get_torrent_manager()->exists(hash))
-	{
-		Glib::ustring hash_str = String::compose("%1", hash);
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
-
-		if (torrent->is_stopped())
-			return;
-
-		// to make sure Torrent::m_is_queued is false
-		if (torrent->is_queued())
-			torrent->unqueue();
-
-		entry e = torrent->get_resume_entry();
-
-		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
-
-		remove_torrent(torrent->get_handle());
-
-		// Make the Torrent and TorrentManager aware of stopping it
-		torrent->set_handle(torrent_handle());
-	}
-}
-
-void SessionManager::erase_torrent(const sha1_hash& hash, bool erase_content)
-{
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	g_return_if_fail(torrent);
 
 	int options = none;
 	if (erase_content)
 		options = delete_files;
 
+	Engine::get_torrent_manager()->remove_torrent(torrent);
+
 	if (!torrent->is_stopped())
 		remove_torrent(torrent->get_handle(), options);
 
-	Engine::get_torrent_manager()->remove_torrent(hash);
-
-	Glib::ustring file = Glib::build_filename(get_data_dir(), String::compose("%1", hash));
+	/* remove metadata and .resume file */
+	Glib::ustring file = Glib::build_filename(get_data_dir(),
+		String::compose("%1", torrent->get_hash()));
 	g_unlink(file.c_str());
 	g_unlink((file + ".resume").c_str());
+}
+
+void SessionManager::recheck_torrent(const Glib::RefPtr<Torrent>& torrent)
+{
+	g_return_if_fail(torrent);
+
+	if (!torrent->is_stopped())
+		stop_torrent(torrent);
+
+	Torrent::InfoPtr info = torrent->get_info();
+	Glib::ustring path = torrent->get_path();
+	storage_mode_t storage_mode = storage_mode_sparse;
+	if (Engine::get_settings_manager()->get_bool("files/allocate"))
+		storage_mode = storage_mode_allocate;
+	torrent_handle handle = add_torrent(info, path.c_str(), entry(), storage_mode);
+	torrent->set_handle(handle);
 }
 

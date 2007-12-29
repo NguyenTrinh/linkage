@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		//FIXME: resume_session should be async
-		Engine::get_session_manager()->resume_session();
+		// Engine::get_session_manager()->resume_session();
 
 		Glib::RefPtr<Gnome::Glade::Xml> xml;
 		try
