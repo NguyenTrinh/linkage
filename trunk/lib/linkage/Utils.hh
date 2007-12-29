@@ -64,6 +64,7 @@ Glib::ustring get_config_dir();
 Glib::ustring get_data_dir();
 
 bool load_entry(const Glib::ustring& file, libtorrent::entry& e);
+bool load_entry(const Glib::ustring& file, libtorrent::entry& e, std::vector<char>& buff);
 void save_entry(const Glib::ustring& file, const libtorrent::entry& e);
 
 Gdk::Color lighter(const Gdk::Color& color, double fac);

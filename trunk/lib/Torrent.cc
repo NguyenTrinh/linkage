@@ -26,55 +26,59 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SessionManager.hh"
 #include "linkage/SettingsManager.hh"
 #include "linkage/TorrentManager.hh"
+#include "linkage/AlertManager.hh"
 #include "linkage/compose.hpp"
 
 using namespace Linkage;
 
-Glib::RefPtr<Torrent> Torrent::create(const ResumeInfo& ri, bool queued)
+Glib::RefPtr<Torrent> Torrent::create(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool queued)
 {
-	return Glib::RefPtr<Torrent>(new Torrent(ri, queued));
+	return Glib::RefPtr<Torrent>(new Torrent(e, info, queued));
 }
 
-Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued)
-	: m_prop_handle(*this, "handle"), m_prop_position(*this, "position")
+Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool queued)
+	: 
+	m_prop_handle(*this, "handle"),
+	m_prop_position(*this, "position")
 {
+	m_cache = new StoppedCache();
+
 	m_cur_tier = 0;
 
 	m_is_queued = queued;
 
-	m_info = ri.info;
+	m_info = info;
 
-	libtorrent::entry::dictionary_type e = ri.resume.dict();
 	m_downloaded = e["downloaded"].integer();
 	m_uploaded = e["uploaded"].integer();
 
 	m_path = e["path"].string();
 	m_prop_position = e["position"].integer();
-	if (ri.resume.find_key("group"))
+	if (e.find_key("group"))
 		m_group = e["group"].string();
-	if (ri.resume.find_key("name"))
+	if (e.find_key("name"))
 		m_name = e["name"].string();
 	else
-		m_name = m_info->name();
+		m_name = m_info->name(); /* sub optimal... */
 	m_up_limit = e["upload-limit"].integer();
 	m_down_limit = e["download-limit"].integer();
 
 	m_completed = (bool)e["completed"].integer();
 
-	if (ri.resume.find_key("priorities"))
+	if (e.find_key("priorities"))
 	{
-		libtorrent::entry::list_type p = e["priorities"].list();
-		for (libtorrent::entry::list_type::iterator iter = p.begin();
-			iter != p.end(); ++iter)
+		libtorrent::entry::list_type e_priorities = e["priorities"].list();
+		for (libtorrent::entry::list_type::iterator iter = e_priorities .begin();
+			iter != e_priorities .end(); ++iter)
 		{
 			m_priorities.push_back(iter->integer());
 		}
 	}
 	else
-		m_priorities.assign(m_info->num_files(), 1);
+		m_priorities.assign(m_info->num_files(), P_NORMAL);
 
 	// make sure it's a list, old version used dictionary
-	if (ri.resume.find_key("trackers") && e["trackers"].type() == libtorrent::entry::list_t)
+	if (e.find_key("trackers") && e["trackers"].type() == libtorrent::entry::list_t)
 	{
 		libtorrent::entry::list_type e_trackers = e["trackers"].list();
 		int tier = 0;
@@ -83,15 +87,15 @@ Torrent::Torrent(const Torrent::ResumeInfo& ri, bool queued)
 		{
 			libtorrent::announce_entry a(iter->string());
 			a.tier = tier;
-			m_trackers.push_back(a);
+			m_cache->trackers.push_back(a);
 			tier++;
 		}
 	}
 	else
-		m_trackers = m_info->trackers();
+		m_cache->trackers = m_info->trackers();
 
-	for (unsigned int i = 0; i < m_trackers.size(); i++)
-		m_replies[m_trackers[i].url] = "";
+	for (unsigned int i = 0; i < m_cache->trackers.size(); i++)
+		m_replies[m_cache->trackers[i].url] = "";
 }
 
 Torrent::~Torrent()
@@ -185,53 +189,50 @@ bool Torrent::is_completed()
 
 int Torrent::get_state()
 {
-	if (!is_stopped())
-	{
-		libtorrent::torrent_status status = get_handle().status();
-
-		/* libtorrent only says it's seeding after it's announced to the tracker */
-		if (status.total_done == m_info->total_size())
-			return SEEDING;
-
-		libtorrent::torrent_status::state_t state = status.state;
-		if (get_handle().is_paused())
-		{
-			if (m_is_queued)
-			{
-				/* Queued torrents can be in check state */
-				if (state == libtorrent::torrent_status::checking_files)
-					return CHECKING;
-				else if (state == libtorrent::torrent_status::queued_for_checking)
-					return CHECK_QUEUE;
-				else
-					return QUEUED;
-			}
-			/* libtorrent paused this handle, something bad happened */
-			else
-				return ERROR;
-		}
-
-		switch (state)
-		{
-			case libtorrent::torrent_status::queued_for_checking:
-				return CHECK_QUEUE;
-			case libtorrent::torrent_status::checking_files:
-				return CHECKING;
-			case libtorrent::torrent_status::connecting_to_tracker:
-				return ANNOUNCING | (m_completed ? FINISHED : DOWNLOADING);
-			case libtorrent::torrent_status::finished:
-				return FINISHED;
-			case libtorrent::torrent_status::seeding:
-				return SEEDING;
-			case libtorrent::torrent_status::allocating:
-				return ALLOCATING;
-			case libtorrent::torrent_status::downloading:
-			default:
-				return DOWNLOADING;
-		}
-	}
-	else
+	if (is_stopped())
 		return m_completed ? (STOPPED|FINISHED) : STOPPED;
+
+	libtorrent::torrent_status status = get_handle().status();
+
+	/* libtorrent only says it's seeding after it's announced to the tracker */
+	if (status.total_done == m_info->total_size())
+		return SEEDING;
+
+	libtorrent::torrent_status::state_t state = status.state;
+	if (get_handle().is_paused())
+	{
+		if (m_is_queued)
+		{
+			/* Queued torrents can be in check state */
+			if (state == libtorrent::torrent_status::checking_files)
+				return CHECKING;
+			else if (state == libtorrent::torrent_status::queued_for_checking)
+				return CHECK_QUEUE;
+			else
+				return QUEUED;
+		}
+		else /* libtorrent paused this handle, something bad happened */
+			return ERROR;
+	}
+
+	switch (state)
+	{
+		case libtorrent::torrent_status::queued_for_checking:
+			return CHECK_QUEUE;
+		case libtorrent::torrent_status::checking_files:
+			return CHECKING;
+		case libtorrent::torrent_status::connecting_to_tracker:
+			return ANNOUNCING | (m_completed ? FINISHED : DOWNLOADING);
+		case libtorrent::torrent_status::finished:
+			return FINISHED;
+		case libtorrent::torrent_status::seeding:
+			return SEEDING;
+		case libtorrent::torrent_status::allocating:
+			return ALLOCATING;
+		case libtorrent::torrent_status::downloading:
+		default:
+			return DOWNLOADING;
+	}
 }
 
 Glib::ustring Torrent::get_state_string()
@@ -281,46 +282,67 @@ Glib::ustring Torrent::state_string(int state)
 	}
 }
 
-const boost::intrusive_ptr<libtorrent::torrent_info>& Torrent::get_info()
+const Torrent::InfoPtr& Torrent::get_info()
 {
 	return m_info;
 }
 
-const libtorrent::torrent_status Torrent::get_status()
+libtorrent::torrent_status Torrent::get_status()
 {
-	if (!is_stopped())
-		return get_handle().status();
-	else
-		return libtorrent::torrent_status();
+	if (is_stopped())
+	{
+		g_assert(m_cache != NULL);
+		return m_cache->status;
+	}
+
+	return get_handle().status();
 }
 
-const std::vector<libtorrent::partial_piece_info> Torrent::get_download_queue()
-{
-	std::vector<libtorrent::partial_piece_info> queue;
-	if (!is_stopped())
-		get_handle().get_download_queue(queue);
-
-	return queue;
-}
-
-const std::vector<float> Torrent::get_file_progress()
+std::vector<float> Torrent::get_file_progress()
 {
 	std::vector<float> fp;
-	if (!is_stopped())
-		get_handle().file_progress(fp);
+	if (is_stopped())
+	{
+		g_assert(m_cache != NULL);
+		fp = m_cache->file_progress;
+	}
 	else
-		fp.assign(m_info->num_files(), 0);
+		get_handle().file_progress(fp);
 
 	return fp;
 }
 
 void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 {
-	m_prop_handle = handle;
+	if (is_stopped() && handle.is_valid())
+	{
+		g_assert(m_cache != NULL);
+		/* set cached trackers before we delete them */
+		handle.replace_trackers(m_cache->trackers);
+		delete m_cache;
+		m_cache = NULL;
+	}
+	else if (!is_stopped() && !handle.is_valid())
+	{
+		g_assert(m_cache == NULL);
+		m_cache = new StoppedCache();
+		get_handle().file_progress(m_cache->file_progress);
+		m_cache->trackers = get_handle().trackers();
+		m_cache->status = get_handle().status();
+		/* hack, set status to unused state for now */
+		m_cache->status.state = libtorrent::torrent_status::downloading_metadata;
+		m_cache->pieces = *(m_cache->status.pieces);
+		m_cache->status.pieces = &m_cache->pieces;
+		m_cache->status.next_announce = boost::posix_time::seconds(0);
+		m_cache->status.download_rate = 0;
+		m_cache->status.upload_rate = 0;
+		m_cache->status.num_peers = 0;
+		m_cache->status.num_seeds = 0;
+		m_cache->status.distributed_copies = -1;
+		/* FIXME: reset more stuff */
+	}
 
-	set_priorities(m_priorities);
-	set_up_limit(m_up_limit);
-	set_down_limit(m_down_limit);
+	m_prop_handle = handle;
 
 	/* Reset all replies on stop */
 	if (is_stopped())
@@ -330,7 +352,11 @@ void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 		m_cur_tier = 0;
 	}
 	else
-		handle.replace_trackers(m_trackers);
+	{
+		set_priorities(m_priorities);
+		set_up_limit(m_up_limit);
+		set_down_limit(m_down_limit);
+	}
 }
 
 void Torrent::set_name(const Glib::ustring& name)
@@ -345,21 +371,9 @@ void Torrent::set_group(const Glib::ustring& group)
 
 void Torrent::set_path(const Glib::ustring& path)
 {
-	if (m_path != path)
-	{
-		libtorrent::sha1_hash hash = m_info->info_hash();
-
-		bool stopped = is_stopped();
-		if (!stopped)
-			Engine::get_session_manager()->stop_torrent(hash);
-
-		m_path = path;
-		libtorrent::entry e = get_resume_entry(false);
-		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
-
-		if (!stopped)
-			Engine::get_session_manager()->resume_torrent(hash);
-	}
+	m_path = path;
+	libtorrent::entry e = get_resume_entry(false);
+	save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", get_hash()) + ".resume"), e);
 }
 
 void Torrent::set_tracker_reply(const Glib::ustring& reply, const Glib::ustring& tracker, Torrent::ReplyType type)
@@ -405,34 +419,33 @@ void Torrent::set_position(unsigned int position)
 
 void Torrent::set_priorities(const std::vector<int>& priorities)
 {
-	if (m_priorities != priorities)
-		m_priorities.assign(priorities.begin(), priorities.end());
+	m_priorities = priorities;
 
-	if (!is_stopped())
+	if (is_stopped())
+		return;
+
+	get_handle().prioritize_files(m_priorities);
+
+	if (Engine::get_settings_manager()->get_bool("files/prioritize_firstlast"))
 	{
-		get_handle().prioritize_files(m_priorities);
-
-		if (Engine::get_settings_manager()->get_bool("files/prioritize_firstlast"))
+		//FIXME: prioritize 5%-10% at level 6?
+		//prioritize the first and last 5% of the files size
+		for (int i = 0; i < m_info->num_files(); i++)
 		{
-			//FIXME: prioritize 5%-10% at level 6?
-			//prioritize the first and last 5% of the files size
-			for (int i = 0; i < m_info->num_files(); i++)
-			{
-				if (!m_priorities[i])
-					continue;
+			if (!m_priorities[i])
+				continue;
 
-				const libtorrent::file_entry& file = m_info->file_at(i);
-				libtorrent::size_type size_prio = 0.05*file.size;
-				int front = m_info->map_file(i, 0, size_prio).piece;
-				int end = m_info->map_file(i, file.size, 0).piece;
-				int num_prio = size_prio/m_info->piece_length();
-				//this means file.size > ~piece_length*20 
-				while (num_prio--)
-				{
-					//priority 7, not P_MAX. See LT docs
-					get_handle().piece_priority(front++, 7);
-					get_handle().piece_priority(end--, 7);
-				}
+			const libtorrent::file_entry& file = m_info->file_at(i);
+			libtorrent::size_type size_prio = (libtorrent::size_type)0.05*file.size;
+			int front = m_info->map_file(i, 0, size_prio).piece;
+			int end = m_info->map_file(i, file.size, 0).piece;
+			int num_prio = size_prio/m_info->piece_length();
+			//this means file.size > ~piece_length*20 
+			while (num_prio--)
+			{
+				//priority 7, not P_MAX. See LT docs
+				get_handle().piece_priority(front++, P_MAX);
+				get_handle().piece_priority(end--, P_MAX);
 			}
 		}
 	}
@@ -441,7 +454,6 @@ void Torrent::set_priorities(const std::vector<int>& priorities)
 void Torrent::set_file_priority(int index, int priority)
 {
 	m_priorities[index] = priority;
-
 	set_priorities(m_priorities);
 }
 
@@ -469,64 +481,41 @@ void Torrent::set_down_limit(int limit)
 	}
 }
 
-void Torrent::set_total_downloaded(libtorrent::size_type bytes)
-{
-	m_downloaded = bytes;
-}
-
-void Torrent::set_total_uploaded(libtorrent::size_type bytes)
-{
-	m_uploaded = bytes;
-}
-
 void Torrent::set_completed(bool completed)
 {
 	m_completed = completed;
 }
 
 void Torrent::add_tracker(const Glib::ustring& url)
-{
-	bool stopped = is_stopped();
-	if (!stopped)
-	{
-		/* Check if someone else changed the trackers */
-		bool diff = false;
-		std::vector<libtorrent::announce_entry> trackers = get_handle().trackers();
-		if (m_trackers.size() < trackers.size())
-			diff = true;
-		else if (m_trackers.size() == trackers.size())
-		{
-			for (unsigned int i = 0; i < m_trackers.size() && !diff; i++)
-			{
-				diff = true;
-				for (unsigned int j = 0; j < trackers.size(); j++)
-				{
-					if (m_trackers[i].url == trackers[j].url)
-					{
-						diff = (m_trackers[i].tier != trackers[j].tier);
-						break;
-					}
-				}
-			}
-		}
-
-		if (diff)
-			m_trackers = trackers;
-	}
-
+{	
 	libtorrent::announce_entry a(url);
-	a.tier = m_trackers.size();
-	m_trackers.push_back(a);
 
 	m_replies[url] = "";
 
-	if (!stopped)
-		get_handle().replace_trackers(m_trackers);
+	if (!is_stopped())
+	{
+		std::vector<libtorrent::announce_entry> trackers = get_trackers();
+		a.tier = trackers.size();
+		trackers.push_back(a);
+		get_handle().replace_trackers(trackers);
+	}
+	else
+	{
+		g_assert(m_cache != NULL);
+		a.tier = m_cache->trackers.size();
+		m_cache->trackers.push_back(a);
+	}
 }
 
 const std::vector<libtorrent::announce_entry>& Torrent::get_trackers()
 {
-	return m_trackers;
+	if (is_stopped())
+	{
+		g_assert(m_cache != NULL);
+		return m_cache->trackers;
+	}
+
+	return get_handle().trackers();
 }
 
 void Torrent::queue()
@@ -567,7 +556,7 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 	else
 		m_announcing = true;
 
-	std::vector<libtorrent::announce_entry> trackers = get_handle().trackers();
+	std::vector<libtorrent::announce_entry> trackers = get_trackers();
 	if (!tracker.empty())
 	{
 		for (std::vector<libtorrent::announce_entry>::iterator i = trackers.begin();
@@ -589,9 +578,7 @@ void Torrent::reannounce(const Glib::ustring& tracker)
 				trackers[i].tier++;
 		}
 
-		m_trackers = trackers;
-
-		get_handle().replace_trackers(m_trackers);
+		get_handle().replace_trackers(trackers);
 	}
 
 	m_cur_tier = 0;
@@ -614,15 +601,7 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 			if (!get_handle().is_paused())
 			{
 				get_handle().pause();
-				// FIXME: move to AlertManager::wait_for(alert_type)
-				// wait for torrent_paused_alert
-				const libtorrent::alert* a = NULL;
-				while (true)
-				{
-					const libtorrent::alert*a =	Engine::get_session_manager()->wait_for_alert(libtorrent::seconds(3));
-					if (const libtorrent::torrent_paused_alert* p = dynamic_cast<const libtorrent::torrent_paused_alert*>(a))
-						break;
-				}
+				Engine::get_alert_manager()->wait_for_alert<libtorrent::torrent_paused_alert>(libtorrent::seconds(3));
 			}
 			m_downloaded += get_handle().status().total_download;
 			m_uploaded += get_handle().status().total_upload;
@@ -678,9 +657,10 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 	if (!m_group.empty())
 		resume_entry["group"] = m_group;
 
+	std::vector<libtorrent::announce_entry> trackers = get_trackers();
 	libtorrent::entry::list_type e_trackers;
-	for (unsigned int i = 0; i < m_trackers.size(); i++)
-		e_trackers.push_back(m_trackers[i].url);
+	for (unsigned int i = 0; i < trackers.size(); i++)
+		e_trackers.push_back(trackers[i].url);
 	resume_entry["trackers"] = e_trackers;
 
 	return resume_entry;

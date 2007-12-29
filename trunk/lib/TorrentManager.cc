@@ -38,6 +38,9 @@ Glib::RefPtr<TorrentManager> TorrentManager::create()
 
 TorrentManager::TorrentManager()
 {
+	load_torrents();
+
+	/* connect signal handlers */
 	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
 
 	am->signal_tracker_announce().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_announce));
@@ -202,6 +205,94 @@ void TorrentManager::on_position_changed(const libtorrent::sha1_hash& hash)
 		check_queue();
 }
 
+void TorrentManager::load_torrents()
+{
+	ResumeMap resumes;
+
+	/* load torrent info from disk cache */
+	Glib::Dir dir(get_data_dir());
+	for (Glib::DirIterator iter = dir.begin(); iter != dir.end(); ++iter)
+	{
+		Glib::ustring hash_str = *iter;
+		Glib::ustring file = Glib::build_filename(get_data_dir(), hash_str);
+		/* only load torrents that has a .resume file */
+		if (Glib::file_test(file + ".resume", Glib::FILE_TEST_EXISTS))
+			load_torrent(file, resumes);
+	}
+
+	/* resume previously active torrents */
+	for (ResumeMap::iterator iter = resumes.begin(); iter != resumes.end(); ++iter)
+	{
+		Engine::get_session_manager()->resume_torrent(iter->first, iter->second);
+	}
+}
+
+void TorrentManager::load_torrent(const Glib::ustring& file, ResumeMap& resumes)
+{
+	libtorrent::entry e, er;
+
+	/* skip if we can't load torrent file */
+	if (!load_entry(file, e))
+		return;
+
+	Torrent::InfoPtr info(new libtorrent::torrent_info(e));
+
+	/* signal if we can't load resume file */
+	if (!load_entry(file + ".resume", er))
+	{
+		m_signal_load_failed.emit(file + ".resume", info);
+		return;
+	}
+
+	/* make sure we have not lost track of the content */
+	if (!er.find_key("path"))
+	{
+		m_signal_load_failed.emit(file + ".resume", info);
+		return;
+	}
+
+	Glib::RefPtr<Torrent> torrent = add_torrent(er, info);
+	if (er.find_key("stopped") && !er["stopped"].integer())
+		resumes[torrent] = er;
+}
+
+Glib::RefPtr<Torrent> TorrentManager::add_torrent(libtorrent::entry& er,
+	const Torrent::InfoPtr& info)
+{
+	/* set default values if they don't exist */
+	if (!er.find_key("upload-limit"))
+		er["upload-limit"] = 0;
+	if (!er.find_key("download-limit"))
+		er["download-limit"] = 0;
+	if (!er.find_key("downloaded"))
+		er["downloaded"] = 0;
+	if (!er.find_key("uploaded"))
+		er["uploaded"] = 0;
+	if (!er.find_key("completed"))
+		er["completed"] = 0;
+	if (!er.find_key("position"))
+		er["position"] = m_torrents.size() + 1;
+
+	Glib::RefPtr<Torrent> torrent = Torrent::create(er, info, false);
+	libtorrent::sha1_hash hash = info->info_hash();
+	/* 
+		Seems we can't bind with the torrent RefPtr
+		if we do we crash when the signalproxies destroys
+		and there seems to be no way of disconnect them either :/
+	*/
+	torrent->property_handle().signal_changed().connect(sigc::bind(
+		sigc::mem_fun(this, &TorrentManager::on_handle_changed), hash));
+	torrent->property_position().signal_changed().connect(sigc::bind(
+		sigc::mem_fun(this, &TorrentManager::on_position_changed), hash));
+
+	m_torrents[hash] = torrent;
+
+	Engine::get_dbus_manager()->register_torrent(torrent);
+	m_signal_added.emit(torrent);
+
+	return torrent;
+}
+
 void TorrentManager::set_torrent_settings(const Glib::RefPtr<Torrent>& torrent)
 {
 	if (!torrent->is_stopped())
@@ -231,64 +322,20 @@ bool TorrentManager::exists(const Glib::ustring& hash_str)
 	return false;
 }
 
-Glib::RefPtr<Torrent> TorrentManager::add_torrent(const libtorrent::entry& e,
-	const boost::intrusive_ptr<libtorrent::torrent_info>& info)
+void TorrentManager::remove_torrent(const Glib::RefPtr<Torrent>& torrent)
 {
-	Torrent::ResumeInfo ri(e, info);
-
-	/* FIXME: Make sure ri.resume["path"] not is empty, this is rare but could happen */
-
-	if (!ri.resume.find_key("upload-limit"))
-		ri.resume["upload-limit"] = 0;
-
-	if (!ri.resume.find_key("download-limit"))
-		ri.resume["download-limit"] = 0;
-
-	if (!ri.resume.find_key("downloaded"))
-		ri.resume["downloaded"] = 0;
-
-	if (!ri.resume.find_key("uploaded"))
-		ri.resume["uploaded"] = 0;
-
-	if (!ri.resume.find_key("completed"))
-		ri.resume["completed"] = 0;
-
-	if (!ri.resume.find_key("position"))
-		ri.resume["position"] = m_torrents.size() + 1;
-
-	Glib::RefPtr<Torrent> torrent = Torrent::create(ri, false);
-	libtorrent::sha1_hash hash = info->info_hash();
-	// Seems we can't bind with the torrent RefPtr
-	// if we do we crash when the signalproxies destroys
-	// and there seems to be no way of disconnect them either :/
-	torrent->property_handle().signal_changed().connect(sigc::bind(
-		sigc::mem_fun(this, &TorrentManager::on_handle_changed), hash));
-	torrent->property_position().signal_changed().connect(sigc::bind(
-		sigc::mem_fun(this, &TorrentManager::on_position_changed), hash));
-
-	m_torrents[hash] = torrent;
-
-	Engine::get_dbus_manager()->register_torrent(torrent);
-	m_signal_added.emit(torrent);
-
-	return torrent;
-}
-
-void TorrentManager::remove_torrent(const libtorrent::sha1_hash& hash)
-{
-	Glib::RefPtr<Torrent> torrent = m_torrents[hash];
 	unsigned int pos = torrent->get_position();
 
 	Engine::get_dbus_manager()->unregister_torrent(torrent);
 
-	m_torrents.erase(hash);
+	m_torrents.erase(torrent->get_hash());
 
 	TorrentVector torrents;
 	for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = iter->second;
-		if (torrent->get_position() > pos)
-			torrents.push_back(torrent);
+		Glib::RefPtr<Torrent> t = iter->second;
+		if (t->get_position() > pos)
+			torrents.push_back(t);
 	}
 
 	std::sort(torrents.begin(), torrents.end(), pred());
@@ -382,3 +429,4 @@ void TorrentManager::check_queue()
 	if (num_active > max_active)
 		check_queue();
 }
+

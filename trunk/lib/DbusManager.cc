@@ -101,6 +101,21 @@ const char* introspect_torrent =
 "  </interface>\n"
 "</node>\n";
 
+void DbusManager::handler_error(DBusConnection* connection,
+	DBusMessage* message,
+	DBusError* error)
+{
+	if (error)
+	{
+		g_warning("Error recieved from DBus: %s", error->message);
+		dbus_error_free(error);
+	}
+	
+	DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
+	dbus_connection_send(connection, reply, NULL);
+	dbus_message_unref(reply);
+}
+
 bool DbusManager::handler_common(DBusConnection* connection,
 	DBusMessage* message,
 	const char* introspect,
@@ -141,21 +156,14 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		char *file;
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &file, DBUS_TYPE_INVALID))
 		{
-			Engine::get_interface().open(file);
 			DBusMessage* reply = dbus_message_new_method_return(message);
 			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 			dbus_connection_send(connection, reply, NULL);
 			dbus_message_unref(reply);
+			Engine::get_interface().open(file);
 		} 
 		else 
-		{
-			g_warning("Error recieved from DBus: %s", error.message);
-			dbus_error_free(&error);
-			
-			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
-			dbus_connection_send(connection, reply, NULL);
-			dbus_message_unref(reply);
-		}
+			handler_error(connection, message, &error);
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "Add")) 
 	{
@@ -164,21 +172,14 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		char *file, *path;
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &file, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID))
 		{
-			Engine::get_session_manager()->open_torrent(file, path);
 			DBusMessage* reply = dbus_message_new_method_return(message);
 			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 			dbus_connection_send(connection, reply, NULL);
 			dbus_message_unref(reply);
+			Engine::get_session_manager()->open_torrent(file, path);
 		} 
 		else 
-		{
-			g_warning("Error recieved from DBus: %s", error.message);
-			dbus_error_free(&error);
-
-			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
-			dbus_connection_send(connection, reply, NULL);
-			dbus_message_unref(reply);
-		}
+			handler_error(connection, message, &error);
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "GetVisible")) 
 	{
@@ -195,36 +196,25 @@ DBusHandlerResult DbusManager::handler_interface(DBusConnection* connection,
 		gboolean visible;
 		if (dbus_message_get_args(message, &error, DBUS_TYPE_BOOLEAN, &visible, DBUS_TYPE_INVALID))
 		{
-			Engine::get_interface().set_visible(visible);
 			DBusMessage* reply = dbus_message_new_method_return(message);
 			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 			dbus_connection_send(connection, reply, NULL);
 			dbus_message_unref(reply);
+			Engine::get_interface().set_visible(visible);
 		} 
 		else 
-		{
-			g_warning("Error recieved from DBus: %s", error.message);
-			dbus_error_free(&error);
-
-			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
-			dbus_connection_send(connection, reply, NULL);
-			dbus_message_unref(reply);
-		}
+			handler_error(connection, message, &error);
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_INTERFACE, "Quit")) 
 	{
-		Engine::get_interface().quit();
 		DBusMessage* reply = dbus_message_new_method_return(message);
 		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
+		Engine::get_interface().quit();
 	}
 	else
-	{
-		DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
-		dbus_connection_send(connection, reply, NULL);
-		dbus_message_unref(reply);
-	}
+		handler_error(connection, message, NULL);
 
 	return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -246,6 +236,7 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "GetState")) 
 	{
+		// do strdup since get_state_string() isn't a reference
 		char* state = g_strdup(data->torrent->get_state_string().c_str());
 		DBusMessage* reply = dbus_message_new_method_return(message);
 		dbus_message_append_args(reply, DBUS_TYPE_STRING, &state, DBUS_TYPE_INVALID);
@@ -312,7 +303,7 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
-		Engine::get_session_manager()->resume_torrent(data->torrent->get_hash());
+		Engine::get_session_manager()->resume_torrent(data->torrent);
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "Stop")) 
 	{
@@ -320,7 +311,7 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 		dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 		dbus_connection_send(connection, reply, NULL);
 		dbus_message_unref(reply);
-		Engine::get_session_manager()->stop_torrent(data->torrent->get_hash());
+		Engine::get_session_manager()->stop_torrent(data->torrent);
 	}
 	else if (dbus_message_is_method_call(message, LK_INTERFACE_TORRENT, "Remove")) 
 	{
@@ -333,24 +324,13 @@ DBusHandlerResult DbusManager::handler_torrent(DBusConnection* connection,
 			dbus_message_append_args(reply, DBUS_TYPE_INVALID);
 			dbus_connection_send(connection, reply, NULL);
 			dbus_message_unref(reply);
-			Engine::get_session_manager()->erase_torrent(data->torrent->get_hash(), erase);
+			Engine::get_session_manager()->erase_torrent(data->torrent, erase);
 		} 
 		else 
-		{
-			g_warning("Error recieved from DBus: %s", error.message);
-			dbus_error_free(&error);
-
-			DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
-			dbus_connection_send(connection, reply, NULL);
-			dbus_message_unref(reply);
-		}
+			handler_error(connection, message, &error);
 	}
 	else
-	{
-		DBusMessage* reply = dbus_message_new_error(message, DBUS_ERROR_FAILED, NULL);
-		dbus_connection_send(connection, reply, NULL);
-		dbus_message_unref(reply);
-	}
+		handler_error(connection, message, NULL);
 
 	return DBUS_HANDLER_RESULT_HANDLED;
 }

@@ -406,8 +406,7 @@ void UI::open(const Glib::ustring& uri)
 				String::compose("%1", add_dialog->get_info()->info_hash()) + ".resume"), er);
 		}
 
-		libtorrent::sha1_hash hash = Engine::get_session_manager()->open_torrent(data.file, data.path);
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_session_manager()->open_torrent(data.file, data.path);
 
 		if (!data.name.empty())
 			torrent->set_name(data.name);
@@ -421,7 +420,7 @@ void UI::open(const Glib::ustring& uri)
 
 		//update(torrent, expander_details->get_expanded());
 	}
-	add_dialog->hide();
+	add_dialog->hide(); /* FIXME: needed? */
 }
 
 void UI::quit()
@@ -438,7 +437,7 @@ void UI::notify(const Glib::ustring& title,
 
 void UI::on_tick()
 {
-	/* Only update lists every 3rd tick, should be configurable */
+	/* FIXME: Only updates lists every 3rd tick, should be configurable */
 	static int tick;
 	tick = (tick + 1) % 3;
 
@@ -597,11 +596,10 @@ void UI::on_remove(bool erase_content)
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		libtorrent::sha1_hash hash = *iter;
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
 
 		if (erase_content)
 		{
-			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 			Glib::ustring title = String::ucompose(
 				_("Are you sure you wish to remove \"%1\" and it's content?"),
 				torrent->get_name());
@@ -619,10 +617,10 @@ void UI::on_remove(bool erase_content)
 			dialog.set_secondary_text(msg);
 
 			if (dialog.run() == Gtk::RESPONSE_OK)
-				Engine::get_session_manager()->erase_torrent(hash, erase_content);
+				Engine::get_session_manager()->erase_torrent(torrent, erase_content);
 		}
 		else
-			Engine::get_session_manager()->erase_torrent(hash, erase_content);
+			Engine::get_session_manager()->erase_torrent(torrent, erase_content);
 	}
 
 	if (!list.empty())
@@ -643,7 +641,7 @@ void UI::on_start()
 		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		if (torrent->is_stopped() || torrent->get_state() & Torrent::ERROR)
 		{
-			Engine::get_session_manager()->resume_torrent(hash);
+			Engine::get_session_manager()->resume_torrent(torrent);
 			button_announce->set_sensitive(true);
 		}
 	}
@@ -656,8 +654,8 @@ void UI::on_stop()
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		libtorrent::sha1_hash hash = *iter;
-		Engine::get_session_manager()->stop_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
+		Engine::get_session_manager()->stop_torrent(torrent);
 	}
 
 	if (!list.empty())
@@ -702,8 +700,7 @@ void UI::on_set_group(const Glib::ustring& group)
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		libtorrent::sha1_hash hash = *iter;
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
 		torrent->set_group(group);
 	}
 	on_tick();
@@ -715,8 +712,8 @@ void UI::on_check()
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		libtorrent::sha1_hash hash = *iter;
-		Engine::get_session_manager()->recheck_torrent(hash);
+		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
+		Engine::get_session_manager()->recheck_torrent(torrent);
 	}
 }
 

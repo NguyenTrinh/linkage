@@ -199,7 +199,8 @@ void NotifyPlugin::on_open_location(const Glib::ustring& path)
 
 void NotifyPlugin::on_stop_torrent(const libtorrent::sha1_hash& hash)
 {
-	Engine::get_session_manager()->stop_torrent(hash);
+	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	Engine::get_session_manager()->stop_torrent(torrent);
 }
 
 void NotifyPlugin::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)

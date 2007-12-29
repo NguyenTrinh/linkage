@@ -47,6 +47,9 @@ class DbusManager : public Glib::Object
 		UserData(const Glib::RefPtr<Torrent>& torrent_, DbusManager* self_)
 			: torrent(torrent_), self(self_) {}
 	};
+	static void handler_error(DBusConnection* connection,
+		DBusMessage* message,
+		DBusError* error);
 	static bool handler_common(DBusConnection* connection,
 		DBusMessage* message,
 		const char* introspect,

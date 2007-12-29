@@ -157,7 +157,7 @@ void TrayPlugin::on_torrents_stop()
 	{
 		Glib::RefPtr<Torrent> torrent = *iter;
 		if (!torrent->is_stopped())
-			Engine::get_session_manager()->stop_torrent(torrent->get_hash());
+			Engine::get_session_manager()->stop_torrent(torrent);
 	}
 }
 
@@ -169,7 +169,7 @@ void TrayPlugin::on_torrents_start()
 	{
 		Glib::RefPtr<Torrent> torrent = *iter;
 		if (torrent->is_stopped())
-			Engine::get_session_manager()->resume_torrent(torrent->get_hash());
+			Engine::get_session_manager()->resume_torrent(torrent);
 	}
 }
 
