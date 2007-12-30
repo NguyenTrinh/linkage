@@ -97,7 +97,7 @@ public:
 		else
 			g_warning("Unkown type value, ignoring.");
 
-		signal_changed().connect(
+		property_value().signal_changed().connect(
 			sigc::mem_fun(this, &SettingsWidget<T>::on_changed));
 	}
 	SpinButtonSetting(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& xml)
