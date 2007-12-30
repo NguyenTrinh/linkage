@@ -84,9 +84,9 @@ private:
 	
 	void on_key_changed(const Glib::ustring& key, const Value& value);
 
-	typedef std::map<Glib::RefPtr<Torrent>, libtorrent::entry> ResumeMap;
+	typedef std::list<std::pair<Glib::RefPtr<Torrent>, libtorrent::entry> > ResumeList;
 	void load_torrents();
-	void load_torrent(const Glib::ustring& file, ResumeMap& resumes);
+	void load_torrent(const Glib::ustring& file, ResumeList& resumes);
 
 	TorrentManager();
 

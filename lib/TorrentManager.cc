@@ -207,7 +207,7 @@ void TorrentManager::on_position_changed(const libtorrent::sha1_hash& hash)
 
 void TorrentManager::load_torrents()
 {
-	ResumeMap resumes;
+	ResumeList resumes;
 
 	/* load torrent info from disk cache */
 	Glib::Dir dir(get_data_dir());
@@ -221,13 +221,13 @@ void TorrentManager::load_torrents()
 	}
 
 	/* resume previously active torrents */
-	for (ResumeMap::iterator iter = resumes.begin(); iter != resumes.end(); ++iter)
+	for (ResumeList::iterator iter = resumes.begin(); iter != resumes.end(); ++iter)
 	{
 		Engine::get_session_manager()->resume_torrent(iter->first, iter->second);
 	}
 }
 
-void TorrentManager::load_torrent(const Glib::ustring& file, ResumeMap& resumes)
+void TorrentManager::load_torrent(const Glib::ustring& file, ResumeList& resumes)
 {
 	libtorrent::entry e, er;
 
@@ -253,7 +253,7 @@ void TorrentManager::load_torrent(const Glib::ustring& file, ResumeMap& resumes)
 
 	Glib::RefPtr<Torrent> torrent = add_torrent(er, info);
 	if (er.find_key("stopped") && !er["stopped"].integer())
-		resumes[torrent] = er;
+		resumes.push_back(std::make_pair(torrent, er));
 }
 
 Glib::RefPtr<Torrent> TorrentManager::add_torrent(libtorrent::entry& er,
