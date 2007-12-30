@@ -1,0 +1,1260 @@
+# Russian translations for linkage package.
+# Copyright (C) 2007 THE linkage'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the linkage package.
+# <v.tolstov@selfip.ru>, 2007.
+# <vase@support02>, 2007.
+# 
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: linkage 0.1.5svn-r438\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-12-29 10:48+0300\n"
+"PO-Revision-Date: 2007-12-29 13:35+0300\n"
+"Last-Translator: Vasiliy G Tolstov <v.tolstov@selfip.ru>\n"
+"Language-Team: Russian <ru@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+
+#: ../src/FileList.cc:52 ../src/FilterRow.cc:66 ../src/GroupList.cc:43
+#: ../src/GroupsWin.cc:40 ../src/SettingsWin.cc:153 ../src/TorrentList.cc:76
+#: ../src/SimpleFileList.cc:42 ../data/linkage.glade.h:85
+msgid "Name"
+msgstr "Название"
+
+#: ../src/FileList.cc:64
+msgid "Pieces"
+msgstr "Части"
+
+#: ../src/FileList.cc:71
+msgid "Done"
+msgstr "Сделано"
+
+#: ../src/FileList.cc:78 ../src/SimpleFileList.cc:47
+msgid "Size"
+msgstr "Размер"
+
+#: ../src/FileList.cc:87
+msgid "Priority"
+msgstr "Приоритет"
+
+#: ../src/FileList.cc:94
+msgid "<i>Priority</i>"
+msgstr "<i>Приоритет</i>"
+
+#: ../src/FileList.cc:99 ../src/FileList.cc:216
+msgid "Max"
+msgstr "Макс"
+
+#: ../src/FileList.cc:102 ../src/FileList.cc:219
+msgid "High"
+msgstr "Высокий"
+
+#: ../src/FileList.cc:105 ../src/FileList.cc:226
+msgid "Normal"
+msgstr "Нормальный"
+
+#: ../src/FileList.cc:109 ../src/FileList.cc:222
+msgid "Skip"
+msgstr "Пропуск"
+
+#: ../src/FilterRow.cc:53 ../src/GroupsWin.cc:220
+msgid "If"
+msgstr "Если"
+
+#: ../src/FilterRow.cc:54
+msgid "If not"
+msgstr "Если не"
+
+#: ../src/FilterRow.cc:58
+msgid "Or"
+msgstr "Или"
+
+#: ../src/FilterRow.cc:59
+msgid "Or not"
+msgstr "Или не"
+
+#: ../src/FilterRow.cc:60
+msgid "And"
+msgstr "И"
+
+#: ../src/FilterRow.cc:61
+msgid "And not"
+msgstr "И не"
+
+#: ../src/FilterRow.cc:65 ../src/PeerList.cc:305
+msgid "Tracker"
+msgstr "Трекер"
+
+#: ../src/FilterRow.cc:67
+msgid "Comment"
+msgstr "Комментарий"
+
+#: ../src/FilterRow.cc:70
+msgid "Equals"
+msgstr "Равно"
+
+#: ../src/FilterRow.cc:71
+msgid "Contains"
+msgstr "Содержит"
+
+#: ../src/FilterRow.cc:72
+msgid "Starts with"
+msgstr "Начинается на"
+
+#: ../src/FilterRow.cc:73
+msgid "Ends with"
+msgstr "Заканчивается на"
+
+#: ../src/GroupList.cc:52 ../src/StateFilter.cc:52
+msgid "All"
+msgstr "Все"
+
+#: ../src/GroupsWin.cc:234
+msgid "and"
+msgstr "и"
+
+#: ../src/GroupsWin.cc:237
+msgid "and not"
+msgstr "и не"
+
+#: ../src/GroupsWin.cc:241
+msgid "or"
+msgstr "или"
+
+#: ../src/GroupsWin.cc:245
+msgid "or not"
+msgstr "и не"
+
+#: ../src/GroupsWin.cc:247
+msgid "not"
+msgstr "не"
+
+#: ../src/GroupsWin.cc:254
+msgid "comment"
+msgstr "комментарий"
+
+#: ../src/GroupsWin.cc:257
+msgid "tracker"
+msgstr "трекер"
+
+#: ../src/GroupsWin.cc:260
+msgid "name"
+msgstr "название"
+
+#: ../src/GroupsWin.cc:267
+msgid "equals"
+msgstr "равно"
+
+#: ../src/GroupsWin.cc:270
+msgid "contains"
+msgstr "содержит"
+
+#: ../src/GroupsWin.cc:273
+msgid "starts with"
+msgstr "начинается с"
+
+#: ../src/GroupsWin.cc:276
+msgid "ends with"
+msgstr "заканчивается на"
+
+#: ../src/main.cc:65
+msgid "Show version and quit"
+msgstr "Показать версию и выйти"
+
+#: ../src/main.cc:70
+msgid "Tell the running instance to quit"
+msgstr "Отправить сигнал выхода запущенному приложению"
+
+#: ../src/main.cc:118
+msgid ""
+"[FILE...] \n"
+"\n"
+"A BitTorrent client\n"
+msgstr ""
+"[Файл...]·\n"
+"\n"
+"BitTorrent·клиент\n"
+
+#: ../src/main.cc:134
+msgid ""
+"Run \"linkage --help\" to see a full list of available command line "
+"options.\n"
+msgstr "Выполните \"linkage --help\" чтобы увидеть полный список доступных комманд.\n"
+
+#: ../src/PeerList.cc:42
+msgid "Address"
+msgstr "Адрес"
+
+#: ../src/PeerList.cc:50 ../data/linkage.glade.h:44
+msgid "Downloaded"
+msgstr "Загружено"
+
+#: ../src/PeerList.cc:54 ../data/linkage.glade.h:146
+msgid "Uploaded"
+msgstr "Выгружено"
+
+#: ../src/PeerList.cc:58
+msgid "Download rate"
+msgstr "Коэффициент загрузки"
+
+#: ../src/PeerList.cc:62
+msgid "Upload rate"
+msgstr "Коэффициент выгрузки"
+
+#: ../src/PeerList.cc:68 ../src/TorrentList.cc:84 ../data/linkage.glade.h:106
+msgid "Progress"
+msgstr "Прогресс"
+
+#: ../src/PeerList.cc:70
+msgid "Client"
+msgstr "Клиент"
+
+#: ../src/PeerList.cc:71
+msgid "State"
+msgstr "Статус"
+
+#: ../src/PeerList.cc:72
+msgid "Source"
+msgstr "Исходник"
+
+#: ../src/PeerList.cc:251
+msgid "Connecting"
+msgstr "Соединяемся"
+
+#: ../src/PeerList.cc:253
+msgid "Handshake"
+msgstr "Приветствие"
+
+#: ../src/PeerList.cc:255 ../lib/Torrent.cc:256
+msgid "Queued"
+msgstr "В очереди"
+
+#: ../src/PeerList.cc:262
+msgid "Both interested"
+msgstr "Оба интересуют"
+
+#: ../src/PeerList.cc:270
+msgid "Interested"
+msgstr "Интересует"
+
+#: ../src/PeerList.cc:276
+msgid "Remote interested"
+msgstr "Подключенный заинтересован"
+
+#: ../src/PeerList.cc:284
+msgid "Both choked"
+msgstr ""
+
+#: ../src/PeerList.cc:292
+msgid "Choked"
+msgstr ""
+
+#: ../src/PeerList.cc:298
+msgid "Remote choked"
+msgstr ""
+
+#: ../src/PeerList.cc:307
+msgid "DHT"
+msgstr "DHT"
+
+#: ../src/PeerList.cc:309
+msgid "PEX"
+msgstr "PEX"
+
+#: ../src/PeerList.cc:311
+msgid "LSD"
+msgstr "LSD"
+
+#: ../src/PeerList.cc:313
+msgid "Resume data"
+msgstr ""
+
+#: ../src/SettingsWin.cc:123
+msgid "None specified"
+msgstr "Ни один не указан"
+
+#: ../src/SettingsWin.cc:131
+msgid "Forced"
+msgstr "Форсировано"
+
+#: ../src/SettingsWin.cc:132
+msgid "Enabled"
+msgstr "Включен"
+
+#: ../src/SettingsWin.cc:133
+msgid "Disabled"
+msgstr "Выключен"
+
+#: ../src/SettingsWin.cc:134
+msgid "Plain text"
+msgstr "Просто текст"
+
+#: ../src/SettingsWin.cc:135
+msgid "RC4"
+msgstr "RC4"
+
+#: ../src/SettingsWin.cc:136
+msgid "Both"
+msgstr "Оба"
+
+#: ../src/SettingsWin.cc:137
+msgid "None"
+msgstr "Ничего"
+
+#: ../src/SettingsWin.cc:138
+msgid "SOCKS4"
+msgstr "SOCKS4"
+
+#: ../src/SettingsWin.cc:139
+msgid "SOCKS5"
+msgstr "SOCKS5"
+
+#: ../src/SettingsWin.cc:140
+msgid "SOCKS5 with password"
+msgstr "SOCKS5 с паролем"
+
+#: ../src/SettingsWin.cc:141
+msgid "HTTP"
+msgstr "HTTP"
+
+#: ../src/SettingsWin.cc:142
+msgid "HTTP with password"
+msgstr "HTTP с паролем"
+
+#: ../src/SettingsWin.cc:151
+msgid "Load"
+msgstr "Загрузить"
+
+#: ../src/SettingsWin.cc:154
+msgid "Description"
+msgstr "Описание"
+
+#: ../src/TorrentCreator.cc:103 ../data/linkage.glade.h:123
+msgid "Select file"
+msgstr "Выберите файл"
+
+#: ../src/TorrentCreator.cc:108
+msgid "Select folder"
+msgstr "Выберите папку"
+
+#: ../src/TorrentCreator.cc:129
+msgid "Incomplete information"
+msgstr "Неполная информация"
+
+#: ../src/TorrentCreator.cc:130
+msgid "You must specify the tracker url and a file/folder."
+msgstr "Вы должны указать url адрес трекера и файл/папку"
+
+#: ../src/TorrentCreator.cc:147
+msgid "Hashing..."
+msgstr "Хеширование..."
+
+#: ../src/TorrentCreator.cc:222
+msgid "Save torrent"
+msgstr "Сохранить торрент"
+
+#: ../src/TorrentList.cc:321
+msgid ""
+"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+"%4 (%5) connected seeds, %6 (%7) peers"
+msgstr ""
+"<span·foreground='%1'><b>%2</b>·(%3)</span>\n"
+"%4·(%5)·сидеров,·%6·(%7)·пиров"
+
+#: ../src/TorrentList.cc:328
+msgid ""
+"<span foreground='%1'><b>%2</b> (%3)</span>\n"
+"%4 connected seeds, %5 peers"
+msgstr ""
+"<span·foreground='%1'><b>%2</b>·(%3)</span>\n"
+"%4·сидеров,·%5·пиров"
+
+#: ../src/TorrentMenu.cc:90
+msgid "<i>None</i>"
+msgstr "<i>Ничего</i>"
+
+#: ../src/UI.cc:395 ../lib/SessionManager.cc:272
+msgid "File not found, \"%1\""
+msgstr "Файл не найден, \"%1\""
+
+#: ../src/UI.cc:543
+msgid "Yes"
+msgstr "Да"
+
+#: ../src/UI.cc:543
+msgid "No"
+msgstr "Нет"
+
+#: ../src/UI.cc:606
+msgid "Are you sure you wish to remove \"%1\" and it's content?"
+msgstr "Вы уверены, что хотите удалить \"%1\" и его содержимое"
+
+#: ../src/UI.cc:613
+msgid "(%1 files)."
+msgstr "(%1 файлов)."
+
+#: ../src/UI.cc:615
+msgid "(1 file)."
+msgstr "(1 файл)."
+
+#: ../src/UI.cc:617
+msgid "This will permanently remove the torrent and all of it's content %1"
+msgstr "Это полностью удалит торрент и все его содержимое %1"
+
+#. FIXME: make an EntryDialog class for this
+#: ../src/UI.cc:794 ../src/UI.cc:837
+msgid "Add new tracker"
+msgstr "Дабовить новый трекер"
+
+#: ../src/UI.cc:844
+msgid "Tracker URL:"
+msgstr "Трекер URL:"
+
+#: ../src/AddDialog.cc:56
+msgid "BitTorrent files"
+msgstr "Файлы BitTorrent"
+
+#: ../src/AddDialog.cc:60
+msgid "All files"
+msgstr "Все файлы"
+
+#: ../src/AddDialog.cc:104
+msgid "<i>%1 free disk space required</i>"
+msgstr "<i>%1 свободного места требуется</i>"
+
+#: ../src/AddDialog.cc:125
+msgid "<i>%1 free disk space available</i>"
+msgstr "<i>%1 свободно дискового пространства</i>"
+
+#: ../src/SessionClient.cc:42 ../src/SessionClient.cc:84
+msgid "Failed to connect to GNOME session"
+msgstr "Ошибка подключения к сессии GNOME"
+
+#: ../src/SessionClient.cc:134
+#: ../plugins/notification/PluginNotification.cc:196
+msgid "No suitable file manager found"
+msgstr "Не найдено подходящих файловых менеджеров"
+
+#: ../src/SimpleFileList.cc:36
+msgid "Filter"
+msgstr "Фильтр"
+
+#: ../lib/DbusManager.cc:458
+#, c-format
+msgid "Ignoring attempt to send message to self (%s)"
+msgstr "Попытка отправки сообщения самому себе проигнорирована (%s)"
+
+#: ../lib/PluginManager.cc:88
+#, c-format
+msgid "Failed to open plugin %s"
+msgstr "Ошибка загрузки плагина %s"
+
+#: ../lib/SessionManager.cc:197
+#, c-format
+msgid "Listen failed: %s"
+msgstr ""
+
+#: ../lib/SessionManager.cc:291
+msgid "Invalid bencoding in %1"
+msgstr ""
+
+#: ../lib/SessionManager.cc:370
+msgid "Merged %1 with %2"
+msgstr "Совмещение %1 с %2"
+
+#: ../lib/SettingsManager.cc:42
+#, c-format
+msgid "Could not create directory: %s"
+msgstr "Невозможно создать директорию: %s"
+
+#: ../lib/Torrent.cc:254
+msgid "Error"
+msgstr "Ошибка"
+
+#: ../lib/Torrent.cc:258 ../lib/Torrent.cc:276
+msgid "Stopped"
+msgstr "Остановлен"
+
+#: ../lib/Torrent.cc:260
+msgid "Queued for checking"
+msgstr "Поставлен в очередь для проверки"
+
+#: ../lib/Torrent.cc:262
+msgid "Checking"
+msgstr "Проверка"
+
+#: ../lib/Torrent.cc:264 ../lib/Torrent.cc:266 ../lib/Torrent.cc:268
+#: ../lib/TorrentManager.cc:100 ../data/linkage.glade.h:29
+msgid "Announcing"
+msgstr "Анонсирование"
+
+#: ../lib/Torrent.cc:266 ../lib/Torrent.cc:278
+msgid "Downloading"
+msgstr "Закачивается"
+
+#: ../lib/Torrent.cc:268 ../lib/Torrent.cc:270 ../lib/Torrent.cc:276
+msgid "Finished"
+msgstr "Закончен"
+
+#: ../lib/Torrent.cc:272
+msgid "Seeding"
+msgstr "Сидирую"
+
+#: ../lib/Torrent.cc:274
+msgid "Allocating"
+msgstr "Выделение"
+
+#: ../lib/TorrentManager.cc:110
+msgid "OK, got %1 peers"
+msgstr "ОК, получено %1 пиров"
+
+#: ../lib/TorrentManager.cc:132
+msgid "%1 (%2 times in a row)"
+msgstr "%1 (%2 раз в строке)"
+
+#: ../lib/Utils.cc:42
+msgid "GB"
+msgstr "ГБ"
+
+#: ../lib/Utils.cc:44
+msgid "MB"
+msgstr "МБ"
+
+#: ../lib/Utils.cc:46
+msgid "kB"
+msgstr "кБ"
+
+#: ../lib/Utils.cc:90
+msgid "day"
+msgstr "день"
+
+#: ../lib/Utils.cc:92
+msgid "days"
+msgstr "дни"
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:44
+msgid "Displays a tray icon"
+msgstr "Показывать иконку в трей"
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:52
+msgid "Start torrents"
+msgstr "Запустить торенты"
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:57
+msgid "Stop torrents"
+msgstr "Остановить торенты"
+
+#: ../plugins/trayicon/PluginTrayIcon.cc:138
+msgid ""
+"%1 (%2) downloads, %3 seeds\n"
+"DL: %4/s\tUL: %5/s"
+msgstr ""
+"%1·(%2)·загрузок,·%3·сидеров\n"
+"DL:·%4/s\tUL:·%5/s"
+
+#: ../plugins/notification/PluginNotification.cc:46
+msgid "Displays notifications trough libnotify"
+msgstr "Отображать уведомления посредством libnotify"
+
+#: ../plugins/notification/PluginNotification.cc:207
+msgid "Invalid bencoding"
+msgstr ""
+
+#: ../plugins/notification/PluginNotification.cc:212
+msgid "Missing file"
+msgstr "Поврежденный файл"
+
+#: ../plugins/notification/PluginNotification.cc:217
+msgid "Duplicate torrent"
+msgstr "Торрент уже существует"
+
+#: ../plugins/notification/PluginNotification.cc:227
+msgid "Cannot listen on given interface %1"
+msgstr "Не могу слушать на данном интерфейсе %1"
+
+#: ../plugins/notification/PluginNotification.cc:233
+msgid "None of the ports in range %1 could be opened for listening"
+msgstr "Ни один из портов в промежутке %1 не может быть открыт для прослушивания"
+
+#: ../plugins/notification/PluginNotification.cc:238
+msgid "Failed to open port: %1"
+msgstr "Ошибка открытия порта %1"
+
+#: ../plugins/notification/PluginNotification.cc:241
+msgid "Listen failed"
+msgstr ""
+
+#: ../plugins/notification/PluginNotification.cc:247
+msgid "%1 is complete"
+msgstr "%1 закончен"
+
+#: ../plugins/notification/PluginNotification.cc:255
+msgid "Torrent finished"
+msgstr "Торрент закачан"
+
+#: ../plugins/notification/PluginNotification.cc:256
+#: ../data/linkage.glade.h:93
+msgid "Open location"
+msgstr "Открыть путь"
+
+#: ../plugins/notification/PluginNotification.cc:269
+msgid "File error"
+msgstr "Ошибка файла"
+
+#: ../plugins/notification/PluginNotification.cc:270
+msgid "Stop torrent"
+msgstr "Остановить торент"
+
+#: ../plugins/notification/PluginNotification.cc:279
+msgid "Incompatible file version: %1"
+msgstr "Несовместимая версия файла: %1"
+
+#: ../plugins/notification/PluginNotification.cc:284
+msgid "Mismatching hash: %1"
+msgstr "Неверный хеш: %1"
+
+#: ../plugins/notification/PluginNotification.cc:289
+msgid "Checksum failed for piece %1"
+msgstr "Контрольная сумма неверна для части %1"
+
+#: ../plugins/notification/PluginNotification.cc:293
+msgid "Mismatching number of files"
+msgstr "Неверное число файлов"
+
+#: ../plugins/notification/PluginNotification.cc:299
+msgid "File size mismatch for %1"
+msgstr "Размер файла не верен для %1"
+
+#. Other too detailed errors
+#: ../plugins/notification/PluginNotification.cc:302
+msgid "Fast resume rejected, content check forced"
+msgstr "Быстрое возобновление запрещено, форсирована проверка контента"
+
+#: ../plugins/notification/PluginNotification.cc:304
+msgid "Fast resume failed"
+msgstr "Ошибка быстрого возобновления"
+
+#: ../plugins/notification/PluginNotification.cc:309
+msgid "DBus disconnected"
+msgstr "DBus отключен"
+
+#: ../plugins/notification/PluginNotification.cc:309
+msgid "Lost connection to the DBus session"
+msgstr "Потеряно соединение с сессией DBus"
+
+#: ../data/linkage.glade.h:1
+msgid "<b>Active plugins</b>"
+msgstr "<b>Активные плагины</b>"
+
+#: ../data/linkage.glade.h:2
+msgid "<b>Connection</b>"
+msgstr "<b>Соединение</b>"
+
+#: ../data/linkage.glade.h:3
+msgid "<b>Details</b>"
+msgstr "<b>Детали</b>"
+
+#: ../data/linkage.glade.h:4
+msgid "<b>Edit group</b>"
+msgstr "<b>Править группу</b>"
+
+#: ../data/linkage.glade.h:5
+msgid "<b>Files</b>"
+msgstr "<b>Файлы</b>"
+
+#: ../data/linkage.glade.h:6
+msgid "<b>Filters</b>"
+msgstr "<b>Фильтры</b>"
+
+#: ../data/linkage.glade.h:7
+msgid "<b>Folders</b>"
+msgstr "<b>Папки</b>"
+
+#: ../data/linkage.glade.h:8
+msgid "<b>General</b>"
+msgstr "<b>Главная</b>"
+
+#: ../data/linkage.glade.h:9
+msgid "<b>Groups</b>"
+msgstr "<b>Группы</b>"
+
+#: ../data/linkage.glade.h:10
+msgid "<b>Origin</b>"
+msgstr ""
+
+#: ../data/linkage.glade.h:11
+msgid "<b>Pieces</b>"
+msgstr "<b>Частей</b>"
+
+#: ../data/linkage.glade.h:12
+msgid "<b>Queue</b>"
+msgstr "<b>Очередь</b>"
+
+#: ../data/linkage.glade.h:13
+msgid "<b>Save as</b>"
+msgstr "<b>Сохранить как</b>"
+
+#: ../data/linkage.glade.h:14
+msgid "<b>Session</b>"
+msgstr "<b>Сессия</b>"
+
+#: ../data/linkage.glade.h:15
+msgid "<b>State Colors</b>"
+msgstr "<b>Цвета состояний</b>"
+
+#: ../data/linkage.glade.h:16
+msgid "<b>Torrent file</b>"
+msgstr "<b>Торрент файл</b>"
+
+#: ../data/linkage.glade.h:17
+msgid "<b>Torrent</b>"
+msgstr "<b>Торрент</b>"
+
+#: ../data/linkage.glade.h:18
+msgid "<b>Tracker</b>"
+msgstr "<b>Трекер</b>"
+
+#: ../data/linkage.glade.h:19
+msgid "<big><b>Create torrent</b></big>"
+msgstr "<big><b>Создать торрент</b></big>"
+
+#: ../data/linkage.glade.h:20
+msgid "About"
+msgstr "О программе"
+
+#: ../data/linkage.glade.h:21
+msgid "Add a torrent"
+msgstr "Добавить торрент"
+
+#: ../data/linkage.glade.h:22
+msgid "Add torrent"
+msgstr "Добавить торент"
+
+#: ../data/linkage.glade.h:23
+msgid "Advanced"
+msgstr "Дополнительно"
+
+#: ../data/linkage.glade.h:24
+msgid "Allocate disk space"
+msgstr "Выделение дискового пространства"
+
+#: ../data/linkage.glade.h:25
+msgid "Allocating:"
+msgstr "Выделение:"
+
+#: ../data/linkage.glade.h:26
+msgid "Allow line breaks in comments"
+msgstr "Разрешить переносы строк в комментариях"
+
+#: ../data/linkage.glade.h:27
+msgid "Allow multiple connections per IP"
+msgstr "Разрешить несколько подключений с одного айпи"
+
+#: ../data/linkage.glade.h:28
+msgid "Announce"
+msgstr "Анонс"
+
+#: ../data/linkage.glade.h:30
+msgid "Auto expand details"
+msgstr "Очередь проверки:"
+
+#: ../data/linkage.glade.h:31
+msgid "C_onfigure Plugin"
+msgstr "<b>Детали</b>"
+
+#: ../data/linkage.glade.h:32
+msgid "Check files"
+msgstr "Проверка файлов"
+
+#: ../data/linkage.glade.h:33
+msgid "Check queue:"
+msgstr "Очередь проверки:"
+
+#: ../data/linkage.glade.h:34
+msgid "Checking:"
+msgstr "Проверка:"
+
+#: ../data/linkage.glade.h:35
+msgid "Comment:"
+msgstr "Комментарий:"
+
+#: ../data/linkage.glade.h:36
+msgid "Configure linkage"
+msgstr "Настроить linkage"
+
+#: ../data/linkage.glade.h:37
+msgid "Create a new torrent file"
+msgstr "Создать новый торент файл"
+
+#: ../data/linkage.glade.h:38
+msgid "Created:"
+msgstr "Создатель:"
+
+#: ../data/linkage.glade.h:39
+msgid "Creator:"
+msgstr "Создатель:"
+
+#: ../data/linkage.glade.h:40
+msgid "Desired ratio:"
+msgstr "Ожидаемый коэффициент:"
+
+#: ../data/linkage.glade.h:41
+msgid "Done:"
+msgstr "Выполнено:"
+
+#: ../data/linkage.glade.h:42
+msgid "Download Rate"
+msgstr "Коэффициент Загрузки"
+
+#: ../data/linkage.glade.h:43
+msgid "Download rate:"
+msgstr "Коэффициент загрузки:"
+
+#: ../data/linkage.glade.h:45
+msgid "Downloaded:"
+msgstr "Загружено:"
+
+#: ../data/linkage.glade.h:46
+msgid "Downloading:"
+msgstr "Загрузка:"
+
+#: ../data/linkage.glade.h:47
+msgid "Edit groups and filters"
+msgstr "Править группы и фильтры"
+
+#: ../data/linkage.glade.h:48
+msgid "Enable DHT"
+msgstr "Включить DHT"
+
+#: ../data/linkage.glade.h:49
+msgid "Enable PEX"
+msgstr "Включить PEX"
+
+#: ../data/linkage.glade.h:50
+msgid "Encryption level:"
+msgstr "Уровень шифрования"
+
+#: ../data/linkage.glade.h:51
+msgid "Encryption policy:"
+msgstr "Политика шифрования:"
+
+#: ../data/linkage.glade.h:52
+msgid "Error:"
+msgstr "Ошибка:"
+
+#: ../data/linkage.glade.h:53
+msgid "Files"
+msgstr "Файлы"
+
+#: ../data/linkage.glade.h:54
+msgid "Files & Folders"
+msgstr "Файлы и папки"
+
+#: ../data/linkage.glade.h:55
+msgid "Files:"
+msgstr "Файлы:"
+
+#: ../data/linkage.glade.h:56
+msgid "Finished:"
+msgstr "Завершено:"
+
+#: ../data/linkage.glade.h:57
+msgid "Folder"
+msgstr "Папка"
+
+#: ../data/linkage.glade.h:58
+msgid ""
+"For a non-zero value n greater than or equal 1, linkage will try to upload n "
+"bytes for every byte received"
+msgstr "Для ненулевого значения n больше или равного 1, linkage будет пытаться "
+"выгрузить n байт для каждого полученного байта"
+
+#: ../data/linkage.glade.h:59
+msgid "General"
+msgstr "Главные"
+
+#: ../data/linkage.glade.h:60
+msgid ""
+"Global limit of connections open, hard coded to at least two per torrent"
+msgstr "Глобальный лимит открытых соединений не меньше двух для каждого торрента"
+
+#: ../data/linkage.glade.h:61
+msgid ""
+"Global limit on the number of uploads, hard coded to at least one per torrent"
+msgstr "Глобальное число выгрузок должно быть больше одного на торрент"
+
+#: ../data/linkage.glade.h:62
+msgid "Global maximum for the download rate in kB/s"
+msgstr "Глобальный максимум для коэффициента загрузки в кБ/с"
+
+#: ../data/linkage.glade.h:63
+msgid "Global maximum for the upload rate in kB/s"
+msgstr "Глобальный максимум для коэффициента выгрузки в кБ/с"
+
+#: ../data/linkage.glade.h:64
+msgid "Group"
+msgstr "Группа"
+
+#: ../data/linkage.glade.h:65
+msgid "Group:"
+msgstr "Группа:"
+
+#: ../data/linkage.glade.h:66
+msgid "Groups"
+msgstr "Группы"
+
+#: ../data/linkage.glade.h:67
+msgid "Interface"
+msgstr "Интерфейс"
+
+#: ../data/linkage.glade.h:68
+msgid "Interface:"
+msgstr "Интерфейс:"
+
+#: ../data/linkage.glade.h:69
+msgid "Limit:"
+msgstr "Лимит:"
+
+#: ../data/linkage.glade.h:70
+msgid "Max active torrents:"
+msgstr "Максимум активных торрентов"
+
+#: ../data/linkage.glade.h:71
+msgid "Max connections:"
+msgstr "Максимум соединений:"
+
+#: ../data/linkage.glade.h:72
+msgid "Max download rate:"
+msgstr "Максимальнфй коэффициент загрузки:"
+
+#: ../data/linkage.glade.h:73
+msgid "Max open files:"
+msgstr "Максимум открытых файлов:"
+
+#: ../data/linkage.glade.h:74
+msgid "Max upload rate:"
+msgstr "Максимальный коэффициент выгрузки:"
+
+#: ../data/linkage.glade.h:75
+msgid "Max upload slots:"
+msgstr "Максимальное число слотов выгрузки:"
+
+#: ../data/linkage.glade.h:76
+msgid "Maximum number of connections per torrent"
+msgstr "Максимальное число соединений для торрента"
+
+#: ../data/linkage.glade.h:77
+msgid "Maximum number of simultaneously active torrents"
+msgstr "Максимальное число параллельных активных торрентов"
+
+#: ../data/linkage.glade.h:78
+msgid "Maximum number of uploads per torrent"
+msgstr "Максимальное число загрузок для торрента"
+
+#: ../data/linkage.glade.h:79
+msgid "Move down"
+msgstr "Сместить вниз"
+
+#: ../data/linkage.glade.h:80
+msgid "Move finished:"
+msgstr "Перемещать законченные:"
+
+#: ../data/linkage.glade.h:81
+msgid "Move selected torrents down"
+msgstr "Переместить выбранные торренты вниз"
+
+#: ../data/linkage.glade.h:82
+msgid "Move selected torrents up"
+msgstr "Сместить выбранный торент вверх"
+
+#: ../data/linkage.glade.h:83
+msgid "Move up"
+msgstr "Сместить вверх"
+
+#: ../data/linkage.glade.h:84
+msgid "My New Group's Name"
+msgstr "Мое Новое Название Группы"
+
+#: ../data/linkage.glade.h:86
+msgid "Name:"
+msgstr "Название:"
+
+#: ../data/linkage.glade.h:87
+msgid "Network"
+msgstr "Сеть"
+
+#: ../data/linkage.glade.h:88
+msgid "New"
+msgstr "Новый"
+
+#: ../data/linkage.glade.h:89
+msgid "Next announce:"
+msgstr "Следующий анонс:"
+
+#: ../data/linkage.glade.h:90
+msgid "Only as fallback"
+msgstr "Только в случае ошибки"
+
+#: ../data/linkage.glade.h:91
+msgid "Open a torrent file"
+msgstr "Открыть торрент файл"
+
+#: ../data/linkage.glade.h:92
+msgid "Open for seeding"
+msgstr "Открыть для сидирования"
+
+#: ../data/linkage.glade.h:94
+msgid "Password:"
+msgstr "Пароль:"
+
+#: ../data/linkage.glade.h:95
+msgid "Peers"
+msgstr "Пиры"
+
+#: ../data/linkage.glade.h:96
+msgid "Piece size (kB):"
+msgstr "Размер части (кБ):"
+
+#: ../data/linkage.glade.h:97
+msgid "Pieces:"
+msgstr "Частей:"
+
+#: ../data/linkage.glade.h:98
+msgid "Plugins"
+msgstr "Плагины"
+
+#: ../data/linkage.glade.h:99
+msgid "Ports:"
+msgstr "Порты:"
+
+#: ../data/linkage.glade.h:100
+msgid "Position"
+msgstr "Позиция"
+
+#: ../data/linkage.glade.h:101
+msgid "Prefere_nces"
+msgstr "Свойства"
+
+#: ../data/linkage.glade.h:102
+msgid "Preferences"
+msgstr "Свойства"
+
+#: ../data/linkage.glade.h:103
+msgid "Prioritize first and last pieces"
+msgstr "Приоритезировать первую и последнюю части"
+
+#: ../data/linkage.glade.h:104
+msgid "Private tracker"
+msgstr "Приватный трекер"
+
+#: ../data/linkage.glade.h:105
+msgid "Private:"
+msgstr "Приватный:"
+
+#: ../data/linkage.glade.h:107
+msgid "Proxy"
+msgstr "Прокси"
+
+#: ../data/linkage.glade.h:108
+msgid "Proxy:"
+msgstr "Прокси:"
+
+#: ../data/linkage.glade.h:109
+msgid "Queued:"
+msgstr "Очередь:"
+
+#: ../data/linkage.glade.h:110
+msgid "Quit"
+msgstr "Выход"
+
+#: ../data/linkage.glade.h:111
+msgid "Ratio:"
+msgstr "Соотношение:"
+
+#: ../data/linkage.glade.h:112
+msgid "Remaining: "
+msgstr "Осталось:"
+
+#: ../data/linkage.glade.h:113
+msgid "Remove"
+msgstr "Удалить"
+
+#: ../data/linkage.glade.h:114
+msgid "Remove selected torrents"
+msgstr "Удалить выделенные торенты"
+
+#: ../data/linkage.glade.h:115
+msgid "Remove torrent"
+msgstr "Удалить торент"
+
+#: ../data/linkage.glade.h:116
+msgid "Remove torrent and content"
+msgstr "Удалить торент и контент"
+
+#: ../data/linkage.glade.h:117
+msgid "Saving as:"
+msgstr "Сохранить как:"
+
+#: ../data/linkage.glade.h:118
+msgid "Seeding:"
+msgstr "Сидирую:"
+
+#: ../data/linkage.glade.h:119
+msgid "Seeds"
+msgstr "Сидов"
+
+#: ../data/linkage.glade.h:120
+msgid "Seen copies:"
+msgstr ""
+
+#: ../data/linkage.glade.h:121
+msgid "Select Folder"
+msgstr "Выбрать папку"
+
+#: ../data/linkage.glade.h:122
+msgid "Select content"
+msgstr "Выбрать содержимое"
+
+#: ../data/linkage.glade.h:124
+msgid "Select path"
+msgstr "Выбрать путь"
+
+#: ../data/linkage.glade.h:125
+msgid "Select sort order"
+msgstr "Выбрать вид сортировки"
+
+#: ../data/linkage.glade.h:126
+msgid "Show detailed information"
+msgstr "Показать полную информацию"
+
+#: ../data/linkage.glade.h:127
+msgid "Show the groups panel"
+msgstr "Показать панель групп"
+
+#: ../data/linkage.glade.h:128
+msgid "Single file"
+msgstr "Единичный файл"
+
+#: ../data/linkage.glade.h:129
+msgid "Start"
+msgstr "Старт"
+
+#: ../data/linkage.glade.h:130
+msgid "Start selected torrents"
+msgstr "Запустить выбранные торренты"
+
+#: ../data/linkage.glade.h:131
+msgid "Status"
+msgstr "Статус"
+
+#: ../data/linkage.glade.h:132
+msgid "Status:"
+msgstr "Статус:"
+
+#: ../data/linkage.glade.h:133
+msgid "Stop"
+msgstr "Стоп"
+
+#: ../data/linkage.glade.h:134
+msgid "Stop seeding at ratio:"
+msgstr "Остановить раздачу при коэффициенте:"
+
+#: ../data/linkage.glade.h:135
+msgid "Stop selected torrents"
+msgstr "Остановить выбранные торренты"
+
+#: ../data/linkage.glade.h:136
+msgid "Stopped:"
+msgstr "Остановлен:"
+
+#: ../data/linkage.glade.h:137
+msgid "Torrents"
+msgstr "Торрентов"
+
+#: ../data/linkage.glade.h:138
+msgid "Total size:"
+msgstr "Общий размер:"
+
+#: ../data/linkage.glade.h:139
+msgid "Tracker:"
+msgstr "Трекер:"
+
+#: ../data/linkage.glade.h:140
+msgid "Transfer"
+msgstr "Передача"
+
+#: ../data/linkage.glade.h:141
+msgid "Trunkate names, width:"
+msgstr "Обрезать имена, ширина:"
+
+#: ../data/linkage.glade.h:142
+msgid "Type:"
+msgstr "Тип:"
+
+#: ../data/linkage.glade.h:143
+msgid "Update interval:"
+msgstr "Интервал обновления:"
+
+#: ../data/linkage.glade.h:144
+msgid "Upload Rate"
+msgstr "Коэффициент Выгрузки"
+
+#: ../data/linkage.glade.h:145
+msgid "Upload rate:"
+msgstr "Коэффициент Выгрузки:"
+
+#: ../data/linkage.glade.h:147
+msgid "Uploaded:"
+msgstr "Загружено:"
+
+#: ../data/linkage.glade.h:148
+msgid "Use default path:"
+msgstr "Использовать стандартный путь:"
+
+#: ../data/linkage.glade.h:149
+msgid "Use lazy bitfields"
+msgstr ""
+
+#: ../data/linkage.glade.h:150
+msgid "Username:"
+msgstr "Имя пользователя:"
+
+#: ../data/linkage.glade.h:151
+msgid "_About Plugin"
+msgstr "_О плагине"
+
+#: ../data/linkage.glade.h:152
+msgid "_Details"
+msgstr "_Детали"
+
+#: ../data/linkage.glade.h:153
+msgid "_Edit"
+msgstr "_Правка"
+
+#: ../data/linkage.glade.h:154
+msgid "_File"
+msgstr "_Файл"
+
+#: ../data/linkage.glade.h:155
+msgid "_Groups"
+msgstr "_Группы"
+
+#: ../data/linkage.glade.h:156
+msgid "_Help"
+msgstr "_Помощь"
+
+#: ../data/linkage.glade.h:157
+msgid "_View"
+msgstr "_Вид"
+
+#: ../data/linkage.desktop.in.h:1
+msgid "Download and share content through BitTorrent"
+msgstr "Загрузить и расшарить контент через BitTorrent"
+
+#: ../data/linkage.desktop.in.h:2
+msgid "Linkage"
+msgstr "Linkage"
+
