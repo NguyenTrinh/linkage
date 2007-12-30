@@ -44,7 +44,7 @@ Glib::ustring Linkage::suffix_value(libtorrent::size_type value)
 		ss << std::fixed << std::setprecision(2) << value/1048576.0 << " " << _("MB");
 	else
 		ss << std::fixed << std::setprecision(2) << value/1024.0 << " " << _("kB");
-	return Glib::locale_to_utf8(ss.str());
+	return ss.str(); /* seems we should _not_ use Glib::locale_to_utf8 here */
 }
 
 Glib::ustring Linkage::get_eta(libtorrent::size_type size, float rate)
