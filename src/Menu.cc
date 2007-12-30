@@ -100,7 +100,11 @@ void Menu::on_about()
 	about.set_artists(people);
 	people.clear();
 	about.set_comments(_("A BitTorrent client"));
-	about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
+	try
+	{
+		about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
+	}
+	catch (...) {}
 	about.set_version(PACKAGE_VERSION);
 	about.set_copyright("Copyright \u00A9 2006-2007 Christian Lundgren, Dave Moore");
 	about.set_website("http://code.google.com/p/linkage");

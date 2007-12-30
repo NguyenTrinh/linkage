@@ -204,10 +204,7 @@ void PeerList::set_peer_details(Gtk::TreeRow& row, const libtorrent::peer_info& 
 			{
 				row[columns.flag] = Gdk::Pixbuf::create_from_file(flag);
 			}
-			catch (Glib::Error& e)
-			{
-				g_warning(e.what().c_str());
-			}
+			catch (...) {}
 		}
 	}
 

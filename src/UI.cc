@@ -87,7 +87,11 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 {
 	Engine::register_interface(this);
 
-	set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
+	try
+	{
+		set_icon(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
+	}
+	catch (...) {}
 
 	// get the widgets we work with
 	glade_xml->get_widget_derived("settings_win", settings_win);
