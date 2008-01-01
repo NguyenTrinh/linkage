@@ -16,12 +16,12 @@ src/Statusbar.cc
 src/TorrentCreator.cc
 src/TorrentList.cc
 src/TorrentMenu.cc
+src/Menu.cc
 src/UI.cc
 src/AddDialog.cc
 src/SessionClient.cc
 src/SimpleFileList.cc
 lib/AlertManager.cc
-lib/DbusManager.cc
 lib/Engine.cc
 lib/Interface.cc
 lib/Plugin.cc
