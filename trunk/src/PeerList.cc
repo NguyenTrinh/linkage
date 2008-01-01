@@ -122,7 +122,7 @@ bool PeerList::on_foreach(const Gtk::TreeModel::iterator& iter, PeerMap* peer_ma
 	return false;
 }
 
-void PeerList::update(const Glib::RefPtr<Torrent>& torrent)
+void PeerList::update(const TorrentPtr& torrent)
 {
 	static bool working = false;
 

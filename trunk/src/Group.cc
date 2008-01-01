@@ -42,7 +42,7 @@ bool Group::is_valid() const
 	return !m_name.empty();
 }
 
-bool Group::eval(const Glib::RefPtr<Torrent>& torrent) const
+bool Group::eval(const TorrentPtr& torrent) const
 {
 	boost::intrusive_ptr<libtorrent::torrent_info> info = torrent->get_info();
 	std::vector<libtorrent::announce_entry> trackers = torrent->get_trackers();

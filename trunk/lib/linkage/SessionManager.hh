@@ -24,23 +24,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <iostream>
 #include <list>
 
-#include <glibmm/object.h>
-
 #include "libtorrent/entry.hpp"
 #include "libtorrent/bencode.hpp"
 #include "libtorrent/session.hpp"
 #include "libtorrent/session_settings.hpp"
 #include "libtorrent/fingerprint.hpp"
+#include "libtorrent/intrusive_ptr_base.hpp"
 
 #include "linkage/Torrent.hh"
 
 namespace Linkage
 {
+class SessionManager;
+typedef boost::intrusive_ptr<SessionManager> SessionManagerPtr;
 
 class Value;
-class Torrent;
+//class Torrent;
 
-class SessionManager : public Glib::Object, public libtorrent::session
+class SessionManager : public libtorrent::intrusive_ptr_base<SessionManager>, public libtorrent::session
 {
 	void on_key_changed(const Glib::ustring& key, const Value& value);
 	void update_pe_settings();
@@ -60,13 +61,13 @@ public:
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_missing_file();
 	sigc::signal<void, const Glib::ustring&, const libtorrent::sha1_hash&> signal_duplicate_torrent();
 
-	Glib::RefPtr<Torrent> open_torrent(const Glib::ustring& file, const Glib::ustring& save_path);
-	void resume_torrent(const Glib::RefPtr<Torrent>& torrent, const libtorrent::entry& resume = libtorrent::entry());
-	void recheck_torrent(const Glib::RefPtr<Torrent>& torrent);
-	void stop_torrent(const Glib::RefPtr<Torrent>& torrent);
-	void erase_torrent(const Glib::RefPtr<Torrent>& torrent, bool erase_content = false);
+	TorrentPtr open_torrent(const Glib::ustring& file, const Glib::ustring& save_path);
+	void resume_torrent(const TorrentPtr& torrent, const libtorrent::entry& resume = libtorrent::entry());
+	void recheck_torrent(const TorrentPtr& torrent);
+	void stop_torrent(const TorrentPtr& torrent);
+	void erase_torrent(const TorrentPtr& torrent, bool erase_content = false);
 
-	static Glib::RefPtr<SessionManager> create();
+	static SessionManagerPtr create();
 	virtual ~SessionManager();
 };
 

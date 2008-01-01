@@ -29,15 +29,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/propertyproxy.h>
 
 #include "libtorrent/torrent.hpp"
+#include "libtorrent/intrusive_ptr_base.hpp"
+
+#include "linkage/DBusAdaptorGlue.hh"
 
 namespace Linkage
 {
+class Torrent;
+typedef boost::intrusive_ptr<Torrent> TorrentPtr;
 
 typedef std::list<libtorrent::sha1_hash> HashList;
 
-class Torrent : public Glib::Object
+class Torrent
+:
+  public libtorrent::intrusive_ptr_base<Torrent>,
+  public Glib::Object,
+  public org::linkage::Torrent,
+  public DBus::IntrospectableAdaptor,
+  public DBus::ObjectAdaptor
 {
 public:
+	void reference() {}
+	void unreference() {}
+
 	typedef boost::intrusive_ptr<libtorrent::torrent_info> InfoPtr;
 
 	enum State
@@ -80,6 +94,7 @@ public:
 	int get_up_limit();
 	int get_down_limit();
 	libtorrent::sha1_hash get_hash();
+	float get_progress();
 
 	libtorrent::size_type get_total_downloaded();
 	libtorrent::size_type get_total_uploaded();
@@ -90,7 +105,7 @@ public:
 	int get_state();
 	Glib::ustring get_state_string();
 	static Glib::ustring state_string(int state);
-	Glib::ustring get_state_string(int state);
+	Glib::ustring get_state_string(int state); /* FIXME: remove this */
 
 	const Torrent::InfoPtr& get_info();
 	libtorrent::torrent_status get_status();
@@ -119,10 +134,21 @@ public:
 
 	const libtorrent::entry get_resume_entry(bool stopping = true, bool quitting = false);
 
-	static Glib::RefPtr<Torrent> create(const libtorrent::entry& e, const InfoPtr& info, bool queued = false);
+	static TorrentPtr create(const libtorrent::entry& e, const InfoPtr& info, bool queued = false);
 	~Torrent();
 
 private:
+	/* DBUS */
+	DBus::String GetName();
+	DBus::String GetState();
+	DBus::Struct<DBus::UInt32, DBus::UInt32> GetRates();
+	DBus::Struct<DBus::UInt64, DBus::UInt64> GetTransfered();
+	DBus::Double GetProgress();
+	DBus::UInt32 GetPosition();
+	void Start();
+	void Stop();
+	void Remove(const DBus::Bool& erase_content);
+
 	friend class TorrentManager;
 	friend class SessionManager;
 
@@ -140,7 +166,7 @@ private:
 		std::vector<bool> pieces;
 		/* no need to have m_info here since it's a ref ptr */
 	};
-	StoppedCache* m_cache;
+	std::auto_ptr<StoppedCache> m_cache;
 
 	libtorrent::size_type m_uploaded;
 	libtorrent::size_type m_downloaded;

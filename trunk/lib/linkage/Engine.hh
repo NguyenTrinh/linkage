@@ -27,15 +27,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/object.h>
 #include <glibmm/refptr.h>
 
+#include <dbus-c++/dbus.h>
+
+#include "linkage/AlertManager.hh"
+#include "linkage/PluginManager.hh"
+#include "linkage/SessionManager.hh"
+#include "linkage/SettingsManager.hh"
+#include "linkage/TorrentManager.hh"
+
 namespace Linkage
 {
 
-class SettingsManager;
-class TorrentManager;
-class SessionManager;
-class AlertManager;
-class PluginManager;
-class DbusManager;
 class Interface;
 
 class InterfaceException : public Glib::Exception
@@ -48,42 +50,44 @@ public:
   virtual ~InterfaceException() throw() {}
 };
 
-class Engine : public Glib::Object
+class Engine
 {
 
-	static Glib::RefPtr<SettingsManager> ssm;
-	static Glib::RefPtr<TorrentManager> tm;
-	static Glib::RefPtr<SessionManager> sm;
-	static Glib::RefPtr<AlertManager> am;
-	static Glib::RefPtr<PluginManager> pm;
-	static Glib::RefPtr<DbusManager> dbm;
+	static SettingsManagerPtr ssm;
+	static TorrentManagerPtr tm;
+	static SessionManagerPtr sm;
+	static AlertManagerPtr am;
+	static PluginManagerPtr pm;
 	static Interface* m_interface;
 
 	static Engine* self;
-	
+
+	DBus::Connection m_conn;
+
 	sigc::signal<void> m_signal_tick;
 
 	bool on_timeout();
-	
-	static void init();
-	Engine();
+
+	Engine(const DBus::Connection& connection);
 	
 public:
-	static Glib::RefPtr<AlertManager> get_alert_manager();
-	static Glib::RefPtr<PluginManager> get_plugin_manager();
-	static Glib::RefPtr<SessionManager> get_session_manager();
-	static Glib::RefPtr<SettingsManager>	get_settings_manager();
-	static Glib::RefPtr<TorrentManager>	get_torrent_manager();
-	static Glib::RefPtr<DbusManager>	get_dbus_manager();
+	static AlertManagerPtr get_alert_manager();
+	static PluginManagerPtr get_plugin_manager();
+	static SessionManagerPtr get_session_manager();
+	static SettingsManagerPtr get_settings_manager();
+	static TorrentManagerPtr get_torrent_manager();
 
 	static Interface& get_interface() throw();
 	static void register_interface(Interface* interface);
 
 	static sigc::signal<void> signal_tick();
 
+	static void init(const DBus::Connection& connection);
 	static void uninit();
+
 	static bool is_primary();
-	
+	static DBus::Connection& get_bus();
+
 	~Engine();
 };
 

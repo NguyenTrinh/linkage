@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/TorrentManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/AlertManager.hh"
-#include "linkage/DbusManager.hh"
 #include "linkage/SessionManager.hh"
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
@@ -31,9 +30,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 using namespace Linkage;
 
-Glib::RefPtr<TorrentManager> TorrentManager::create()
+TorrentManagerPtr TorrentManager::create()
 {
-	return Glib::RefPtr<TorrentManager>(new TorrentManager());
+	return TorrentManagerPtr(new TorrentManager());
 }
 
 TorrentManager::TorrentManager()
@@ -41,7 +40,7 @@ TorrentManager::TorrentManager()
 	load_torrents();
 
 	/* connect signal handlers */
-	Glib::RefPtr<AlertManager> am = Engine::get_alert_manager();
+	AlertManagerPtr am = Engine::get_alert_manager();
 
 	am->signal_tracker_announce().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_announce));
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
@@ -58,9 +57,7 @@ TorrentManager::~TorrentManager()
 	for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = iter->first;
-		Glib::RefPtr<Torrent> torrent = iter->second;
-
-		Engine::get_dbus_manager()->unregister_torrent(torrent);
+		TorrentPtr torrent = iter->second;
 
 		libtorrent::entry e = torrent->get_resume_entry(torrent->is_stopped(), true);
 		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
@@ -69,12 +66,12 @@ TorrentManager::~TorrentManager()
 	}
 }
 
-sigc::signal<void, Glib::RefPtr<Torrent> > TorrentManager::signal_added()
+sigc::signal<void, TorrentPtr> TorrentManager::signal_added()
 {
 	return m_signal_added;
 }
 
-sigc::signal<void, Glib::RefPtr<Torrent> > TorrentManager::signal_removed()
+sigc::signal<void, TorrentPtr> TorrentManager::signal_removed()
 {
 	return m_signal_removed;
 }
@@ -84,7 +81,7 @@ void TorrentManager::on_key_changed(const Glib::ustring& key, const Value& value
 	//FIXME: also update priorities on key "files/prioritize_firstlast"
 	if (Glib::str_has_prefix(key, "torrent/"))
 	{
-		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+		SettingsManagerPtr sm = Engine::get_settings_manager();
 		for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 			set_torrent_settings(iter->second);
 
@@ -145,7 +142,7 @@ void TorrentManager::on_update_queue(const libtorrent::sha1_hash& hash, const Gl
 
 void TorrentManager::on_handle_changed(const libtorrent::sha1_hash& hash)
 {
-	Glib::RefPtr<Torrent> torrent = m_torrents[hash];
+	TorrentPtr torrent = m_torrents[hash];
 	set_torrent_settings(torrent);
 
 	check_queue();
@@ -153,7 +150,7 @@ void TorrentManager::on_handle_changed(const libtorrent::sha1_hash& hash)
 
 void TorrentManager::on_position_changed(const libtorrent::sha1_hash& hash)
 {
-	Glib::RefPtr<Torrent> torrent = m_torrents[hash];
+	TorrentPtr torrent = m_torrents[hash];
 	unsigned int position = torrent->get_position();
 	int diff = 0;
 
@@ -251,12 +248,12 @@ void TorrentManager::load_torrent(const Glib::ustring& file, ResumeList& resumes
 		return;
 	}
 
-	Glib::RefPtr<Torrent> torrent = add_torrent(er, info);
+	TorrentPtr torrent = add_torrent(er, info);
 	if (er.find_key("stopped") && !er["stopped"].integer())
 		resumes.push_back(std::make_pair(torrent, er));
 }
 
-Glib::RefPtr<Torrent> TorrentManager::add_torrent(libtorrent::entry& er,
+TorrentPtr TorrentManager::add_torrent(libtorrent::entry& er,
 	const Torrent::InfoPtr& info)
 {
 	/* set default values if they don't exist */
@@ -273,7 +270,7 @@ Glib::RefPtr<Torrent> TorrentManager::add_torrent(libtorrent::entry& er,
 	if (!er.find_key("position"))
 		er["position"] = m_torrents.size() + 1;
 
-	Glib::RefPtr<Torrent> torrent = Torrent::create(er, info, false);
+	TorrentPtr torrent = Torrent::create(er, info, false);
 	libtorrent::sha1_hash hash = info->info_hash();
 	/* 
 		Seems we can't bind with the torrent RefPtr
@@ -287,17 +284,16 @@ Glib::RefPtr<Torrent> TorrentManager::add_torrent(libtorrent::entry& er,
 
 	m_torrents[hash] = torrent;
 
-	Engine::get_dbus_manager()->register_torrent(torrent);
 	m_signal_added.emit(torrent);
 
 	return torrent;
 }
 
-void TorrentManager::set_torrent_settings(const Glib::RefPtr<Torrent>& torrent)
+void TorrentManager::set_torrent_settings(const TorrentPtr& torrent)
 {
 	if (!torrent->is_stopped())
 	{
-		Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+		SettingsManagerPtr sm = Engine::get_settings_manager();
 		libtorrent::torrent_handle handle = torrent->get_handle();
 		handle.set_ratio(sm->get_float("torrent/seed_ratio"));
 		handle.set_max_uploads(sm->get_int("torrent/max_uploads"));
@@ -322,18 +318,16 @@ bool TorrentManager::exists(const Glib::ustring& hash_str)
 	return false;
 }
 
-void TorrentManager::remove_torrent(const Glib::RefPtr<Torrent>& torrent)
+void TorrentManager::remove_torrent(const TorrentPtr& torrent)
 {
 	unsigned int pos = torrent->get_position();
-
-	Engine::get_dbus_manager()->unregister_torrent(torrent);
 
 	m_torrents.erase(torrent->get_hash());
 
 	TorrentVector torrents;
 	for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> t = iter->second;
+		TorrentPtr t = iter->second;
 		if (t->get_position() > pos)
 			torrents.push_back(t);
 	}
@@ -350,12 +344,12 @@ void TorrentManager::remove_torrent(const Glib::RefPtr<Torrent>& torrent)
 	check_queue();
 }
 
-Glib::RefPtr<Torrent>TorrentManager::get_torrent(const libtorrent::sha1_hash& hash)
+TorrentPtr TorrentManager::get_torrent(const libtorrent::sha1_hash& hash)
 {
 	if (exists(hash))
 		return m_torrents[hash];
 
-	return Glib::RefPtr<Torrent>();
+	return TorrentPtr();
 }
 
 TorrentManager::TorrentList TorrentManager::get_torrents()
@@ -383,7 +377,7 @@ void TorrentManager::check_queue()
 	TorrentVector torrents;
 	for (TorrentMap::iterator iter = m_torrents.begin(); iter != m_torrents.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = iter->second;
+		TorrentPtr torrent = iter->second;
 		int state = torrent->get_state();
 		if (state & (Torrent::SEEDING|Torrent::STOPPED|Torrent::ERROR))
 			continue;
@@ -401,7 +395,7 @@ void TorrentManager::check_queue()
 
 	for (unsigned int k = 0; k < torrents.size(); k++)
 	{
-		Glib::RefPtr<Torrent> torrent = torrents[k];
+		TorrentPtr torrent = torrents[k];
 		if (!torrent->is_queued())
 		{
 			if (torrent->get_position() >= last_active && num_active > max_active)

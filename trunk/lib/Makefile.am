@@ -9,10 +9,11 @@ liblinkage_1_la_SOURCES = Engine.cc \
                           SessionManager.cc \
                           SettingsManager.cc \
                           Torrent.cc \
+                          TorrentAdaptor.cc \
                           TorrentManager.cc \
-                          DbusManager.cc \
                           Utils.cc \
-                          Interface.cc
+                          Interface.cc \
+                          InterfaceAdaptor.cc
 
 liblinkage_1_la_CXXFLAGS = $(CXXFLAGS) $(GTKMM_CFLAGS) \
 	$(LIBTORRENT_CFLAGS) $(DBUSGLIB_CFLAGS) ${GCONFMM_CFLAGS}

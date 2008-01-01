@@ -131,8 +131,6 @@ class UI : public Gtk::Window, public Linkage::Interface
 	sigc::connection m_conn_tick;
 	sigc::connection m_conn_switch_page;
 
-	Glib::RefPtr<Gtk::WindowGroup> group;
-
 	enum { PAGE_GENERAL, PAGE_PEERS, PAGE_FILES };
 
 	bool on_visibility_notify_event(GdkEventVisibility* event);
@@ -163,8 +161,8 @@ class UI : public Gtk::Window, public Linkage::Interface
 	void on_sort_item_selected(TorrentList::Column col);
 	void on_sort();
 
-	void update(const Glib::RefPtr<Linkage::Torrent>& torrent, bool update_lists = false);
-	void update_statics(const Glib::RefPtr<Linkage::Torrent>& torrent);
+	void update(const Linkage::TorrentPtr& torrent, bool update_lists = false);
+	void update_statics(const Linkage::TorrentPtr& torrent);
 
 	bool on_delete_event(GdkEventAny*);
 
@@ -185,7 +183,7 @@ class UI : public Gtk::Window, public Linkage::Interface
 	void on_key_changed(const Glib::ustring& key, const Linkage::Value& value);
 
 	//asserts that num selected torrents are one only
-	inline Glib::RefPtr<Linkage::Torrent> get_selected_single();
+	inline Linkage::TorrentPtr get_selected_single();
 
 public:
 	// Interface stuff

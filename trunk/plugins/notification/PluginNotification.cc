@@ -37,7 +37,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/AlertManager.hh"
 #include "linkage/PluginManager.hh"
 #include "linkage/TorrentManager.hh"
-#include "linkage/DbusManager.hh"
 #include "linkage/ucompose.hpp"
 
 using namespace Linkage;
@@ -47,8 +46,6 @@ using namespace Linkage;
 #define PLUGIN_VER		PACKAGE_VERSION
 #define PLUGIN_AUTHOR	"Christian Lundgren"
 #define PLUGIN_WEB		"http://code.google.com/p/linkage"
-
-#define DBUS_API_SUBJECT_TO_CHANGE
 
 NotifyPlugin::NotifyPlugin()	
 {
@@ -62,8 +59,6 @@ NotifyPlugin::NotifyPlugin()
 	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &NotifyPlugin::on_torrent_finished));
 	Engine::get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &NotifyPlugin::on_file_error));
 	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &NotifyPlugin::on_fastresume_rejected));
-
-	Engine::get_dbus_manager()->signal_disconnect().connect(sigc::mem_fun(this, &NotifyPlugin::on_dbus_disconnect));
 }
 
 NotifyPlugin::~NotifyPlugin()
@@ -105,7 +100,7 @@ NotifyNotification* NotifyPlugin::build_notification(const Glib::ustring& title,
 	NotifyNotification* notification = notify_notification_new(
 		title.c_str(), message.c_str(), icon.c_str(), NULL);
 
-	Glib::RefPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
+	PluginPtr plugin = Engine::get_plugin_manager()->get_plugin("TrayPlugin");
 	if (plugin)
 	{
 		GtkStatusIcon* status_icon = static_cast<GtkStatusIcon*>(plugin->get_user_data());
@@ -199,7 +194,7 @@ void NotifyPlugin::on_open_location(const Glib::ustring& path)
 
 void NotifyPlugin::on_stop_torrent(const libtorrent::sha1_hash& hash)
 {
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	Engine::get_session_manager()->stop_torrent(torrent);
 }
 
@@ -244,7 +239,7 @@ void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
 
 void NotifyPlugin::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	Glib::ustring translated = String::ucompose(_("%1 is complete"), torrent->get_name());
 
 	Glib::ustring path = torrent->get_path();
@@ -303,11 +298,6 @@ void NotifyPlugin::on_fastresume_rejected(const libtorrent::sha1_hash& hash, con
 		translated = _("Fast resume rejected, content check forced");
 
 	notify(_("Fast resume failed"), translated, NOTIFY_URGENCY_NORMAL);
-}
-
-void NotifyPlugin::on_dbus_disconnect()
-{
-	notify(_("DBus disconnected"), _("Lost connection to the DBus session"), NOTIFY_URGENCY_NORMAL);
 }
 
 Plugin* create_plugin()

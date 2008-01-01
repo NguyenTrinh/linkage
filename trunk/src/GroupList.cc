@@ -186,7 +186,7 @@ void GroupList::update()
 		unsigned int n = 0;
 		for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
 		{
-			Glib::RefPtr<Torrent> torrent = *j;
+			TorrentPtr torrent = *j;
 			if (m_cur_state && !(m_cur_state & torrent->get_state()))
 				continue;
 

@@ -21,14 +21,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <list>
 
-#include <glibmm/object.h>
+#include <sigc++/signal.h>
 
-#include <gtkmm/widget.h>
+#include <glibmm/ustring.h>
+
+#include <boost/smart_ptr.hpp>
+
+#include "libtorrent/intrusive_ptr_base.hpp"
+
+namespace Gtk
+{
+class Widget;
+};
 
 namespace Linkage
 {
+class Plugin;
+typedef boost::intrusive_ptr<Plugin> PluginPtr;
 
-class Plugin : public Glib::Object
+class Plugin : public libtorrent::intrusive_ptr_base<Plugin>
 {
 public:
 	enum PluginParent { PARENT_NONE, PARENT_MAIN, PARENT_DETAILS, PARENT_MENU, PARENT_TOOLBAR };

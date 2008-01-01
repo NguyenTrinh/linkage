@@ -24,13 +24,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <sigc++/signal.h>
 
-#include <glibmm/object.h>
 #include <glibmm/ustring.h>
 
 #include <gconfmm.h>
 
+#include <boost/smart_ptr.hpp>
+
+#include "libtorrent/intrusive_ptr_base.hpp"
+
 namespace Linkage
 {
+class SettingsManager;
+typedef boost::intrusive_ptr<SettingsManager> SettingsManagerPtr;
 
 typedef Gnome::Conf::SListHandle_ValueString UStringArray;
 typedef Gnome::Conf::SListHandle_ValueInt IntArray;
@@ -69,7 +74,7 @@ public:
 	virtual ~Value() {}
 };
 
-class SettingsManager : public Glib::Object
+class SettingsManager : public libtorrent::intrusive_ptr_base<SettingsManager>
 {
 	SettingsManager();
 
@@ -104,7 +109,7 @@ public:
 	sigc::signal<void, const Value&> signal(const Glib::ustring& key);	
 	sigc::signal<void, const Glib::ustring&, const Value&> signal_key_changed();
 
-	static Glib::RefPtr<SettingsManager> create();
+	static SettingsManagerPtr create();
 	~SettingsManager();
 };
 

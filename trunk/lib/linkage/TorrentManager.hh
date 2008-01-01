@@ -23,52 +23,55 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <vector>
 #include <list>
 
-#include <glibmm/object.h>
-#include <glibmm/refptr.h>
+#include <boost/smart_ptr.hpp>
+
+#include "libtorrent/intrusive_ptr_base.hpp"
 
 #include "linkage/Torrent.hh"
 
 namespace Linkage
 {
+class TorrentManager;
+typedef boost::intrusive_ptr<TorrentManager> TorrentManagerPtr;
 
 class Value;
 
-class TorrentManager : public Glib::Object
+class TorrentManager : public libtorrent::intrusive_ptr_base<TorrentManager>
 {
 public:
-	typedef std::list<Glib::RefPtr<Torrent> > TorrentList;
+	typedef std::list<TorrentPtr> TorrentList;
 
-	sigc::signal<void, Glib::RefPtr<Torrent> > signal_added();
-	sigc::signal<void, Glib::RefPtr<Torrent> > signal_removed();
+	sigc::signal<void, TorrentPtr> signal_added();
+	sigc::signal<void, TorrentPtr> signal_removed();
 	
 	bool exists(const libtorrent::sha1_hash& hash);
 	bool exists(const Glib::ustring& hash_str);
 	
-	Glib::RefPtr<Torrent> get_torrent(const libtorrent::sha1_hash& hash);
+	TorrentPtr get_torrent(const libtorrent::sha1_hash& hash);
 	TorrentList get_torrents();
 	
 	unsigned int get_torrents_count();
 	
-	static Glib::RefPtr<TorrentManager> create();
+	static TorrentManagerPtr create();
 	~TorrentManager();
 
 private:
-	typedef std::vector<Glib::RefPtr<Torrent> > TorrentVector;
-	typedef std::map<libtorrent::sha1_hash, Glib::RefPtr<Torrent> > TorrentMap;
+	typedef std::vector<TorrentPtr> TorrentVector;
+	typedef std::map<libtorrent::sha1_hash, TorrentPtr> TorrentMap;
 
 	TorrentMap m_torrents;
 
 	struct pred : public std::binary_function
-		<const Glib::RefPtr<Torrent>&, const Glib::RefPtr<Torrent>&, bool>
+		<const TorrentPtr&, const TorrentPtr&, bool>
 	{
-		bool operator()(const Glib::RefPtr<Torrent>& rhs, const Glib::RefPtr<Torrent>& lhs)
+		bool operator()(const TorrentPtr& rhs, const TorrentPtr& lhs)
 		{
 			return rhs->get_position() < lhs->get_position();
 		}
 	};
 
-	sigc::signal<void, Glib::RefPtr<Torrent> > m_signal_added;
-	sigc::signal<void, Glib::RefPtr<Torrent> > m_signal_removed;
+	sigc::signal<void, TorrentPtr> m_signal_added;
+	sigc::signal<void, TorrentPtr> m_signal_removed;
 	sigc::signal<void, Glib::ustring, Torrent::InfoPtr> m_signal_load_failed;
 
 	void on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
@@ -80,11 +83,11 @@ private:
 
 	void on_handle_changed(const libtorrent::sha1_hash& hash);
 	void on_position_changed(const libtorrent::sha1_hash& hash);
-	void set_torrent_settings(const Glib::RefPtr<Torrent>& torrent);
+	void set_torrent_settings(const TorrentPtr& torrent);
 	
 	void on_key_changed(const Glib::ustring& key, const Value& value);
 
-	typedef std::list<std::pair<Glib::RefPtr<Torrent>, libtorrent::entry> > ResumeList;
+	typedef std::list<std::pair<TorrentPtr, libtorrent::entry> > ResumeList;
 	void load_torrents();
 	void load_torrent(const Glib::ustring& file, ResumeList& resumes);
 
@@ -92,8 +95,8 @@ private:
 
 	friend class SessionManager;
 
-	Glib::RefPtr<Torrent> add_torrent(libtorrent::entry& er, const Torrent::InfoPtr& info);
-	void remove_torrent(const Glib::RefPtr<Torrent>& torrent);
+	TorrentPtr add_torrent(libtorrent::entry& er, const Torrent::InfoPtr& info);
+	void remove_torrent(const TorrentPtr& torrent);
 	void check_queue();
 };
 

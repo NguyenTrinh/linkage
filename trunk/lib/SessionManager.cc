@@ -57,9 +57,9 @@ static GConfEnumStringPair proxy_type_table[] = {
   { proxy_settings::http_pw, "PROXY_HTTP_PW" }
 };
 
-Glib::RefPtr<SessionManager> SessionManager::create()
+SessionManagerPtr SessionManager::create()
 {
-	return Glib::RefPtr<SessionManager>(new SessionManager());
+	return SessionManagerPtr(new SessionManager());
 }
 
 SessionManager::SessionManager()
@@ -122,7 +122,7 @@ void SessionManager::on_key_changed(const Glib::ustring& key, const Value& value
 
 void SessionManager::update_pe_settings()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	pe_settings pe;
 	pe_settings::enc_policy policy = (pe_settings::enc_policy)sm->get_enum("network/encryption/policy", enc_policy_table);
@@ -136,7 +136,7 @@ void SessionManager::update_pe_settings()
 
 void SessionManager::update_proxy_settings()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	Glib::ustring proxy = sm->get_string("network/proxy/host");
 	proxy_settings px;
@@ -160,7 +160,7 @@ void SessionManager::update_proxy_settings()
 
 void SessionManager::update_session_settings()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	int port = sm->get_int("network/port");
 	/* Only call listen_on if we really need to */
@@ -243,7 +243,7 @@ void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustr
 	{
 		//FIXME: 0.13 uses an alert for move_storage, also set new path to torrent
 		Glib::ustring path = Engine::get_settings_manager()->get_string("files/finished_path");
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		bool ret = false;
 		if (!torrent->is_stopped())
 		{
@@ -255,7 +255,7 @@ void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustr
 	}
 }
 
-void SessionManager::resume_torrent(const Glib::RefPtr<Torrent>& torrent, const entry& resume)
+void SessionManager::resume_torrent(const TorrentPtr& torrent, const entry& resume)
 {
 	g_return_if_fail(torrent);
 
@@ -289,7 +289,7 @@ void SessionManager::resume_torrent(const Glib::RefPtr<Torrent>& torrent, const 
 	torrent->set_handle(handle);
 }
 
-Glib::RefPtr<Torrent> SessionManager::open_torrent(
+TorrentPtr SessionManager::open_torrent(
 	const Glib::ustring& file,
 	const Glib::ustring& save_path)
 {
@@ -297,12 +297,12 @@ Glib::RefPtr<Torrent> SessionManager::open_torrent(
 	entry e, er;
 
 	if (!load_entry(file, e, buff))
-		return Glib::RefPtr<Torrent>();
+		return TorrentPtr();
 
 	Torrent::InfoPtr info(new torrent_info(e));
 	sha1_hash hash = info->info_hash();
 
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	/* merge trackers and return if torrent exists */
 	if (torrent)
 	{
@@ -360,7 +360,7 @@ Glib::RefPtr<Torrent> SessionManager::open_torrent(
 	return torrent;
 }
 
-void SessionManager::stop_torrent(const Glib::RefPtr<Torrent>& torrent)
+void SessionManager::stop_torrent(const TorrentPtr& torrent)
 {
 	g_return_if_fail(torrent);
 
@@ -384,7 +384,7 @@ void SessionManager::stop_torrent(const Glib::RefPtr<Torrent>& torrent)
 	remove_torrent(handle);
 }
 
-void SessionManager::erase_torrent(const Glib::RefPtr<Torrent>& torrent, bool erase_content)
+void SessionManager::erase_torrent(const TorrentPtr& torrent, bool erase_content)
 {
 	g_return_if_fail(torrent);
 
@@ -404,7 +404,7 @@ void SessionManager::erase_torrent(const Glib::RefPtr<Torrent>& torrent, bool er
 	g_unlink((file + ".resume").c_str());
 }
 
-void SessionManager::recheck_torrent(const Glib::RefPtr<Torrent>& torrent)
+void SessionManager::recheck_torrent(const TorrentPtr& torrent)
 {
 	g_return_if_fail(torrent);
 

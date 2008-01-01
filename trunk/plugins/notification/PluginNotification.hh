@@ -62,8 +62,6 @@ class NotifyPlugin : public Linkage::Plugin
 	void on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 	void on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 
-	void on_dbus_disconnect();
-
 public:
 	Linkage::Plugin::Info get_info();
 

@@ -24,19 +24,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/refptr.h>
 #include <gtkmm/container.h>
 
-#include <linkage/Torrent.hh>
-#include <linkage/Plugin.hh>
+#include "linkage/Torrent.hh"
+#include "linkage/Plugin.hh"
+
+#include "linkage/DBusAdaptorGlue.hh"
 
 namespace Linkage
 {
 
-typedef std::list<Glib::RefPtr<Torrent> > SelectionList;
+typedef std::list<TorrentPtr> SelectionList;
 
 class Interface
+:
+  public org::linkage::Interface,
+  public DBus::IntrospectableAdaptor,
+  public DBus::ObjectAdaptor
 {
 private:
 	Interface(const Interface&);
 	Interface& operator=(const Interface&);
+
+	/* DBUS */
+	void Open(const DBus::String& file);
+	void Add(const DBus::String& file, const DBus::String& path);
+	DBus::Bool GetVisible();
+	void SetVisible(const DBus::Bool& visible);
+	void Quit();
 
 public:
 	virtual SelectionList get_selected() const;
@@ -44,7 +57,7 @@ public:
 	virtual bool get_visible() const;
 	virtual void set_visible(bool visible);
 
-	virtual Gtk::Container* get_container(Plugin::PluginParent parent) const = 0;
+	virtual Gtk::Container* get_container(Plugin::PluginParent parent);
 
 	virtual void open(const Glib::ustring& uri);
 

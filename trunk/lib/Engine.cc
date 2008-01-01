@@ -19,29 +19,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glibmm/main.h>
 
 #include "linkage/Engine.hh"
-#include "linkage/AlertManager.hh"
-#include "linkage/PluginManager.hh"
-#include "linkage/SessionManager.hh"
-#include "linkage/SettingsManager.hh"
-#include "linkage/TorrentManager.hh"
-#include "linkage/DbusManager.hh"
 #include "linkage/Interface.hh"
 
 using namespace Linkage;
 
 Engine* Engine::self = NULL;
 
-Glib::RefPtr<SettingsManager> Engine::ssm	= Glib::RefPtr<SettingsManager>();
-Glib::RefPtr<TorrentManager> Engine::tm		= Glib::RefPtr<TorrentManager>();
-Glib::RefPtr<SessionManager> Engine::sm		= Glib::RefPtr<SessionManager>();
-Glib::RefPtr<AlertManager> Engine::am			= Glib::RefPtr<AlertManager>();
-Glib::RefPtr<PluginManager> Engine::pm		= Glib::RefPtr<PluginManager>();
-Glib::RefPtr<DbusManager> Engine::dbm			= Glib::RefPtr<DbusManager>();
+SettingsManagerPtr Engine::ssm = SettingsManagerPtr();
+TorrentManagerPtr Engine::tm = TorrentManagerPtr();
+SessionManagerPtr Engine::sm = SessionManagerPtr();
+AlertManagerPtr Engine::am = AlertManagerPtr();
+PluginManagerPtr Engine::pm = PluginManagerPtr();
 
 Interface* Engine::m_interface = NULL;
 
-Engine::Engine()
+Engine::Engine(const DBus::Connection& connection)
+: m_conn(connection)
 {
+	m_conn.request_name("org.linkage");
+
 	/* FIXME: update interval on_settings() */
 	int interval = get_settings_manager()->get_int("ui/interval")*1000;
 	Glib::signal_timeout().connect(sigc::mem_fun(this, &Engine::on_timeout), interval);
@@ -51,38 +47,45 @@ Engine::~Engine()
 {
 }
 
-void Engine::init()
+void Engine::init(const DBus::Connection& connection)
 {
 	static bool creating = false;
-	if (!self && is_primary() && !creating)
+	if (!self && !creating)
 	{
 		creating = true;
-		self = new Engine();
+		self = new Engine(connection);
 		creating = false;
 	}
 }
 
 void Engine::uninit()
 {
+	g_assert(self);
+
 	ssm->disconnect();
 
 	// Kill them of in order due to depencies
-	pm.clear();
-	tm.clear();
-	dbm.clear();
-	sm.clear();
-	am.clear();
-	ssm.clear();
+	pm = PluginManagerPtr();
+	tm = TorrentManagerPtr();
+	sm = SessionManagerPtr();
+	am = AlertManagerPtr();
+	ssm = SettingsManagerPtr();
 
 	delete self;
 }
 
 bool Engine::is_primary()
 {
-	if (!dbm)
-		dbm = DbusManager::create();
-	
-	return dbm->is_primary();
+	g_assert(self);
+
+	return self->m_conn.has_name("org.linkage");
+}
+
+DBus::Connection& Engine::get_bus()
+{
+	g_assert(self);
+
+	return self->m_conn;
 }
 
 bool Engine::on_timeout()
@@ -93,13 +96,12 @@ bool Engine::on_timeout()
 
 sigc::signal<void> Engine::signal_tick()
 {
-	if (!self)
-		init();
+	g_assert(self);
 
 	return self->m_signal_tick;
 }
 
-Glib::RefPtr<AlertManager> Engine::get_alert_manager()
+AlertManagerPtr Engine::get_alert_manager()
 {
 	if (!am)
 		am = AlertManager::create();
@@ -107,7 +109,7 @@ Glib::RefPtr<AlertManager> Engine::get_alert_manager()
 	return am;
 }
 
-Glib::RefPtr<PluginManager> Engine::get_plugin_manager()
+PluginManagerPtr Engine::get_plugin_manager()
 {
 	if (!pm)
 		pm = PluginManager::create();
@@ -115,7 +117,7 @@ Glib::RefPtr<PluginManager> Engine::get_plugin_manager()
 	return pm;
 }
 
-Glib::RefPtr<SessionManager> Engine::get_session_manager()
+SessionManagerPtr Engine::get_session_manager()
 {
 	if (!sm)
 		sm = SessionManager::create();
@@ -123,7 +125,7 @@ Glib::RefPtr<SessionManager> Engine::get_session_manager()
 	return sm;
 }
 
-Glib::RefPtr<SettingsManager> Engine::get_settings_manager()
+SettingsManagerPtr Engine::get_settings_manager()
 {
 	if (!ssm)
 		ssm = SettingsManager::create();
@@ -131,20 +133,12 @@ Glib::RefPtr<SettingsManager> Engine::get_settings_manager()
 	return ssm;
 }
 
-Glib::RefPtr<TorrentManager> Engine::get_torrent_manager()
+TorrentManagerPtr Engine::get_torrent_manager()
 {
 	if (!tm)
 		tm = TorrentManager::create();
 
 	return tm;
-}
-
-Glib::RefPtr<DbusManager> Engine::get_dbus_manager()
-{
-	if (!dbm)
-		dbm = DbusManager::create();
-
-	return dbm;
 }
 
 Interface& Engine::get_interface() throw()

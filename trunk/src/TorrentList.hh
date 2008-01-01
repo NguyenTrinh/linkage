@@ -75,11 +75,11 @@ class TorrentList : public Gtk::TreeView
 	Group m_active_group;
 	Linkage::Torrent::State m_cur_state;
 
-	void on_added(const Glib::RefPtr<Linkage::Torrent>& torrent);
-	void on_removed(const Glib::RefPtr<Linkage::Torrent>& torrent);
+	void on_added(const Linkage::TorrentPtr& torrent);
+	void on_removed(const Linkage::TorrentPtr& torrent);
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
-	Glib::ustring get_formated_name(const Glib::RefPtr<Linkage::Torrent>& torrent);
+	Glib::ustring get_formated_name(const Linkage::TorrentPtr& torrent);
 
 	bool on_button_press_event(GdkEventButton *event);
 
