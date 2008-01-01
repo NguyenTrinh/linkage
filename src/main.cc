@@ -102,7 +102,15 @@ struct send_file : public std::unary_function<void, Glib::ustring>
 		if (!Engine::is_primary())
 		{
 			Proxy remote;
-			remote.Open(file);
+			try
+			{
+				/* FIXME: make this call async */
+				remote.Open(file);
+			}
+			catch (const DBus::Error& ex)
+			{
+				/* Open blocks so we will get a timeout */
+			}
 		}
 		else
 			Engine::get_interface().open(file);
