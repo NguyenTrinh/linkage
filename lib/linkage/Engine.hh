@@ -63,6 +63,7 @@ class Engine
 	static Engine* self;
 
 	DBus::Connection m_conn;
+	bool m_primary;
 
 	sigc::signal<void> m_signal_tick;
 

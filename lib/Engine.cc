@@ -36,6 +36,9 @@ Interface* Engine::m_interface = NULL;
 Engine::Engine(const DBus::Connection& connection)
 : m_conn(connection)
 {
+	/* check if name is taken before we request it */
+	m_primary = !m_conn.has_name("org.linkage");
+
 	m_conn.request_name("org.linkage");
 
 	/* FIXME: update interval on_settings() */
@@ -78,7 +81,7 @@ bool Engine::is_primary()
 {
 	g_assert(self);
 
-	return self->m_conn.has_name("org.linkage");
+	return self->m_primary;
 }
 
 DBus::Connection& Engine::get_bus()
