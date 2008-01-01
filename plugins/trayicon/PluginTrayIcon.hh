@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 class TrayPlugin : public Linkage::Plugin
 {
+	sigc::connection m_conn_tick;
+
 	Glib::RefPtr<Gtk::StatusIcon> icon;
 	Gtk::Menu* menu;
 
