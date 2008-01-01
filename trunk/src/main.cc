@@ -54,7 +54,7 @@ class Proxy
   public DBus::ObjectProxy
 {
 public:
-	Proxy() : DBus::ObjectProxy(Engine::get_bus(), "/org/linkage/interface", "org.linkage.Interface") {}
+	Proxy() : DBus::ObjectProxy(Engine::get_bus(), "/org/linkage/interface", "org.linkage") {}
 };
 
 class Options : public Glib::OptionGroup
