@@ -1,7 +1,8 @@
 linkageincludedir = $(includedir)/linkage-1.0/linkage
 
 linkageinclude_HEADERS = AlertManager.hh \
-	DbusManager.hh \
+	DBusAdaptorGlue.hh \
+	DBusProxyGlue.hh \
 	Engine.hh \
 	Plugin.hh \
 	PluginManager.hh \

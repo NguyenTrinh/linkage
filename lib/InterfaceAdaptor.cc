@@ -18,43 +18,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Interface.hh"
 #include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
 
 using namespace Linkage;
 
-Interface::Interface()
-:
-  DBus::ObjectAdaptor(Engine::get_bus(), "/org/linkage/interface")
+void Interface::Open(const DBus::String& file)
 {
+	open(file);
 }
 
-Interface::~Interface()
+void Interface::Add(const DBus::String& file, const DBus::String& path)
 {
+	Engine::get_session_manager()->open_torrent(file, path);
 }
 
-SelectionList Interface::get_selected() const
+DBus::Bool Interface::GetVisible()
 {
-	return SelectionList();
+	return get_visible();
 }
 
-bool Interface::get_visible() const
+void Interface::SetVisible(const DBus::Bool& visible)
 {
-	return false;
+	set_visible(visible);
 }
 
-Gtk::Container* Interface::get_container(Plugin::PluginParent parent)
+void Interface::Quit()
 {
-	return NULL;
-}
-
-void Interface::set_visible(bool visible = true)
-{
-}
-
-void Interface::open(const Glib::ustring& uri)
-{
-}
-
-void Interface::quit()
-{
+	quit();
 }
 

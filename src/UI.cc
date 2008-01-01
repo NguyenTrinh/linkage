@@ -58,6 +58,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "SessionClient.hh"
 #include "UI.hh"
 
+#include "linkage/Interface.hh"
 #include "linkage/Engine.hh"
 #include "linkage/AlertManager.hh"
 #include "linkage/SessionManager.hh"
@@ -262,7 +263,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	show_all_children();
 
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	resize(sm->get_int("ui/win_width"), sm->get_int("ui/win_height"));
 
@@ -306,7 +307,7 @@ UI::~UI()
 	// needs to be disconnect to avoid crash
 	m_conn_switch_page.disconnect();
 
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	int w, h;
 	get_size(w, h);
@@ -410,7 +411,7 @@ void UI::open(const Glib::ustring& uri)
 				String::compose("%1", add_dialog->get_info()->info_hash()) + ".resume"), er);
 		}
 
-		Glib::RefPtr<Torrent> torrent = Engine::get_session_manager()->open_torrent(data.file, data.path);
+		TorrentPtr torrent = Engine::get_session_manager()->open_torrent(data.file, data.path);
 
 		if (!data.name.empty())
 			torrent->set_name(data.name);
@@ -478,7 +479,7 @@ void UI::on_show()
 	m_conn_tick.unblock();
 }
 
-void UI::update(const Glib::RefPtr<Torrent>& torrent, bool update_lists)
+void UI::update(const TorrentPtr& torrent, bool update_lists)
 {
 	libtorrent::torrent_status stats = torrent->get_status();
 
@@ -527,7 +528,7 @@ void UI::update(const Glib::RefPtr<Torrent>& torrent, bool update_lists)
 	}
 }
 
-void UI::update_statics(const Glib::RefPtr<Torrent>& torrent)
+void UI::update_statics(const TorrentPtr& torrent)
 {
 	boost::intrusive_ptr<libtorrent::torrent_info> info = torrent->get_info();
 
@@ -546,7 +547,7 @@ void UI::update_statics(const Glib::RefPtr<Torrent>& torrent)
 	label_private->set_text(info->priv() ? _("Yes") : _("No"));
 }
 
-inline Glib::RefPtr<Torrent> UI::get_selected_single()
+inline TorrentPtr UI::get_selected_single()
 {
 	HashList list = torrent_list->get_selected_list();
 
@@ -559,13 +560,13 @@ inline Glib::RefPtr<Torrent> UI::get_selected_single()
 
 void UI::on_spin_down()
 {
-	Glib::RefPtr<Torrent> torrent = get_selected_single();
+	TorrentPtr torrent = get_selected_single();
 	torrent->set_down_limit((int)spinbutton_down->get_value());
 }
 
 void UI::on_spin_up()
 {
-	Glib::RefPtr<Torrent> torrent = get_selected_single();
+	TorrentPtr torrent = get_selected_single();
 	torrent->set_up_limit((int)spinbutton_up->get_value());
 }
 
@@ -600,7 +601,7 @@ void UI::on_remove(bool erase_content)
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(*iter);
 
 		if (erase_content)
 		{
@@ -642,7 +643,7 @@ void UI::on_start()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		if (torrent->is_stopped() || torrent->get_state() & Torrent::ERROR)
 		{
 			Engine::get_session_manager()->resume_torrent(torrent);
@@ -658,7 +659,7 @@ void UI::on_stop()
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(*iter);
 		Engine::get_session_manager()->stop_torrent(torrent);
 	}
 
@@ -675,7 +676,7 @@ void UI::on_up()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		int position = torrent->get_position();
 		if (position > 1)
 			torrent->set_position(position - 1);
@@ -690,7 +691,7 @@ void UI::on_down()
 	for (HashList::reverse_iterator iter = list.rbegin(); iter != list.rend(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		unsigned int position = torrent->get_position();
 		if (position < Engine::get_torrent_manager()->get_torrents_count())
 			torrent->set_position(position + 1);
@@ -704,7 +705,7 @@ void UI::on_set_group(const Glib::ustring& group)
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(*iter);
 		torrent->set_group(group);
 	}
 	on_tick();
@@ -716,7 +717,7 @@ void UI::on_check()
 
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(*iter);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(*iter);
 		Engine::get_session_manager()->recheck_torrent(torrent);
 	}
 }
@@ -728,7 +729,7 @@ void UI::on_open_location()
 	for (HashList::iterator iter = list.begin(); iter != list.end(); ++iter)
 	{
 		libtorrent::sha1_hash hash = *iter;
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		Glib::ustring path = torrent->get_path();
 		boost::intrusive_ptr<libtorrent::torrent_info> info = torrent->get_info();
 		if (info->num_files() > 1)
@@ -767,7 +768,7 @@ void UI::on_details_expanded()
 {
 	if (expander_details->get_expanded())
 	{
-		Glib::RefPtr<Torrent> torrent = get_selected_single();
+		TorrentPtr torrent = get_selected_single();
 		update(torrent, true);
 	}
 	else
@@ -787,7 +788,7 @@ void UI::on_torrent_list_selection_changed()
 		if (Engine::get_settings_manager()->get_bool("ui/auto_expand"))
 			expander_details->set_expanded(true);
 
-		Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		spinbutton_down->set_value((double)torrent->get_down_limit());
 		spinbutton_up->set_value((double)torrent->get_up_limit());
 
@@ -867,14 +868,14 @@ void UI::on_tracker_changed()
 	else
 	{
 		Glib::ustring tracker = combo_trackers->get_active_text();
-		Glib::RefPtr<Torrent> torrent = get_selected_single();
+		TorrentPtr torrent = get_selected_single();
 		label_response->set_text(torrent->get_tracker_reply(tracker));
 	}
 }
 
 void UI::on_switch_page(GtkNotebookPage*, int page_num)
 {
-	Glib::RefPtr<Torrent> torrent = get_selected_single();
+	TorrentPtr torrent = get_selected_single();
 	update(torrent, true);
 }
 

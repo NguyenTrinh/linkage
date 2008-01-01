@@ -17,13 +17,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
 #include "linkage/AlertManager.hh"
+#include "linkage/Engine.hh"
+#include "linkage/SessionManager.hh"
 #include "linkage/TorrentManager.hh"
 
 using namespace Linkage;
 
-Glib::RefPtr<AlertManager> AlertManager::create()
+AlertManagerPtr AlertManager::create()
 {
-	return Glib::RefPtr<AlertManager>(new AlertManager());
+	return AlertManagerPtr(new AlertManager());
 }
 
 AlertManager::AlertManager()
@@ -126,7 +128,7 @@ void AlertManager::check_alerts()
 		else if (torrent_finished_alert* p = dynamic_cast<torrent_finished_alert*>(a.get()))
 		{
 			sha1_hash hash = p->handle.info_hash();
-			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+			TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 			if (torrent && !torrent->is_completed())
 			{
 				torrent->set_completed(true);
@@ -140,7 +142,7 @@ void AlertManager::check_alerts()
 		else if (fastresume_rejected_alert* p = dynamic_cast<fastresume_rejected_alert*>(a.get()))
 		{
 			sha1_hash hash = p->handle.info_hash();
-			Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+			TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 			if (torrent)
 				torrent->set_completed(false);
 

@@ -31,17 +31,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 using namespace Linkage;
 
-Glib::RefPtr<Torrent> Torrent::create(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool queued)
+static DBus::Path get_torrent_path(const libtorrent::sha1_hash& hash)
 {
-	return Glib::RefPtr<Torrent>(new Torrent(e, info, queued));
+	return "/org/linkage/torrents/" + String::compose("%1", hash);
+}
+
+TorrentPtr Torrent::create(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool queued)
+{
+	return TorrentPtr(new Torrent(e, info, queued));
 }
 
 Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool queued)
-	: 
-	m_prop_handle(*this, "handle"),
-	m_prop_position(*this, "position")
+:
+  DBus::ObjectAdaptor(Engine::get_bus(), get_torrent_path(info->info_hash())),
+  m_prop_handle(*this, "handle"),
+  m_prop_position(*this, "position")
 {
-	m_cache = new StoppedCache();
+	m_cache = std::auto_ptr<StoppedCache>(new StoppedCache());
 
 	m_cur_tier = 0;
 
@@ -164,6 +170,30 @@ int Torrent::get_down_limit()
 libtorrent::sha1_hash Torrent::get_hash()
 {
 	return m_info->info_hash();
+}
+
+float Torrent::get_progress()
+{
+	float progress;
+	if (is_stopped())
+	{
+		libtorrent::size_type wanted_size = m_info->total_size();
+		for (unsigned int i = 0; i < m_priorities.size(); i++)
+		{
+			// priority 0 means "don't download"
+			if (!m_priorities[i])
+				wanted_size -= m_info->file_at(i).size;
+		}
+
+		libtorrent::size_type down = get_total_downloaded();
+		progress = (double)down/wanted_size;
+		if (progress > 1)
+			progress = 1;
+	}
+	else
+		progress = get_status().progress;
+
+	return progress;
 }
 
 libtorrent::size_type Torrent::get_total_downloaded()
@@ -291,7 +321,6 @@ libtorrent::torrent_status Torrent::get_status()
 {
 	if (is_stopped())
 	{
-		g_assert(m_cache != NULL);
 		return m_cache->status;
 	}
 
@@ -303,7 +332,6 @@ std::vector<float> Torrent::get_file_progress()
 	std::vector<float> fp;
 	if (is_stopped())
 	{
-		g_assert(m_cache != NULL);
 		fp = m_cache->file_progress;
 	}
 	else
@@ -316,16 +344,13 @@ void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 {
 	if (is_stopped() && handle.is_valid())
 	{
-		g_assert(m_cache != NULL);
 		/* set cached trackers before we delete them */
 		handle.replace_trackers(m_cache->trackers);
-		delete m_cache;
-		m_cache = NULL;
+		m_cache = std::auto_ptr<StoppedCache>(NULL);
 	}
 	else if (!is_stopped() && !handle.is_valid())
 	{
-		g_assert(m_cache == NULL);
-		m_cache = new StoppedCache();
+		m_cache = std::auto_ptr<StoppedCache>(new StoppedCache());
 		get_handle().file_progress(m_cache->file_progress);
 		m_cache->trackers = get_handle().trackers();
 		m_cache->status = get_handle().status();
@@ -501,7 +526,6 @@ void Torrent::add_tracker(const Glib::ustring& url)
 	}
 	else
 	{
-		g_assert(m_cache != NULL);
 		a.tier = m_cache->trackers.size();
 		m_cache->trackers.push_back(a);
 	}
@@ -511,7 +535,6 @@ const std::vector<libtorrent::announce_entry>& Torrent::get_trackers()
 {
 	if (is_stopped())
 	{
-		g_assert(m_cache != NULL);
 		return m_cache->trackers;
 	}
 
@@ -598,11 +621,8 @@ const libtorrent::entry Torrent::get_resume_entry(bool stopping, bool quitting)
 		// only add current session data if we intend to stop the handle or quit
 		if (stopping || quitting)
 		{
-			if (!get_handle().is_paused())
-			{
-				get_handle().pause();
-				Engine::get_alert_manager()->wait_for_alert<libtorrent::torrent_paused_alert>(libtorrent::seconds(3));
-			}
+			get_handle().pause();
+			/* FIXME: wait for torrent_paused_alert */
 			m_downloaded += get_handle().status().total_download;
 			m_uploaded += get_handle().status().total_upload;
 		}

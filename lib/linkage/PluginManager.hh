@@ -21,17 +21,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <list>
 
-#include <glibmm/object.h>
-#include <glibmm/refptr.h>
+#include <boost/smart_ptr.hpp>
+
+#include "libtorrent/intrusive_ptr_base.hpp"
 
 #include "linkage/Plugin.hh"
 
 namespace Linkage
 {
+class PluginManager;
+typedef boost::intrusive_ptr<PluginManager> PluginManagerPtr;
 
 class Value;
 
-class PluginManager : public Glib::Object
+class PluginManager : public libtorrent::intrusive_ptr_base<PluginManager>
 {
 public:
 	struct PluginInfo : public Plugin::Info
@@ -40,7 +43,7 @@ public:
 		bool loaded;
 	};
 	typedef std::list<PluginInfo> PluginInfoList;
-	typedef std::list<Glib::RefPtr<Plugin> > PluginList;
+	typedef std::list<PluginPtr > PluginList;
 
 private:
 	PluginList m_plugins;
@@ -49,13 +52,13 @@ private:
 	void refresh_info();
 
 	void load_plugin(const Glib::ustring& file);
-	void unload_plugin(const Glib::RefPtr<Plugin>& plugin);
+	void unload_plugin(const PluginPtr& plugin);
 	void on_plugin_destroyed(Plugin* plugin);
 	
 	Glib::ustring get_module(const Glib::ustring& name);
 	
-	sigc::signal<void, Glib::RefPtr<Plugin> > m_signal_plugin_load;
-	sigc::signal<void, Glib::RefPtr<Plugin> > m_signal_plugin_unload;
+	sigc::signal<void, PluginPtr> m_signal_plugin_load;
+	sigc::signal<void, PluginPtr> m_signal_plugin_unload;
 
 	void on_plugins_changed(const Value& value);
 	void update_plugins(const std::list<Glib::ustring>& plugins);
@@ -65,15 +68,15 @@ private:
 public:
 	const PluginList& get_plugins();
 	
-	sigc::signal<void, Glib::RefPtr<Plugin> > signal_plugin_load();
-	sigc::signal<void, Glib::RefPtr<Plugin> > signal_plugin_unload();
+	sigc::signal<void, PluginPtr> signal_plugin_load();
+	sigc::signal<void, PluginPtr> signal_plugin_unload();
 
 	bool is_loaded(const Glib::ustring& name);
-	Glib::RefPtr<Plugin> get_plugin(const Glib::ustring& name);
+	PluginPtr get_plugin(const Glib::ustring& name);
 
 	PluginInfoList list_plugins();
 
-	static Glib::RefPtr<PluginManager> create();
+	static PluginManagerPtr create();
 	~PluginManager();
 };
 

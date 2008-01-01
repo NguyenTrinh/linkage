@@ -308,7 +308,7 @@ bool FileList::on_foreach(const Gtk::TreeIter& iter, const FileData& data)
 	return false;
 }
 
-void FileList::update(const Glib::RefPtr<Torrent>& torrent)
+void FileList::update(const TorrentPtr& torrent)
 {
 	FileData data;
 

@@ -118,7 +118,7 @@ void TrayPlugin::on_tick()
 	unsigned int num_active = 0, num_queued = 0, num_seeds = 0;
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin(); iter != torrents.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = *iter;
+		TorrentPtr torrent = *iter;
 		int state = torrent->get_state();
 
 		if (state & Torrent::SEEDING)
@@ -155,7 +155,7 @@ void TrayPlugin::on_torrents_stop()
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
 				iter != torrents.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = *iter;
+		TorrentPtr torrent = *iter;
 		if (!torrent->is_stopped())
 			Engine::get_session_manager()->stop_torrent(torrent);
 	}
@@ -167,7 +167,7 @@ void TrayPlugin::on_torrents_start()
 	for (TorrentManager::TorrentList::iterator iter = torrents.begin();
 				iter != torrents.end(); ++iter)
 	{
-		Glib::RefPtr<Torrent> torrent = *iter;
+		TorrentPtr torrent = *iter;
 		if (torrent->is_stopped())
 			Engine::get_session_manager()->resume_torrent(torrent);
 	}

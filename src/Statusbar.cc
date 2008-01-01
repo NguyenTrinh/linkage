@@ -128,7 +128,7 @@ void Statusbar::on_tracker_announce(const libtorrent::sha1_hash& hash, const Gli
 
 void Statusbar::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
 {
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	post(torrent->get_name() + " is_complete");
 }
 

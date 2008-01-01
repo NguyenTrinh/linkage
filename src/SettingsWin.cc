@@ -263,7 +263,7 @@ void SettingsWin::on_configure_plugin()
 	{
 		Gtk::TreeRow row = *iter;
 
-		Glib::RefPtr<Plugin> plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
+		PluginPtr plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
 		if (plugin)
 		{
 			Gtk::Widget* widget = plugin->get_config_widget();
@@ -294,7 +294,7 @@ void SettingsWin::on_hide()
 {
 	Gtk::Window::on_hide();
 
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	/* Plugins */
 	Gtk::TreeNodeChildren children = model_plugins->children();
@@ -310,7 +310,7 @@ void SettingsWin::on_hide()
 
 void SettingsWin::on_show()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	/* Plugins */
 	if (model_plugins->children().empty())

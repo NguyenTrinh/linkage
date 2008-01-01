@@ -26,16 +26,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 using namespace Linkage;
 
-Glib::RefPtr<PluginManager> PluginManager::create()
+PluginManagerPtr PluginManager::create()
 {
-	return Glib::RefPtr<PluginManager>(new PluginManager());
+	return PluginManagerPtr(new PluginManager());
 }
 
 PluginManager::PluginManager()
 {
 	refresh_info();
 
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 	sm->signal("ui/plugins").connect(sigc::mem_fun(this, &PluginManager::on_plugins_changed));
 
 	std::list<Glib::ustring> plugins = sm->get_string_list("ui/plugins");
@@ -44,15 +44,15 @@ PluginManager::PluginManager()
 
 PluginManager::~PluginManager()
 {
-	//m_plugins.clear();
+	m_plugins.clear();
 }
 
-sigc::signal<void, Glib::RefPtr<Plugin> > PluginManager::signal_plugin_load()
+sigc::signal<void, PluginPtr> PluginManager::signal_plugin_load()
 {
 	return m_signal_plugin_load;
 }
 
-sigc::signal<void, Glib::RefPtr<Plugin> > PluginManager::signal_plugin_unload()
+sigc::signal<void, PluginPtr> PluginManager::signal_plugin_unload()
 {
 	return m_signal_plugin_unload;
 }
@@ -119,7 +119,7 @@ void PluginManager::load_plugin(const Glib::ustring& file)
 	{
 		if (module.get_symbol("create_plugin", (void*&)create_plugin))
 		{
-			Glib::RefPtr<Plugin> plugin(create_plugin());
+			PluginPtr plugin(create_plugin());
 
 			Glib::ustring name = plugin->get_info().name;
 			if (!is_loaded(name))
@@ -138,7 +138,7 @@ void PluginManager::load_plugin(const Glib::ustring& file)
 	}
 }
 
-void PluginManager::unload_plugin(const Glib::RefPtr<Plugin>& plugin)
+void PluginManager::unload_plugin(const PluginPtr& plugin)
 {
 	PluginList::iterator iter = std::find(m_plugins.begin(), m_plugins.end(), plugin);
 	if (iter != m_plugins.end())
@@ -168,15 +168,15 @@ bool PluginManager::is_loaded(const Glib::ustring& name)
 	return false;
 }
 
-Glib::RefPtr<Plugin> PluginManager::get_plugin(const Glib::ustring& name)
+PluginPtr PluginManager::get_plugin(const Glib::ustring& name)
 {
 	for (PluginList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
 	{
-		Glib::RefPtr<Plugin> plugin = *iter;
+		PluginPtr plugin = *iter;
 		if (name == plugin->get_info().name)
 			return plugin;
 	}
-	return Glib::RefPtr<Plugin>();
+	return PluginPtr();
 }
 
 void PluginManager::on_plugins_changed(const Value& value)
@@ -203,7 +203,7 @@ void PluginManager::update_plugins(const std::list<Glib::ustring>& plugins)
 	PluginList unload_list;
 	for (PluginList::iterator iter = m_plugins.begin(); iter != m_plugins.end(); ++iter)
 	{
-		Glib::RefPtr<Plugin> plugin = *iter;
+		PluginPtr plugin = *iter;
 		std::list<Glib::ustring>::const_iterator search;
 		search = std::find(plugins.begin(), plugins.end(), plugin->get_info().name);
 		if (search == plugins.end())

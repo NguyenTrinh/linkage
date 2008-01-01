@@ -92,13 +92,13 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	set_headers_visible(false);
 	set_search_column(columns.name);
 
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	Gtk::SortType order = (Gtk::SortType)sm->get_enum("ui/torrent_view/order", sort_order_table);
 	gint col = sm->get_enum("ui/torrent_view/column", sort_column_table);
 	model->set_sort_column_id(col, order);
 
-	Glib::RefPtr<TorrentManager> tm = Engine::get_torrent_manager();
+	TorrentManagerPtr tm = Engine::get_torrent_manager();
 	TorrentManager::TorrentList torrents = tm->get_torrents();
 	std::for_each(torrents.begin(), torrents.end(), sigc::mem_fun(this, &TorrentList::on_added));
 
@@ -124,7 +124,7 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 
 TorrentList::~TorrentList()
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 
 	Gtk::SortType order;
 	int column;
@@ -155,7 +155,7 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 {
 	Gtk::TreeRow row = *iter;
 	libtorrent::sha1_hash hash = row[columns.hash];
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 	if (!torrent)
 		return false;
 
@@ -178,7 +178,7 @@ void TorrentList::on_state_filter_changed(Torrent::State state)
 	filter->refilter();
 }
 
-void TorrentList::on_added(const Glib::RefPtr<Torrent>& torrent)
+void TorrentList::on_added(const TorrentPtr& torrent)
 {
 	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("ui/torrent_view/selected");
 
@@ -193,7 +193,7 @@ void TorrentList::on_added(const Glib::RefPtr<Torrent>& torrent)
 	update_row(row);
 }
 
-void TorrentList::on_removed(const Glib::RefPtr<Torrent>& torrent)
+void TorrentList::on_removed(const TorrentPtr& torrent)
 {
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
@@ -276,9 +276,9 @@ void TorrentList::set_sort_order(Gtk::SortType order)
 	model->set_sort_column_id(current_col_id, order);
 }
 
-Glib::ustring TorrentList::get_formated_name(const Glib::RefPtr<Torrent>& torrent)
+Glib::ustring TorrentList::get_formated_name(const TorrentPtr& torrent)
 {
-	Glib::RefPtr<SettingsManager> sm = Engine::get_settings_manager();
+	SettingsManagerPtr sm = Engine::get_settings_manager();
 	int state = torrent->get_state();
 	Glib::ustring color;
 
@@ -402,7 +402,7 @@ void TorrentList::update()
 
 void TorrentList::update_row(Gtk::TreeRow& row)
 {
-	Glib::RefPtr<Torrent> torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
+	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
 
 	Glib::ustring old_state = row[columns.state];
 	unsigned int old_peers = row[columns.peers];

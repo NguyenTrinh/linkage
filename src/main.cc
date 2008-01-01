@@ -35,15 +35,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <libgnome/gnome-init.h>
 #endif
 
+#include <dbus-c++/dbus.h>
+#include <dbus-c++/glib-integration.h>
+
 #include "UI.hh"
 
 #include "linkage/Engine.hh"
-#include "linkage/DbusManager.hh"
 #include "linkage/PluginManager.hh"
-#include "linkage/SessionManager.hh"
 #include "linkage/Utils.hh"
 
+#include "linkage/DBusProxyGlue.hh"
+
 using namespace Linkage;
+
+class Proxy
+: public org::linkage::InterfaceProxy,
+  public DBus::IntrospectableProxy,
+  public DBus::ObjectProxy
+{
+public:
+	Proxy() : DBus::ObjectProxy(Engine::get_bus(), "/org/linkage/interface", "org.linkage.Interface") {}
+};
 
 class Options : public Glib::OptionGroup
 {
@@ -87,30 +99,40 @@ struct send_file : public std::unary_function<void, Glib::ustring>
 		if (!Glib::path_is_absolute(file))
 			file = Glib::build_filename(Glib::get_current_dir(), file);
 
-		if (Engine::is_primary())
-			Engine::get_interface().open(file);
-		else
+		if (!Engine::is_primary())
 		{
-			const char* c = file.c_str();
-			Engine::get_dbus_manager()->send("org.linkage.Interface", "Open", "/org/linkage/interface", DBUS_TYPE_STRING, &c, DBUS_TYPE_INVALID);
+			Proxy remote;
+			remote.Open(file);
 		}
+		else
+			Engine::get_interface().open(file);
 	}
 };
 
+DBus::Glib::BusDispatcher dispatcher;
+
 int main(int argc, char *argv[])
 {
+	/* gettext */
 	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
 
+	/* enable support for native paths */
+	boost::filesystem::path::default_name_check(boost::filesystem::native);
+
+	/* init and parse argvs */
 	#if !HAVE_GNOME
 	Gtk::Main kit(&argc, &argv);
 	#endif
 
-	boost::filesystem::path::default_name_check(boost::filesystem::native);
+	/* connect to dbus */
+	DBus::default_dispatcher = &dispatcher;
+	dispatcher.attach(NULL);
+	DBus::Connection connection = DBus::Connection::SessionBus();
 
-	if(!Glib::thread_supported()) 
-		Glib::thread_init();
+	/* init backend, hooked up to our dbus connection */
+	Engine::init(connection);
 
 	Options options;
 	//work around for gnomemm bug
@@ -144,55 +166,55 @@ int main(int argc, char *argv[])
 	}
 	if (options.quit)
 	{
-		Engine::get_dbus_manager()->send("org.linkage.Interface", "Quit", "/org/linkage/interface", DBUS_TYPE_INVALID);
+		Proxy remote;
+		remote.Quit();
 		return 0;
 	}
 
+	/* check if another instance is running */
 	if (!Engine::is_primary())
 	{
 		if (!options.files.empty())
 			std::for_each(options.files.begin(), options.files.end(), send_file());
 
-		/* for startup notification, auto called when we show a window */
+		/* for startup notification, since we don't show any windows */
 		gdk_notify_startup_complete();
 
 		return 0;
 	}
-	else
+
+	/* no other instance, fire up ui */
+
+	Glib::RefPtr<Gnome::Glade::Xml> xml;
+	try
 	{
-		//FIXME: resume_session should be async
-		// Engine::get_session_manager()->resume_session();
-
-		Glib::RefPtr<Gnome::Glade::Xml> xml;
-		try
-		{
-			xml = Gnome::Glade::Xml::create(DATA_DIR "/linkage.glade");
-		}
-		catch (const Gnome::Glade::XmlError& ex)
-		{
-			g_error(ex.what().c_str());
-		}
-
-		UI* ui = NULL;
-		xml->get_widget_derived("main_window", ui);
-		ui->show();
-
-		// just to wake it up
-		Engine::get_plugin_manager();
-
-		if (!options.files.empty())
-			std::for_each(options.files.begin(), options.files.end(), send_file());
-
-		#if HAVE_GNOME
-		Gtk::Main::run();
-		#else
-		kit.run();
-		#endif
-
-		ui->hide();
-		delete ui;
-		Engine::uninit();
+		xml = Gnome::Glade::Xml::create(DATA_DIR "/linkage.glade");
 	}
+	catch (const Gnome::Glade::XmlError& ex)
+	{
+		g_error(ex.what().c_str());
+	}
+
+	UI* ui = NULL;
+	xml->get_widget_derived("main_window", ui);
+	ui->show();
+
+	// just to wake it up
+	Engine::get_plugin_manager();
+
+	if (!options.files.empty())
+		std::for_each(options.files.begin(), options.files.end(), send_file());
+
+	#if HAVE_GNOME
+	Gtk::Main::run();
+	#else
+	kit.run();
+	#endif
+
+	ui->hide();
+	delete ui;
+
+	Engine::uninit();
 
 	return 0;
 }
