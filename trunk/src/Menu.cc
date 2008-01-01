@@ -100,6 +100,7 @@ void Menu::on_about()
 	about.set_artists(people);
 	people.clear();
 	about.set_comments(_("A BitTorrent client"));
+	about.set_translator_credits(_("translator-credits"));
 	try
 	{
 		about.set_logo(Gdk::Pixbuf::create_from_file(PIXMAP_DIR "/linkage.svg"));
