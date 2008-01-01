@@ -73,11 +73,13 @@ TrayPlugin::TrayPlugin()
 	g_signal_connect(G_OBJECT(gobj), "activate", G_CALLBACK(TrayPlugin::on_activate), NULL);
 	g_signal_connect(G_OBJECT(gobj), "popup-menu", G_CALLBACK(TrayPlugin::on_popup), menu);
 
-	Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
+	m_conn_tick = Engine::signal_tick().connect(sigc::mem_fun(this, &TrayPlugin::on_tick));
 }
 
 TrayPlugin::~TrayPlugin()
 {
+	m_conn_tick.disconnect();
+
 	icon->set_visible(false);
 	delete menu;
 
