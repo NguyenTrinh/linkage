@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.5svn-r438\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-12-29 10:48+0300\n"
+"POT-Creation-Date: 2008-01-01 22:37+0100\n"
 "PO-Revision-Date: 2007-12-29 13:35+0300\n"
 "Last-Translator: Vasiliy G Tolstov <v.tolstov@selfip.ru>\n"
 "Language-Team: Russian <ru@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%\n"
 
 #: ../src/FileList.cc:52 ../src/FilterRow.cc:66 ../src/GroupList.cc:43
 #: ../src/GroupsWin.cc:40 ../src/SettingsWin.cc:153 ../src/TorrentList.cc:76
@@ -84,7 +84,7 @@ msgstr "И"
 msgid "And not"
 msgstr "И не"
 
-#: ../src/FilterRow.cc:65 ../src/PeerList.cc:305
+#: ../src/FilterRow.cc:65 ../src/PeerList.cc:302
 msgid "Tracker"
 msgstr "Трекер"
 
@@ -160,15 +160,15 @@ msgstr "начинается с"
 msgid "ends with"
 msgstr "заканчивается на"
 
-#: ../src/main.cc:65
+#: ../src/main.cc:77
 msgid "Show version and quit"
 msgstr "Показать версию и выйти"
 
-#: ../src/main.cc:70
+#: ../src/main.cc:82
 msgid "Tell the running instance to quit"
 msgstr "Отправить сигнал выхода запущенному приложению"
 
-#: ../src/main.cc:118
+#: ../src/main.cc:148
 msgid ""
 "[FILE...] \n"
 "\n"
@@ -178,11 +178,12 @@ msgstr ""
 "\n"
 "BitTorrent·клиент\n"
 
-#: ../src/main.cc:134
+#: ../src/main.cc:164
 msgid ""
 "Run \"linkage --help\" to see a full list of available command line "
 "options.\n"
-msgstr "Выполните \"linkage --help\" чтобы увидеть полный список доступных комманд.\n"
+msgstr ""
+"Выполните \"linkage --help\" чтобы увидеть полный список доступных комманд.\n"
 
 #: ../src/PeerList.cc:42
 msgid "Address"
@@ -220,55 +221,55 @@ msgstr "Статус"
 msgid "Source"
 msgstr "Исходник"
 
-#: ../src/PeerList.cc:251
+#: ../src/PeerList.cc:248
 msgid "Connecting"
 msgstr "Соединяемся"
 
-#: ../src/PeerList.cc:253
+#: ../src/PeerList.cc:250
 msgid "Handshake"
 msgstr "Приветствие"
 
-#: ../src/PeerList.cc:255 ../lib/Torrent.cc:256
+#: ../src/PeerList.cc:252 ../lib/Torrent.cc:287
 msgid "Queued"
 msgstr "В очереди"
 
-#: ../src/PeerList.cc:262
+#: ../src/PeerList.cc:259
 msgid "Both interested"
 msgstr "Оба интересуют"
 
-#: ../src/PeerList.cc:270
+#: ../src/PeerList.cc:267
 msgid "Interested"
 msgstr "Интересует"
 
-#: ../src/PeerList.cc:276
+#: ../src/PeerList.cc:273
 msgid "Remote interested"
 msgstr "Подключенный заинтересован"
 
-#: ../src/PeerList.cc:284
+#: ../src/PeerList.cc:281
 msgid "Both choked"
 msgstr ""
 
-#: ../src/PeerList.cc:292
+#: ../src/PeerList.cc:289
 msgid "Choked"
 msgstr ""
 
-#: ../src/PeerList.cc:298
+#: ../src/PeerList.cc:295
 msgid "Remote choked"
 msgstr ""
 
-#: ../src/PeerList.cc:307
+#: ../src/PeerList.cc:304
 msgid "DHT"
 msgstr "DHT"
 
-#: ../src/PeerList.cc:309
+#: ../src/PeerList.cc:306
 msgid "PEX"
 msgstr "PEX"
 
-#: ../src/PeerList.cc:311
+#: ../src/PeerList.cc:308
 msgid "LSD"
 msgstr "LSD"
 
-#: ../src/PeerList.cc:313
+#: ../src/PeerList.cc:310
 msgid "Resume data"
 msgstr ""
 
@@ -376,40 +377,48 @@ msgstr ""
 msgid "<i>None</i>"
 msgstr "<i>Ничего</i>"
 
-#: ../src/UI.cc:395 ../lib/SessionManager.cc:272
+#: ../src/Menu.cc:102
+msgid "A BitTorrent client"
+msgstr "BitTorrent·клиент"
+
+#: ../src/Menu.cc:103
+msgid "translator-credits"
+msgstr "Vasiliy Tolstov"
+
+#: ../src/UI.cc:400
 msgid "File not found, \"%1\""
 msgstr "Файл не найден, \"%1\""
 
-#: ../src/UI.cc:543
+#: ../src/UI.cc:547
 msgid "Yes"
 msgstr "Да"
 
-#: ../src/UI.cc:543
+#: ../src/UI.cc:547
 msgid "No"
 msgstr "Нет"
 
-#: ../src/UI.cc:606
+#: ../src/UI.cc:609
 msgid "Are you sure you wish to remove \"%1\" and it's content?"
 msgstr "Вы уверены, что хотите удалить \"%1\" и его содержимое"
 
-#: ../src/UI.cc:613
+#: ../src/UI.cc:616
 msgid "(%1 files)."
 msgstr "(%1 файлов)."
 
-#: ../src/UI.cc:615
+#: ../src/UI.cc:618
 msgid "(1 file)."
 msgstr "(1 файл)."
 
-#: ../src/UI.cc:617
+#: ../src/UI.cc:620
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Это полностью удалит торрент и все его содержимое %1"
 
 #. FIXME: make an EntryDialog class for this
-#: ../src/UI.cc:794 ../src/UI.cc:837
+#: ../src/UI.cc:796 ../src/UI.cc:839
 msgid "Add new tracker"
 msgstr "Дабовить новый трекер"
 
-#: ../src/UI.cc:844
+#: ../src/UI.cc:846
 msgid "Tracker URL:"
 msgstr "Трекер URL:"
 
@@ -434,7 +443,7 @@ msgid "Failed to connect to GNOME session"
 msgstr "Ошибка подключения к сессии GNOME"
 
 #: ../src/SessionClient.cc:134
-#: ../plugins/notification/PluginNotification.cc:196
+#: ../plugins/notification/PluginNotification.cc:191
 msgid "No suitable file manager found"
 msgstr "Не найдено подходящих файловых менеджеров"
 
@@ -442,26 +451,17 @@ msgstr "Не найдено подходящих файловых менедже
 msgid "Filter"
 msgstr "Фильтр"
 
-#: ../lib/DbusManager.cc:458
-#, c-format
-msgid "Ignoring attempt to send message to self (%s)"
-msgstr "Попытка отправки сообщения самому себе проигнорирована (%s)"
-
 #: ../lib/PluginManager.cc:88
 #, c-format
 msgid "Failed to open plugin %s"
 msgstr "Ошибка загрузки плагина %s"
 
-#: ../lib/SessionManager.cc:197
+#: ../lib/SessionManager.cc:179
 #, c-format
 msgid "Listen failed: %s"
 msgstr ""
 
-#: ../lib/SessionManager.cc:291
-msgid "Invalid bencoding in %1"
-msgstr ""
-
-#: ../lib/SessionManager.cc:370
+#: ../lib/SessionManager.cc:315
 msgid "Merged %1 with %2"
 msgstr "Совмещение %1 с %2"
 
@@ -470,40 +470,40 @@ msgstr "Совмещение %1 с %2"
 msgid "Could not create directory: %s"
 msgstr "Невозможно создать директорию: %s"
 
-#: ../lib/Torrent.cc:254
+#: ../lib/Torrent.cc:285
 msgid "Error"
 msgstr "Ошибка"
 
-#: ../lib/Torrent.cc:258 ../lib/Torrent.cc:276
+#: ../lib/Torrent.cc:289 ../lib/Torrent.cc:307
 msgid "Stopped"
 msgstr "Остановлен"
 
-#: ../lib/Torrent.cc:260
+#: ../lib/Torrent.cc:291
 msgid "Queued for checking"
 msgstr "Поставлен в очередь для проверки"
 
-#: ../lib/Torrent.cc:262
+#: ../lib/Torrent.cc:293
 msgid "Checking"
 msgstr "Проверка"
 
-#: ../lib/Torrent.cc:264 ../lib/Torrent.cc:266 ../lib/Torrent.cc:268
+#: ../lib/Torrent.cc:295 ../lib/Torrent.cc:297 ../lib/Torrent.cc:299
 #: ../lib/TorrentManager.cc:100 ../data/linkage.glade.h:29
 msgid "Announcing"
 msgstr "Анонсирование"
 
-#: ../lib/Torrent.cc:266 ../lib/Torrent.cc:278
+#: ../lib/Torrent.cc:297 ../lib/Torrent.cc:309
 msgid "Downloading"
 msgstr "Закачивается"
 
-#: ../lib/Torrent.cc:268 ../lib/Torrent.cc:270 ../lib/Torrent.cc:276
+#: ../lib/Torrent.cc:299 ../lib/Torrent.cc:301 ../lib/Torrent.cc:307
 msgid "Finished"
 msgstr "Закончен"
 
-#: ../lib/Torrent.cc:272
+#: ../lib/Torrent.cc:303
 msgid "Seeding"
 msgstr "Сидирую"
 
-#: ../lib/Torrent.cc:274
+#: ../lib/Torrent.cc:305
 msgid "Allocating"
 msgstr "Выделение"
 
@@ -547,7 +547,7 @@ msgstr "Запустить торенты"
 msgid "Stop torrents"
 msgstr "Остановить торенты"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:138
+#: ../plugins/trayicon/PluginTrayIcon.cc:140
 msgid ""
 "%1 (%2) downloads, %3 seeds\n"
 "DL: %4/s\tUL: %5/s"
@@ -555,95 +555,88 @@ msgstr ""
 "%1·(%2)·загрузок,·%3·сидеров\n"
 "DL:·%4/s\tUL:·%5/s"
 
-#: ../plugins/notification/PluginNotification.cc:46
+#: ../plugins/notification/PluginNotification.cc:45
 msgid "Displays notifications trough libnotify"
 msgstr "Отображать уведомления посредством libnotify"
 
-#: ../plugins/notification/PluginNotification.cc:207
+#: ../plugins/notification/PluginNotification.cc:203
 msgid "Invalid bencoding"
 msgstr ""
 
-#: ../plugins/notification/PluginNotification.cc:212
+#: ../plugins/notification/PluginNotification.cc:208
 msgid "Missing file"
 msgstr "Поврежденный файл"
 
-#: ../plugins/notification/PluginNotification.cc:217
+#: ../plugins/notification/PluginNotification.cc:213
 msgid "Duplicate torrent"
 msgstr "Торрент уже существует"
 
-#: ../plugins/notification/PluginNotification.cc:227
+#: ../plugins/notification/PluginNotification.cc:223
 msgid "Cannot listen on given interface %1"
 msgstr "Не могу слушать на данном интерфейсе %1"
 
-#: ../plugins/notification/PluginNotification.cc:233
+#: ../plugins/notification/PluginNotification.cc:229
 msgid "None of the ports in range %1 could be opened for listening"
-msgstr "Ни один из портов в промежутке %1 не может быть открыт для прослушивания"
+msgstr ""
+"Ни один из портов в промежутке %1 не может быть открыт для прослушивания"
 
-#: ../plugins/notification/PluginNotification.cc:238
+#: ../plugins/notification/PluginNotification.cc:234
 msgid "Failed to open port: %1"
 msgstr "Ошибка открытия порта %1"
 
-#: ../plugins/notification/PluginNotification.cc:241
+#: ../plugins/notification/PluginNotification.cc:237
 msgid "Listen failed"
 msgstr ""
 
-#: ../plugins/notification/PluginNotification.cc:247
+#: ../plugins/notification/PluginNotification.cc:243
 msgid "%1 is complete"
 msgstr "%1 закончен"
 
-#: ../plugins/notification/PluginNotification.cc:255
+#: ../plugins/notification/PluginNotification.cc:251
 msgid "Torrent finished"
 msgstr "Торрент закачан"
 
-#: ../plugins/notification/PluginNotification.cc:256
+#: ../plugins/notification/PluginNotification.cc:252
 #: ../data/linkage.glade.h:93
 msgid "Open location"
 msgstr "Открыть путь"
 
-#: ../plugins/notification/PluginNotification.cc:269
+#: ../plugins/notification/PluginNotification.cc:265
 msgid "File error"
 msgstr "Ошибка файла"
 
-#: ../plugins/notification/PluginNotification.cc:270
+#: ../plugins/notification/PluginNotification.cc:266
 msgid "Stop torrent"
 msgstr "Остановить торент"
 
-#: ../plugins/notification/PluginNotification.cc:279
+#: ../plugins/notification/PluginNotification.cc:275
 msgid "Incompatible file version: %1"
 msgstr "Несовместимая версия файла: %1"
 
-#: ../plugins/notification/PluginNotification.cc:284
+#: ../plugins/notification/PluginNotification.cc:280
 msgid "Mismatching hash: %1"
 msgstr "Неверный хеш: %1"
 
-#: ../plugins/notification/PluginNotification.cc:289
+#: ../plugins/notification/PluginNotification.cc:285
 msgid "Checksum failed for piece %1"
 msgstr "Контрольная сумма неверна для части %1"
 
-#: ../plugins/notification/PluginNotification.cc:293
+#: ../plugins/notification/PluginNotification.cc:289
 msgid "Mismatching number of files"
 msgstr "Неверное число файлов"
 
-#: ../plugins/notification/PluginNotification.cc:299
+#: ../plugins/notification/PluginNotification.cc:295
 msgid "File size mismatch for %1"
 msgstr "Размер файла не верен для %1"
 
 #. Other too detailed errors
-#: ../plugins/notification/PluginNotification.cc:302
+#: ../plugins/notification/PluginNotification.cc:298
 msgid "Fast resume rejected, content check forced"
 msgstr "Быстрое возобновление запрещено, форсирована проверка контента"
 
-#: ../plugins/notification/PluginNotification.cc:304
+#: ../plugins/notification/PluginNotification.cc:300
 msgid "Fast resume failed"
 msgstr "Ошибка быстрого возобновления"
-
-#: ../plugins/notification/PluginNotification.cc:309
-msgid "DBus disconnected"
-msgstr "DBus отключен"
-
-#: ../plugins/notification/PluginNotification.cc:309
-msgid "Lost connection to the DBus session"
-msgstr "Потеряно соединение с сессией DBus"
 
 #: ../data/linkage.glade.h:1
 msgid "<b>Active plugins</b>"
@@ -869,7 +862,8 @@ msgstr "Папка"
 msgid ""
 "For a non-zero value n greater than or equal 1, linkage will try to upload n "
 "bytes for every byte received"
-msgstr "Для ненулевого значения n больше или равного 1, linkage будет пытаться "
+msgstr ""
+"Для ненулевого значения n больше или равного 1, linkage будет пытаться "
 "выгрузить n байт для каждого полученного байта"
 
 #: ../data/linkage.glade.h:59
@@ -879,7 +873,8 @@ msgstr "Главные"
 #: ../data/linkage.glade.h:60
 msgid ""
 "Global limit of connections open, hard coded to at least two per torrent"
-msgstr "Глобальный лимит открытых соединений не меньше двух для каждого торрента"
+msgstr ""
+"Глобальный лимит открытых соединений не меньше двух для каждого торрента"
 
 #: ../data/linkage.glade.h:61
 msgid ""
@@ -1258,3 +1253,11 @@ msgstr "Загрузить и расшарить контент через BitTo
 msgid "Linkage"
 msgstr "Linkage"
 
+#~ msgid "Ignoring attempt to send message to self (%s)"
+#~ msgstr "Попытка отправки сообщения самому себе проигнорирована (%s)"
+
+#~ msgid "DBus disconnected"
+#~ msgstr "DBus отключен"
+
+#~ msgid "Lost connection to the DBus session"
+#~ msgstr "Потеряно соединение с сессией DBus"
