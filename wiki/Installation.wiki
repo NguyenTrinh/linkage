@@ -1,6 +1,26 @@
 #summary Installation instructions
 #labels Featured
 
+= Install from SVN =
+Currently you will need dbus-c++ to build Linkage from svn. There has not been any formal release of dbus-c++ yet so you have to grab it from git, and apply a small patch. If you are using Fedora you can use the RPMs available in the Downloads section.
+{{{
+git clone git://anongit.freedesktop.org/git/dbus/dbus-c++/
+cd dbus-c++
+wget --no-check-certificate -O glib-integration.patch https://bugs.freedesktop.org/attachment.cgi?id=13447
+patch -p1 < glib-integration.patch
+./autogen.sh
+./configure --prefix=/usr --enable-glib
+make
+su -c 'make install'
+}}}
+
+Other than that the dependencies are the same as for 0.1.4, except that gupnp and curl are no longer used. You also need libtorrent 0.13 (which is unreleased at the time so grab it from svn).
+{{{
+ svn co https://libtorrent.svn.sourceforge.net/svnroot/libtorrent/branches/RC_0_13/ libtorrent
+}}}
+Then follow rest of instructions here: http://www.rasterbar.com/products/libtorrent/building.html#building-from-svn
+
+
 = Fedora =
 
 == Binrary packages ==
