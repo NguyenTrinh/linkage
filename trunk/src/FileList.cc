@@ -317,7 +317,7 @@ void FileList::update(const TorrentPtr& torrent)
 	if (status.pieces)
 		data.pieces = *status.pieces;
 	else
-		data.pieces.assign(data.info->num_pieces(), false);
+		return;
 	data.file_progress = torrent->get_file_progress();
 	data.priorities = torrent->get_priorities();
 
