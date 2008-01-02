@@ -49,6 +49,69 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 {
 	m_cache = std::auto_ptr<StoppedCache>(new StoppedCache());
 
+	m_cache->file_progress.assign(info->num_files(), 0);
+	/* try and get file and piece progress from resume file */
+	if (e.find_key("slots"))
+	{
+		libtorrent::entry::list_type e_slots = e["slots"].list();
+		libtorrent::entry::list_type e_unfinished;
+		if (e.find_key("unfinished"))
+			e_unfinished = e["unfinished"].list();
+		int index = 0, piece = 0;
+		libtorrent::size_type bytes = 0, bytes_done = 0;;
+		for (libtorrent::entry::list_type::iterator iter = e_slot.begin();
+			iter != e_slots.end(); ++iter)
+		{
+			g_assert(piece < info->num_pieces());
+
+			/* check if the piece is partially done */
+			bool unfinished = false;
+			for (libtorrent::entry::list_type::iterator k = e_unfinished.begin();
+				k != e_unfinished.end() && !unfinished; ++k)
+			{
+				libtorrent::entry::dictionary_type d = k->dict();
+				unfinished = (d["piece"].integer() == m_cache->pieces.size());
+			}
+
+			/* a negative slot int means it's not done */
+			bool piece_done = iter->integer() >= 0 && !unfinished;
+			m_cache->pieces.push_back(piece_done);
+
+			/* count bytes to keep track of which file where in */
+			libtorrent::size_type ps = info->piece_size(piece);
+			bytes += ps;
+			bytes_done += piece_done ? ps : 0;
+			libtorrent::size_type size = info->file_at(index).size;
+			/* get progress for current file if we pass it */
+			while (bytes >= size)
+			{
+				libtorrent::size_type diff = bytes - size;
+				bytes_done -= piece_done ? diff : 0;
+
+				float p = size > 0 ? (float)bytes_done/size : (float)piece_done;
+				m_cache->file_progress[index] = p;
+
+				bytes = diff;
+				bytes_done = piece_done ? diff : 0;
+				index++;
+
+				if (index >= info->num_files())
+					break;
+
+				/* loop if last piece spans over small files */
+				size = info->file_at(index).size;
+			}
+			piece++;
+		}
+	}
+	else
+		m_cache->pieces.assign(info->num_pieces(), false);
+
+	g_assert(m_cache->pieces.size() == info->num_pieces());
+	g_assert(m_cache->file_progress.size() == info->num_files());
+
+	m_cache->status.pieces = &m_cache->pieces;
+	
 	m_cur_tier = 0;
 
 	m_is_queued = queued;
@@ -74,8 +137,8 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 	if (e.find_key("priorities"))
 	{
 		libtorrent::entry::list_type e_priorities = e["priorities"].list();
-		for (libtorrent::entry::list_type::iterator iter = e_priorities .begin();
-			iter != e_priorities .end(); ++iter)
+		for (libtorrent::entry::list_type::iterator iter = e_priorities.begin();
+			iter != e_priorities.end(); ++iter)
 		{
 			m_priorities.push_back(iter->integer());
 		}
