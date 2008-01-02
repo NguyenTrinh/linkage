@@ -49,9 +49,6 @@ class Torrent
   public DBus::ObjectAdaptor
 {
 public:
-	void reference() {}
-	void unreference() {}
-
 	typedef boost::intrusive_ptr<libtorrent::torrent_info> InfoPtr;
 
 	enum State
