@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SessionManager.hh"
 #include "linkage/SettingsManager.hh"
 #include "linkage/TorrentManager.hh"
-#include "linkage/AlertManager.hh"
 #include "linkage/compose.hpp"
 
 using namespace Linkage;
@@ -45,7 +44,8 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 :
   DBus::ObjectAdaptor(Engine::get_bus(), get_torrent_path(info->info_hash())),
   m_prop_handle(*this, "handle"),
-  m_prop_position(*this, "position")
+  m_prop_position(*this, "position"),
+  m_prop_state(*this, "state", Torrent::STOPPED)
 {
 	m_cache = std::auto_ptr<StoppedCache>(new StoppedCache());
 
@@ -102,15 +102,18 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 
 	for (unsigned int i = 0; i < m_cache->trackers.size(); i++)
 		m_replies[m_cache->trackers[i].url] = "";
+
+	Engine::signal_tick().connect(sigc::mem_fun(this, &Torrent::on_tick));
 }
 
 Torrent::~Torrent()
 {
 }
 
-Glib::PropertyProxy<libtorrent::torrent_handle> Torrent::property_handle()
+Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle> Torrent::property_handle()
 {
-	return m_prop_handle.get_proxy();
+	Glib::ObjectBase* base = dynamic_cast<Glib::ObjectBase*>(this);
+	return Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle>(base, "handle");
 }
 
 Glib::PropertyProxy<unsigned int> Torrent::property_position()
@@ -118,9 +121,70 @@ Glib::PropertyProxy<unsigned int> Torrent::property_position()
 	return m_prop_position.get_proxy();
 }
 
+Glib::PropertyProxy_ReadOnly<int> Torrent::property_state()
+{
+	Glib::ObjectBase* base = dynamic_cast<Glib::ObjectBase*>(this);
+	return Glib::PropertyProxy_ReadOnly<int>(base, "state");
+}
+
 libtorrent::torrent_handle Torrent::get_handle()
 {
 	return m_prop_handle.get_value();
+}
+
+void Torrent::on_tick()
+{
+	int new_state = _get_state(); /* possibly new state */
+	int cur_state = get_state(); /* from m_prop_state */
+
+	if (cur_state != new_state)
+		m_prop_state = new_state;
+
+	/* TODO: add more useful properties and update them here */
+}
+
+int Torrent::_get_state()
+{
+	if (is_stopped())
+		return m_completed ? (STOPPED|FINISHED) : STOPPED;
+
+	libtorrent::torrent_status status = get_handle().status();
+
+	libtorrent::torrent_status::state_t state = status.state;
+	if (get_handle().is_paused())
+	{
+		if (m_is_queued)
+		{
+			/* Queued torrents can be in check state */
+			if (state == libtorrent::torrent_status::checking_files)
+				return CHECKING;
+			else if (state == libtorrent::torrent_status::queued_for_checking)
+				return CHECK_QUEUE;
+			else
+				return QUEUED;
+		}
+		else /* libtorrent paused this handle, something bad happened */
+			return ERROR;
+	}
+
+	switch (state)
+	{
+		case libtorrent::torrent_status::queued_for_checking:
+			return CHECK_QUEUE;
+		case libtorrent::torrent_status::checking_files:
+			return CHECKING;
+		case libtorrent::torrent_status::connecting_to_tracker:
+			return ANNOUNCING | (m_completed ? FINISHED : DOWNLOADING);
+		case libtorrent::torrent_status::finished:
+			return FINISHED;
+		case libtorrent::torrent_status::seeding:
+			return SEEDING;
+		case libtorrent::torrent_status::allocating:
+			return ALLOCATING;
+		case libtorrent::torrent_status::downloading:
+		default:
+			return DOWNLOADING;
+	}
 }
 
 Glib::ustring Torrent::get_name()
@@ -219,60 +283,7 @@ bool Torrent::is_completed()
 
 int Torrent::get_state()
 {
-	if (is_stopped())
-		return m_completed ? (STOPPED|FINISHED) : STOPPED;
-
-	libtorrent::torrent_status status = get_handle().status();
-
-	/* libtorrent only says it's seeding after it's announced to the tracker */
-	if (status.total_done == m_info->total_size())
-		return SEEDING;
-
-	libtorrent::torrent_status::state_t state = status.state;
-	if (get_handle().is_paused())
-	{
-		if (m_is_queued)
-		{
-			/* Queued torrents can be in check state */
-			if (state == libtorrent::torrent_status::checking_files)
-				return CHECKING;
-			else if (state == libtorrent::torrent_status::queued_for_checking)
-				return CHECK_QUEUE;
-			else
-				return QUEUED;
-		}
-		else /* libtorrent paused this handle, something bad happened */
-			return ERROR;
-	}
-
-	switch (state)
-	{
-		case libtorrent::torrent_status::queued_for_checking:
-			return CHECK_QUEUE;
-		case libtorrent::torrent_status::checking_files:
-			return CHECKING;
-		case libtorrent::torrent_status::connecting_to_tracker:
-			return ANNOUNCING | (m_completed ? FINISHED : DOWNLOADING);
-		case libtorrent::torrent_status::finished:
-			return FINISHED;
-		case libtorrent::torrent_status::seeding:
-			return SEEDING;
-		case libtorrent::torrent_status::allocating:
-			return ALLOCATING;
-		case libtorrent::torrent_status::downloading:
-		default:
-			return DOWNLOADING;
-	}
-}
-
-Glib::ustring Torrent::get_state_string()
-{
-	return Torrent::state_string(get_state());
-}
-
-Glib::ustring Torrent::get_state_string(int state)
-{
-	return Torrent::state_string(state);
+	m_prop_state.get_value();
 }
 
 Glib::ustring Torrent::state_string(int state)

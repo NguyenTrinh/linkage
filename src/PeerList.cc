@@ -30,6 +30,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
 
+/* dbus-c++ defines these ... */
+#ifdef HAVE_CONFIG_H 
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef VERSION
+
+#include "config.h"
+#endif
+
 using namespace Linkage;
 
 PeerList::PeerList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)

@@ -72,14 +72,14 @@ public:
 		P_FAVOURED,
 		P_AS_PARTIAL,
 		P_HIGH,
-		/* P_HIGHER, same as 4 see docs */
+		P_HIGHER, /* same as 4 see docs */
 		P_AS_RARE = 6,
 		P_MAX = 7
 	};
 
-	Glib::PropertyProxy<libtorrent::torrent_handle> property_handle();
+	Glib::PropertyProxy_ReadOnly<libtorrent::torrent_handle> property_handle();
 	Glib::PropertyProxy<unsigned int> property_position();
-	//Glib::PropertyProxy<State> property_state();
+	Glib::PropertyProxy_ReadOnly<int> property_state();
 
 	libtorrent::torrent_handle get_handle();
 	Glib::ustring get_tracker_reply(const Glib::ustring& tracker);
@@ -99,10 +99,8 @@ public:
 	//FIXME: remove this, use composite States (w/ FINISHED) instead
 	bool is_completed();
 
-	int get_state();
-	Glib::ustring get_state_string();
+	int get_state(); /* getter for property */
 	static Glib::ustring state_string(int state);
-	Glib::ustring get_state_string(int state); /* FIXME: remove this */
 
 	const Torrent::InfoPtr& get_info();
 	libtorrent::torrent_status get_status();
@@ -170,11 +168,11 @@ private:
 
 	Glib::Property<libtorrent::torrent_handle> m_prop_handle;
 	Glib::Property<unsigned int> m_prop_position;
-	//Glib::Property<State> m_prop_state;
+	Glib::Property<int> m_prop_state;
 
 	InfoPtr m_info;
 
-	std::vector<int> m_priorities;
+	std::vector<int> m_priorities; /* priority for each file index */
 
 	typedef std::map<Glib::ustring, Glib::ustring> ReplyMap;
 	ReplyMap m_replies;
@@ -187,6 +185,9 @@ private:
 	int m_up_limit, m_down_limit;
 
 	bool m_completed;
+
+	void on_tick();
+	int _get_state(); /* for internal update */
 
 	Torrent(const Torrent&);
 	Torrent& operator=(const Torrent);

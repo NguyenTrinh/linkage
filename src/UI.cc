@@ -17,14 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include "config.h"
-
 #include <glib/gstdio.h>
-
-#if HAVE_GNOME
-#include <libgnomevfsmm/utils.h>
-#include <libgnomevfsmm/uri.h>
-#endif
 
 #include <gtkmm/main.h>
 #include <gtkmm/menu.h>
@@ -66,6 +59,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/SettingsManager.hh"
 #include "linkage/Utils.hh"
 #include "linkage/compose.hpp"
+
+/* dbus-c++ defines these ... */
+#ifdef HAVE_CONFIG_H 
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef VERSION
+
+#include "config.h"
+#endif
+
+#if HAVE_GNOME
+#include <libgnomevfsmm/utils.h>
+#include <libgnomevfsmm/uri.h>
+#endif
 
 using namespace Linkage;
 

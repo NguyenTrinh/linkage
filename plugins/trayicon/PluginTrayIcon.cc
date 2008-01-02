@@ -16,8 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include "config.h"
-
 #include <sstream>
 
 #include <gtkmm/main.h>
@@ -38,13 +36,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Interface.hh"
 #include "linkage/Utils.hh"
 
-using namespace Linkage;
+/* dbus-c++ defines these ... */
+#ifdef HAVE_CONFIG_H 
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef VERSION
 
-#define PLUGIN_NAME		"TrayPlugin"
-#define PLUGIN_DESC		_("Displays a tray icon")
-#define PLUGIN_VER		PACKAGE_VERSION
+#include "config.h"
+#endif
+
+#define PLUGIN_NAME	"TrayPlugin"
+#define PLUGIN_DESC	_("Displays a tray icon")
+#define PLUGIN_VER	PACKAGE_VERSION
 #define PLUGIN_AUTHOR	"Christian Lundgren"
-#define PLUGIN_WEB		"http://code.google.com/p/linkage"
+#define PLUGIN_WEB	"http://code.google.com/p/linkage"
+
+using namespace Linkage;
 
 TrayPlugin::TrayPlugin()
 {

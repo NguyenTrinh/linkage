@@ -29,7 +29,7 @@ DBus::String Torrent::GetName()
 
 DBus::String Torrent::GetState()
 {
-	return get_state_string();
+	return state_string(get_state());
 }
 
 DBus::Struct<DBus::UInt32, DBus::UInt32> Torrent::GetRates()
