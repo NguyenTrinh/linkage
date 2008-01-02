@@ -334,7 +334,7 @@ Glib::ustring TorrentList::get_formated_name(const TorrentPtr& torrent)
 		format = String::ucompose(
 			"<span foreground='%1'><b>%2</b> (%3)</span>\n%4",
 			color, name, suffix_value(torrent->get_info()->total_size()),
-			torrent->get_state_string(state));
+			Torrent::state_string(state));
 
 	return format;
 }
@@ -413,7 +413,8 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	if (old_position != torrent->get_position())
 		row[columns.position] = torrent->get_position();
 
-	Glib::ustring state_string = torrent->get_state_string();
+	int state = torrent->get_state();
+	Glib::ustring state_string = Torrent::state_string(state);
 	// update formated name column only if needed
 	bool state_changed = (old_state != state_string);
 	if (state_changed)
@@ -423,7 +424,6 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	}
 
 	// don't continue if we don't need to, possibly include more states here..
-	int state = torrent->get_state();
 	if (!state_changed && state & Torrent::STOPPED)
 		return;
 

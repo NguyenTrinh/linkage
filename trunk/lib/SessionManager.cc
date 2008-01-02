@@ -16,8 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include "config.h"
-
 #include "linkage/SessionManager.hh"
 #include "linkage/Engine.hh"
 #include "linkage/AlertManager.hh"
@@ -32,6 +30,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <glib/gstdio.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/i18n.h>
+
+/* dbus-c++ defines these ... */
+#ifdef HAVE_CONFIG_H 
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef VERSION
+
+#include "config.h"
+#endif
 
 using namespace libtorrent;
 using namespace Linkage;

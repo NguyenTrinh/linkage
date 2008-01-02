@@ -16,24 +16,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include "config.h"
-
 #include <iostream>
 #include <list>
      
 #include <gtkmm/main.h>
 #include <glibmm/i18n.h>
 #include <libglademm.h>
-
-#if HAVE_GNOME
-#include <libgnomemm/main.h>
-#include <libgnomemm/init.h>
-#include <libgnomeuimm/init.h>
-#include <libgnomevfsmm/init.h>
-
-#include <libgnomeui/gnome-ui-init.h>
-#include <libgnome/gnome-init.h>
-#endif
 
 #include <dbus-c++/dbus.h>
 #include <dbus-c++/glib-integration.h>
@@ -45,6 +33,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Utils.hh"
 
 #include "linkage/DBusProxyGlue.hh"
+
+/* dbus-c++ defines these ... */
+#ifdef HAVE_CONFIG_H 
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef VERSION
+
+#include "config.h"
+#endif
+
+#if HAVE_GNOME
+#include <libgnomemm/main.h>
+#include <libgnomemm/init.h>
+#include <libgnomeuimm/init.h>
+#include <libgnomevfsmm/init.h>
+
+#include <libgnomeui/gnome-ui-init.h>
+#include <libgnome/gnome-init.h>
+#endif
 
 using namespace Linkage;
 
