@@ -53,7 +53,7 @@ class FileList : public Gtk::TreeView
 		Gtk::TreeModelColumn<std::vector<bool> > map;
 		Gtk::TreeModelColumn<libtorrent::size_type> done;
 		Gtk::TreeModelColumn<libtorrent::size_type> size;
-		Gtk::TreeModelColumn<Priority> priority;
+		Gtk::TreeModelColumn<int> priority;
 		Gtk::TreeModelColumn<int> index;
 	};
 	
@@ -62,6 +62,7 @@ class FileList : public Gtk::TreeView
 
 	Gtk::Menu m_menu;
 	Gtk::RadioMenuItem *m_radio_max, *m_radio_high, *m_radio_normal, *m_radio_skip;
+	sigc::connection m_conn_max, m_conn_high, m_conn_normal, m_conn_skip;
 
 	void prioritize_row(const Gtk::TreeRow& row, Priority priority);
 	void on_set_priority(Priority priority);
