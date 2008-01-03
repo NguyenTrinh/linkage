@@ -111,7 +111,7 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 	g_assert(m_cache->file_progress.size() == info->num_files());
 
 	m_cache->status.pieces = &m_cache->pieces;
-	
+
 	m_cur_tier = 0;
 
 	m_is_queued = queued;
@@ -166,6 +166,8 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 	for (unsigned int i = 0; i < m_cache->trackers.size(); i++)
 		m_replies[m_cache->trackers[i].url] = "";
 
+	m_cache->status.progress = _get_stopped_progress();
+
 	Engine::signal_tick().connect(sigc::mem_fun(this, &Torrent::on_tick));
 }
 
@@ -203,13 +205,15 @@ void Torrent::on_tick()
 	if (cur_state != new_state)
 		m_prop_state = new_state;
 
+	m_cache->status.progress = _get_stopped_progress();
+
 	/* TODO: add more useful properties and update them here */
 }
 
 int Torrent::_get_state()
 {
 	if (is_stopped())
-		return m_completed ? (STOPPED|FINISHED) : STOPPED;
+		return STOPPED | (m_completed ? FINISHED : 0);
 
 	libtorrent::torrent_status status = get_handle().status();
 
@@ -248,6 +252,24 @@ int Torrent::_get_state()
 		default:
 			return DOWNLOADING;
 	}
+}
+
+float Torrent::_get_stopped_progress()
+{
+	libtorrent::size_type wanted_size = m_info->total_size();
+	for (unsigned int i = 0; i < m_priorities.size(); i++)
+	{
+		// priority 0 means "don't download"
+		if (!m_priorities[i])
+			wanted_size -= m_info->file_at(i).size;
+	}
+
+	libtorrent::size_type down = get_total_downloaded();
+	float progress = (double)down/wanted_size;
+	if (progress > 1)
+		progress = 1;
+
+	return progress;
 }
 
 Glib::ustring Torrent::get_name()
@@ -297,30 +319,6 @@ int Torrent::get_down_limit()
 libtorrent::sha1_hash Torrent::get_hash()
 {
 	return m_info->info_hash();
-}
-
-float Torrent::get_progress()
-{
-	float progress;
-	if (is_stopped())
-	{
-		libtorrent::size_type wanted_size = m_info->total_size();
-		for (unsigned int i = 0; i < m_priorities.size(); i++)
-		{
-			// priority 0 means "don't download"
-			if (!m_priorities[i])
-				wanted_size -= m_info->file_at(i).size;
-		}
-
-		libtorrent::size_type down = get_total_downloaded();
-		progress = (double)down/wanted_size;
-		if (progress > 1)
-			progress = 1;
-	}
-	else
-		progress = get_status().progress;
-
-	return progress;
 }
 
 libtorrent::size_type Torrent::get_total_downloaded()
@@ -420,7 +418,6 @@ void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 	{
 		/* set cached trackers before we delete them */
 		handle.replace_trackers(m_cache->trackers);
-		m_cache = std::auto_ptr<StoppedCache>(NULL);
 	}
 	else if (!is_stopped() && !handle.is_valid())
 	{
@@ -432,6 +429,7 @@ void Torrent::set_handle(const libtorrent::torrent_handle& handle)
 		m_cache->status.state = libtorrent::torrent_status::downloading_metadata;
 		m_cache->pieces = *(m_cache->status.pieces);
 		m_cache->status.pieces = &m_cache->pieces;
+		m_cache->status.progress = _get_stopped_progress();
 		m_cache->status.next_announce = boost::posix_time::seconds(0);
 		m_cache->status.download_rate = 0;
 		m_cache->status.upload_rate = 0;

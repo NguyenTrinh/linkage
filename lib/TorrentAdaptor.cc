@@ -51,7 +51,7 @@ DBus::Struct<DBus::UInt64, DBus::UInt64> Torrent::GetTransfered()
 
 DBus::Double Torrent::GetProgress()
 {
-	return get_progress();
+	return get_status().progress;
 }
 
 DBus::UInt32 Torrent::GetPosition()
