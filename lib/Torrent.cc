@@ -59,7 +59,7 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 			e_unfinished = e["unfinished"].list();
 		int index = 0, piece = 0;
 		libtorrent::size_type bytes = 0, bytes_done = 0;;
-		for (libtorrent::entry::list_type::iterator iter = e_slot.begin();
+		for (libtorrent::entry::list_type::iterator iter = e_slots.begin();
 			iter != e_slots.end(); ++iter)
 		{
 			g_assert(piece < info->num_pieces());
