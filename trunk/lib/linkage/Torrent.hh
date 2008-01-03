@@ -91,7 +91,6 @@ public:
 	int get_up_limit();
 	int get_down_limit();
 	libtorrent::sha1_hash get_hash();
-	float get_progress();
 
 	libtorrent::size_type get_total_downloaded();
 	libtorrent::size_type get_total_uploaded();
@@ -187,7 +186,9 @@ private:
 	bool m_completed;
 
 	void on_tick();
-	int _get_state(); /* for internal update */
+	/* for internal update / helpers */
+	int _get_state();
+	float _get_stopped_progress();
 
 	Torrent(const Torrent&);
 	Torrent& operator=(const Torrent);

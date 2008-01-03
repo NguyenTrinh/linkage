@@ -458,13 +458,6 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 		row[columns.up_rate] = 0;
 		row[columns.seeds] = 0;
 		row[columns.peers] = 0;
-		if (!torrent->is_completed())
-		{
-			double progress = torrent->get_progress() * 100;
-			row[columns.progress] = progress;
-			row[columns.eta] = String::ucompose("%1 %%", std::fixed, std::setprecision(2), progress);
-			return;
-		}
 	}
 
 	libtorrent::torrent_status status = torrent->get_status();
@@ -506,11 +499,16 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	{
 		double progress = status.progress*100;
 		row[columns.progress] = progress;
-		row[columns.eta] = String::ucompose("%1 %% %2", std::fixed,
-			std::setprecision(2),
-			progress,
-			get_eta(status.total_wanted - status.total_wanted_done,
-				status.download_payload_rate));
+		if (torrent->is_stopped())
+			row[columns.eta] = String::ucompose("%1 %%", std::fixed,
+				std::setprecision(2),
+				progress);
+		else
+			row[columns.eta] = String::ucompose("%1 %% %2", std::fixed,
+				std::setprecision(2),
+				progress,
+				get_eta(status.total_wanted - status.total_wanted_done,
+					status.download_payload_rate));
 	}
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
