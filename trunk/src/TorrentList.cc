@@ -102,13 +102,9 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	TorrentManager::TorrentList torrents = tm->get_torrents();
 	std::for_each(torrents.begin(), torrents.end(), sigc::mem_fun(this, &TorrentList::on_added));
 
-	PathList path_list = get_selection()->get_selected_rows();
-	if (!path_list.empty())
-	{
-		Gtk::TreePath path = filter->convert_path_to_child_path(*path_list.begin());
-		// this doesn't work so great for some reason
-		scroll_to_row(path);
-	}
+	PathList paths = get_selection()->get_selected_rows();
+	if (!paths.empty())
+		scroll_to_row(*paths.begin(), 0.5);
 
 	tm->signal_added().connect(sigc::mem_fun(*this, &TorrentList::on_added));
 	tm->signal_removed().connect(sigc::mem_fun(*this, &TorrentList::on_removed));
@@ -146,6 +142,16 @@ TorrentList::~TorrentList()
 	}
 }
 
+sigc::signal<void, GdkEventButton*> TorrentList::signal_double_click()
+{
+	return m_signal_double_click;
+}
+
+sigc::signal<void, GdkEventButton*> TorrentList::signal_right_click()
+{
+	return m_signal_right_click;
+}
+
 Glib::SignalProxy0<void> TorrentList::signal_changed()
 {
 	return get_selection()->signal_changed();
@@ -180,15 +186,20 @@ void TorrentList::on_state_filter_changed(Torrent::State state)
 
 void TorrentList::on_added(const TorrentPtr& torrent)
 {
-	Glib::ustring selected_hash = Engine::get_settings_manager()->get_string("ui/torrent_view/selected");
+	Glib::ustring hash_str = Engine::get_settings_manager()->get_string("ui/torrent_view/selected");
 
 	Gtk::TreeIter iter = model->append();
 	Gtk::TreeRow row = *iter;
 	row[columns.hash] = torrent->get_hash();
 	row[columns.name] = torrent->get_name();
+	row[columns.position] = torrent->get_position();
 
-	if (selected_hash == String::compose("%1", torrent->get_hash()))
+	if (hash_str == String::compose("%1", torrent->get_hash()))
 		get_selection()->select(filter->convert_child_iter_to_iter(iter));
+
+	torrent->property_position().signal_changed().connect(sigc::bind(
+		sigc::mem_fun(this, &TorrentList::on_position_changed),
+		torrent));
 
 	update_row(row);
 }
@@ -205,6 +216,30 @@ void TorrentList::on_removed(const TorrentPtr& torrent)
 			break;
 		}
 	}
+}
+
+void TorrentList::on_position_changed(const Linkage::TorrentPtr& torrent)
+{
+	Gtk::TreeIter iter;
+	Gtk::TreeNodeChildren children = model->children();
+	for (iter = children.begin(); iter != children.end(); ++iter)
+	{
+		Gtk::TreeRow row = *iter;
+		if (torrent->get_hash() == row[columns.hash])
+		{
+			row[columns.position] = torrent->get_position();
+			break;
+		}
+	}
+
+	if (!iter)
+		return;
+
+	int current_col_id = 0;
+	Gtk::SortType current_order;
+	model->get_sort_column_id(current_col_id, current_order);
+	if (current_col_id == COL_POSITION)
+		scroll_to_row(model->get_path(iter));
 }
 
 bool TorrentList::is_selected(const libtorrent::sha1_hash& hash)
@@ -369,17 +404,6 @@ bool TorrentList::on_button_press_event(GdkEventButton* event)
 	return (event->button != 1);
 }
 
-sigc::signal<void, GdkEventButton*> TorrentList::signal_double_click()
-{
-	return m_signal_double_click;
-}
-
-sigc::signal<void, GdkEventButton*> TorrentList::signal_right_click()
-{
-	return m_signal_right_click;
-}
-
-
 void TorrentList::update()
 {
 	// sorting mess up iteration when we change the values in the sort column
@@ -407,11 +431,6 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	Glib::ustring old_state = row[columns.state];
 	unsigned int old_peers = row[columns.peers];
 	unsigned int old_seeds = row[columns.seeds];
-	unsigned int old_position = row[columns.position];
-
-	//row[columns.name_formated] = get_formated_name(torrent);
-	if (old_position != torrent->get_position())
-		row[columns.position] = torrent->get_position();
 
 	int state = torrent->get_state();
 	Glib::ustring state_string = Torrent::state_string(state);
@@ -432,7 +451,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 
 	row[columns.down] = down;
 	row[columns.up] = up;
-
+	
 	if (torrent->is_stopped())
 	{
 		row[columns.down_rate] = 0;
@@ -441,22 +460,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 		row[columns.peers] = 0;
 		if (!torrent->is_completed())
 		{
-			float progress = 0;
-			if (down)
-			{
-				libtorrent::size_type wanted_size = torrent->get_info()->total_size();
-				std::vector<int> priorities = torrent->get_priorities();
-				for (unsigned int i = 0; i < priorities.size(); i++)
-				{
-					// priority 0 means "don't download"
-					if (!priorities[i])
-						wanted_size -= torrent->get_info()->file_at(i).size;
-				}
-				
-				progress = (1.0f*down)/(1.0f*wanted_size) * 100;
-				if (progress > 100)
-					progress = 100;
-			}
+			double progress = torrent->get_progress() * 100;
 			row[columns.progress] = progress;
 			row[columns.eta] = String::ucompose("%1 %%", std::fixed, std::setprecision(2), progress);
 			return;
