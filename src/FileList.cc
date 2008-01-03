@@ -97,19 +97,20 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	m_menu.append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	Gtk::RadioButtonGroup group;
 	m_radio_max = Gtk::manage(new Gtk::RadioMenuItem(group, _("Max")));
-	m_radio_max->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_MAX));
 	m_menu.append(*m_radio_max);
 	m_radio_high = Gtk::manage(new Gtk::RadioMenuItem(group, _("High")));
-	m_radio_high->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_HIGH));
 	m_menu.append(*m_radio_high);
 	m_radio_normal = Gtk::manage(new Gtk::RadioMenuItem(group, _("Normal")));
-	m_radio_normal->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_NORMAL));
 	m_menu.append(*m_radio_normal);
 	m_menu.append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	m_radio_skip = Gtk::manage(new Gtk::RadioMenuItem(group, _("Skip")));
-	m_radio_skip->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_SKIP));
 	m_menu.append(*m_radio_skip);
 	m_menu.show_all_children();
+
+	m_conn_max = m_radio_max->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_MAX));
+	m_conn_high = m_radio_high->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_HIGH));
+	m_conn_normal = m_radio_normal->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_NORMAL));
+	m_conn_skip = m_radio_skip->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_SKIP));
 }
 
 FileList::~FileList()
@@ -137,8 +138,11 @@ bool FileList::on_button_press_event(GdkEventButton *event)
 	if (event->button == 3)
 	{
 		Gtk::TreeRow row = *(model->get_iter(path));
-		if (row[columns.index] == INDEX_FOLDER)
-			row = *(row.children().begin());
+
+		m_conn_max.block();
+		m_conn_high.block();
+		m_conn_normal.block();
+		m_conn_skip.block();
 
 		switch (row[columns.priority])
 		{
@@ -152,10 +156,21 @@ bool FileList::on_button_press_event(GdkEventButton *event)
 				m_radio_max->set_active(true);
 				break;
 			case P_NORMAL:
-			default:
 				m_radio_normal->set_active(true);
 				break;
+			default:
+				/* hack to set all radio inactive at once */
+				Gtk::RadioButtonGroup group = m_radio_skip->get_group();
+				Gtk::RadioMenuItem item(group);
+				item.set_active(true);
+				break;
 		}
+
+		m_conn_max.unblock();
+		m_conn_high.unblock();
+		m_conn_normal.unblock();
+		m_conn_skip.unblock();
+
 		m_menu.popup(event->button, event->time);
 	}
 
@@ -366,6 +381,7 @@ void FileList::refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>&
 			row = *tree[name];
 			row[columns.name] = name;
 			row[columns.index] = INDEX_FOLDER;
+			row[columns.priority] = -1; /* non valid, to catch in default case */
 			row[columns.size] = row[columns.size] + file.size;
 
 			parent = tree[name];
