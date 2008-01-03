@@ -891,9 +891,9 @@ void UI::on_switch_page(GtkNotebookPage*, int page_num)
 }
 
 void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
-												 int x, int y,
-												 const Gtk::SelectionData& selection_data,
-												 guint info, guint time)
+	int x, int y,
+	const Gtk::SelectionData& selection_data,
+	guint info, guint time)
 {
 	// TreeModelFilter doesn't support DnD, this suppresses default handler/warning
 	torrent_list->signal_drag_data_received().emission_stop();
