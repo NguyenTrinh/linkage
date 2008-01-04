@@ -74,6 +74,8 @@ AddDialog::~AddDialog()
 {
 	Engine::get_settings_manager()->set("ui/advanced_expanded", expander->get_expanded());
 
+
+	delete combo_group;
 	delete file_list;
 
 	glibtop_close();
