@@ -197,16 +197,19 @@ void FileList::prioritize_row(const Gtk::TreeRow& row, Priority priority)
 
 void FileList::on_set_priority(Priority priority)
 {
-	if (m_cur_torrent && !m_menu.is_visible())
+	g_return_if_fail(m_cur_torrent);
+
+	/* FIXME: this should be internal Torrent stuff */
+	if (m_cur_torrent->is_completed() && priority != P_SKIP)
+		m_cur_torrent->set_completed(false);
+
+	Gtk::TreeSelection::ListHandle_Path paths = get_selection()->get_selected_rows();
+	Gtk::TreeSelection::ListHandle_Path::iterator iter = paths.begin();
+	while (iter != paths.end())
 	{
-		Gtk::TreeSelection::ListHandle_Path paths = get_selection()->get_selected_rows();
-		Gtk::TreeSelection::ListHandle_Path::iterator iter = paths.begin();
-		while (iter != paths.end())
-		{
-			Gtk::TreeRow row = *(model->get_iter(*iter));
-			prioritize_row(row, priority);
-			iter++;
-		}
+		Gtk::TreeRow row = *(model->get_iter(*iter));
+		prioritize_row(row, priority);
+		iter++;
 	}
 }
 

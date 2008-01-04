@@ -48,7 +48,7 @@ public:
 			operation(o) {}
 	};
 
-	bool eval(const Linkage::TorrentPtr& torrent) const;
+	bool eval(const Linkage::TorrentPtr& torrent);
 
 	const Glib::ustring& get_name() const;
 	const std::list<Filter>& get_filters() const;
@@ -74,9 +74,11 @@ public:
 	Group();
 	~Group();
 
-protected:
+private:
 	std::list<Filter> m_filters;
 	Glib::ustring m_name;
+
+	std::map<libtorrent::sha1_hash, bool>* m_statics;
 };
 
 #endif /* GROUP_HH */

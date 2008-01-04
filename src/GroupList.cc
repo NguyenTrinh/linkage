@@ -184,9 +184,13 @@ void GroupList::update()
 		Group group = row[columns.group];
 
 		unsigned int n = 0;
-		for (TorrentManager::TorrentList::iterator j = torrents.begin(); j != torrents.end(); ++j)
+		if (!m_cur_state && !group.is_valid()) // "All" row without any state filter
+			n = torrents.size();
+
+		for (TorrentManager::TorrentList::iterator j = torrents.begin();
+			j != torrents.end() n < torrents.size(); ++j)
 		{
-			TorrentPtr torrent = *j;
+			TorrentPtr& torrent = *j;
 			if (m_cur_state && !(m_cur_state & torrent->get_state()))
 				continue;
 
@@ -200,8 +204,6 @@ void GroupList::update()
 				if (m_cur_state & torrent->get_state())
 					n++;
 			}
-			else // "All" row without any state filter
-				n++;
 		}
 		row[columns.num] = n;
 	}
