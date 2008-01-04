@@ -14,7 +14,7 @@ make
 su -c 'make install'
 }}}
 
-Other than that the dependencies are the same as for 0.1.4, except that gupnp and curl are no longer used. You also need libtorrent 0.13 (which is unreleased at the time so grab it from svn).
+Other than that the dependencies are the same as for 0.1.4, except that you now need libgtop and that gupnp and curl are no longer used. You also need libtorrent 0.13 (which is unreleased at the time so grab it from svn).
 {{{
  svn co https://libtorrent.svn.sourceforge.net/svnroot/libtorrent/branches/RC_0_13/ libtorrent
 }}}
