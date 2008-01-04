@@ -173,6 +173,7 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 
 void TorrentList::on_filter_set(const Group& group)
 {
+	/* FIXME: keep a reference not a copy ... */
 	/* FIXME: This hits an endless loop if we have a multi selection */
 	m_active_group = group;
 	filter->refilter();

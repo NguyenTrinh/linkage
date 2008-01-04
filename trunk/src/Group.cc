@@ -26,6 +26,8 @@ Group::Group(const Glib::ustring& name, const std::list<Filter>& filters)
 {
 	m_filters.assign(filters.begin(), filters.end());
 	m_name = name;
+
+	m_statics = NULL;
 }
 
 Group::Group()
@@ -35,6 +37,8 @@ Group::Group()
 
 Group::~Group()
 {
+	if (m_statics != NULL)
+		delete m_statics;
 }
 
 bool Group::is_valid() const
@@ -42,24 +46,24 @@ bool Group::is_valid() const
 	return !m_name.empty();
 }
 
-bool Group::eval(const TorrentPtr& torrent) const
+bool Group::eval(const TorrentPtr& torrent)
 {
 	boost::intrusive_ptr<libtorrent::torrent_info> info = torrent->get_info();
 	std::vector<libtorrent::announce_entry> trackers = torrent->get_trackers();
-
-	if (m_name.empty())
-		return false;
 	
 	if (torrent->get_group() == m_name)
 		return true;
 
+	bool is_static = (m_statics != NULL);
+	bool is_evaluated = (is_static && m_statics->find(torrent->get_hash()) != m_statics->end());
 	bool ret = false;
-	for (std::list<Filter>::const_iterator iter = m_filters.begin();
-		iter != m_filters.end(); ++iter)
+	for (std::list<Filter>::iterator iter = m_filters.begin();
+		iter != m_filters.end() && (!m_statics || !is_evaluated); ++iter)
 	{
 		bool tmp = false;
 
-		Filter f = *iter;
+		Filter& f = *iter;
+		is_static = (f.tag == TAG_NAME || f.tag == TAG_COMMENT);
 		switch (f.eval)
 		{
 			case EVAL_EQUALS:
@@ -136,6 +140,7 @@ bool Group::eval(const TorrentPtr& torrent) const
 				break;
 		}
 
+		/* this could be done smarter */
 		switch (f.operation)
 		{
 			case Group::OP_OR:
@@ -152,6 +157,17 @@ bool Group::eval(const TorrentPtr& torrent) const
 				break;
 		}
 	}
+
+	if (is_static)
+	{
+		if (!m_statics)
+			m_statics = new std::map<libtorrent::sha1_hash, bool>();
+		if (!is_evaluated)
+			m_statics[torrent->get_hash()] = ret;
+		else
+			ret = m_statics[torrent->get_hash()];
+	}
+
 	return ret;
 }
 
