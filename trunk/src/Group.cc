@@ -37,7 +37,6 @@ Group::Group()
 
 Group::~Group()
 {
-	g_debug("%s: %i %p", m_name.c_str(), refcount(), m_statics);
 	if (m_statics != NULL)
 		delete m_statics;
 }
