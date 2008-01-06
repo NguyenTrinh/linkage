@@ -72,7 +72,7 @@ class TorrentList : public Gtk::TreeView
 
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
-	Group m_active_group;
+	GroupPtr m_active_group;
 	Linkage::Torrent::State m_cur_state;
 
 	void on_added(const Linkage::TorrentPtr& torrent);
@@ -89,7 +89,7 @@ class TorrentList : public Gtk::TreeView
 	sigc::signal<void, GdkEventButton*> m_signal_double_click;
 	sigc::signal<void, GdkEventButton*> m_signal_right_click;
 
-	void on_filter_set(const Group& group);
+	void on_filter_set(const GroupPtr& group);
 	void on_state_filter_changed(Linkage::Torrent::State state);
 
 	void update_row(Gtk::TreeRow& row);

@@ -168,14 +168,13 @@ bool TorrentList::on_filter(const Gtk::TreeModel::const_iterator& iter)
 	if (m_cur_state && !(m_cur_state & torrent->get_state()))
 		return false;
 
-	return (m_active_group) ? m_active_group.eval(torrent) : true;
+	return (m_active_group) ? m_active_group->eval(torrent) : true;
 }
 
-void TorrentList::on_filter_set(const Group& group)
+void TorrentList::on_filter_set(const GroupPtr& group)
 {
-	/* FIXME: keep a reference not a copy ... */
-	/* FIXME: This hits an endless loop if we have a multi selection */
 	m_active_group = group;
+	/* FIXME: This hits an endless loop if we have a multi selection */
 	filter->refilter();
 }
 

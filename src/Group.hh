@@ -19,9 +19,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef GROUP_HH
 #define GROUP_HH
 
+#include <boost/intrusive_ptr.hpp>
+#include "libtorrent/intrusive_ptr_base.hpp"
+
 #include "linkage/Torrent.hh"
 
-class Group
+class Group;
+
+typedef boost::intrusive_ptr<Group> GroupPtr;
+
+class Group : public libtorrent::intrusive_ptr_base<Group>
 {
 public:
 	/* FIXME: Add EVAL_LESS and EVAL_GREATER? */
@@ -52,23 +59,6 @@ public:
 
 	const Glib::ustring& get_name() const;
 	const std::list<Filter>& get_filters() const;
-	
-	operator bool() const
-	{
-		return is_valid();
-	}
-
-	bool operator==(const Group& src) const
-	{
-		return (m_name == src.m_name);
-	}
-
-	bool operator!=(const Group& src) const
-	{
-		return (m_name != src.m_name);
-	}
-
-	bool is_valid() const;
 
 	Group(const Glib::ustring& name, const std::list<Filter>& filters);
 	Group();

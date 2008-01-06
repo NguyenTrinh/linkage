@@ -85,8 +85,7 @@ GroupsWin::GroupsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 			}
 
 			Gtk::TreeRow row = *(model->append());
-			row[columns.name] = i->first;
-			row[columns.filters] = filters;
+			row[columns.group] = GroupPtr(new Group(i->first, filters));
 		}
 	}
 }
@@ -100,8 +99,8 @@ GroupsWin::~GroupsWin()
 	for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
 	{
 		Gtk::TreeRow row = *i;
-		Glib::ustring name = row[columns.name];
-		std::list<Group::Filter> filters = row[columns.filters];
+		GroupPtr group = row[columns.group];
+		std::list<Group::Filter> filters = group->get_filters();
 
 		/* For each filter */
 		libtorrent::entry::list_type e_filters;
@@ -120,7 +119,7 @@ GroupsWin::~GroupsWin()
 			e_filters.push_back(e_filter);
 		}
 		/* Store filter list in dictionary */
-		e_groups[name] = e_filters;
+		e_groups[group->get_name()] = e_filters;
 	}
 
 	save_entry(Glib::build_filename(get_config_dir(), "groups"), e_groups);
@@ -128,7 +127,7 @@ GroupsWin::~GroupsWin()
 	delete group_edit;
 }
 
-sigc::signal<void, const std::list<Group>& > GroupsWin::signal_groups_changed()
+sigc::signal<void, const std::list<GroupPtr>& > GroupsWin::signal_groups_changed()
 {
 	return m_signal_groups_changed;
 }
@@ -148,13 +147,13 @@ void GroupsWin::on_button_edit()
 	if (iter)
 	{
 		Gtk::TreeRow row = *iter;
-		Glib::ustring name = row[columns.name];
-		std::list<Group::Filter> filters = row[columns.filters];
+		GroupPtr group = row[columns.group];
+		Glib::ustring name = group->get_name();
+		std::list<Group::Filter> filters = group->get_filters();
 
 		group_edit->run(name, filters);
 
-		row[columns.name] = name;
-		row[columns.filters] = filters;
+		row[columns.group] = GroupPtr(new Group(name, filters));
 	}
 }
 
@@ -167,8 +166,8 @@ void GroupsWin::on_button_new()
 
 	group_edit->run(name, filters);
 
-	row[columns.name] = name;
-	row[columns.filters] = filters;
+	GroupPtr group = GroupPtr(new Group(name, filters));
+	row[columns.group] = group;
 }
 
 bool GroupsWin::on_delete_event(GdkEventAny*)
@@ -192,12 +191,12 @@ void GroupsWin::on_hide()
 
 void GroupsWin::notify()
 {
-	std::list<Group> groups;
+	std::list<GroupPtr> groups;
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
 	{
 		Gtk::TreeRow row = *iter;
-		groups.push_back(Group(row[columns.name], row[columns.filters]));
+		groups.push_back(row[columns.group]);
 	}
 	m_signal_groups_changed.emit(groups);
 }
@@ -211,10 +210,13 @@ void GroupsWin::format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& it
 	ss.imbue(std::locale(""));
 
 	Gtk::TreeRow row = *iter;
+	GroupPtr group = row[columns.group];
+	if (!group)
+		return;
 
-	ss << "<b>" << row[columns.name] << "</b>\n<small>";
+	ss << "<b>" << group->get_name() << "</b>\n<small>";
 
-	std::list<Group::Filter> filters = row[columns.filters];
+	std::list<Group::Filter> filters = group->get_filters();
 	if (!filters.empty())
 	{
 		ss << _("If") << " ";

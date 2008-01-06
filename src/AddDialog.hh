@@ -31,8 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <libglademm.h>
 
 #include "SimpleFileList.hh"
-
-class Group;
+#include "Group.hh"
 
 class AddDialog : public Gtk::Dialog
 {
@@ -63,7 +62,7 @@ class AddDialog : public Gtk::Dialog
 	void reset_info();
 
 	friend class UI;
-	void on_groups_changed(const std::list<Group>& groups);
+	void on_groups_changed(const std::list<GroupPtr>& groups);
 	
 public:
 	typedef struct

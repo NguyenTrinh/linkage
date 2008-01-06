@@ -40,10 +40,10 @@ class GroupsWin : public Gtk::Window
 		ModelColumns()
 			{
 				add(name);
-				add(filters);
+				add(group);
 			}
 		Gtk::TreeModelColumn<Glib::ustring> name;
-		Gtk::TreeModelColumn<std::list<Group::Filter> > filters;
+		Gtk::TreeModelColumn<GroupPtr> group;
 	};
 
 	Gtk::TreeView* groups_view;
@@ -52,7 +52,7 @@ class GroupsWin : public Gtk::Window
 
 	GroupEditDialog* group_edit;
 
-	sigc::signal<void, const std::list<Group>& > m_signal_groups_changed;
+	sigc::signal<void, const std::list<GroupPtr>& > m_signal_groups_changed;
 
 	void on_button_remove();
 	void on_button_edit();
@@ -65,7 +65,7 @@ class GroupsWin : public Gtk::Window
 	void format_name(Gtk::CellRenderer* renderer, const Gtk::TreeIter& iter);
 
 public:
-	sigc::signal<void, const std::list<Group>& > signal_groups_changed();
+	sigc::signal<void, const std::list<GroupPtr>& > signal_groups_changed();
 
 	void notify();
 

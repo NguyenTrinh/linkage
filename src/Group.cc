@@ -37,13 +37,9 @@ Group::Group()
 
 Group::~Group()
 {
+	g_debug("%s: %i %p", m_name.c_str(), refcount(), m_statics);
 	if (m_statics != NULL)
 		delete m_statics;
-}
-
-bool Group::is_valid() const
-{
-	return !m_name.empty();
 }
 
 bool Group::eval(const TorrentPtr& torrent)
@@ -162,10 +158,12 @@ bool Group::eval(const TorrentPtr& torrent)
 	{
 		if (!m_statics)
 			m_statics = new std::map<libtorrent::sha1_hash, bool>();
+
+		std::map<libtorrent::sha1_hash, bool>& ref = *m_statics;
 		if (!is_evaluated)
-			m_statics[torrent->get_hash()] = ret;
+			ref[torrent->get_hash()] = ret;
 		else
-			ret = m_statics[torrent->get_hash()];
+			ret = ref[torrent->get_hash()];
 	}
 
 	return ret;
