@@ -446,8 +446,12 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	if (!state_changed && state & Torrent::STOPPED)
 		return;
 
-	libtorrent::size_type up = torrent->get_total_uploaded();
-	libtorrent::size_type down = torrent->get_total_downloaded();
+	libtorrent::torrent_status status = torrent->get_status();
+
+	libtorrent::size_type down = status.total_payload_download +
+			torrent->get_previously_downloaded();
+	libtorrent::size_type up = status.total_payload_upload +
+			torrent->get_previously_uploaded();
 
 	row[columns.down] = down;
 	row[columns.up] = up;
@@ -460,7 +464,6 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 		row[columns.peers] = 0;
 	}
 
-	libtorrent::torrent_status status = torrent->get_status();
 	if (state & Torrent::SEEDING || state & Torrent::FINISHED)
 	{
 		libtorrent::size_type size = down - up;

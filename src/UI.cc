@@ -496,9 +496,11 @@ void UI::update(const TorrentPtr& torrent, bool update_lists)
 
 	if (expander_details->get_expanded())
 	{
-		libtorrent::size_type down = torrent->get_total_downloaded();
-		libtorrent::size_type up = torrent->get_total_uploaded();
-		float ratio = 0;
+		libtorrent::size_type down = stats.total_payload_download +
+			torrent->get_previously_downloaded();
+		libtorrent::size_type up = stats.total_payload_upload +
+			torrent->get_previously_uploaded();
+
 		switch (notebook_details->get_current_page())
 		{
 			case PAGE_GENERAL:
@@ -517,10 +519,12 @@ void UI::update(const TorrentPtr& torrent, bool update_lists)
 				break;
 			}
 			case PAGE_PEERS:
+			{
 				label_down->set_text(suffix_value(down));
 				label_down_rate->set_text(suffix_value(stats.download_payload_rate) + "/s");
 				label_up->set_text(suffix_value(up));
 				label_up_rate->set_text(suffix_value(stats.upload_payload_rate) + "/s");
+				float ratio = 0;
 				if (down)
 					ratio = (1.0f*up)/(1.0f*down);
 				label_ratio->set_text(String::ucompose("%1", std::fixed, std::setprecision(3), ratio));
@@ -528,6 +532,7 @@ void UI::update(const TorrentPtr& torrent, bool update_lists)
 				if (update_lists)
 					peer_list->update(torrent);
 				break;
+			}
 			case PAGE_FILES:
 				if (update_lists)
 					file_list->update(torrent);

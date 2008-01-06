@@ -92,8 +92,8 @@ public:
 	int get_down_limit();
 	libtorrent::sha1_hash get_hash();
 
-	libtorrent::size_type get_total_downloaded();
-	libtorrent::size_type get_total_uploaded();
+	libtorrent::size_type get_previously_downloaded();
+	libtorrent::size_type get_previously_uploaded();
 
 	//FIXME: remove this, use composite States (w/ FINISHED) instead
 	bool is_completed();
@@ -126,7 +126,7 @@ public:
 	void reannounce(const Glib::ustring& tracker = Glib::ustring());
 	const std::vector<libtorrent::announce_entry>& get_trackers();
 
-	const libtorrent::entry get_resume_entry(bool stopping = true, bool quitting = false);
+	libtorrent::entry get_resume_entry();
 
 	static TorrentPtr create(const libtorrent::entry& e, const InfoPtr& info, bool queued = false);
 	~Torrent();
@@ -184,6 +184,8 @@ private:
 	int m_up_limit, m_down_limit;
 
 	bool m_completed;
+
+	float m_stop_ratio;
 
 	void on_tick();
 	/* for internal update / helpers */

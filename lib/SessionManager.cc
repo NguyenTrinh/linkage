@@ -334,20 +334,15 @@ TorrentPtr SessionManager::open_torrent(
 		return torrent;
 	}
 
-	/* use a .resume file if we find one */
+	/* use a .resume file if we find a valid one */
 	Glib::ustring resume_file = Glib::build_filename(get_data_dir(),
 		String::compose("%1", hash) + ".resume");
 	if (Glib::file_test(resume_file, Glib::FILE_TEST_EXISTS))
 	{
 		load_entry(resume_file, er);
 		if (!(er.find_key("path") && er["path"].string() == save_path))
-		{
 			er = entry();
-			er["path"] = save_path;
-		}
 	}
-	else
-		er["path"] = save_path;
 
 	storage_mode_t storage_mode = storage_mode_sparse;
 	if (Engine::get_settings_manager()->get_bool("files/allocate"))
@@ -355,10 +350,14 @@ TorrentPtr SessionManager::open_torrent(
 
 	torrent_handle handle = add_torrent(info, save_path.c_str(), er, storage_mode);
 
+	if (er.type() == entry::undefined_t)
+		er["path"] = save_path;
+
 	torrent = Engine::get_torrent_manager()->add_torrent(er, info);
 
 	/* see below, get entry before we set the handle */
-	er = torrent->get_resume_entry(false);
+	er = torrent->get_resume_entry();
+	er["stopped"] = 0;
 
 	torrent->set_handle(handle);
 
@@ -369,10 +368,9 @@ TorrentPtr SessionManager::open_torrent(
 	out.write(&buff[0], buff.size());
 	out.close();
 
-	/*
-		Save an almost empty .resume file, so the torrent is resumed next session
-		even if something nasty happens to this session
-	*/
+	/* Save an almost empty .resume file, so the torrent is resumed next session
+	 * even if something nasty happens to this session
+	 */
 	save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), er);
 
 	return torrent;
@@ -389,7 +387,9 @@ void SessionManager::stop_torrent(const TorrentPtr& torrent)
 	if (torrent->is_queued())
 		torrent->unqueue();
 
+	torrent->get_handle().pause();
 	entry e = torrent->get_resume_entry();
+	e["stopped"] = 1;
 
 	Glib::ustring file = Glib::build_filename(get_data_dir(),
 		String::compose("%1", torrent->get_hash()) + ".resume");

@@ -44,8 +44,11 @@ DBus::Struct<DBus::UInt32, DBus::UInt32> Torrent::GetRates()
 DBus::Struct<DBus::UInt64, DBus::UInt64> Torrent::GetTransfered()
 {
 	DBus::Struct<DBus::UInt64, DBus::UInt64> bytes;
-	bytes._1 = get_total_downloaded();
-	bytes._2 = get_total_uploaded();
+	libtorrent::torrent_status status = get_status();
+	libtorrent::size_type down = status.total_payload_download + m_downloaded;
+	libtorrent::size_type up = status.total_payload_upload + m_uploaded;
+	bytes._1 = down;
+	bytes._2 = up;
 	return bytes;
 }
 
@@ -61,19 +64,16 @@ DBus::UInt32 Torrent::GetPosition()
 
 void Torrent::Start()
 {
-	//Glib::RefPtr<Torrent> ref(this);
-	//Engine::get_session_manager()->resume_torrent(ref);
+	Engine::get_session_manager()->resume_torrent(TorrentPtr(this));
 }
 
 void Torrent::Stop()
 {
-	//Glib::RefPtr<Torrent> ref(this);
-	//Engine::get_session_manager()->stop_torrent(ref);
+	Engine::get_session_manager()->stop_torrent(TorrentPtr(this));
 }
 
 void Torrent::Remove(const DBus::Bool& erase_content)
 {
-	//Glib::RefPtr<Torrent> ref(this);
-	//Engine::get_session_manager()->erase_torrent(ref, erase_content);
+	Engine::get_session_manager()->erase_torrent(TorrentPtr(this), erase_content);
 }
 
