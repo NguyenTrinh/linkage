@@ -72,7 +72,8 @@ GroupList::~GroupList()
 	{
 		Gtk::TreeRow row = *iter;
 		GroupPtr group = row[columns.group];
-		selected = group->get_name();
+		if (group)
+			selected = group->get_name();
 	}
 	Engine::get_settings_manager()->set("ui/active_group", selected);
 }
