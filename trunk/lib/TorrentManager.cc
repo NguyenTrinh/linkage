@@ -59,7 +59,11 @@ TorrentManager::~TorrentManager()
 		libtorrent::sha1_hash hash = iter->first;
 		TorrentPtr torrent = iter->second;
 
-		libtorrent::entry e = torrent->get_resume_entry(torrent->is_stopped(), true);
+		if (!torrent->is_stopped())
+			torrent->get_handle().pause();
+		/* FIXME: wait for torrent_paused_alert */
+		libtorrent::entry e = torrent->get_resume_entry();
+	
 		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
 		if (!torrent->is_stopped())
 			Engine::get_session_manager()->remove_torrent(torrent->get_handle());
@@ -94,7 +98,7 @@ void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, cons
 	if (exists(hash) && !Glib::str_has_suffix(msg, "event=stopped"))
 	{
 		// FIXME: should we save resume data more often?
-		libtorrent::entry e = m_torrents[hash]->get_resume_entry(false);
+		libtorrent::entry e = m_torrents[hash]->get_resume_entry();
 		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
 
 		m_torrents[hash]->set_tracker_reply(_("Announcing"), "", Torrent::REPLY_ANNOUNCING);
