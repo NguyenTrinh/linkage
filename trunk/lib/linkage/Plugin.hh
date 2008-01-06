@@ -74,7 +74,7 @@ public:
 	sigc::signal<void, Plugin*> signal_unloading();
 
 	/*
-		Do _not_ override with return plugin_info(), since that function might
+		Do _not_ override with "return plugin_info()", since that function might
 		be bound to another plugin. Should return an equal struct of plugin_info()
 	*/
 	virtual Plugin::Info get_info();
@@ -101,10 +101,10 @@ public:
 extern "C" {
 #endif
 
-/* This is the function each plugin implements for the main app to
-	 create an instance of the plugin child class. */
+/* override and return a newly created plugin object */
 extern Linkage::Plugin* create_plugin();
 
+/* should return be equal the overridden Plugin::get_info(), implemented separately */
 extern Linkage::Plugin::Info plugin_info();
 
 #ifdef __cplusplus
