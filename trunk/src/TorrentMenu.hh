@@ -39,7 +39,7 @@ class TorrentMenu : public Gtk::Menu
 	sigc::signal<void, bool> m_signal_remove;
 	sigc::signal<void> m_signal_check;
 
-	void on_groups_changed(const std::list<Group>& groups);
+	void on_groups_changed(const std::list<GroupPtr>& groups);
 
 	friend class UI;
 

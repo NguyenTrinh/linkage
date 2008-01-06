@@ -111,6 +111,11 @@ void AddDialog::on_file_changed()
 	}
 	else
 	{
+		Glib::ustring color = Engine::get_settings_manager()->get_string("ui/colors/error");
+		label_size->set_markup(String::ucompose(
+			"<span color=%1><i>%2</i></span>",
+			color, 
+			_("Invalid torrent")));
 		reset_info();
 
 		button_ok->set_sensitive(false);
@@ -144,12 +149,13 @@ void AddDialog::reset_info()
 	combo_group->set_active(-1);
 }
 
-void AddDialog::on_groups_changed(const std::list<Group>& groups)
+void AddDialog::on_groups_changed(const std::list<GroupPtr>& groups)
 {
 	combo_group->clear();
-	for (std::list<Group>::const_iterator i = groups.begin(); i != groups.end(); ++i)
+	for (std::list<GroupPtr>::const_iterator i = groups.begin(); i != groups.end(); ++i)
 	{
-		combo_group->append_text(i->get_name());
+		GroupPtr group = *i;
+		combo_group->append_text(group->get_name());
 	}
 }
 

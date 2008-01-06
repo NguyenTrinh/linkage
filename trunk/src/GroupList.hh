@@ -41,12 +41,12 @@ class GroupList : public Gtk::TreeView
 		}
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<unsigned int> num;
-		Gtk::TreeModelColumn<Group> group;
+		Gtk::TreeModelColumn<GroupPtr> group;
 	};
 	ModelColumns columns;
 	Glib::RefPtr<Gtk::ListStore> model;
 
-	sigc::signal<void, const Group&> m_signal_filter_set;
+	sigc::signal<void, const GroupPtr&> m_signal_filter_set;
 
 	Linkage::Torrent::State m_cur_state;
 
@@ -55,12 +55,12 @@ class GroupList : public Gtk::TreeView
 	void on_selection_changed();
 
 	void on_state_filter_changed(Linkage::Torrent::State state);
-	void on_groups_changed(const std::list<Group>& groups);
+	void on_groups_changed(const std::list<GroupPtr>& groups);
 
 	friend class UI;
 
 public:
-	sigc::signal<void, const Group&> signal_filter_set();
+	sigc::signal<void, const GroupPtr&> signal_filter_set();
 
 	void update();
 

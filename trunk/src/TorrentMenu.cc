@@ -75,7 +75,7 @@ TorrentMenu::~TorrentMenu()
 {
 }
 
-void TorrentMenu::on_groups_changed(const std::list<Group>& groups)
+void TorrentMenu::on_groups_changed(const std::list<GroupPtr>& groups)
 {
 	std::list<Gtk::Widget*> children = submenu_groups->get_children();
 	for (std::list<Gtk::Widget*>::iterator iter = children.begin();
@@ -93,12 +93,12 @@ void TorrentMenu::on_groups_changed(const std::list<Group>& groups)
 	submenu_groups->append(*item);
 	submenu_groups->append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
 	
-	for (std::list<Group>::const_iterator iter = groups.begin();
-			iter != groups.end(); ++iter)
+	for (std::list<GroupPtr>::const_iterator iter = groups.begin();
+		iter != groups.end(); ++iter)
 	{
-		Group group = *iter;
-		item = Gtk::manage(new Gtk::MenuItem(group.get_name()));
-		item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), group.get_name()));
+		GroupPtr group = *iter;
+		item = Gtk::manage(new Gtk::MenuItem(group->get_name()));
+		item->signal_activate().connect(sigc::bind(sigc::mem_fun(&m_signal_group, &sigc::signal<void, const Glib::ustring&>::emit), group->get_name()));
 		submenu_groups->append(*item);
 	}
 

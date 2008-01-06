@@ -49,8 +49,7 @@ GroupList::GroupList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 
 	/* Add the "All" filter with an invalid group */
 	Gtk::TreeRow row = *(model->append());
-	row[columns.name] = _("All");
-	row[columns.group] = Group();
+	row[columns.group] = GroupPtr(NULL);
 
 	get_selection()->signal_changed().connect(sigc::mem_fun(this, &GroupList::on_selection_changed));
 
@@ -72,7 +71,8 @@ GroupList::~GroupList()
 	if (iter)
 	{
 		Gtk::TreeRow row = *iter;
-		selected = row[columns.name];
+		GroupPtr group = row[columns.group];
+		selected = group->get_name();
 	}
 	Engine::get_settings_manager()->set("ui/active_group", selected);
 }
@@ -82,7 +82,9 @@ void GroupList::format_name(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
 	Gtk::TreeRow row = *iter;
 	Gtk::CellRendererText* cell_t = dynamic_cast<Gtk::CellRendererText*>(cell);
 
-	cell_t->property_text() = row[columns.name] + " (" + String::ucompose("%1", row[columns.num]) + ")";
+	GroupPtr group = row[columns.group];
+	Glib::ustring name = group ? group->get_name() : _("All");
+	cell_t->property_text() = String::ucompose("%1 (%2)", name, row[columns.num]);
 }
 
 
@@ -103,15 +105,15 @@ void GroupList::on_state_filter_changed(Torrent::State state)
 	update();
 }
 
-void GroupList::on_groups_changed(const std::list<Group>& groups)
+void GroupList::on_groups_changed(const std::list<GroupPtr>& groups)
 {
 	// find selected name
 	Gtk::TreeIter iter = get_selection()->get_selected();
-	Glib::ustring selected;
+	GroupPtr selected;
 	if (iter)
 	{
 		Gtk::TreeRow row = *iter;
-		selected = row[columns.name];
+		selected = row[columns.group];
 	}
 
 	// clear list
@@ -119,53 +121,51 @@ void GroupList::on_groups_changed(const std::list<Group>& groups)
 	for (Gtk::TreeIter i = children.begin(); i != children.end();)
 	{
 		Gtk::TreeRow row = *i;
-		Group group = row[columns.group];
+		GroupPtr group = row[columns.group];
 		/* Don't delete "All" */
-		if (group.is_valid())
+		if (group)
 			i = model->erase(i);
 		else
 			i++;
 	}
 
 	// add new groups
-	for (std::list<Group>::const_iterator i = groups.begin(); i != groups.end(); ++i)
+	for (std::list<GroupPtr>::const_iterator i = groups.begin(); i != groups.end(); ++i)
 	{
-		Group group = *i;
+		GroupPtr group = *i;
 		Gtk::TreeRow row = *(model->append());
-		row[columns.name] = group.get_name();
 		row[columns.group] = group;
 	}
 
 	// select previously selected group if it still exists
-	if (!selected.empty())
+	children = model->children();
+	for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
 	{
-		children = model->children();
+		Gtk::TreeRow row = *i;
+		GroupPtr group = row[columns.group];
+		if (group == selected)
+		{
+			get_selection()->select(i);
+			return;
+		}
+	}
+
+
+	Glib::ustring active = Engine::get_settings_manager()->get_string("ui/active_group");
+	if (!active.empty())
+	{
+		Gtk::TreeNodeChildren children = model->children();
 		for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
 		{
 			Gtk::TreeRow row = *i;
-			Glib::ustring name = row[columns.name];
-			if (name == selected)
+			GroupPtr group = row[columns.group];
+			if (group && group->get_name() == active)
 				get_selection()->select(i);
-		}
-	}
-	else
-	{
-		Glib::ustring active = Engine::get_settings_manager()->get_string("ui/active_group");
-		if (!active.empty())
-		{
-			Gtk::TreeNodeChildren children = model->children();
-			for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
-			{
-				Gtk::TreeRow row = *i;
-				Glib::ustring name = row[columns.name];
-				if (name == active)
-					get_selection()->select(i);
-			}
 		}
 	}
 }
 
-sigc::signal<void, const Group&> GroupList::signal_filter_set()
+sigc::signal<void, const GroupPtr&> GroupList::signal_filter_set()
 {
 	return m_signal_filter_set;
 }
@@ -181,22 +181,22 @@ void GroupList::update()
 	for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)
 	{
 		Gtk::TreeRow row = *i;
-		Group group = row[columns.group];
+		GroupPtr group = row[columns.group];
 
 		unsigned int n = 0;
-		if (!m_cur_state && !group.is_valid()) // "All" row without any state filter
+		if (!m_cur_state && !group) // "All" row without any state filter
 			n = torrents.size();
 
 		for (TorrentManager::TorrentList::iterator j = torrents.begin();
-			j != torrents.end() n < torrents.size(); ++j)
+			j != torrents.end() && n < torrents.size(); ++j)
 		{
 			TorrentPtr& torrent = *j;
 			if (m_cur_state && !(m_cur_state & torrent->get_state()))
 				continue;
 
-			if (group.is_valid()) // not "All" row
+			if (group) // not "All" row
 			{
-				if (group.eval(torrent))
+				if (group->eval(torrent))
 					n++;
 			}
 			else if (m_cur_state) // "All" row with state filter set
