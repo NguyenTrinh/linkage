@@ -21,7 +21,8 @@ Here is a bunch of stuff that are currently planned for the next release, feel f
   * Perhaps add some support for python plugins?
 
 == Add more DBus calls/signals ==
-  * We should export most of the backend API through DBus, the DBus API could then be used for other kind of interfaces etc (i.e. a web interface would be quite trivial to do this way). How the API should actually be structured is up for debate, my idea is to basically just use a kind torrent proxy object which would have members like stop/start/status and signals when a torrent is added/removed.
+  * Expand DBus API, should be easy now that we use dbus-c++.
+  * Add signals.
   * Maybe add signals for alerts as well.
 
 == Preferences ==
