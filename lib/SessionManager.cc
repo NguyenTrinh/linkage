@@ -185,9 +185,9 @@ void SessionManager::update_session_settings()
 			else
 				listen_on(std::make_pair(port, port));
 		}
-		catch (std::exception& e)
+		catch (std::exception& ex)
 		{
-			g_warning(_("Listen failed: %s"), e.what());
+			g_warning(_("Listen failed: %s"), ex.what());
 		}
 	}
 
@@ -203,7 +203,14 @@ void SessionManager::update_session_settings()
 	if (sm->get_bool("network/use_dht"))
 	{
 		set_dht_settings(settings);
-		start_dht(e);
+		try
+		{
+			start_dht(e);
+		}
+		catch (asio::system_error& ex)
+		{
+			/* FIXME: notify user about failure */
+		}
 		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
