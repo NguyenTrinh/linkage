@@ -144,20 +144,19 @@ void TorrentManager::on_update_queue(const libtorrent::sha1_hash& hash, const Gl
 	check_queue();
 }
 
-void TorrentManager::on_handle_changed(const libtorrent::sha1_hash& hash)
+void TorrentManager::on_handle_changed(const WeakTorrentPtr& weak)
 {
-	if (!exists(hash))
+	if (weak.expired())
 		return;
 
-	TorrentPtr torrent = m_torrents[hash];
-	set_torrent_settings(torrent);
+	set_torrent_settings(weak.lock());
 
 	check_queue();
 }
 
-void TorrentManager::on_position_changed(const libtorrent::sha1_hash& hash)
+void TorrentManager::on_position_changed(const WeakTorrentPtr& weak)
 {
-	TorrentPtr torrent = m_torrents[hash];
+	TorrentPtr torrent = weak.lock();
 	unsigned int position = torrent->get_position();
 	int diff = 0;
 
@@ -278,16 +277,13 @@ TorrentPtr TorrentManager::add_torrent(libtorrent::entry& er,
 		er["position"] = m_torrents.size() + 1;
 
 	TorrentPtr torrent = Torrent::create(er, info, false);
-	libtorrent::sha1_hash hash = info->info_hash();
+	m_torrents[info->info_hash()] = torrent;
 
-	// can't bind with TorrenPtr since the signals are not disconnected
-	// until the TorrentPtr is destroyed (see the loop?)
+	WeakTorrentPtr weak(torrent);
 	torrent->property_handle().signal_changed().connect(sigc::bind(
-		sigc::mem_fun(this, &TorrentManager::on_handle_changed), hash));
+		sigc::mem_fun(this, &TorrentManager::on_handle_changed), weak));
 	torrent->property_position().signal_changed().connect(sigc::bind(
-		sigc::mem_fun(this, &TorrentManager::on_position_changed), hash));
-
-	m_torrents[hash] = torrent;
+		sigc::mem_fun(this, &TorrentManager::on_position_changed), weak));
 
 	m_signal_added.emit(torrent);
 

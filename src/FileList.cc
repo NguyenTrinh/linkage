@@ -111,8 +111,6 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	m_conn_high = m_radio_high->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_HIGH));
 	m_conn_normal = m_radio_normal->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_NORMAL));
 	m_conn_skip = m_radio_skip->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_SKIP));
-
-	Engine::get_torrent_manager()->signal_removed().connect(sigc::mem_fun(*this, &FileList::on_removed));
 }
 
 FileList::~FileList()
@@ -122,12 +120,6 @@ FileList::~FileList()
 void FileList::clear()
 {
 	model->clear();
-}
-
-void FileList::on_removed(const TorrentPtr& torrent)
-{
-	if (m_cur_torrent == torrent)
-		m_cur_torrent = TorrentPtr(NULL);
 }
 
 bool FileList::on_button_press_event(GdkEventButton *event)
@@ -187,12 +179,14 @@ bool FileList::on_button_press_event(GdkEventButton *event)
 
 void FileList::prioritize_row(const Gtk::TreeRow& row, Priority priority)
 {
-	g_return_if_fail(m_cur_torrent);
+	g_return_if_fail(!m_cur_torrent.expired());
+
+	TorrentPtr torrent = m_cur_torrent.lock();
 
 	int index = row[columns.index];
 	if (index != INDEX_FOLDER)
 	{
-		m_cur_torrent->set_file_priority(index, (int)priority);
+		torrent->set_file_priority(index, (int)priority);
 		row[columns.priority] = priority;
 	}
 	else
@@ -205,11 +199,13 @@ void FileList::prioritize_row(const Gtk::TreeRow& row, Priority priority)
 
 void FileList::on_set_priority(Priority priority)
 {
-	g_return_if_fail(m_cur_torrent);
+	g_return_if_fail(!m_cur_torrent.expired());
+
+	TorrentPtr torrent = m_cur_torrent.lock();
 
 	/* FIXME: this should be internal Torrent stuff */
-	if (m_cur_torrent->is_completed() && priority != P_SKIP)
-		m_cur_torrent->set_completed(false);
+	if (torrent->is_completed() && priority != P_SKIP)
+		torrent->set_completed(false);
 
 	Gtk::TreeSelection::ListHandle_Path paths = get_selection()->get_selected_rows();
 	Gtk::TreeSelection::ListHandle_Path::iterator iter = paths.begin();
@@ -278,9 +274,10 @@ std::pair<int,int> FileList::get_piece_range(const Gtk::TreeRow& row)
 	}
 	else
 	{
+		TorrentPtr torrent = m_cur_torrent.lock();
 		libtorrent::size_type size = row[columns.size];
-		p_begin = m_cur_torrent->get_info()->map_file(index, 0, 0).piece;
-		p_end = m_cur_torrent->get_info()->map_file(index, size, 0).piece;
+		p_begin = torrent->get_info()->map_file(index, 0, 0).piece;
+		p_end = torrent->get_info()->map_file(index, size, 0).piece;
 	}
 
 	return std::make_pair(p_begin, p_end);
@@ -348,9 +345,9 @@ void FileList::update(const TorrentPtr& torrent)
 	data.priorities = torrent->get_priorities();
 
 	Gtk::TreeNodeChildren children = model->children();
-	if (m_cur_torrent != torrent)
+	if (m_cur_torrent.lock() != torrent)
 	{
-		m_cur_torrent = torrent;
+		m_cur_torrent = WeakTorrentPtr(torrent);
 		model->clear();
 		refill_tree(data.info);
 	}

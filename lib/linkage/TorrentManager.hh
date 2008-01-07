@@ -81,8 +81,8 @@ private:
 
 	void on_update_queue(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
 
-	void on_handle_changed(const libtorrent::sha1_hash& hash);
-	void on_position_changed(const libtorrent::sha1_hash& hash);
+	void on_handle_changed(const WeakTorrentPtr& torrent);
+	void on_position_changed(const WeakTorrentPtr& torrent);
 	void set_torrent_settings(const TorrentPtr& torrent);
 	
 	void on_key_changed(const Glib::ustring& key, const Value& value);
