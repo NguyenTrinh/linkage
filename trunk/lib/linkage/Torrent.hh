@@ -36,13 +36,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 namespace Linkage
 {
 class Torrent;
-typedef boost::intrusive_ptr<Torrent> TorrentPtr;
+typedef boost::weak_ptr<Torrent> WeakTorrentPtr;
+typedef boost::shared_ptr<Torrent> TorrentPtr;
 
 typedef std::list<libtorrent::sha1_hash> HashList;
 
 class Torrent
 :
-  public libtorrent::intrusive_ptr_base<Torrent>,
   public Glib::Object,
   public org::linkage::Torrent,
   public DBus::IntrospectableAdaptor,
