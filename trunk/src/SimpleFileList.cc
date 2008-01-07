@@ -88,7 +88,7 @@ void SimpleFileList::populate(const boost::intrusive_ptr<libtorrent::torrent_inf
 {
 	model->clear();
 
-	for (unsigned int i = 0; i < info->num_files(); i++)
+	for (int i = 0; i < info->num_files(); i++)
 	{
 		libtorrent::file_entry file = info->file_at(i);
 		Gtk::TreeRow row = *(model->append());

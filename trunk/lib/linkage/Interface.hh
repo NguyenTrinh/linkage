@@ -67,7 +67,7 @@ public:
 	virtual ~Interface();
 };
 
-}; /* namespace */
+} /* namespace */
 
 #endif /* INTERFACE_HH */
 

@@ -141,6 +141,7 @@ private:
 	DBus::Struct<DBus::UInt64, DBus::UInt64> GetTransfered();
 	DBus::Double GetProgress();
 	DBus::UInt32 GetPosition();
+	DBus::String GetPath();
 	void Start();
 	void Stop();
 	void Remove(const DBus::Bool& erase_content);
@@ -199,6 +200,6 @@ private:
 	Torrent(const libtorrent::entry& e, const InfoPtr& info, bool queued);
 };
 
-}; /* namespace */
+} /* namespace */
 
 #endif /* TORRENT_HH */

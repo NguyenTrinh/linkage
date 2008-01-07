@@ -68,7 +68,7 @@ public:
 	~AlertManager();
 };
 
-}; /* namespace */
+} /* namespace */
 
 #endif /* ALERTMANAGER_HH */
 

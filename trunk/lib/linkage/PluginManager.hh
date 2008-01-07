@@ -80,6 +80,6 @@ public:
 	~PluginManager();
 };
 
-}; /* namespace */
+} /* namespace */
 	
 #endif /* PLUGIN_MANAGER_HH */

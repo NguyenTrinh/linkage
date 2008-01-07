@@ -92,7 +92,7 @@ public:
 	~Engine();
 };
 
-}; /* namespace */
+} /* namespace */
 
 #endif /* ENGINE_HH */
 

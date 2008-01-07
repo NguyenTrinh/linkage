@@ -373,7 +373,7 @@ unsigned int TorrentManager::get_torrents_count()
 
 void TorrentManager::check_queue()
 {
-	int last_active = 0;
+	unsigned int last_active = 0;
 	int num_active = 0;
 	int max_active = Engine::get_settings_manager()->get_int("torrent/queue/max_active");
 

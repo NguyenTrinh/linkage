@@ -5,7 +5,7 @@ sed -e "s/@REVISION@/${rev}/g" < "configure.ac.in" > "configure.ac"
 
 intltoolize --force --copy && \
 libtoolize --force && \
-aclocal && \
+aclocal -I m4 && \
 autoheader && \
 automake --add-missing --copy && \
 autoconf && \

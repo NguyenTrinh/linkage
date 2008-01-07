@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 namespace Gtk
 {
 class Widget;
-};
+}
 
 namespace Linkage
 {
@@ -94,7 +94,7 @@ public:
 	virtual ~Plugin();
 };
 
-}; /* namespace */
+} /* namespace */
 
 /* Glib::module needs standard C names */
 #ifdef __cplusplus

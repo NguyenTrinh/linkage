@@ -113,6 +113,6 @@ public:
 	~SettingsManager();
 };
 
-}; /* namespace */
+} /* namespace */
 
 #endif /* SETTINGSMANAGER_HH */
