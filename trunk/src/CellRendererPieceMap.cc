@@ -43,11 +43,12 @@ CellRendererPieceMap::~CellRendererPieceMap()
 std::list<Part> CellRendererPieceMap::more_pixels(int width, int height)
 {
 	std::list<Part> parts;
-	int count = m_prop_map.get_value().size();
+	std::vector<bool> map = m_prop_map.get_value();
+	int count = map.size();
 
 	for (int i = 0; i < count; i++)
 	{
-		if (!m_prop_map.get_value()[i])
+		if (!map[i])
 			continue;
 
 		if (parts.empty())
@@ -68,7 +69,8 @@ std::list<Part> CellRendererPieceMap::more_pixels(int width, int height)
 std::list<Part> CellRendererPieceMap::more_pieces(int width, int height)
 {
 	std::list<Part> parts;
-	int count = m_prop_map.get_value().size();
+	std::vector<bool> map = m_prop_map.get_value();
+	int count = map.size();
 	double pieces_per_part = (double)count/width;
 
 	for (int i = 0; i < width; i++)
@@ -77,7 +79,7 @@ std::list<Part> CellRendererPieceMap::more_pieces(int width, int height)
 		int start = (int)(i*pieces_per_part);
 		int end = (int)((i+1)*pieces_per_part+0.5);
 		for (int j = start; j < end; j++)
-			if (m_prop_map.get_value()[j])
+			if (map[j])
 				completed++;
 
 		if (!completed)

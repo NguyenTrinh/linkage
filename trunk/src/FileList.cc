@@ -63,7 +63,7 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	CellRendererPieceMap *piece_render = manage(new CellRendererPieceMap());
 	column = manage(new Gtk::TreeViewColumn(_("Pieces"), *piece_render));
 	append_column(*column);
-	column->add_attribute(piece_render->property_map(), columns.map);
+	column->add_attribute(*piece_render, "map", columns.map);
 	model->set_sort_func(columns.map, sigc::mem_fun(this, &FileList::compare_piece_map));
 	column->set_sort_column(columns.map);
 	column->set_resizable(true);
