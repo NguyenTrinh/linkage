@@ -45,11 +45,15 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
   DBus::ObjectAdaptor(Engine::get_bus(), get_torrent_path(info->info_hash())),
   m_prop_handle(*this, "handle"),
   m_prop_position(*this, "position"),
-  m_prop_state(*this, "state", Torrent::STOPPED)
+  m_prop_state(*this, "state", Torrent::STOPPED),
+  m_stop_ratio(0),
+  m_cur_tier(0),
+  m_info(info),
+  m_is_queued(queued)
 {
 	m_cache = std::auto_ptr<StoppedCache>(new StoppedCache());
 
-	m_cache->file_progress.assign(info->num_files(), 0);
+	m_cache->file_progress.assign(m_info->num_files(), 0);
 	/* try and get file and piece progress from resume file */
 	if (e.find_key("slots"))
 	{
@@ -62,7 +66,7 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 		for (libtorrent::entry::list_type::iterator iter = e_slots.begin();
 			iter != e_slots.end(); ++iter)
 		{
-			g_assert(piece < info->num_pieces());
+			g_assert(piece < m_info->num_pieces());
 
 			/* check if the piece is partially done */
 			bool unfinished = false;
@@ -78,10 +82,10 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 			m_cache->pieces.push_back(piece_done);
 
 			/* count bytes to keep track of which file where in */
-			libtorrent::size_type ps = info->piece_size(piece);
+			libtorrent::size_type ps = m_info->piece_size(piece);
 			bytes += ps;
 			bytes_done += piece_done ? ps : 0;
-			libtorrent::size_type size = info->file_at(index).size;
+			libtorrent::size_type size = m_info->file_at(index).size;
 			/* get progress for current file if we pass it */
 			while (bytes >= size)
 			{
@@ -95,28 +99,22 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 				bytes_done = piece_done ? diff : 0;
 				index++;
 
-				if (index >= info->num_files())
+				if (index >= m_info->num_files())
 					break;
 
 				/* loop if last piece spans over small files */
-				size = info->file_at(index).size;
+				size = m_info->file_at(index).size;
 			}
 			piece++;
 		}
 	}
 	else
-		m_cache->pieces.assign(info->num_pieces(), false);
+		m_cache->pieces.assign(m_info->num_pieces(), false);
 
-	g_assert(m_cache->pieces.size() == info->num_pieces());
-	g_assert(m_cache->file_progress.size() == info->num_files());
+	g_assert(m_cache->pieces.size() == m_info->num_pieces());
+	g_assert(m_cache->file_progress.size() == m_info->num_files());
 
 	m_cache->status.pieces = &m_cache->pieces;
-
-	m_cur_tier = 0;
-
-	m_is_queued = queued;
-
-	m_info = info;
 
 	m_downloaded = e["downloaded"].integer();
 	m_uploaded = e["uploaded"].integer();
@@ -127,8 +125,7 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 		m_group = e["group"].string();
 	if (e.find_key("name"))
 		m_name = e["name"].string();
-	else
-		m_name = m_info->name(); /* sub optimal... */
+
 	m_up_limit = e["upload-limit"].integer();
 	m_down_limit = e["download-limit"].integer();
 
@@ -287,7 +284,7 @@ float Torrent::_get_stopped_progress()
 
 Glib::ustring Torrent::get_name()
 {
-	return m_name;
+	return m_name.empty() ? Glib::ustring(m_info->name()) : m_name;
 }
 
 const Glib::ustring& Torrent::get_group()
