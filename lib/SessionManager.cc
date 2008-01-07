@@ -211,9 +211,10 @@ void SessionManager::update_session_settings()
 		{
 			/* FIXME: notify user about failure */
 		}
+		/* TODO: check if we are allowed to use these routers */
 		add_dht_router(std::pair<std::string, int>("router.bittorrent.com", 6881));
 		add_dht_router(std::pair<std::string, int>("router.utorrent.com", 6881));
-		add_dht_router(std::pair<std::string, int>("router.bitcoment.com", 6881));
+		add_dht_router(std::pair<std::string, int>("router.bitcomet.net", 554));
 	}
 	else
 		/* FIXME: check if dht is running, if so save state */
