@@ -90,6 +90,7 @@ public:
 	const std::vector<int>& get_priorities();
 	int get_up_limit();
 	int get_down_limit();
+	float get_stop_ratio();
 	libtorrent::sha1_hash get_hash();
 
 	libtorrent::size_type get_previously_downloaded();
@@ -113,6 +114,7 @@ public:
 	void set_file_priority(int index, int priority);
 	void set_up_limit(int limit);
 	void set_down_limit(int limit);
+	void set_stop_ratio(float ratio);
 
 	void set_completed(bool completed = true);
 

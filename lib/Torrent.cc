@@ -326,6 +326,11 @@ int Torrent::get_down_limit()
 	return m_down_limit;
 }
 
+float Torrent::get_stop_ratio()
+{
+	return m_stop_ratio;
+}
+
 libtorrent::sha1_hash Torrent::get_hash()
 {
 	return m_info->info_hash();
@@ -597,6 +602,12 @@ void Torrent::set_down_limit(int limit)
 		else
 			get_handle().set_download_limit(m_down_limit*1024);
 	}
+}
+
+void Torrent::set_stop_ratio(float ratio)
+{
+	/* ratio < 1 means unlimited */
+	m_stop_ratio = ratio;
 }
 
 void Torrent::set_completed(bool completed)

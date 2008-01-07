@@ -299,6 +299,7 @@ void TorrentManager::set_torrent_settings(const TorrentPtr& torrent)
 	{
 		SettingsManagerPtr sm = Engine::get_settings_manager();
 		libtorrent::torrent_handle handle = torrent->get_handle();
+		torrent->set_stop_ratio(sm->get_float("torrent/stop_ratio"));
 		handle.set_ratio(sm->get_float("torrent/seed_ratio"));
 		handle.set_max_uploads(sm->get_int("torrent/max_uploads"));
 		handle.set_max_connections(sm->get_int("torrent/max_connections"));
