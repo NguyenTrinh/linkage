@@ -341,7 +341,7 @@ Glib::ustring TorrentList::get_formated_name(const TorrentPtr& torrent)
 
 	Glib::ustring name = torrent->get_name();
 	int name_max = sm->get_int("ui/torrent_view/max_name_width");
-	if (sm->get_bool("ui/torrent_view/trunkate_names") && name.size() > name_max)
+	if (sm->get_bool("ui/torrent_view/trunkate_names") && (int)name.size() > name_max)
 		name = name.substr(0, name_max) + "...";
 	name = Glib::Markup::escape_text(name);
 
@@ -429,8 +429,8 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
 
 	Glib::ustring old_state = row[columns.state];
-	unsigned int old_peers = row[columns.peers];
-	unsigned int old_seeds = row[columns.seeds];
+	int old_peers = row[columns.peers];
+	int old_seeds = row[columns.seeds];
 
 	int state = torrent->get_state();
 	Glib::ustring state_string = Torrent::state_string(state);
@@ -516,7 +516,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
 	row[columns.seeds] = status.num_seeds;
-	unsigned int peers = status.num_peers - status.num_seeds;
+	int peers = status.num_peers - status.num_seeds;
 	row[columns.peers] = peers;
 
 	// if we haven't already done it, update formated name if peers/seeds has changed

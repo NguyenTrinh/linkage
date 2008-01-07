@@ -54,14 +54,14 @@ bool PieceMap::on_expose_event(GdkEventExpose* event)
 												 rect, *widget, "", 0, 0, fw, fh);
 
 	int x = event->area.x;
-	int y = event->area.y;
+	//int y = event->area.y;
 	int w = event->area.width;
-	int h = event->area.height;
+	//int h = event->area.height;
 
 	std::list<Part> parts;
 	double scale = 1.0;
 	int mw = fw - (get_style()->get_xthickness() * 2);
-	if (m_map.size() >= mw)
+	if ((int)m_map.size() >= mw)
 		parts = more_pieces();
 	else
 	{
@@ -103,8 +103,6 @@ std::list<Part> PieceMap::more_pixels()
 {
 	std::list<Part> parts;
 	int count = m_map.size();
-	int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
-	int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
 	
 	for (int i = 0; i < count; i++)
 	{
@@ -130,10 +128,9 @@ std::list<Part> PieceMap::more_pieces()
 	std::list<Part> parts;
 	int count = m_map.size();
 	int width = get_allocation().get_width() - (get_style()->get_xthickness() * 2);
-	int height = get_allocation().get_height() - (get_style()->get_ythickness() * 2);
 	double pieces_per_part = (double)count/width;
 	
-	for (unsigned int i = 0; i < width; i++)
+	for (int i = 0; i < width; i++)
 	{
 		int completed = 0;
 		int start = (int)(i*pieces_per_part);

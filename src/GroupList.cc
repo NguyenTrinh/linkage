@@ -176,7 +176,6 @@ void GroupList::update()
 	TorrentManager::TorrentList torrents = Engine::get_torrent_manager()->get_torrents();
 
 	Gtk::TreeRow all;
-	unsigned int n_all = 0;
 
 	Gtk::TreeNodeChildren children = model->children();
 	for (Gtk::TreeIter i = children.begin(); i != children.end(); ++i)

@@ -71,6 +71,6 @@ public:
 	virtual ~SessionManager();
 };
 
-}; /* namespace */
+} /* namespace */
 
 #endif

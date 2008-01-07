@@ -149,7 +149,7 @@ void TorrentCreator::run()
 
 		std::vector<char> buf(piece_size);
 		
-		for (unsigned int i = 0; i < info->num_pieces(); i++)
+		for (int i = 0; i < info->num_pieces(); i++)
 		{
 			double progress = (double)i/info->num_pieces();
 			progress_hashing->set_fraction(progress);

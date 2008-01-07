@@ -36,8 +36,9 @@ DBus::Struct<DBus::UInt32, DBus::UInt32> Torrent::GetRates()
 {
 	DBus::Struct<DBus::UInt32, DBus::UInt32> rates;
 	libtorrent::torrent_status status = get_status();
-	rates._1 = status.download_payload_rate;
-	rates._2 = status.upload_payload_rate;
+	// FIXME: return floats
+	rates._1 = (int)status.download_payload_rate;
+	rates._2 = (int)status.upload_payload_rate;
 	return rates;
 }
 
@@ -60,6 +61,11 @@ DBus::Double Torrent::GetProgress()
 DBus::UInt32 Torrent::GetPosition()
 {
 	return get_position();
+}
+
+DBus::String Torrent::GetPath()
+{
+	return get_path();
 }
 
 void Torrent::Start()

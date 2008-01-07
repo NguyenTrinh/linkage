@@ -95,6 +95,7 @@ Glib::ustring SettingsManager::get_string(const Glib::ustring& path) const
 	{
 		g_warning(err.what().c_str());
 	}
+	return Glib::ustring();
 }
 
 int SettingsManager::get_int(const Glib::ustring& path) const
@@ -109,6 +110,7 @@ int SettingsManager::get_int(const Glib::ustring& path) const
 	{
 		g_warning(err.what().c_str());
 	}
+	return 0;
 }
 
 float SettingsManager::get_float(const Glib::ustring& path) const
@@ -123,6 +125,7 @@ float SettingsManager::get_float(const Glib::ustring& path) const
 	{
 		g_warning(err.what().c_str());
 	}
+	return 0;
 }
 
 bool SettingsManager::get_bool(const Glib::ustring& path) const
@@ -137,6 +140,7 @@ bool SettingsManager::get_bool(const Glib::ustring& path) const
 	{
 		g_warning(err.what().c_str());
 	}
+	return false;
 }
 
 UStringArray SettingsManager::get_string_list(const Glib::ustring& path) const
@@ -151,23 +155,24 @@ UStringArray SettingsManager::get_string_list(const Glib::ustring& path) const
 	{
 		g_warning(err.what().c_str());
 	}
+	return std::list<Glib::ustring>();
 }
 
 gint SettingsManager::get_enum(const Glib::ustring& path, GConfEnumStringPair* table) const
 {
 	Glib::ustring prefix = (path[0] == '/' ? "" : "/apps/linkage/");
 
+	gint tmp = 0;
 	try
 	{
-		gint tmp = 0;
 		Glib::ustring enum_str = gconf->get_string(prefix + path);
 		gconf_string_to_enum(table, enum_str.c_str(), &tmp);
-		return tmp;
 	}
 	catch (Gnome::Conf::Error err)
 	{
 		g_warning(err.what().c_str());
 	}
+	return tmp;
 }
 
 IntArray SettingsManager::get_int_list(const Glib::ustring& path) const
@@ -182,6 +187,7 @@ IntArray SettingsManager::get_int_list(const Glib::ustring& path) const
 	{
 		g_warning(err.what().c_str());
 	}
+	return std::list<int>();
 }
 
 void SettingsManager::set(const Glib::ustring& path, const Glib::ustring& value)

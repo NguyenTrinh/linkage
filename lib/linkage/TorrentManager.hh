@@ -100,6 +100,6 @@ private:
 	void check_queue();
 };
 
-}; /* namespace */
+} /* namespace */
 
 #endif /* TORRENTMANAGER_HH */

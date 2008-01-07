@@ -46,10 +46,10 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
   m_prop_handle(*this, "handle"),
   m_prop_position(*this, "position"),
   m_prop_state(*this, "state", Torrent::STOPPED),
-  m_stop_ratio(0),
-  m_cur_tier(0),
   m_info(info),
-  m_is_queued(queued)
+  m_cur_tier(0),
+  m_is_queued(queued),
+  m_stop_ratio(0)
 {
 	m_cache = std::auto_ptr<StoppedCache>(new StoppedCache());
 
@@ -111,8 +111,8 @@ Torrent::Torrent(const libtorrent::entry& e, const Torrent::InfoPtr& info, bool 
 	else
 		m_cache->pieces.assign(m_info->num_pieces(), false);
 
-	g_assert(m_cache->pieces.size() == m_info->num_pieces());
-	g_assert(m_cache->file_progress.size() == m_info->num_files());
+	g_assert((int)m_cache->pieces.size() == m_info->num_pieces());
+	g_assert((int)m_cache->file_progress.size() == m_info->num_files());
 
 	m_cache->status.pieces = &m_cache->pieces;
 
@@ -353,7 +353,7 @@ bool Torrent::is_completed()
 
 int Torrent::get_state()
 {
-	m_prop_state.get_value();
+	return m_prop_state.get_value();
 }
 
 Glib::ustring Torrent::state_string(int state)

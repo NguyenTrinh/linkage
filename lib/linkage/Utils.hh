@@ -69,6 +69,6 @@ Gdk::Color lighter(const Gdk::Color& color, double fac);
 
 Glib::ustring hex_color(const Gdk::Color& color);
 
-}; /* namespace */
+} /* namespace */
 
 #endif /* UTILS_HH */
