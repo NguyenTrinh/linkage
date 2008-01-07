@@ -405,26 +405,22 @@ void UI::open(const Glib::ustring& uri)
 	if (response == Gtk::RESPONSE_OK)
 	{
 		AddDialog::AddData data = add_dialog->get_data();
-		if (!Glib::file_test(data.file, Glib::FILE_TEST_EXISTS))
-		{
-			Engine::get_session_manager()->signal_missing_file().emit(
-				String::ucompose(_("File not found, \"%1\""), data.file), data.file);
-			return;
-		}
+		Torrent::InfoPtr info = add_dialog->get_info();
 
 		if (data.seed)
 		{
 			libtorrent::entry::dictionary_type er;
 			er["path"] = data.path;
-			er["downloaded"] = add_dialog->get_info()->total_size();
+			er["downloaded"] = info->total_size();
 			er["completed"] = true;
 			save_entry(Glib::build_filename(get_data_dir(),
-				String::compose("%1", add_dialog->get_info()->info_hash()) + ".resume"), er);
+				String::compose("%1", info->info_hash()) + ".resume"), er);
 		}
 
+		/* FIXME: would make more sense to pass info instead of file */
 		TorrentPtr torrent = Engine::get_session_manager()->open_torrent(data.file, data.path);
 
-		if (!data.name.empty())
+		if (data.name != info->name())
 			torrent->set_name(data.name);
 		if (!data.group.empty())
 			torrent->set_group(data.group);
