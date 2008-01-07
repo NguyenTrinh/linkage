@@ -189,8 +189,6 @@ int AddDialog::run_with_file(const Glib::ustring& file)
 	//hack so users can't press ok before the filename is set properly
 	button_ok->set_sensitive(false);
 
-	show(); // m_info is reset here
-
 	//FIXME: uncomment when gtkfilechooser is fixed
 	//button_file->set_filename(Glib::filename_from_utf8(file));
 
