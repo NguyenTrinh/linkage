@@ -146,6 +146,9 @@ void TorrentManager::on_update_queue(const libtorrent::sha1_hash& hash, const Gl
 
 void TorrentManager::on_handle_changed(const libtorrent::sha1_hash& hash)
 {
+	if (!exists(hash))
+		return;
+
 	TorrentPtr torrent = m_torrents[hash];
 	set_torrent_settings(torrent);
 
@@ -276,11 +279,9 @@ TorrentPtr TorrentManager::add_torrent(libtorrent::entry& er,
 
 	TorrentPtr torrent = Torrent::create(er, info, false);
 	libtorrent::sha1_hash hash = info->info_hash();
-	/* 
-		Seems we can't bind with the torrent RefPtr
-		if we do we crash when the signalproxies destroys
-		and there seems to be no way of disconnect them either :/
-	*/
+
+	// can't bind with TorrenPtr since the signals are not disconnected
+	// until the TorrentPtr is destroyed (see the loop?)
 	torrent->property_handle().signal_changed().connect(sigc::bind(
 		sigc::mem_fun(this, &TorrentManager::on_handle_changed), hash));
 	torrent->property_position().signal_changed().connect(sigc::bind(
@@ -346,6 +347,7 @@ void TorrentManager::remove_torrent(const TorrentPtr& torrent)
 
 	m_signal_removed.emit(torrent);
 
+	/* duplicated in on_handle_changed? */
 	check_queue();
 }
 

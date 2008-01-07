@@ -77,7 +77,7 @@ class TorrentList : public Gtk::TreeView
 
 	void on_added(const Linkage::TorrentPtr& torrent);
 	void on_removed(const Linkage::TorrentPtr& torrent);
-	void on_position_changed(const Linkage::TorrentPtr& torrent);
+	void on_position_changed(const libtorrent::sha1_hash& hash);
 
 	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
 	Glib::ustring get_formated_name(const Linkage::TorrentPtr& torrent);

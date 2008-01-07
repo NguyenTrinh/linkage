@@ -33,12 +33,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <algorithm>
 #include <iostream>
 
-using namespace Linkage;
-
 #define ICON_DIR "gnome-fs-directory"
 #define ICON_FILE "gnome-fs-regular"
 
 #define INDEX_FOLDER -1
+
+using namespace Linkage;
 
 FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::TreeView(cobject)
@@ -111,6 +111,8 @@ FileList::FileList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml
 	m_conn_high = m_radio_high->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_HIGH));
 	m_conn_normal = m_radio_normal->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_NORMAL));
 	m_conn_skip = m_radio_skip->signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &FileList::on_set_priority), P_SKIP));
+
+	Engine::get_torrent_manager()->signal_removed().connect(sigc::mem_fun(*this, &FileList::on_removed));
 }
 
 FileList::~FileList()
@@ -120,6 +122,12 @@ FileList::~FileList()
 void FileList::clear()
 {
 	model->clear();
+}
+
+void FileList::on_removed(const TorrentPtr& torrent)
+{
+	if (m_cur_torrent == torrent)
+		m_cur_torrent = TorrentPtr(NULL);
 }
 
 bool FileList::on_button_press_event(GdkEventButton *event)

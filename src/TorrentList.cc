@@ -199,7 +199,7 @@ void TorrentList::on_added(const TorrentPtr& torrent)
 
 	torrent->property_position().signal_changed().connect(sigc::bind(
 		sigc::mem_fun(this, &TorrentList::on_position_changed),
-		torrent));
+		torrent->get_hash()));
 
 	update_row(row);
 }
@@ -218,15 +218,16 @@ void TorrentList::on_removed(const TorrentPtr& torrent)
 	}
 }
 
-void TorrentList::on_position_changed(const Linkage::TorrentPtr& torrent)
+void TorrentList::on_position_changed(const libtorrent::sha1_hash& hash)
 {
 	Gtk::TreeIter iter;
 	Gtk::TreeNodeChildren children = model->children();
 	for (iter = children.begin(); iter != children.end(); ++iter)
 	{
 		Gtk::TreeRow row = *iter;
-		if (torrent->get_hash() == row[columns.hash])
+		if (hash == row[columns.hash])
 		{
+			TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 			row[columns.position] = torrent->get_position();
 			break;
 		}

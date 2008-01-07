@@ -83,7 +83,6 @@ AddDialog::~AddDialog()
 
 void AddDialog::on_show()
 {
-	m_info = boost::intrusive_ptr<libtorrent::torrent_info>(NULL);
 	if (Engine::get_settings_manager()->get_bool("files/use_default_path"))
 	{
 		Glib::ustring path = Engine::get_settings_manager()->get_string("files/default_path");
@@ -177,15 +176,20 @@ AddDialog::AddData AddDialog::get_data()
 	return data;
 }
 
-const boost::intrusive_ptr<libtorrent::torrent_info>& AddDialog::get_info()
+Torrent::InfoPtr AddDialog::get_info()
 {
-	return m_info;
+	Torrent::InfoPtr info = m_info;
+	m_info = Torrent::InfoPtr(NULL);
+
+	return info;
 }
 
 int AddDialog::run_with_file(const Glib::ustring& file)
 {
 	//hack so users can't press ok before the filename is set properly
 	button_ok->set_sensitive(false);
+
+	show(); // m_info is reset here
 
 	//FIXME: uncomment when gtkfilechooser is fixed
 	//button_file->set_filename(Glib::filename_from_utf8(file));

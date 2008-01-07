@@ -67,6 +67,7 @@ class FileList : public Gtk::TreeView
 	void prioritize_row(const Gtk::TreeRow& row, Priority priority);
 	void on_set_priority(Priority priority);
 
+	void on_removed(const Linkage::TorrentPtr& torrent);
 	bool on_button_press_event(GdkEventButton *event);
 
 	typedef struct

@@ -410,10 +410,14 @@ void SessionManager::erase_torrent(const TorrentPtr& torrent, bool erase_content
 	if (erase_content)
 		options = delete_files;
 
+	libtorrent::torrent_handle handle = torrent->get_handle();
 	Engine::get_torrent_manager()->remove_torrent(torrent);
+	torrent->set_handle(torrent_handle());
 
-	if (!torrent->is_stopped())
-		remove_torrent(torrent->get_handle(), options);
+	if (handle.is_valid())
+		remove_torrent(handle, options);
+	else if (erase_content);
+		/* TODO: erase files manually */
 
 	/* remove metadata and .resume file */
 	Glib::ustring file = Glib::build_filename(get_data_dir(),

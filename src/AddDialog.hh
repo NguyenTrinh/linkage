@@ -52,7 +52,7 @@ class AddDialog : public Gtk::Dialog
 	Gtk::Expander* expander;
 	Gtk::Button* button_ok;
 
-	boost::intrusive_ptr<libtorrent::torrent_info> m_info;
+	Linkage::Torrent::InfoPtr m_info;
 
 	void on_show();
 
@@ -74,7 +74,7 @@ public:
 	} AddData;
 
 	AddData get_data();
-	const boost::intrusive_ptr<libtorrent::torrent_info>& get_info();
+	Linkage::Torrent::InfoPtr get_info();
 
 	int run_with_file(const Glib::ustring& file);
 	int run();
