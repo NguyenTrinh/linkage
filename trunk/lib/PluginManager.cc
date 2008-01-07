@@ -96,6 +96,7 @@ void PluginManager::refresh_info()
 			}
 		}
 		else
+			/* TODO: notify user */
 			g_warning(_("Failed to open plugin %s"), module.get_last_error().c_str());
 	}
 }
