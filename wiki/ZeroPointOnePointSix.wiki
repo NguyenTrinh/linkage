@@ -28,7 +28,7 @@ Here is a bunch of stuff that are currently planned for the next release, feel f
 == Preferences ==
   * ~~SettingsManager should have a signal for each setting, so that changing values through gconf-editor changes the values in linkage at the same time. This way preferences can be applied to when changed in the SettingsWin, and not when the window closes.~~
   * ~~Add new options with libtorrent 0.13~~ mostly done
-  * Add stop seeding at ratio "x" option
+  * ~~Add stop seeding at ratio "x" option~~
 
 == TorrentList ==
   * Possibly add customizable text format in printf style.
