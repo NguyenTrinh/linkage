@@ -194,6 +194,8 @@ void TorrentList::on_added(const TorrentPtr& torrent)
 	row[columns.name] = torrent->get_name();
 	row[columns.position] = torrent->get_position();
 	row[columns.name_formated] = get_formated_name(torrent);
+	if (Torrent::state_string(torrent->get_state()) != row[columns.state])
+		on_state_changed(WeakTorrentPtr(torrent));
 
 	if (hash_str == String::compose("%1", torrent->get_hash()))
 		get_selection()->select(filter->convert_child_iter_to_iter(iter));
@@ -525,8 +527,12 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
-	row[columns.seeds] = status.num_seeds;
+
 	int peers = status.num_peers - status.num_seeds;
+	if (peers == row[columns.peers] && status.num_seeds == row[columns.seeds])
+		return;
+
+	row[columns.seeds] = status.num_seeds;
 	row[columns.peers] = peers;
 
 	row[columns.name_formated] = get_formated_name(torrent);
