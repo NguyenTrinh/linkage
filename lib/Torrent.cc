@@ -202,9 +202,6 @@ void Torrent::on_tick()
 	if (cur_state != new_state)
 		m_prop_state = new_state;
 
-	if (is_stopped())
-		m_cache->status.progress = _get_stopped_progress();
-
 	/* TODO: add more useful properties and update them here */
 
 	if (m_stop_ratio >= 1.0f && get_state() & SEEDING)
@@ -545,7 +542,10 @@ void Torrent::set_priorities(const std::vector<int>& priorities)
 	m_priorities = priorities;
 
 	if (is_stopped())
+	{
+		m_cache->status.progress = _get_stopped_progress();
 		return;
+	}
 
 	get_handle().prioritize_files(m_priorities);
 
