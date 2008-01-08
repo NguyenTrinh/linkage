@@ -107,7 +107,8 @@ void AlertManager::check_alerts()
 			else
 				translated = _("Announcing");
 			TorrentPtr torrent = get_torrent(p->handle);
-			m_signal_tracker_announce.emit(torrent, translated);
+			if (torrent)
+				m_signal_tracker_announce.emit(torrent, translated);
 		}
 		else if (tracker_alert* p = dynamic_cast<tracker_alert*>(a.get()))
 		{
