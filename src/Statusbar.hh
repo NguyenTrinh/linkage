@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "libtorrent/peer_id.hpp"
 
+#include "linkage/Torrent.hh"
+
 class Statusbar : public Gtk::Statusbar
 {
 	Gtk::Label* m_connections;
@@ -34,20 +36,18 @@ class Statusbar : public Gtk::Statusbar
 
 	void post(const Glib::ustring& msg);
 
-	void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
-	void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
 	void on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash);
 
 	void on_listen_failed(const Glib::ustring& msg);
-	void on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int code, int times);
-	void on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int peers);
-	void on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_hash_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int piece);
-	void on_peer_ban(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip);
+	void on_portmap_failed(const Glib::ustring& msg);
+	void on_portmap_success(const Glib::ustring& msg);
+	void on_tracker_announce(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg);
+	void on_tracker_failed(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const Glib::ustring& tracker, int code, int times);
+	void on_tracker_reply(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const Glib::ustring& tracker, int peers);
+	void on_tracker_warning(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg);
+	void on_http_seed_failed(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const Glib::ustring& url);
+	void on_hash_failed(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, int);
+	void on_peer_banned(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const libtorrent::address&);
 
 public:
 	void set_status(int connections, float down_rate, float up_rate);

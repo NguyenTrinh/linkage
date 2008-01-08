@@ -46,7 +46,7 @@ TorrentManager::TorrentManager()
 	am->signal_tracker_reply().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_reply));
 	am->signal_tracker_warning().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_warning));
 	am->signal_tracker_failed().connect(sigc::mem_fun(*this, &TorrentManager::on_tracker_failed));
-	am->signal_torrent_finished().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
+	am->signal_torrent_finished().connect(sigc::bind(sigc::mem_fun(*this, &TorrentManager::on_update_queue), Glib::ustring()));
 	am->signal_file_error().connect(sigc::mem_fun(*this, &TorrentManager::on_update_queue));
 
 	Engine::get_settings_manager()->signal_key_changed().connect(sigc::mem_fun(*this, &TorrentManager::on_key_changed));
@@ -93,53 +93,40 @@ void TorrentManager::on_key_changed(const Glib::ustring& key, const Value& value
 	}
 }
 
-void TorrentManager::on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void TorrentManager::on_tracker_announce(const TorrentPtr& torrent, const Glib::ustring& msg)
 {
-	if (exists(hash) && !Glib::str_has_suffix(msg, "event=stopped"))
+	if (!torrent->is_stopped())
 	{
 		// FIXME: should we save resume data more often?
-		libtorrent::entry e = m_torrents[hash]->get_resume_entry();
-		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", hash) + ".resume"), e);
-
-		m_torrents[hash]->set_tracker_reply(_("Announcing"), "", Torrent::REPLY_ANNOUNCING);
+		libtorrent::entry e = torrent->get_resume_entry();
+		save_entry(Glib::build_filename(get_data_dir(), String::compose("%1", torrent->get_hash()) + ".resume"), e);
 	}
+
+	torrent->set_tracker_reply(msg, "", Torrent::REPLY_ANNOUNCING);
 }
 
-void TorrentManager::on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int peers)
+void TorrentManager::on_tracker_reply(const TorrentPtr& torrent, const Glib::ustring& reply, const Glib::ustring& tracker, int peers)
 {
-	if (exists(hash) && reply.size() > 27)
-	{
-		Glib::ustring tracker = reply.substr(27);
-		m_torrents[hash]->set_tracker_reply(String::ucompose(_(
-			"OK, got %1 peers"), peers), tracker, Torrent::REPLY_OK);
-	}
+	if (tracker != "DHT")
+		torrent->set_tracker_reply(reply, tracker, Torrent::REPLY_OK);
 }
 
-void TorrentManager::on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& reply)
+void TorrentManager::on_tracker_warning(const TorrentPtr& torrent, const Glib::ustring& reply)
 {
-	if (exists(hash) && !Glib::str_has_prefix(reply, "Redirecting to \""))
-		m_torrents[hash]->set_tracker_reply(reply);
+	if (!Glib::str_has_prefix(reply, "Redirecting to \""))
+		torrent->set_tracker_reply(reply);
 }
 
-void TorrentManager::on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int code, int times)
+void TorrentManager::on_tracker_failed(const TorrentPtr& torrent, const Glib::ustring& reply, const Glib::ustring& tracker, int code, int times)
 {
-	if (exists(hash))
-	{
-		int pos = reply.find(" ", 9);
-		// FIXME: use our own error messages so we can translate them
-		Glib::ustring msg = reply.substr(pos + 1);
-		Glib::ustring tracker = reply.substr(10, pos - 11);
+	Glib::ustring msg = reply;
+	if (times > 1)
+		msg = String::ucompose(_("%1 (%2 times in a row)"), msg, times);
 
-		Glib::ustring s = msg;
-
-		if (times > 1)
-			s = String::ucompose(_("%1 (%2 times in a row)"), s, times);
-
-		m_torrents[hash]->set_tracker_reply(s, tracker);
-	}
+	torrent->set_tracker_reply(msg, tracker);
 }
 
-void TorrentManager::on_update_queue(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void TorrentManager::on_update_queue(const TorrentPtr& torrent, const Glib::ustring& msg)
 {
 	check_queue();
 }

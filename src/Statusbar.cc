@@ -60,20 +60,19 @@ Statusbar::Statusbar(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	frame->set_shadow_type(Gtk::SHADOW_IN);
 	pack_end(*frame, false, false);
 
-	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &Statusbar::on_invalid_bencoding));
-	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &Statusbar::on_missing_file));
 	Engine::get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &Statusbar::on_duplicate_torrent));
 
-	Engine::get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &Statusbar::on_listen_failed));
-	Engine::get_alert_manager()->signal_tracker_failed().connect(sigc::mem_fun(this, &Statusbar::on_tracker_failed));
-	Engine::get_alert_manager()->signal_tracker_reply().connect(sigc::mem_fun(this, &Statusbar::on_tracker_reply));
-	Engine::get_alert_manager()->signal_tracker_warning().connect(sigc::mem_fun(this, &Statusbar::on_tracker_warning));
-	Engine::get_alert_manager()->signal_tracker_announce().connect(sigc::mem_fun(this, &Statusbar::on_tracker_announce));
-	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &Statusbar::on_torrent_finished));
-	Engine::get_alert_manager()->signal_file_error().connect(sigc::mem_fun(this, &Statusbar::on_file_error));
-	Engine::get_alert_manager()->signal_fastresume_rejected().connect(sigc::mem_fun(this, &Statusbar::on_fastresume_rejected));
-	Engine::get_alert_manager()->signal_hash_failed().connect(sigc::mem_fun(this, &Statusbar::on_hash_failed));
-	Engine::get_alert_manager()->signal_peer_ban().connect(sigc::mem_fun(this, &Statusbar::on_peer_ban));
+	AlertManagerPtr am = Engine::get_alert_manager();
+	am->signal_listen_failed().connect(sigc::mem_fun(this, &Statusbar::on_listen_failed));
+	am->signal_portmap_failed().connect(sigc::mem_fun(this, &Statusbar::on_portmap_failed));
+	am->signal_portmap_success().connect(sigc::mem_fun(this, &Statusbar::on_portmap_success));
+	am->signal_tracker_failed().connect(sigc::mem_fun(this, &Statusbar::on_tracker_failed));
+	am->signal_tracker_reply().connect(sigc::mem_fun(this, &Statusbar::on_tracker_reply));
+	am->signal_tracker_warning().connect(sigc::mem_fun(this, &Statusbar::on_tracker_warning));
+	am->signal_tracker_announce().connect(sigc::mem_fun(this, &Statusbar::on_tracker_announce));
+	am->signal_http_seed_failed().connect(sigc::mem_fun(this, &Statusbar::on_http_seed_failed));
+	am->signal_hash_failed().connect(sigc::mem_fun(this, &Statusbar::on_hash_failed));
+	am->signal_peer_banned().connect(sigc::mem_fun(this, &Statusbar::on_peer_banned));
 }
 
 Statusbar::~Statusbar()
@@ -86,16 +85,6 @@ void Statusbar::post(const Glib::ustring& msg)
 	push(msg);
 }
 
-void Statusbar::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	post(msg);
-}
-
-void Statusbar::on_missing_file(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	post(msg);
-}
-
 void Statusbar::on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash)
 {
 	post(msg);
@@ -105,49 +94,39 @@ void Statusbar::on_listen_failed(const Glib::ustring& msg)
 {
 	post(msg);
 }
-
-void Statusbar::on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int code, int times)
+void Statusbar::on_portmap_failed(const Glib::ustring& msg)
 {
 	post(msg);
 }
-
-void Statusbar::on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int peers)
+void Statusbar::on_portmap_success(const Glib::ustring& msg)
 {
 	post(msg);
 }
-
-void Statusbar::on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void Statusbar::on_tracker_announce(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg)
 {
 	post(msg);
 }
-
-void Statusbar::on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void Statusbar::on_tracker_failed(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const Glib::ustring& tracker, int code, int times)
 {
 	post(msg);
 }
-
-void Statusbar::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
-{
-	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	post(torrent->get_name() + " is_complete");
-}
-
-void Statusbar::on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void Statusbar::on_tracker_reply(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const Glib::ustring& tracker, int peers)
 {
 	post(msg);
 }
-
-void Statusbar::on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void Statusbar::on_tracker_warning(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg)
 {
 	post(msg);
 }
-
-void Statusbar::on_hash_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, int piece)
+void Statusbar::on_http_seed_failed(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const Glib::ustring& url)
 {
 	post(msg);
 }
-
-void Statusbar::on_peer_ban(const libtorrent::sha1_hash& hash, const Glib::ustring& msg, const Glib::ustring& ip)
+void Statusbar::on_hash_failed(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, int)
+{
+	post(msg);
+}
+void Statusbar::on_peer_banned(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg, const libtorrent::address&)
 {
 	post(msg);
 }

@@ -74,12 +74,12 @@ private:
 	sigc::signal<void, TorrentPtr> m_signal_removed;
 	sigc::signal<void, Glib::ustring, Torrent::InfoPtr> m_signal_load_failed;
 
-	void on_tracker_announce(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_tracker_reply(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int peers);
-	void on_tracker_warning(const libtorrent::sha1_hash& hash, const Glib::ustring& reply);
-	void on_tracker_failed(const libtorrent::sha1_hash& hash, const Glib::ustring& reply, int code, int times);
+	void on_tracker_announce(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg);
+	void on_tracker_reply(const Linkage::TorrentPtr& torrent, const Glib::ustring& reply, const Glib::ustring& tracker, int peers);
+	void on_tracker_warning(const Linkage::TorrentPtr& torrent, const Glib::ustring& reply);
+	void on_tracker_failed(const Linkage::TorrentPtr& torrent, const Glib::ustring& reply, const Glib::ustring& tracker, int code, int times);
 
-	void on_update_queue(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_update_queue(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg);
 
 	void on_handle_changed(const WeakTorrentPtr& torrent);
 	void on_position_changed(const WeakTorrentPtr& torrent);

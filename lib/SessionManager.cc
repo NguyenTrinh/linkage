@@ -103,18 +103,6 @@ SessionManager::~SessionManager()
 	#endif
 }
 
-sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
-SessionManager::signal_invalid_bencoding()
-{
-	return m_signal_invalid_bencoding;
-}
-
-sigc::signal<void, const Glib::ustring&, const Glib::ustring&>
-SessionManager::signal_missing_file()
-{
-	return m_signal_missing_file;
-}
-
 sigc::signal<void, const Glib::ustring&, const sha1_hash&>
 SessionManager::signal_duplicate_torrent()
 {
@@ -256,13 +244,12 @@ void SessionManager::update_session_settings()
 	set_settings(sset);
 }
 
-void SessionManager::on_torrent_finished(const sha1_hash& hash, const Glib::ustring& msg)
+void SessionManager::on_torrent_finished(const TorrentPtr& torrent)
 {
 	if (Engine::get_settings_manager()->get_bool("files/move_finished"))
 	{
 		//FIXME: 0.13 uses an alert for move_storage, also set new path to torrent
 		Glib::ustring path = Engine::get_settings_manager()->get_string("files/finished_path");
-		TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
 		if (!torrent->is_stopped())
 		{
 			torrent->get_handle().move_storage(path.c_str());
@@ -438,7 +425,11 @@ void SessionManager::recheck_torrent(const TorrentPtr& torrent)
 	storage_mode_t storage_mode = storage_mode_sparse;
 	if (Engine::get_settings_manager()->get_bool("files/allocate"))
 		storage_mode = storage_mode_allocate;
-	torrent_handle handle = add_torrent(info, path.c_str(), entry(), storage_mode);
-	torrent->set_handle(handle);
+	try
+	{
+		torrent_handle handle = add_torrent(info, path.c_str(), entry(), storage_mode);
+		torrent->set_handle(handle);
+	}
+	catch (...) {} /* can happen if we recheck a checking torrent */
 }
 
