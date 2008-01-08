@@ -193,12 +193,16 @@ void TorrentList::on_added(const TorrentPtr& torrent)
 	row[columns.hash] = torrent->get_hash();
 	row[columns.name] = torrent->get_name();
 	row[columns.position] = torrent->get_position();
+	row[columns.name_formated] = get_formated_name(torrent);
 
 	if (hash_str == String::compose("%1", torrent->get_hash()))
 		get_selection()->select(filter->convert_child_iter_to_iter(iter));
 
 	torrent->property_position().signal_changed().connect(sigc::bind(
 		sigc::mem_fun(this, &TorrentList::on_position_changed),
+		WeakTorrentPtr(torrent)));
+	torrent->property_state().signal_changed().connect(sigc::bind(
+		sigc::mem_fun(this, &TorrentList::on_state_changed),
 		WeakTorrentPtr(torrent)));
 
 	update_row(row);
@@ -218,7 +222,7 @@ void TorrentList::on_removed(const TorrentPtr& torrent)
 	}
 }
 
-void TorrentList::on_position_changed(const Linkage::WeakTorrentPtr& weak)
+void TorrentList::on_position_changed(const WeakTorrentPtr& weak)
 {
 	TorrentPtr torrent = weak.lock();
 
@@ -242,6 +246,32 @@ void TorrentList::on_position_changed(const Linkage::WeakTorrentPtr& weak)
 	model->get_sort_column_id(current_col_id, current_order);
 	if (current_col_id == COL_POSITION)
 		scroll_to_row(model->get_path(iter));
+}
+
+void TorrentList::on_state_changed(const WeakTorrentPtr& weak)
+{
+	TorrentPtr torrent = weak.lock();
+
+	Gtk::TreeNodeChildren children = model->children();
+	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
+	{
+		Gtk::TreeRow row = *iter;
+		if (torrent->get_hash() == row[columns.hash])
+		{
+			row[columns.state] = Torrent::state_string(torrent->get_state());
+			if (torrent->is_stopped())
+			{
+				row[columns.down_rate] = 0;
+				row[columns.up_rate] = 0;
+				row[columns.seeds] = 0;
+				row[columns.peers] = 0;
+				row[columns.name_formated] = get_formated_name(torrent);
+			}
+
+			update_row(row);
+			break;
+		}
+	}
 }
 
 bool TorrentList::is_selected(const libtorrent::sha1_hash& hash)
@@ -429,25 +459,6 @@ void TorrentList::update()
 void TorrentList::update_row(Gtk::TreeRow& row)
 {
 	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(row[columns.hash]);
-
-	Glib::ustring old_state = row[columns.state];
-	int old_peers = row[columns.peers];
-	int old_seeds = row[columns.seeds];
-
-	int state = torrent->get_state();
-	Glib::ustring state_string = Torrent::state_string(state);
-	// update formated name column only if needed
-	bool state_changed = (old_state != state_string);
-	if (state_changed)
-	{
-		row[columns.state] = state_string;
-		row[columns.name_formated] = get_formated_name(torrent);
-	}
-
-	// don't continue if we don't need to, possibly include more states here..
-	if (!state_changed && state & Torrent::STOPPED)
-		return;
-
 	libtorrent::torrent_status status = torrent->get_status();
 
 	libtorrent::size_type down = status.total_payload_download +
@@ -455,17 +466,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	libtorrent::size_type up = status.total_payload_upload +
 			torrent->get_previously_uploaded();
 
-	row[columns.down] = down;
-	row[columns.up] = up;
-	
-	if (torrent->is_stopped())
-	{
-		row[columns.down_rate] = 0;
-		row[columns.up_rate] = 0;
-		row[columns.seeds] = 0;
-		row[columns.peers] = 0;
-	}
-
+	int state = torrent->get_state();
 	if (state & Torrent::SEEDING || state & Torrent::FINISHED)
 	{
 		libtorrent::size_type size = down - up;
@@ -515,17 +516,19 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 				get_eta(status.total_wanted - status.total_wanted_done,
 					status.download_payload_rate));
 	}
+
+	if (torrent->is_stopped())
+		return;
+
+	row[columns.down] = down;
+	row[columns.up] = up;
+
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
 	row[columns.seeds] = status.num_seeds;
 	int peers = status.num_peers - status.num_seeds;
 	row[columns.peers] = peers;
 
-	// if we haven't already done it, update formated name if peers/seeds has changed
-	if (!state_changed)
-	{
-		if (old_seeds != status.num_seeds || old_peers != peers)
-			row[columns.name_formated] = get_formated_name(torrent);
-	}
+	row[columns.name_formated] = get_formated_name(torrent);
 }
 
