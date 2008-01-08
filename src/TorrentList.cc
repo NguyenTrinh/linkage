@@ -85,9 +85,9 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	column = get_column(col_id - 1);
 	column->add_attribute(*renderer, "value", columns.progress);
 	column->add_attribute(*renderer, "text", columns.eta);
-	column->add_attribute(*renderer, "text-left", columns.down_rate);
-	column->add_attribute(*renderer, "text-right", columns.up_rate);
-	column->set_cell_data_func(*renderer, sigc::mem_fun(this, &TorrentList::format_rates));
+	column->add_attribute(*renderer, "text-left", columns.down_rate_formated);
+	column->add_attribute(*renderer, "text-right", columns.up_rate_formated);
+	//column->set_cell_data_func(*renderer, sigc::mem_fun(this, &TorrentList::format_rates));
 
 	set_headers_visible(false);
 	set_search_column(columns.name);
@@ -267,6 +267,8 @@ void TorrentList::on_state_changed(const WeakTorrentPtr& weak)
 				row[columns.up_rate] = 0;
 				row[columns.seeds] = 0;
 				row[columns.peers] = 0;
+				row[columns.down_rate_formated] = suffix_value(0.f) + "/s";
+				row[columns.up_rate_formated] = suffix_value(0.f) + "/s";
 				row[columns.name_formated] = get_formated_name(torrent);
 			}
 
@@ -379,33 +381,29 @@ Glib::ustring TorrentList::get_formated_name(const TorrentPtr& torrent)
 		name = name.substr(0, name_max) + "...";
 	name = Glib::Markup::escape_text(name);
 
-
-	Glib::ustring format;
 	libtorrent::torrent_status status = torrent->get_status();
 	if (state & Torrent::DOWNLOADING || state & Torrent::SEEDING ||
 		(state & Torrent::FINISHED && !torrent->is_stopped()))
 	{
 		if (status.num_complete != -1 && status.num_incomplete != -1)
-			format = String::ucompose(_(
+			return String::ucompose(_(
 				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
 				"%4 (%5) connected seeds, %6 (%7) peers"),
 				color, name, suffix_value(torrent->get_info()->total_size()),
 				status.num_seeds, status.num_complete,
 				status.num_peers - status.num_seeds, status.num_incomplete);
 		else
-			format = String::ucompose(_(
+			return String::ucompose(_(
 				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
 				"%4 connected seeds, %5 peers"),
 				color, name, suffix_value(torrent->get_info()->total_size()),
 				status.num_seeds, status.num_peers - status.num_seeds);
 	}
 	else
-		format = String::ucompose(
+		return String::ucompose(
 			"<span foreground='%1'><b>%2</b> (%3)</span>\n%4",
 			color, name, suffix_value(torrent->get_info()->total_size()),
 			Torrent::state_string(state));
-
-	return format;
 }
 
 void TorrentList::format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter)
@@ -483,7 +481,7 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 					std::setprecision(3),
 					ratio, get_eta(size, status.upload_payload_rate));
 			}
-		 	else
+			else
 		 	{
 		 		row[columns.progress] = 100;
 		 		row[columns.eta] = String::ucompose("%1", std::fixed, std::setprecision(3), ratio);
@@ -505,21 +503,24 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 	}
 	else
 	{
-		double progress = status.progress*100;
-		row[columns.progress] = progress;
-		if (torrent->is_stopped())
-			row[columns.eta] = String::ucompose("%1 %%", std::fixed,
-				std::setprecision(2),
-				progress);
-		else
-			row[columns.eta] = String::ucompose("%1 %% %2", std::fixed,
-				std::setprecision(2),
-				progress,
-				get_eta(status.total_wanted - status.total_wanted_done,
-					status.download_payload_rate));
+		float progress = status.progress*100;
+		if (progress != row[columns.progress])
+		{
+			row[columns.progress] = progress;
+			if (state & Torrent::STOPPED)
+				row[columns.eta] = String::ucompose("%1 %%", std::fixed,
+					std::setprecision(2),
+					progress);
+			else
+				row[columns.eta] = String::ucompose("%1 %% %2", std::fixed,
+					std::setprecision(2),
+					progress,
+					get_eta(status.total_wanted - status.total_wanted_done,
+						status.download_payload_rate));
+		}
 	}
 
-	if (torrent->is_stopped())
+	if (state & Torrent::STOPPED)
 		return;
 
 	row[columns.down] = down;
@@ -527,6 +528,8 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
+	row[columns.down_rate_formated] = suffix_value(status.download_payload_rate) + "/s";
+	row[columns.up_rate_formated] = suffix_value(status.upload_payload_rate) + "/s";
 
 	int peers = status.num_peers - status.num_seeds;
 	if (peers == row[columns.peers] && status.num_seeds == row[columns.seeds])
