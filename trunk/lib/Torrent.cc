@@ -715,21 +715,14 @@ libtorrent::entry Torrent::get_resume_entry()
 {
 	libtorrent::entry::dictionary_type e;
 
-	if (!is_stopped())
+	try
 	{
-		try
-		{
-			e = get_handle().write_resume_data().dict();
-		}
-		catch (std::exception& ex)
-		{
-			g_warning(ex.what());
-		}
+		e = get_handle().write_resume_data().dict();
 	}
-	else
+	catch (std::exception& ex)
 	{
 		Glib::ustring file = Glib::build_filename(get_data_dir(),
-			String::compose("%1", m_info->info_hash()) + ".resume");
+		String::compose("%1", m_info->info_hash()) + ".resume");
 
 		libtorrent::entry er;
 		if (load_entry(file, er))

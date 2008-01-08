@@ -48,17 +48,14 @@ class SessionManager : public libtorrent::intrusive_ptr_base<SessionManager>, pu
 	void update_proxy_settings();
 	void update_session_settings();
 
-	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_torrent_finished(const Linkage::TorrentPtr& torrent);
 
-	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_invalid_bencoding;
-	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> m_signal_missing_file;
 	sigc::signal<void, const Glib::ustring&, const libtorrent::sha1_hash&> m_signal_duplicate_torrent;
 
 	SessionManager();
 
 public:
 	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_invalid_bencoding();
-	sigc::signal<void, const Glib::ustring&, const Glib::ustring&> signal_missing_file();
 	sigc::signal<void, const Glib::ustring&, const libtorrent::sha1_hash&> signal_duplicate_torrent();
 
 	TorrentPtr open_torrent(const Glib::ustring& file, const Glib::ustring& save_path);

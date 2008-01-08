@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.3svn-r278\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-01 22:37+0100\n"
+"POT-Creation-Date: 2008-01-08 14:02+0100\n"
 "PO-Revision-Date: 2007-07-23 21:46+0200\n"
 "Last-Translator: Christian Lundgren <zeflunk@gmail.com>f\n"
 "Language-Team: Swedish\n"
@@ -42,23 +42,23 @@ msgstr "Prioritet"
 msgid "<i>Priority</i>"
 msgstr "<i>Prioritet</i>"
 
-#: ../src/FileList.cc:99 ../src/FileList.cc:216
+#: ../src/FileList.cc:99 ../src/FileList.cc:238
 msgid "Max"
 msgstr ""
 
-#: ../src/FileList.cc:102 ../src/FileList.cc:219
+#: ../src/FileList.cc:101 ../src/FileList.cc:241
 msgid "High"
 msgstr "Hög"
 
-#: ../src/FileList.cc:105 ../src/FileList.cc:226
+#: ../src/FileList.cc:103 ../src/FileList.cc:248
 msgid "Normal"
 msgstr ""
 
-#: ../src/FileList.cc:109 ../src/FileList.cc:222
+#: ../src/FileList.cc:106 ../src/FileList.cc:244
 msgid "Skip"
 msgstr "Skippa"
 
-#: ../src/FilterRow.cc:53 ../src/GroupsWin.cc:220
+#: ../src/FilterRow.cc:53 ../src/GroupsWin.cc:222
 msgid "If"
 msgstr "Om"
 
@@ -82,7 +82,7 @@ msgstr "Och"
 msgid "And not"
 msgstr "Och inte"
 
-#: ../src/FilterRow.cc:65 ../src/PeerList.cc:302
+#: ../src/FilterRow.cc:65 ../src/PeerList.cc:315
 msgid "Tracker"
 msgstr ""
 
@@ -106,67 +106,67 @@ msgstr "Börjar med"
 msgid "Ends with"
 msgstr "Slutar med"
 
-#: ../src/GroupList.cc:52 ../src/StateFilter.cc:52
+#: ../src/GroupList.cc:87 ../src/StateFilter.cc:52
 msgid "All"
 msgstr "Alla"
 
-#: ../src/GroupsWin.cc:234
+#: ../src/GroupsWin.cc:236
 msgid "and"
 msgstr "och"
 
-#: ../src/GroupsWin.cc:237
+#: ../src/GroupsWin.cc:239
 msgid "and not"
 msgstr "och inte"
 
-#: ../src/GroupsWin.cc:241
+#: ../src/GroupsWin.cc:243
 msgid "or"
 msgstr "eller"
 
-#: ../src/GroupsWin.cc:245
+#: ../src/GroupsWin.cc:247
 msgid "or not"
 msgstr "eller inte"
 
-#: ../src/GroupsWin.cc:247
+#: ../src/GroupsWin.cc:249
 msgid "not"
 msgstr "inte"
 
-#: ../src/GroupsWin.cc:254
+#: ../src/GroupsWin.cc:256
 msgid "comment"
 msgstr "kommentar"
 
-#: ../src/GroupsWin.cc:257
+#: ../src/GroupsWin.cc:259
 msgid "tracker"
 msgstr ""
 
-#: ../src/GroupsWin.cc:260
+#: ../src/GroupsWin.cc:262
 msgid "name"
 msgstr "namn"
 
-#: ../src/GroupsWin.cc:267
+#: ../src/GroupsWin.cc:269
 msgid "equals"
 msgstr "är lika med"
 
-#: ../src/GroupsWin.cc:270
+#: ../src/GroupsWin.cc:272
 msgid "contains"
 msgstr "innehåller"
 
-#: ../src/GroupsWin.cc:273
+#: ../src/GroupsWin.cc:275
 msgid "starts with"
 msgstr "börjar med"
 
-#: ../src/GroupsWin.cc:276
+#: ../src/GroupsWin.cc:278
 msgid "ends with"
 msgstr "slutar med"
 
-#: ../src/main.cc:77
+#: ../src/main.cc:88
 msgid "Show version and quit"
 msgstr "Visa version och avsluta"
 
-#: ../src/main.cc:82
+#: ../src/main.cc:93
 msgid "Tell the running instance to quit"
 msgstr "Säg åt den körande instansen att avsluta"
 
-#: ../src/main.cc:148
+#: ../src/main.cc:159
 msgid ""
 "[FILE...] \n"
 "\n"
@@ -176,7 +176,7 @@ msgstr ""
 "\n"
 "En BitTorrent klient\n"
 
-#: ../src/main.cc:164
+#: ../src/main.cc:175
 msgid ""
 "Run \"linkage --help\" to see a full list of available command line "
 "options.\n"
@@ -184,91 +184,91 @@ msgstr ""
 "Kör \"linkage --help\" för att se hela listan av tillgängliga "
 "kommandoradsflaggor.\n"
 
-#: ../src/PeerList.cc:42
+#: ../src/PeerList.cc:55
 msgid "Address"
 msgstr "Adress"
 
-#: ../src/PeerList.cc:50 ../data/linkage.glade.h:44
+#: ../src/PeerList.cc:63 ../data/linkage.glade.h:44
 msgid "Downloaded"
 msgstr "Nedladdat"
 
-#: ../src/PeerList.cc:54 ../data/linkage.glade.h:146
+#: ../src/PeerList.cc:67 ../data/linkage.glade.h:146
 msgid "Uploaded"
 msgstr "Uppladdat"
 
-#: ../src/PeerList.cc:58
+#: ../src/PeerList.cc:71
 msgid "Download rate"
 msgstr "Nedladdningshastighet"
 
-#: ../src/PeerList.cc:62
+#: ../src/PeerList.cc:75
 msgid "Upload rate"
 msgstr "Uppladdningshastighet"
 
-#: ../src/PeerList.cc:68 ../src/TorrentList.cc:84 ../data/linkage.glade.h:106
+#: ../src/PeerList.cc:81 ../src/TorrentList.cc:84 ../data/linkage.glade.h:106
 msgid "Progress"
 msgstr "Förlopp"
 
-#: ../src/PeerList.cc:70
+#: ../src/PeerList.cc:83
 msgid "Client"
 msgstr "Klient"
 
-#: ../src/PeerList.cc:71
+#: ../src/PeerList.cc:84
 msgid "State"
 msgstr "Tillstånd"
 
-#: ../src/PeerList.cc:72
+#: ../src/PeerList.cc:85
 msgid "Source"
 msgstr "Källa"
 
-#: ../src/PeerList.cc:248
+#: ../src/PeerList.cc:261
 msgid "Connecting"
 msgstr "Ansluter"
 
-#: ../src/PeerList.cc:250
+#: ../src/PeerList.cc:263
 msgid "Handshake"
 msgstr "Handskakning"
 
-#: ../src/PeerList.cc:252 ../lib/Torrent.cc:287
+#: ../src/PeerList.cc:265 ../lib/Torrent.cc:368
 msgid "Queued"
 msgstr "Köad"
 
-#: ../src/PeerList.cc:259
+#: ../src/PeerList.cc:272
 msgid "Both interested"
 msgstr "Båda intresserade"
 
-#: ../src/PeerList.cc:267
+#: ../src/PeerList.cc:280
 msgid "Interested"
 msgstr "Intresserad"
 
-#: ../src/PeerList.cc:273
+#: ../src/PeerList.cc:286
 msgid "Remote interested"
 msgstr "Fjärran intresserad"
 
-#: ../src/PeerList.cc:281
+#: ../src/PeerList.cc:294
 msgid "Both choked"
 msgstr "Båda strypta"
 
-#: ../src/PeerList.cc:289
+#: ../src/PeerList.cc:302
 msgid "Choked"
 msgstr "Strypt"
 
-#: ../src/PeerList.cc:295
+#: ../src/PeerList.cc:308
 msgid "Remote choked"
 msgstr "Fjärran strypt"
 
-#: ../src/PeerList.cc:304
+#: ../src/PeerList.cc:317
 msgid "DHT"
 msgstr ""
 
-#: ../src/PeerList.cc:306
+#: ../src/PeerList.cc:319
 msgid "PEX"
 msgstr ""
 
-#: ../src/PeerList.cc:308
+#: ../src/PeerList.cc:321
 msgid "LSD"
 msgstr ""
 
-#: ../src/PeerList.cc:310
+#: ../src/PeerList.cc:323
 msgid "Resume data"
 msgstr "Återupptagningsdata"
 
@@ -332,31 +332,31 @@ msgstr "Ladda"
 msgid "Description"
 msgstr "Beskrivning"
 
-#: ../src/TorrentCreator.cc:103 ../data/linkage.glade.h:123
+#: ../src/TorrentCreator.cc:101 ../data/linkage.glade.h:123
 msgid "Select file"
 msgstr "Välj fil"
 
-#: ../src/TorrentCreator.cc:108
+#: ../src/TorrentCreator.cc:106
 msgid "Select folder"
 msgstr "Välj katalog"
 
-#: ../src/TorrentCreator.cc:129
+#: ../src/TorrentCreator.cc:127
 msgid "Incomplete information"
 msgstr "Inkomplett information"
 
-#: ../src/TorrentCreator.cc:130
+#: ../src/TorrentCreator.cc:128
 msgid "You must specify the tracker url and a file/folder."
 msgstr "Du måste specifiera trackerns url och en fil/katalog"
 
-#: ../src/TorrentCreator.cc:147
+#: ../src/TorrentCreator.cc:145
 msgid "Hashing..."
 msgstr "Hashar..."
 
-#: ../src/TorrentCreator.cc:222
+#: ../src/TorrentCreator.cc:220
 msgid "Save torrent"
 msgstr "Spara torrent"
 
-#: ../src/TorrentList.cc:321
+#: ../src/TorrentList.cc:358
 msgid ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 (%5) connected seeds, %6 (%7) peers"
@@ -364,7 +364,7 @@ msgstr ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 (%5) anslutna källor, %6 (%7) klienter"
 
-#: ../src/TorrentList.cc:328
+#: ../src/TorrentList.cc:365
 msgid ""
 "<span foreground='%1'><b>%2</b> (%3)</span>\n"
 "%4 connected seeds, %5 peers"
@@ -376,48 +376,44 @@ msgstr ""
 msgid "<i>None</i>"
 msgstr "<i>Ingen</i>"
 
-#: ../src/Menu.cc:102
+#: ../src/Menu.cc:115
 msgid "A BitTorrent client"
 msgstr "En BitTorrent klient"
 
-#: ../src/Menu.cc:103
+#: ../src/Menu.cc:116
 msgid "translator-credits"
 msgstr "Christian Lundgren"
 
-#: ../src/UI.cc:400
-msgid "File not found, \"%1\""
-msgstr "Filen hittades inte, \"%1\""
-
-#: ../src/UI.cc:547
+#: ../src/UI.cc:559
 msgid "Yes"
 msgstr "Ja"
 
-#: ../src/UI.cc:547
+#: ../src/UI.cc:559
 msgid "No"
 msgstr "Nej"
 
-#: ../src/UI.cc:609
+#: ../src/UI.cc:621
 msgid "Are you sure you wish to remove \"%1\" and it's content?"
 msgstr "Är du säker på att du vill ta bort \"%1\" och hela dess innehåll?"
 
-#: ../src/UI.cc:616
+#: ../src/UI.cc:628
 msgid "(%1 files)."
 msgstr "(%1 filer)."
 
-#: ../src/UI.cc:618
+#: ../src/UI.cc:630
 msgid "(1 file)."
 msgstr "(1 fil)."
 
-#: ../src/UI.cc:620
+#: ../src/UI.cc:632
 msgid "This will permanently remove the torrent and all of it's content %1"
 msgstr "Detta kommer att permanent ta bort torrenten och hela dess innehåll %1"
 
 #. FIXME: make an EntryDialog class for this
-#: ../src/UI.cc:796 ../src/UI.cc:839
+#: ../src/UI.cc:808 ../src/UI.cc:851
 msgid "Add new tracker"
 msgstr "Lägg till ny tracker"
 
-#: ../src/UI.cc:846
+#: ../src/UI.cc:858
 msgid "Tracker URL:"
 msgstr ""
 
@@ -429,11 +425,15 @@ msgstr "BitTorrent filer"
 msgid "All files"
 msgstr "Alla filer"
 
-#: ../src/AddDialog.cc:104
+#: ../src/AddDialog.cc:105
 msgid "<i>%1 free disk space required</i>"
 msgstr "<i>%1 ledigt diskutrymme behövs</i>"
 
-#: ../src/AddDialog.cc:125
+#: ../src/AddDialog.cc:117
+msgid "Invalid torrent"
+msgstr "Ej giltig torrent"
+
+#: ../src/AddDialog.cc:131
 msgid "<i>%1 free disk space available</i>"
 msgstr "<i>%1 ledigt diskutrymme tillgängligt</i>"
 
@@ -442,7 +442,7 @@ msgid "Failed to connect to GNOME session"
 msgstr "Misslyckades med att ansluta till GNOME sessionen"
 
 #: ../src/SessionClient.cc:134
-#: ../plugins/notification/PluginNotification.cc:191
+#: ../plugins/notification/PluginNotification.cc:202
 msgid "No suitable file manager found"
 msgstr "Ingen passande filhanterare funnen"
 
@@ -450,17 +450,114 @@ msgstr "Ingen passande filhanterare funnen"
 msgid "Filter"
 msgstr "Filter"
 
-#: ../lib/PluginManager.cc:88
+#: ../lib/AlertManager.cc:62
+msgid "Cannot listen on interface %1"
+msgstr "Kan inte lyssna på gränssnitt %1"
+
+#: ../lib/AlertManager.cc:67
+msgid "Error accepting connection on %1"
+msgstr "Fel vid acceptering av anslutning på %1"
+
+#: ../lib/AlertManager.cc:72
+msgid "Cannot bind to interface %1"
+msgstr "Kan inte till gränssnitt %1"
+
+#: ../lib/AlertManager.cc:78
+msgid "Failed to map ports"
+msgstr "Misslyckades med att mappa portar"
+
+#: ../lib/AlertManager.cc:85
+msgid "Mapped UDP port %1"
+msgstr "Mappade UDP port %1"
+
+#: ../lib/AlertManager.cc:87
+msgid "Mapped TCP port %1"
+msgstr "Mappade TCP port %1"
+
+#: ../lib/AlertManager.cc:94
+msgid "Disk write failed"
+msgstr "Diskskrivning misslyckades"
+
+#: ../lib/AlertManager.cc:96
+msgid "Disk read failed"
+msgstr "Diskläsning misslyckades"
+
+#: ../lib/AlertManager.cc:98
+msgid "No file permissions or invalid filename"
+msgstr "Inga filrättigheter eller ogiltigt filnamn"
+
+#: ../lib/AlertManager.cc:106
+msgid "Announcing as stopped"
+msgstr "Annonserar som stoppad"
+
+#: ../lib/AlertManager.cc:108 ../lib/Torrent.cc:376 ../lib/Torrent.cc:378
+#: ../lib/Torrent.cc:380 ../data/linkage.glade.h:29
+msgid "Announcing"
+msgstr "Annonserar"
+
+#: ../lib/AlertManager.cc:117
+msgid "Timed out"
+msgstr ""
+
+#: ../lib/AlertManager.cc:121
+msgid "Failed: %1"
+msgstr "Misslyckades: %1"
+
+#: ../lib/AlertManager.cc:132
+msgid "OK, got %1 peers"
+msgstr "OK, fick %1 klienter"
+
+#: ../lib/AlertManager.cc:148
+msgid "Hash failed for piece %1"
+msgstr "Kontrollsumma misslyckades för del %1"
+
+#: ../lib/AlertManager.cc:154
+msgid "Banning peer %1 for sending bad data"
+msgstr "Bannar klient %1 för att ha skickat dålig data"
+
+#: ../lib/AlertManager.cc:173
+#: ../plugins/notification/PluginNotification.cc:286
+msgid "Incompatible file version: %1"
+msgstr "Inkompitabel filversion: %1"
+
+#: ../lib/AlertManager.cc:178
+#: ../plugins/notification/PluginNotification.cc:291
+msgid "Mismatching hash: %1"
+msgstr "Ej matchande kontrollsumma: %1"
+
+#: ../lib/AlertManager.cc:183
+#: ../plugins/notification/PluginNotification.cc:296
+msgid "Checksum failed for piece %1"
+msgstr "Kontrollsumma misslyckades för del %1"
+
+#: ../lib/AlertManager.cc:187
+#: ../plugins/notification/PluginNotification.cc:300
+msgid "Mismatching number of files"
+msgstr "Ej matchande antal filer"
+
+#: ../lib/AlertManager.cc:193
+#: ../plugins/notification/PluginNotification.cc:306
+msgid "File size mismatch for %1"
+msgstr "Ej matchande fil storlek för %1"
+
+#. Other too detailed errors
+#: ../lib/AlertManager.cc:196
+#: ../plugins/notification/PluginNotification.cc:309
+msgid "Fast resume rejected, content check forced"
+msgstr "Snabb återupptagning avvisades, tvingar kontroll av innehåll"
+
+#. TODO: notify user
+#: ../lib/PluginManager.cc:100
 #, c-format
 msgid "Failed to open plugin %s"
 msgstr "Misslyckades med att öppna plugin %s"
 
-#: ../lib/SessionManager.cc:179
+#: ../lib/SessionManager.cc:178
 #, c-format
 msgid "Listen failed: %s"
 msgstr "Lyssning misslyckades: %s"
 
-#: ../lib/SessionManager.cc:315
+#: ../lib/SessionManager.cc:320
 msgid "Merged %1 with %2"
 msgstr "Slog samman %1 med %2"
 
@@ -469,48 +566,39 @@ msgstr "Slog samman %1 med %2"
 msgid "Could not create directory: %s"
 msgstr "Kunde inte skapa katalog: %s"
 
-#: ../lib/Torrent.cc:285
+#: ../lib/Torrent.cc:366
 msgid "Error"
 msgstr "Fel"
 
-#: ../lib/Torrent.cc:289 ../lib/Torrent.cc:307
+#: ../lib/Torrent.cc:370 ../lib/Torrent.cc:388
 msgid "Stopped"
 msgstr "Stoppad"
 
-#: ../lib/Torrent.cc:291
+#: ../lib/Torrent.cc:372
 msgid "Queued for checking"
 msgstr "Köad för kontroll"
 
-#: ../lib/Torrent.cc:293
+#: ../lib/Torrent.cc:374
 msgid "Checking"
 msgstr "Kontrollerar"
 
-#: ../lib/Torrent.cc:295 ../lib/Torrent.cc:297 ../lib/Torrent.cc:299
-#: ../lib/TorrentManager.cc:100 ../data/linkage.glade.h:29
-msgid "Announcing"
-msgstr "Annonserar"
-
-#: ../lib/Torrent.cc:297 ../lib/Torrent.cc:309
+#: ../lib/Torrent.cc:378 ../lib/Torrent.cc:390
 msgid "Downloading"
 msgstr "Laddar ned"
 
-#: ../lib/Torrent.cc:299 ../lib/Torrent.cc:301 ../lib/Torrent.cc:307
+#: ../lib/Torrent.cc:380 ../lib/Torrent.cc:382 ../lib/Torrent.cc:388
 msgid "Finished"
 msgstr "Klar"
 
-#: ../lib/Torrent.cc:303
+#: ../lib/Torrent.cc:384
 msgid "Seeding"
 msgstr "Laddar upp"
 
-#: ../lib/Torrent.cc:305
+#: ../lib/Torrent.cc:386
 msgid "Allocating"
 msgstr "Allokerar"
 
-#: ../lib/TorrentManager.cc:110
-msgid "OK, got %1 peers"
-msgstr "OK, fick %1 klienter"
-
-#: ../lib/TorrentManager.cc:132
+#: ../lib/TorrentManager.cc:124
 msgid "%1 (%2 times in a row)"
 msgstr "%1 (%2 gånger i rad)"
 
@@ -534,19 +622,19 @@ msgstr "dag"
 msgid "days"
 msgstr "dagar"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:44
+#: ../plugins/trayicon/PluginTrayIcon.cc:53
 msgid "Displays a tray icon"
 msgstr "Visar en satusikon"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:52
+#: ../plugins/trayicon/PluginTrayIcon.cc:63
 msgid "Start torrents"
 msgstr "Starta torrenter"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:57
+#: ../plugins/trayicon/PluginTrayIcon.cc:68
 msgid "Stop torrents"
 msgstr "Stoppa torrenter"
 
-#: ../plugins/trayicon/PluginTrayIcon.cc:140
+#: ../plugins/trayicon/PluginTrayIcon.cc:151
 msgid ""
 "%1 (%2) downloads, %3 seeds\n"
 "DL: %4/s\tUL: %5/s"
@@ -554,85 +642,60 @@ msgstr ""
 "%1 (%2) nedladdningar, %3 uppladdningar\n"
 "NL: %4/s\tUL: %5/s"
 
-#: ../plugins/notification/PluginNotification.cc:45
+#: ../plugins/notification/PluginNotification.cc:54
 msgid "Displays notifications trough libnotify"
 msgstr "Visar notifieringar genom libnotify"
 
-#: ../plugins/notification/PluginNotification.cc:203
+#: ../plugins/notification/PluginNotification.cc:214
 msgid "Invalid bencoding"
 msgstr "Ogiltig bkodning"
 
-#: ../plugins/notification/PluginNotification.cc:208
+#: ../plugins/notification/PluginNotification.cc:219
 msgid "Missing file"
 msgstr "Fil ej funnen"
 
-#: ../plugins/notification/PluginNotification.cc:213
+#: ../plugins/notification/PluginNotification.cc:224
 msgid "Duplicate torrent"
 msgstr "Dubblett torrent"
 
-#: ../plugins/notification/PluginNotification.cc:223
+#: ../plugins/notification/PluginNotification.cc:234
 msgid "Cannot listen on given interface %1"
 msgstr "Kan inte lyssna på givet gränssnitt %1"
 
-#: ../plugins/notification/PluginNotification.cc:229
+#: ../plugins/notification/PluginNotification.cc:240
 msgid "None of the ports in range %1 could be opened for listening"
 msgstr "Ingen av portarna i området %1 kunde öppnas för lyssning"
 
-#: ../plugins/notification/PluginNotification.cc:234
+#: ../plugins/notification/PluginNotification.cc:245
 msgid "Failed to open port: %1"
 msgstr "Misslyckades med att öppna port %s"
 
-#: ../plugins/notification/PluginNotification.cc:237
+#: ../plugins/notification/PluginNotification.cc:248
 msgid "Listen failed"
 msgstr "Lyssning misslyckades"
 
-#: ../plugins/notification/PluginNotification.cc:243
+#: ../plugins/notification/PluginNotification.cc:254
 msgid "%1 is complete"
 msgstr "%1 är färdig"
 
-#: ../plugins/notification/PluginNotification.cc:251
+#: ../plugins/notification/PluginNotification.cc:262
 msgid "Torrent finished"
 msgstr "Torrent klar"
 
-#: ../plugins/notification/PluginNotification.cc:252
+#: ../plugins/notification/PluginNotification.cc:263
 #: ../data/linkage.glade.h:93
 msgid "Open location"
 msgstr "Öppna plats"
 
-#: ../plugins/notification/PluginNotification.cc:265
+#: ../plugins/notification/PluginNotification.cc:276
 msgid "File error"
 msgstr "Filfel"
 
-#: ../plugins/notification/PluginNotification.cc:266
+#: ../plugins/notification/PluginNotification.cc:277
 msgid "Stop torrent"
 msgstr "Stoppa torrent"
 
-#: ../plugins/notification/PluginNotification.cc:275
-msgid "Incompatible file version: %1"
-msgstr "Inkompitabel filversion: %1"
-
-#: ../plugins/notification/PluginNotification.cc:280
-msgid "Mismatching hash: %1"
-msgstr "Ej matchande kontrollsumma: %1"
-
-#: ../plugins/notification/PluginNotification.cc:285
-msgid "Checksum failed for piece %1"
-msgstr "Kontrollsumma misslyckades för del %1"
-
-#: ../plugins/notification/PluginNotification.cc:289
-msgid "Mismatching number of files"
-msgstr "Ej matchande antal filer"
-
-#: ../plugins/notification/PluginNotification.cc:295
-msgid "File size mismatch for %1"
-msgstr "Ej matchande fil storlek för %1"
-
-#. Other too detailed errors
-#: ../plugins/notification/PluginNotification.cc:298
-msgid "Fast resume rejected, content check forced"
-msgstr "Snabb återupptagning avvisades, tvingar kontroll av innehåll"
-
-#: ../plugins/notification/PluginNotification.cc:300
+#: ../plugins/notification/PluginNotification.cc:311
 msgid "Fast resume failed"
 msgstr "Snabb återupptagning misslyckades"
 
@@ -1251,6 +1314,9 @@ msgstr "Ladda ner och dela innehåll genom BittTorrent"
 #: ../data/linkage.desktop.in.h:2
 msgid "Linkage"
 msgstr ""
+
+#~ msgid "File not found, \"%1\""
+#~ msgstr "Filen hittades inte, \"%1\""
 
 #~ msgid "Ignoring attempt to send message to self (%s)"
 #~ msgstr "Ignorerar försök att sicka meddelande till själv (%s)"

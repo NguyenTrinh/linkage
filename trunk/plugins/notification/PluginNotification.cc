@@ -62,8 +62,6 @@ NotifyPlugin::NotifyPlugin()
 {
 	notify_init(PLUGIN_NAME);
 
-	Engine::get_session_manager()->signal_invalid_bencoding().connect(sigc::mem_fun(this, &NotifyPlugin::on_invalid_bencoding));
-	Engine::get_session_manager()->signal_missing_file().connect(sigc::mem_fun(this, &NotifyPlugin::on_missing_file));
 	Engine::get_session_manager()->signal_duplicate_torrent().connect(sigc::mem_fun(this, &NotifyPlugin::on_duplicate_torrent));
 
 	Engine::get_alert_manager()->signal_listen_failed().connect(sigc::mem_fun(this, &NotifyPlugin::on_listen_failed));
@@ -203,20 +201,10 @@ void NotifyPlugin::on_open_location(const Glib::ustring& path)
 	}
 }
 
-void NotifyPlugin::on_stop_torrent(const libtorrent::sha1_hash& hash)
+void NotifyPlugin::on_stop_torrent(const WeakTorrentPtr& weak)
 {
-	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
+	TorrentPtr torrent = weak.lock();
 	Engine::get_session_manager()->stop_torrent(torrent);
-}
-
-void NotifyPlugin::on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	notify(_("Invalid bencoding"), msg, NOTIFY_URGENCY_CRITICAL);
-}
-
-void NotifyPlugin::on_missing_file(const Glib::ustring& msg, const Glib::ustring& file)
-{
-	notify(_("Missing file"), msg, NOTIFY_URGENCY_CRITICAL);
 }
 
 void NotifyPlugin::on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash)
@@ -227,31 +215,12 @@ void NotifyPlugin::on_duplicate_torrent(const Glib::ustring& msg, const libtorre
 // FIXME: make sure all of these actually works ok
 void NotifyPlugin::on_listen_failed(const Glib::ustring& msg)
 {
-	Glib::ustring translated;
-	if (Glib::str_has_prefix(msg, "cannot listen on the given interface "))
-	{
-		Glib::ustring interface = msg.substr(37);
-		translated = String::ucompose(_("Cannot listen on given interface %1"), interface);
-	}
-	else if (Glib::str_has_prefix(msg, "none of the ports in the range "))
-	{
-		Glib::ustring::size_type pos = msg.find(" could be opened for listening");
-		Glib::ustring range = msg.substr(31, pos);
-		translated = String::ucompose(_("None of the ports in range %1 could be opened for listening"), range);
-	}
-	else if (Glib::str_has_prefix(msg, "failed to open listen port: "))
-	{
-		Glib::ustring what = msg.substr(28);
-		translated = String::ucompose(_("Failed to open port: %1"), what);
-	}
-
-	notify(_("Listen failed"), translated, NOTIFY_URGENCY_CRITICAL, "network.error");
+	notify(_("Listen failed"), msg, NOTIFY_URGENCY_CRITICAL, "network.error");
 }
 
-void NotifyPlugin::on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void NotifyPlugin::on_torrent_finished(const Linkage::TorrentPtr& torrent)
 {
-	TorrentPtr torrent = Engine::get_torrent_manager()->get_torrent(hash);
-	Glib::ustring translated = String::ucompose(_("%1 is complete"), torrent->get_name());
+	Glib::ustring msg = String::ucompose(_("%1 is complete"), torrent->get_name());
 
 	Glib::ustring path = torrent->get_path();
 	if (torrent->get_info()->num_files() > 1)
@@ -259,56 +228,21 @@ void NotifyPlugin::on_torrent_finished(const libtorrent::sha1_hash& hash, const 
 
 	sigc::slot<void> slot = sigc::bind(sigc::mem_fun(this, &NotifyPlugin::on_open_location), path);
 
-	notify_with_action(_("Torrent finished"), translated,	NOTIFY_URGENCY_LOW,
+	notify_with_action(_("Torrent finished"), msg,	NOTIFY_URGENCY_LOW,
 		"open", _("Open location"), slot, "transfer.complete");
 }
 
-void NotifyPlugin::on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void NotifyPlugin::on_file_error(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg)
 {
-	Glib::ustring what;
-	if (Glib::str_has_prefix(msg, "torrent paused: "))
-		what = msg.substr(16);
-	else
-		what = msg;
+	sigc::slot<void> slot = sigc::bind(sigc::mem_fun(this, &NotifyPlugin::on_stop_torrent), WeakTorrentPtr(torrent));
 
-	sigc::slot<void> slot = sigc::bind(sigc::mem_fun(this, &NotifyPlugin::on_stop_torrent), hash);
-
-	notify_with_action(_("File error"), what, NOTIFY_URGENCY_CRITICAL,
+	notify_with_action(_("File error"), msg, NOTIFY_URGENCY_CRITICAL,
 		"stop", _("Stop torrent"), slot);
 }
 
-void NotifyPlugin::on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg)
+void NotifyPlugin::on_fastresume_rejected(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg)
 {
-	Glib::ustring translated;
-	if (Glib::str_has_prefix(msg, "incompatible file version "))
-	{
-		Glib::ustring version = msg.substr(26);
-		translated = String::ucompose(_("Incompatible file version: %1"), version);
-	}
-	else if (Glib::str_has_prefix(msg, "mismatching info-hash: "))
-	{
-		Glib::ustring hash = msg.substr(23);
-		translated = String::ucompose(_("Mismatching hash: %1"), hash);
-	}
-	else if (Glib::str_has_prefix(msg, "checksum mismatch on piece "))
-	{
-		Glib::ustring index = msg.substr(27);
-		translated = String::ucompose(_("Checksum failed for piece %1"), index);
-	}
-	else if (Glib::str_has_prefix(msg, "the number of files does not match the torrent"))
-	{
-		translated = _("Mismatching number of files");
-	}
-	else if (Glib::str_has_prefix(msg, "file size for "))
-	{
-		Glib::ustring::size_type pos = msg.find(" was expected to be ");
-		Glib::ustring file = msg.substr(14, pos);
-		translated = String::ucompose(_("File size mismatch for %1"), file);
-	}
-	else // Other too detailed errors
-		translated = _("Fast resume rejected, content check forced");
-
-	notify(_("Fast resume failed"), translated, NOTIFY_URGENCY_NORMAL);
+	notify(_("Fast resume failed"), msg, NOTIFY_URGENCY_NORMAL);
 }
 
 Plugin* create_plugin()

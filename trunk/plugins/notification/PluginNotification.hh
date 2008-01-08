@@ -51,16 +51,14 @@ class NotifyPlugin : public Linkage::Plugin
 	static void free_slot(sigc::slot<void>* slot);
 
 	void on_open_location(const Glib::ustring& path);
-	void on_stop_torrent(const libtorrent::sha1_hash& hash);
+	void on_stop_torrent(const Linkage::WeakTorrentPtr& weak);
 
-	void on_invalid_bencoding(const Glib::ustring& msg, const Glib::ustring& file);
-	void on_missing_file(const Glib::ustring& msg, const Glib::ustring& file);
 	void on_duplicate_torrent(const Glib::ustring& msg, const libtorrent::sha1_hash& hash);
 
 	void on_listen_failed(const Glib::ustring& msg);
-	void on_torrent_finished(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_file_error(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
-	void on_fastresume_rejected(const libtorrent::sha1_hash& hash, const Glib::ustring& msg);
+	void on_torrent_finished(const Linkage::TorrentPtr& torrent);
+	void on_file_error(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg);
+	void on_fastresume_rejected(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg);
 
 public:
 	Linkage::Plugin::Info get_info();
