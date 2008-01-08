@@ -36,30 +36,34 @@ class TorrentList : public Gtk::TreeView
 	{
 	public:
 		ModelColumns()
-			{
-				add(position);
-				add(name);
-				add(name_formated);
-				add(progress);
-				add(state);
-				add(down);
-				add(up);
-				add(down_rate);
-				add(up_rate);
-				add(seeds);
-				add(peers);
-				add(eta);
-				add(hash);
-			}
+		{
+			add(position);
+			add(name);
+			add(name_formated);
+			add(progress);
+			add(state);
+			add(down);
+			add(up);
+			add(down_rate);
+			add(up_rate);
+			add(down_rate_formated);
+			add(up_rate_formated);
+			add(seeds);
+			add(peers);
+			add(eta);
+			add(hash);
+		}
 		Gtk::TreeModelColumn<unsigned int> position;
 		Gtk::TreeModelColumn<Glib::ustring> name; // For searching/sorting
 		Gtk::TreeModelColumn<Glib::ustring> name_formated; // updated only when needed
-		Gtk::TreeModelColumn<double> progress;
+		Gtk::TreeModelColumn<float> progress;
 		Gtk::TreeModelColumn<Glib::ustring> state;
 		Gtk::TreeModelColumn<libtorrent::size_type> down;
 		Gtk::TreeModelColumn<libtorrent::size_type> up;
 		Gtk::TreeModelColumn<float> down_rate;
 		Gtk::TreeModelColumn<float> up_rate;
+		Gtk::TreeModelColumn<Glib::ustring> down_rate_formated;
+		Gtk::TreeModelColumn<Glib::ustring> up_rate_formated;
 		Gtk::TreeModelColumn<unsigned int> seeds;
 		Gtk::TreeModelColumn<unsigned int> peers;
 		Gtk::TreeModelColumn<Glib::ustring> eta;
@@ -109,6 +113,8 @@ public:
 		COL_UPLOADED,
 		COL_DOWNRATE,
 		COL_UPRATE,
+		COL_DOWNRATE_FORMATED,
+		COL_UPRATE_FORMATED,
 		COL_SEEDS,
 		COL_PEERS,
 		COL_ETA,
