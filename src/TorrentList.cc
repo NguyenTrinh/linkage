@@ -269,10 +269,9 @@ void TorrentList::on_state_changed(const WeakTorrentPtr& weak)
 				row[columns.peers] = 0;
 				row[columns.down_rate_formated] = suffix_value(0.f) + "/s";
 				row[columns.up_rate_formated] = suffix_value(0.f) + "/s";
-				row[columns.name_formated] = get_formated_name(torrent);
 			}
+			row[columns.name_formated] = get_formated_name(torrent);
 
-			update_row(row);
 			break;
 		}
 	}
