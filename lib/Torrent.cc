@@ -735,7 +735,8 @@ libtorrent::entry Torrent::get_resume_entry()
 
 	libtorrent::size_type down = m_downloaded;
 	libtorrent::size_type up = m_uploaded;
-	if (!is_stopped())
+	/* asume that torrent will be stopped if the handle is paused */
+	if (!is_stopped() && get_handle().is_paused())
 	{
 		down += get_status().total_payload_download;
 		up += get_status().total_payload_upload;

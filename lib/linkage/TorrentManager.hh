@@ -61,15 +61,6 @@ private:
 
 	TorrentMap m_torrents;
 
-	struct pred : public std::binary_function
-		<const TorrentPtr&, const TorrentPtr&, bool>
-	{
-		bool operator()(const TorrentPtr& rhs, const TorrentPtr& lhs)
-		{
-			return rhs->get_position() < lhs->get_position();
-		}
-	};
-
 	sigc::signal<void, TorrentPtr> m_signal_added;
 	sigc::signal<void, TorrentPtr> m_signal_removed;
 	sigc::signal<void, Glib::ustring, Torrent::InfoPtr> m_signal_load_failed;
@@ -87,9 +78,8 @@ private:
 	
 	void on_key_changed(const Glib::ustring& key, const Value& value);
 
-	typedef std::list<std::pair<TorrentPtr, libtorrent::entry> > ResumeList;
 	void load_torrents();
-	void load_torrent(const Glib::ustring& file, ResumeList& resumes);
+	std::pair<TorrentPtr, libtorrent::entry> load_torrent(const Glib::ustring& file);
 
 	TorrentManager();
 

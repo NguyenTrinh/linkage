@@ -30,6 +30,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 using namespace Linkage;
 
+struct pred
+: public std::binary_function<const TorrentPtr&, const TorrentPtr&, bool>
+{
+	bool operator()(const TorrentPtr& rhs, const TorrentPtr& lhs)
+	{
+		return rhs->get_position() < lhs->get_position();
+	}
+};
+struct pair_pred
+: public std::binary_function<const std::pair<TorrentPtr, libtorrent::entry>&,
+	const std::pair<TorrentPtr, libtorrent::entry>&, bool>
+{
+	bool operator()(const std::pair<TorrentPtr, libtorrent::entry>& rhs,
+		const std::pair<TorrentPtr, libtorrent::entry>& lhs)
+	{
+		return rhs.first->get_position() < lhs.first->get_position();
+	}
+};
+
 TorrentManagerPtr TorrentManager::create()
 {
 	return TorrentManagerPtr(new TorrentManager());
@@ -95,7 +114,7 @@ void TorrentManager::on_key_changed(const Glib::ustring& key, const Value& value
 
 void TorrentManager::on_tracker_announce(const TorrentPtr& torrent, const Glib::ustring& msg)
 {
-	if (!torrent->is_stopped())
+	if (!torrent->is_stopped() && !torrent->get_handle().is_paused())
 	{
 		// FIXME: should we save resume data more often?
 		libtorrent::entry e = torrent->get_resume_entry();
@@ -113,6 +132,7 @@ void TorrentManager::on_tracker_reply(const TorrentPtr& torrent, const Glib::ust
 
 void TorrentManager::on_tracker_warning(const TorrentPtr& torrent, const Glib::ustring& reply)
 {
+	/* skip redirect message since a second reply/warning/failure will come after */
 	if (!Glib::str_has_prefix(reply, "Redirecting to \""))
 		torrent->set_tracker_reply(reply);
 }
@@ -197,6 +217,7 @@ void TorrentManager::on_position_changed(const WeakTorrentPtr& weak)
 
 void TorrentManager::load_torrents()
 {
+	typedef std::vector<std::pair<TorrentPtr, libtorrent::entry> > ResumeList;
 	ResumeList resumes;
 
 	/* load torrent info from disk cache */
@@ -207,8 +228,14 @@ void TorrentManager::load_torrents()
 		Glib::ustring file = Glib::build_filename(get_data_dir(), hash_str);
 		/* only load torrents that has a .resume file */
 		if (Glib::file_test(file + ".resume", Glib::FILE_TEST_EXISTS))
-			load_torrent(file, resumes);
+		{
+			std::pair<TorrentPtr, libtorrent::entry> p = load_torrent(file);
+			if (p.first)
+				resumes.push_back(p);
+		}
 	}
+
+	std::sort(resumes.begin(), resumes.end(), pair_pred());
 
 	/* resume previously active torrents */
 	for (ResumeList::iterator iter = resumes.begin(); iter != resumes.end(); ++iter)
@@ -217,13 +244,13 @@ void TorrentManager::load_torrents()
 	}
 }
 
-void TorrentManager::load_torrent(const Glib::ustring& file, ResumeList& resumes)
+std::pair<TorrentPtr, libtorrent::entry> TorrentManager::load_torrent(const Glib::ustring& file)
 {
 	libtorrent::entry e, er;
 
 	/* skip if we can't load torrent file */
 	if (!load_entry(file, e))
-		return;
+		return std::make_pair(TorrentPtr(), libtorrent::entry());
 
 	Torrent::InfoPtr info(new libtorrent::torrent_info(e));
 
@@ -231,19 +258,21 @@ void TorrentManager::load_torrent(const Glib::ustring& file, ResumeList& resumes
 	if (!load_entry(file + ".resume", er))
 	{
 		m_signal_load_failed.emit(file + ".resume", info);
-		return;
+		return std::make_pair(TorrentPtr(), libtorrent::entry());
 	}
 
 	/* make sure we have not lost track of the content */
 	if (!er.find_key("path"))
 	{
 		m_signal_load_failed.emit(file + ".resume", info);
-		return;
+		return std::make_pair(TorrentPtr(), libtorrent::entry());
 	}
 
 	TorrentPtr torrent = add_torrent(er, info);
 	if (er.find_key("stopped") && !er["stopped"].integer())
-		resumes.push_back(std::make_pair(torrent, er));
+		return std::make_pair(torrent, er);
+
+	return std::make_pair(TorrentPtr(), libtorrent::entry());
 }
 
 TorrentPtr TorrentManager::add_torrent(libtorrent::entry& er,
