@@ -31,7 +31,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 Glib::ustring Linkage::suffix_value(float value)
 {
-	return suffix_value((libtorrent::size_type)value);
+	std::stringstream ss;
+	ss.imbue(std::locale(""));
+	if (value >= 1073741824.0f)
+		ss << std::fixed << std::setprecision(2) << value/1073741824.0f << " " << _("GB");
+	else if (value >= 1048576.0f)
+		ss << std::fixed << std::setprecision(2) << value/1048576.0f << " " << _("MB");
+	else
+		ss << std::fixed << std::setprecision(2) << value/1024.0f << " " << _("kB");
+	return ss.str(); /* seems we should _not_ use Glib::locale_to_utf8 here */
 }
 
 Glib::ustring Linkage::suffix_value(libtorrent::size_type value)
