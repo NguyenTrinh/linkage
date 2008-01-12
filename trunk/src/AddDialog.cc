@@ -112,7 +112,7 @@ void AddDialog::on_file_changed()
 	{
 		Glib::ustring color = Engine::get_settings_manager()->get_string("ui/colors/error");
 		label_size->set_markup(String::ucompose(
-			"<span color=%1><i>%2</i></span>",
+			"<span color='%1'><i>%2</i></span>",
 			color, 
 			_("Invalid torrent")));
 		reset_info();
