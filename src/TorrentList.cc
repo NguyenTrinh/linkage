@@ -85,9 +85,9 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	column = get_column(col_id - 1);
 	column->add_attribute(*renderer, "value", columns.progress);
 	column->add_attribute(*renderer, "text", columns.eta);
-	column->add_attribute(*renderer, "text-left", columns.down_rate_formated);
-	column->add_attribute(*renderer, "text-right", columns.up_rate_formated);
-	//column->set_cell_data_func(*renderer, sigc::mem_fun(this, &TorrentList::format_rates));
+	//column->add_attribute(*renderer, "text-left", columns.down_rate_formated);
+	//column->add_attribute(*renderer, "text-right", columns.up_rate_formated);
+	column->set_cell_data_func(*renderer, sigc::mem_fun(this, &TorrentList::format_rates));
 
 	set_headers_visible(false);
 	set_search_column(columns.name);
@@ -267,8 +267,6 @@ void TorrentList::on_state_changed(const WeakTorrentPtr& weak)
 				row[columns.up_rate] = 0;
 				row[columns.seeds] = 0;
 				row[columns.peers] = 0;
-				row[columns.down_rate_formated] = suffix_value(0.f) + "/s";
-				row[columns.up_rate_formated] = suffix_value(0.f) + "/s";
 			}
 			row[columns.name_formated] = get_formated_name(torrent);
 
@@ -351,7 +349,6 @@ Glib::ustring TorrentList::get_formated_name(const TorrentPtr& torrent)
 	SettingsManagerPtr sm = Engine::get_settings_manager();
 	int state = torrent->get_state();
 	Glib::ustring color;
-
 
 	if (state & Torrent::CHECK_QUEUE)
 		color = sm->get_string("ui/colors/check_queue");
@@ -527,8 +524,6 @@ void TorrentList::update_row(Gtk::TreeRow& row)
 
 	row[columns.down_rate] = status.download_payload_rate;
 	row[columns.up_rate] = status.upload_payload_rate;
-	row[columns.down_rate_formated] = suffix_value(status.download_payload_rate) + "/s";
-	row[columns.up_rate_formated] = suffix_value(status.upload_payload_rate) + "/s";
 
 	int peers = status.num_peers - status.num_seeds;
 	if (peers == row[columns.peers] && status.num_seeds == row[columns.seeds])
