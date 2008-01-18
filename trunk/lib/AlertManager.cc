@@ -120,7 +120,7 @@ void AlertManager::check_alerts()
 				translated = _("Timed out");
 				break;
 			case -1:
-				translated = _("No route to host");
+				translated = _("Connection refused");
 				break;
 			case 200:
 				translated = msg.substr(msg.find(" ", 9) + 1);
