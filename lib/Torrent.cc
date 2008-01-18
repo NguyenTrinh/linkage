@@ -211,7 +211,11 @@ void Torrent::on_tick()
 			ratio = (1.0f*m_uploaded)/(1.0f*m_downloaded);
 
 		if (ratio >= m_stop_ratio)
-			Engine::get_session_manager()->stop_torrent(TorrentPtr(this));
+		{
+			libtorrent::torrent_handle handle = get_handle();
+			set_handle (libtorrent::torrent_handle());
+			Engine::get_session_manager()->remove_torrent(handle);
+		}
 	}
 }
 
