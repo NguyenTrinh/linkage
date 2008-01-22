@@ -382,18 +382,20 @@ Glib::ustring TorrentList::get_formated_name(const TorrentPtr& torrent)
 		(state & Torrent::FINISHED && !torrent->is_stopped()))
 	{
 		if (status.num_complete != -1 && status.num_incomplete != -1)
-			return String::ucompose(_(
+			return String::ucompose(
 				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
-				"%4 (%5) connected seeds, %6 (%7) peers"),
+				"%4 (%5) %8, %6 (%7) %9",
 				color, name, suffix_value(torrent->get_info()->total_size()),
 				status.num_seeds, status.num_complete,
-				status.num_peers - status.num_seeds, status.num_incomplete);
+				status.num_peers - status.num_seeds, status.num_incomplete,
+				_("connected seeds"), _("peers"));
 		else
-			return String::ucompose(_(
+			 return String::ucompose(
 				"<span foreground='%1'><b>%2</b> (%3)</span>\n"
-				"%4 connected seeds, %5 peers"),
+				"%4 %6, %5 %7",
 				color, name, suffix_value(torrent->get_info()->total_size()),
-				status.num_seeds, status.num_peers - status.num_seeds);
+				status.num_seeds, status.num_peers - status.num_seeds,
+				_("connected seeds"), _("peers"));
 	}
 	else
 		return String::ucompose(
