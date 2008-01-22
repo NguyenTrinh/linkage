@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linkage 0.1.5svn-r438\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-01-08 14:02+0100\n"
+"POT-Creation-Date: 2008-01-22 17:27+0100\n"
 "PO-Revision-Date: 2007-12-29 13:35+0300\n"
 "Last-Translator: Vasiliy G Tolstov <v.tolstov@selfip.ru>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -229,7 +229,7 @@ msgstr "Соединяемся"
 msgid "Handshake"
 msgstr "Приветствие"
 
-#: ../src/PeerList.cc:265 ../lib/Torrent.cc:368
+#: ../src/PeerList.cc:265 ../lib/Torrent.cc:369
 msgid "Queued"
 msgstr "В очереди"
 
@@ -333,45 +333,37 @@ msgstr "Загрузить"
 msgid "Description"
 msgstr "Описание"
 
-#: ../src/TorrentCreator.cc:101 ../data/linkage.glade.h:123
+#: ../src/TorrentCreator.cc:114 ../data/linkage.glade.h:123
 msgid "Select file"
 msgstr "Выберите файл"
 
-#: ../src/TorrentCreator.cc:106
+#: ../src/TorrentCreator.cc:119
 msgid "Select folder"
 msgstr "Выберите папку"
 
-#: ../src/TorrentCreator.cc:127
+#: ../src/TorrentCreator.cc:140
 msgid "Incomplete information"
 msgstr "Неполная информация"
 
-#: ../src/TorrentCreator.cc:128
+#: ../src/TorrentCreator.cc:141
 msgid "You must specify the tracker url and a file/folder."
 msgstr "Вы должны указать url адрес трекера и файл/папку"
 
-#: ../src/TorrentCreator.cc:145
+#: ../src/TorrentCreator.cc:158
 msgid "Hashing..."
 msgstr "Хеширование..."
 
-#: ../src/TorrentCreator.cc:220
+#: ../src/TorrentCreator.cc:233
 msgid "Save torrent"
 msgstr "Сохранить торрент"
 
-#: ../src/TorrentList.cc:358
-msgid ""
-"<span foreground='%1'><b>%2</b> (%3)</span>\n"
-"%4 (%5) connected seeds, %6 (%7) peers"
-msgstr ""
-"<span·foreground='%1'><b>%2</b>·(%3)</span>\n"
-"%4·(%5)·сидеров,·%6·(%7)·пиров"
+#: ../src/TorrentList.cc:391 ../src/TorrentList.cc:398
+msgid "connected seeds"
+msgstr "·сидеров"
 
-#: ../src/TorrentList.cc:365
-msgid ""
-"<span foreground='%1'><b>%2</b> (%3)</span>\n"
-"%4 connected seeds, %5 peers"
-msgstr ""
-"<span·foreground='%1'><b>%2</b>·(%3)</span>\n"
-"%4·сидеров,·%5·пиров"
+#: ../src/TorrentList.cc:391 ../src/TorrentList.cc:398
+msgid "peers"
+msgstr "·пиров"
 
 #: ../src/TorrentMenu.cc:90
 msgid "<i>None</i>"
@@ -444,7 +436,7 @@ msgid "Failed to connect to GNOME session"
 msgstr "Ошибка подключения к сессии GNOME"
 
 #: ../src/SessionClient.cc:134
-#: ../plugins/notification/PluginNotification.cc:202
+#: ../plugins/notification/PluginNotification.cc:200
 msgid "No suitable file manager found"
 msgstr "Не найдено подходящих файловых менеджеров"
 
@@ -498,61 +490,60 @@ msgstr ""
 msgid "Announcing as stopped"
 msgstr "Анонсирование"
 
-#: ../lib/AlertManager.cc:108 ../lib/Torrent.cc:376 ../lib/Torrent.cc:378
-#: ../lib/Torrent.cc:380 ../data/linkage.glade.h:29
+#: ../lib/AlertManager.cc:108 ../lib/Torrent.cc:377 ../lib/Torrent.cc:379
+#: ../lib/Torrent.cc:381 ../data/linkage.glade.h:29
 msgid "Announcing"
 msgstr "Анонсирование"
 
-#: ../lib/AlertManager.cc:117
+#: ../lib/AlertManager.cc:120
 msgid "Timed out"
 msgstr ""
 
-#: ../lib/AlertManager.cc:121
+#: ../lib/AlertManager.cc:123
+#, fuzzy
+msgid "Connection refused"
+msgstr "Соединяемся"
+
+#: ../lib/AlertManager.cc:129
 #, fuzzy
 msgid "Failed: %1"
 msgstr "Файлы:"
 
-#: ../lib/AlertManager.cc:132
+#: ../lib/AlertManager.cc:142
 msgid "OK, got %1 peers"
 msgstr "ОК, получено %1 пиров"
 
-#: ../lib/AlertManager.cc:148
+#: ../lib/AlertManager.cc:158
 #, fuzzy
 msgid "Hash failed for piece %1"
 msgstr "Контрольная сумма неверна для части %1"
 
-#: ../lib/AlertManager.cc:154
+#: ../lib/AlertManager.cc:164
 msgid "Banning peer %1 for sending bad data"
 msgstr ""
 
-#: ../lib/AlertManager.cc:173
-#: ../plugins/notification/PluginNotification.cc:286
+#: ../lib/AlertManager.cc:183
 msgid "Incompatible file version: %1"
 msgstr "Несовместимая версия файла: %1"
 
-#: ../lib/AlertManager.cc:178
-#: ../plugins/notification/PluginNotification.cc:291
+#: ../lib/AlertManager.cc:188
 msgid "Mismatching hash: %1"
 msgstr "Неверный хеш: %1"
 
-#: ../lib/AlertManager.cc:183
-#: ../plugins/notification/PluginNotification.cc:296
+#: ../lib/AlertManager.cc:193
 msgid "Checksum failed for piece %1"
 msgstr "Контрольная сумма неверна для части %1"
 
-#: ../lib/AlertManager.cc:187
-#: ../plugins/notification/PluginNotification.cc:300
+#: ../lib/AlertManager.cc:197
 msgid "Mismatching number of files"
 msgstr "Неверное число файлов"
 
-#: ../lib/AlertManager.cc:193
-#: ../plugins/notification/PluginNotification.cc:306
+#: ../lib/AlertManager.cc:203
 msgid "File size mismatch for %1"
 msgstr "Размер файла не верен для %1"
 
 #. Other too detailed errors
-#: ../lib/AlertManager.cc:196
-#: ../plugins/notification/PluginNotification.cc:309
+#: ../lib/AlertManager.cc:206
 msgid "Fast resume rejected, content check forced"
 msgstr "Быстрое возобновление запрещено, форсирована проверка контента"
 
@@ -576,59 +567,59 @@ msgstr "Совмещение %1 с %2"
 msgid "Could not create directory: %s"
 msgstr "Невозможно создать директорию: %s"
 
-#: ../lib/Torrent.cc:366
+#: ../lib/Torrent.cc:367
 msgid "Error"
 msgstr "Ошибка"
 
-#: ../lib/Torrent.cc:370 ../lib/Torrent.cc:388
+#: ../lib/Torrent.cc:371 ../lib/Torrent.cc:389
 msgid "Stopped"
 msgstr "Остановлен"
 
-#: ../lib/Torrent.cc:372
+#: ../lib/Torrent.cc:373
 msgid "Queued for checking"
 msgstr "Поставлен в очередь для проверки"
 
-#: ../lib/Torrent.cc:374
+#: ../lib/Torrent.cc:375
 msgid "Checking"
 msgstr "Проверка"
 
-#: ../lib/Torrent.cc:378 ../lib/Torrent.cc:390
+#: ../lib/Torrent.cc:379 ../lib/Torrent.cc:391
 msgid "Downloading"
 msgstr "Закачивается"
 
-#: ../lib/Torrent.cc:380 ../lib/Torrent.cc:382 ../lib/Torrent.cc:388
+#: ../lib/Torrent.cc:381 ../lib/Torrent.cc:383 ../lib/Torrent.cc:389
 msgid "Finished"
 msgstr "Закончен"
 
-#: ../lib/Torrent.cc:384
+#: ../lib/Torrent.cc:385
 msgid "Seeding"
 msgstr "Сидирую"
 
-#: ../lib/Torrent.cc:386
+#: ../lib/Torrent.cc:387
 msgid "Allocating"
 msgstr "Выделение"
 
-#: ../lib/TorrentManager.cc:124
+#: ../lib/TorrentManager.cc:144
 msgid "%1 (%2 times in a row)"
 msgstr "%1 (%2 раз в строке)"
 
-#: ../lib/Utils.cc:42
+#: ../lib/Utils.cc:37 ../lib/Utils.cc:50
 msgid "GB"
 msgstr "ГБ"
 
-#: ../lib/Utils.cc:44
+#: ../lib/Utils.cc:39 ../lib/Utils.cc:52
 msgid "MB"
 msgstr "МБ"
 
-#: ../lib/Utils.cc:46
+#: ../lib/Utils.cc:41 ../lib/Utils.cc:54
 msgid "kB"
 msgstr "кБ"
 
-#: ../lib/Utils.cc:90
+#: ../lib/Utils.cc:98
 msgid "day"
 msgstr "день"
 
-#: ../lib/Utils.cc:92
+#: ../lib/Utils.cc:100
 msgid "days"
 msgstr "дни"
 
@@ -656,57 +647,36 @@ msgstr ""
 msgid "Displays notifications trough libnotify"
 msgstr "Отображать уведомления посредством libnotify"
 
-#: ../plugins/notification/PluginNotification.cc:214
-msgid "Invalid bencoding"
-msgstr ""
-
-#: ../plugins/notification/PluginNotification.cc:219
-msgid "Missing file"
-msgstr "Поврежденный файл"
-
-#: ../plugins/notification/PluginNotification.cc:224
+#: ../plugins/notification/PluginNotification.cc:212
 msgid "Duplicate torrent"
 msgstr "Торрент уже существует"
 
-#: ../plugins/notification/PluginNotification.cc:234
-msgid "Cannot listen on given interface %1"
-msgstr "Не могу слушать на данном интерфейсе %1"
-
-#: ../plugins/notification/PluginNotification.cc:240
-msgid "None of the ports in range %1 could be opened for listening"
-msgstr ""
-"Ни один из портов в промежутке %1 не может быть открыт для прослушивания"
-
-#: ../plugins/notification/PluginNotification.cc:245
-msgid "Failed to open port: %1"
-msgstr "Ошибка открытия порта %1"
-
-#: ../plugins/notification/PluginNotification.cc:248
+#: ../plugins/notification/PluginNotification.cc:218
 msgid "Listen failed"
 msgstr ""
 
-#: ../plugins/notification/PluginNotification.cc:254
+#: ../plugins/notification/PluginNotification.cc:223
 msgid "%1 is complete"
 msgstr "%1 закончен"
 
-#: ../plugins/notification/PluginNotification.cc:262
+#: ../plugins/notification/PluginNotification.cc:231
 msgid "Torrent finished"
 msgstr "Торрент закачан"
 
-#: ../plugins/notification/PluginNotification.cc:263
+#: ../plugins/notification/PluginNotification.cc:232
 #: ../data/linkage.glade.h:93
 msgid "Open location"
 msgstr "Открыть путь"
 
-#: ../plugins/notification/PluginNotification.cc:276
+#: ../plugins/notification/PluginNotification.cc:239
 msgid "File error"
 msgstr "Ошибка файла"
 
-#: ../plugins/notification/PluginNotification.cc:277
+#: ../plugins/notification/PluginNotification.cc:240
 msgid "Stop torrent"
 msgstr "Остановить торент"
 
-#: ../plugins/notification/PluginNotification.cc:311
+#: ../plugins/notification/PluginNotification.cc:245
 msgid "Fast resume failed"
 msgstr "Ошибка быстрого возобновления"
 
@@ -1324,6 +1294,35 @@ msgstr "Загрузить и расшарить контент через BitTo
 #: ../data/linkage.desktop.in.h:2
 msgid "Linkage"
 msgstr "Linkage"
+
+#, fuzzy
+#~ msgid ""
+#~ "<span foreground='%1'><b>%2</b> (%3)</span>\n"
+#~ "%4 (%5) %8, %6 (%7) %9"
+#~ msgstr ""
+#~ "<span·foreground='%1'><b>%2</b>·(%3)</span>\n"
+#~ "%4·(%5)·сидеров,·%6·(%7)·пиров"
+
+#, fuzzy
+#~ msgid ""
+#~ "<span foreground='%1'><b>%2</b> (%3)</span>\n"
+#~ "%4 %6, %5 %7"
+#~ msgstr ""
+#~ "<span·foreground='%1'><b>%2</b>·(%3)</span>\n"
+#~ "%4·сидеров,·%5·пиров"
+
+#~ msgid "Missing file"
+#~ msgstr "Поврежденный файл"
+
+#~ msgid "Cannot listen on given interface %1"
+#~ msgstr "Не могу слушать на данном интерфейсе %1"
+
+#~ msgid "None of the ports in range %1 could be opened for listening"
+#~ msgstr ""
+#~ "Ни один из портов в промежутке %1 не может быть открыт для прослушивания"
+
+#~ msgid "Failed to open port: %1"
+#~ msgstr "Ошибка открытия порта %1"
 
 #~ msgid "File not found, \"%1\""
 #~ msgstr "Файл не найден, \"%1\""
