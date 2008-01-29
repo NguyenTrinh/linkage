@@ -43,10 +43,6 @@ PKG_CHECK_MODULES(DBUSGLIB,  dbus-c++-1 >= 0.5.0)
 AC_SUBST(DBUSGLIB_CFLAGS)
 AC_SUBST(DBUSGLIB_LIBS)
 
-PKG_CHECK_MODULES(LIBGTOP, libgtop-2.0 >= 2.12)
-AC_SUBST(LIBGTOP_CFLAGS)
-AC_SUBST(LIBGTOP_LIBS)
-
 AC_ARG_WITH([gnome],
 	[AS_HELP_STRING([--with-gnome],
 		[gnome session support @<:@default=check@:>@])],

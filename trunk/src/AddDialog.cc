@@ -16,8 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 */
 
-#include <glibtop.h>
-#include <glibtop/fsusage.h>
+#include <sys/vfs.h>
 
 #include <gtkmm/main.h>
 #include <glibmm/i18n.h>
@@ -66,8 +65,6 @@ AddDialog::AddDialog(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::X
 	button_path->signal_selection_changed().connect(sigc::mem_fun(this, &AddDialog::on_path_changed));
 
 	expander->set_expanded(Engine::get_settings_manager()->get_bool("ui/advanced_expanded"));
-
-	glibtop_init();
 }
 
 AddDialog::~AddDialog()
@@ -77,8 +74,6 @@ AddDialog::~AddDialog()
 
 	delete combo_group;
 	delete file_list;
-
-	glibtop_close();
 }
 
 void AddDialog::on_show()
@@ -124,9 +119,11 @@ void AddDialog::on_file_changed()
 void AddDialog::on_path_changed()
 {
 	std::string path = button_path->get_filename();
-	glibtop_fsusage usage;
-	glibtop_get_fsusage(&usage, path.c_str());
-	libtorrent::size_type free = usage.block_size * usage.bavail;
+	struct statfs sfs;
+	
+	statfs(path.c_str(), &sfs);
+	libtorrent::size_type free = sfs.f_bavail * sfs.f_bsize;
+
 	Glib::ustring markup = String::ucompose(
 		_("<i>%1 free disk space available</i>"),
 		suffix_value(free));
