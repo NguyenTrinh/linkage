@@ -38,6 +38,7 @@ class TorrentMenu : public Gtk::Menu
 	sigc::signal<void, const Glib::ustring&> m_signal_group;
 	sigc::signal<void, bool> m_signal_remove;
 	sigc::signal<void> m_signal_check;
+	sigc::signal<void> m_signal_edit_cols;
 
 	void on_groups_changed(const std::list<GroupPtr>& groups);
 
@@ -52,6 +53,7 @@ public:
 	sigc::signal<void, const Glib::ustring&> signal_group();
 	sigc::signal<void, bool> signal_remove();
 	sigc::signal<void> signal_check();
+	sigc::signal<void> signal_edit_columns();
 	
 	TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~TorrentMenu();

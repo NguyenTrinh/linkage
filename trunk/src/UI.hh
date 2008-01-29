@@ -56,7 +56,7 @@ class TorrentCreator;
 class TorrentMenu;
 class StateFilter;
 class AddDialog;
-
+class EditColumnsDialog;
 class SessionClient;
 
 class Linkage::Value;
@@ -121,6 +121,7 @@ class UI : public Gtk::Window, public Linkage::Interface
 	FileList* file_list;
 	PeerList* peer_list;
 	AddDialog* add_dialog;
+	EditColumnsDialog* columns_dialog;
 	TorrentCreator* new_dialog;
 	Statusbar* statusbar;
 	SettingsWin* settings_win;
@@ -149,6 +150,7 @@ class UI : public Gtk::Window, public Linkage::Interface
 	void on_open_location();
 	void on_check();
 	void on_set_group(const Glib::ustring& group);
+	void on_edit_columns();
 
 	void on_details_expanded();
 

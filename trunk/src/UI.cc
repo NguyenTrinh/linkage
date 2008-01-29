@@ -48,6 +48,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "TorrentMenu.hh"
 #include "StateFilter.hh"
 #include "AddDialog.hh"
+#include "EditColumnsDialog.hh"
 #include "SessionClient.hh"
 #include "UI.hh"
 
@@ -114,6 +115,9 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	add_dialog->set_transient_for(*this);
 	glade_xml->get_widget_derived("new_dialog", new_dialog);
 	new_dialog->set_transient_for(*this);
+	glade_xml->get_widget_derived("columns_dialog", columns_dialog);
+	columns_dialog->set_transient_for(*this);
+
 	glade_xml->get_widget_derived("torrent_list", torrent_list);
 	glade_xml->get_widget_derived("state_combobox", state_filter);
 	glade_xml->get_widget_derived("groups_treeview1", group_list);
@@ -247,6 +251,8 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	torrent_list->drag_dest_set(targets);
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), false);
 
+	columns_dialog->signal_visible_toggled().connect(sigc::mem_fun(torrent_list, &TorrentList::toggle_column));
+	
 	// hack to emit groups_changed signal
 	groups_win->notify();
 
@@ -264,6 +270,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	spinbutton_up->signal_value_changed().connect(sigc::mem_fun(this, &UI::on_spin_up));
 
 	torrent_menu->signal_open().connect(sigc::mem_fun(this, &UI::on_open_location));
+	torrent_menu->signal_edit_columns().connect(sigc::mem_fun(this, &UI::on_edit_columns));
 	torrent_menu->signal_up().connect(sigc::mem_fun(this, &UI::on_up));
 	torrent_menu->signal_down().connect(sigc::mem_fun(this, &UI::on_down));
 	torrent_menu->signal_start().connect(sigc::mem_fun(this, &UI::on_start));
@@ -343,7 +350,8 @@ UI::~UI()
 	delete groups_win;
 	delete torrent_menu;
 	delete add_dialog;
-
+	delete columns_dialog;
+	
 	delete session_client;
 }
 
@@ -972,3 +980,7 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 	context->drag_finish(true, false, time);
 }
 
+void UI::on_edit_columns()
+{
+	int response = columns_dialog->run(torrent_list->get_column_data());
+}
