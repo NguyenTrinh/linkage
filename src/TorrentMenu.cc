@@ -67,6 +67,8 @@ TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 		(&m_signal_remove, &sigc::signal<void, bool>::emit), true));
 	glade_xml->connect_clicked
 		("torrent_menu_check", sigc::mem_fun(&m_signal_check, &sigc::signal<void>::emit));
+	glade_xml->connect_clicked
+		("torrent_menu_edit_cols", sigc::mem_fun(&m_signal_edit_cols, &sigc::signal<void>::emit));
 
 	show_all_children();
 }
@@ -143,4 +145,8 @@ sigc::signal<void, bool> TorrentMenu::signal_remove()
 sigc::signal<void> TorrentMenu::signal_check()
 {
 	return m_signal_check;
+}
+sigc::signal<void> TorrentMenu::signal_edit_columns()
+{
+	return m_signal_edit_cols;
 }

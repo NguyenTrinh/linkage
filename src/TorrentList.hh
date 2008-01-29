@@ -1,5 +1,6 @@
 /*
-Copyright (C) 2006	Christian Lundgren
+Copyright (C) 2006-2008   Christian Lundgren
+Copyright (C) 2008        Dave Moore
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #define TORRENTLIST_HH
 
 #include <list>
+#include <vector>
 
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
@@ -28,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Torrent.hh"
 
+#include "EditColumnsDialog.hh"
 #include "Group.hh"
 
 class TorrentList : public Gtk::TreeView
@@ -49,20 +52,27 @@ class TorrentList : public Gtk::TreeView
 			add(seeds);
 			add(peers);
 			add(eta);
+			add(ratio);
+			add(tracker);
+			add(tracker_status);
 			add(hash);
 		}
+
 		Gtk::TreeModelColumn<unsigned int> position;
 		Gtk::TreeModelColumn<Glib::ustring> name; // For searching/sorting
 		Gtk::TreeModelColumn<Glib::ustring> name_formated; // updated only when needed
 		Gtk::TreeModelColumn<float> progress;
 		Gtk::TreeModelColumn<Glib::ustring> state;
-		Gtk::TreeModelColumn<libtorrent::size_type> down;
-		Gtk::TreeModelColumn<libtorrent::size_type> up;
-		Gtk::TreeModelColumn<float> down_rate;
-		Gtk::TreeModelColumn<float> up_rate;
-		Gtk::TreeModelColumn<unsigned int> seeds;
-		Gtk::TreeModelColumn<unsigned int> peers;
+		Gtk::TreeModelColumn<Glib::ustring> down;
+		Gtk::TreeModelColumn<Glib::ustring> up;
+		Gtk::TreeModelColumn<Glib::ustring> down_rate;
+		Gtk::TreeModelColumn<Glib::ustring> up_rate;
+		Gtk::TreeModelColumn<Glib::ustring> seeds;
+		Gtk::TreeModelColumn<Glib::ustring> peers;
 		Gtk::TreeModelColumn<Glib::ustring> eta;
+		Gtk::TreeModelColumn<float> ratio;
+		Gtk::TreeModelColumn<Glib::ustring> tracker;
+		Gtk::TreeModelColumn<Glib::ustring> tracker_status;
 		Gtk::TreeModelColumn<libtorrent::sha1_hash> hash;
 	};
 	ModelColumns columns;
@@ -74,6 +84,8 @@ class TorrentList : public Gtk::TreeView
 
 	GroupPtr m_active_group;
 	Linkage::Torrent::State m_cur_state;
+	
+	ColumnDataList m_cols;
 
 	void on_added(const Linkage::TorrentPtr& torrent);
 	void on_removed(const Linkage::TorrentPtr& torrent);
@@ -95,6 +107,9 @@ class TorrentList : public Gtk::TreeView
 
 	void update_row(Gtk::TreeRow& row);
 
+	void save_column_setup();
+	std::string parse_column_string(std::string raw_order);
+
 	friend class UI;
 
 public:
@@ -112,11 +127,18 @@ public:
 		COL_SEEDS,
 		COL_PEERS,
 		COL_ETA,
-		COL_HASH
-	};
+		COL_RATIO,
+		COL_TRACKER,
+		COL_TRACKER_STATUS,
+		COL_HASH,
+		TOTAL_COLS
+	}; 
 
 	bool is_selected(const libtorrent::sha1_hash& hash);
 	Linkage::HashList get_selected_list();
+
+	const ColumnDataList& get_column_data() const { return m_cols; }
+	void toggle_column(int col);
 
 	void set_sort_column(Column col_id);
 	void set_sort_order(Gtk::SortType order);

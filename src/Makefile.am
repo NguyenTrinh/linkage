@@ -56,6 +56,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   SessionClient.cc \
                   SettingsWidget.hh \
                   SettingsWidget.cc \
+                  EditColumnsDialog.cc \
+                  EditColumnsDialog.hh \
                   Menu.hh \
                   Menu.cc \
                   main.cc

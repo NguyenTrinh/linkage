@@ -299,8 +299,32 @@
 			</locale>
 		</schema>
 
-		<!-- torrent/queue -->
+		<schema>
+			<key>/schemas/apps/linkage/torrent/resume_interval</key>
+			<applyto>/apps/linkage/torrent/resume_interval</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>5</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		
+		<schema>
+			<key>/schemas/apps/linkage/torrent/resume_method</key>
+			<applyto>/apps/linkage/torrent/resume_method</applyto>
+			<owner>linkage</owner>
+			<type>string</type>
+			<default>minutes</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
 
+		<!-- torrent/queue -->
+		
 		<schema>
 			<key>/schemas/apps/linkage/torrent/queue/max_active</key>
 			<applyto>/apps/linkage/torrent/queue/max_active</applyto>
@@ -526,7 +550,366 @@
 			</locale>
 		</schema>
 
+		<!-- ui/torrent_view/columns -->
+		
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/sort_order</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/sort_order</applyto>
+			<owner>linkage</owner>
+			<type>string</type>
+			<default>position|name|name_formatted|progress|status|downloaded|uploaded|downrate|uprate|seeds|peers|eta|ratio|tracker|tracker_status|hash</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
 
+		
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_position_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_position_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_position_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_position_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>10</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_name_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_name_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_name_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_name_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>150</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_name_formatted_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_name_formatted_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_name_formatted_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_name_formatted_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>100</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_progress_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_progress_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_progress_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_progress_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>100</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_status_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_status_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_status_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_status_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>80</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_downloaded_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_downloaded_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_downloaded_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_downloaded_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>40</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_uploaded_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_uploaded_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_uploaded_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_uploaded_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>40</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_downrate_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_downrate_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_downrate_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_downrate_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>40</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_uprate_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_uprate_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_uprate_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_uprate_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>40</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_seeds_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_seeds_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_seeds_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_seeds_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>40</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_peers_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_peers_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_peers_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_peers_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>40</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_eta_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_eta_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_eta_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_eta_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>70</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_ratio_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_ratio_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_ratio_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_ratio_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>40</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_tracker_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_tracker_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_tracker_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_tracker_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>100</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_tracker_status_visible</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_tracker_status_visible</applyto>
+			<owner>linkage</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		<schema>
+			<key>/schemas/apps/linkage/ui/torrent_view/columns/col_tracker_status_width</key>
+			<applyto>/apps/linkage/ui/torrent_view/columns/col_tracker_status_width</applyto>
+			<owner>linkage</owner>
+			<type>int</type>
+			<default>100</default>
+			<locale name="C">
+				<short></short>
+				<long></long>
+			</locale>
+		</schema>
+		
 		<!-- ui/colors -->
 
 
