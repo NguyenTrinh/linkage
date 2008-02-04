@@ -788,13 +788,14 @@ void UI::on_details_expanded()
 {
 	if (expander_details->get_expanded())
 	{
-		TorrentPtr torrent = get_selected_single();
-		update(torrent, true);
+		if(torrent_list->get_selected_list().size() == 1)
+		{
+			TorrentPtr torrent = get_selected_single();
+			update(torrent, true);
+			return;
+		}
 	}
-	else
-	{
-		main_vpane->set_position(-1);
-	}
+	main_vpane->set_position(-1);
 }
 
 void UI::on_torrent_list_selection_changed()

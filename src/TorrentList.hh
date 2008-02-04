@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #ifndef TORRENTLIST_HH
 #define TORRENTLIST_HH
 
-#include <list>
 #include <vector>
 
 #include <gtkmm/treeview.h>
@@ -31,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "linkage/Torrent.hh"
 
 #include "EditColumnsDialog.hh"
+#include "TorrentListRenderers.hh"
 #include "Group.hh"
 
 class TorrentList : public Gtk::TreeView
@@ -42,7 +42,6 @@ class TorrentList : public Gtk::TreeView
 		{
 			add(position);
 			add(name);
-			add(name_formated);
 			add(progress);
 			add(state);
 			add(down);
@@ -56,24 +55,29 @@ class TorrentList : public Gtk::TreeView
 			add(tracker);
 			add(tracker_status);
 			add(hash);
+			add(total_seeds);
+			add(total_peers);
+			add(color);
 		}
 
 		Gtk::TreeModelColumn<unsigned int> position;
-		Gtk::TreeModelColumn<Glib::ustring> name; // For searching/sorting
-		Gtk::TreeModelColumn<Glib::ustring> name_formated; // updated only when needed
+		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<float> progress;
 		Gtk::TreeModelColumn<Glib::ustring> state;
-		Gtk::TreeModelColumn<Glib::ustring> down;
-		Gtk::TreeModelColumn<Glib::ustring> up;
-		Gtk::TreeModelColumn<Glib::ustring> down_rate;
-		Gtk::TreeModelColumn<Glib::ustring> up_rate;
-		Gtk::TreeModelColumn<Glib::ustring> seeds;
-		Gtk::TreeModelColumn<Glib::ustring> peers;
-		Gtk::TreeModelColumn<Glib::ustring> eta;
+		Gtk::TreeModelColumn<libtorrent::size_type> down;
+		Gtk::TreeModelColumn<libtorrent::size_type> up;
+		Gtk::TreeModelColumn<float> down_rate;
+		Gtk::TreeModelColumn<float> up_rate;
+		Gtk::TreeModelColumn<int> seeds;
+		Gtk::TreeModelColumn<int> peers;
+		Gtk::TreeModelColumn<libtorrent::size_type> eta;
 		Gtk::TreeModelColumn<float> ratio;
 		Gtk::TreeModelColumn<Glib::ustring> tracker;
 		Gtk::TreeModelColumn<Glib::ustring> tracker_status;
 		Gtk::TreeModelColumn<libtorrent::sha1_hash> hash;
+		Gtk::TreeModelColumn<int> total_seeds;
+		Gtk::TreeModelColumn<int> total_peers;
+		Gtk::TreeModelColumn<Glib::ustring> color;
 	};
 	ModelColumns columns;
 
@@ -92,8 +96,7 @@ class TorrentList : public Gtk::TreeView
 	void on_position_changed(const Linkage::WeakTorrentPtr& weak);
 	void on_state_changed(const Linkage::WeakTorrentPtr& weak);
 
-	void format_rates(Gtk::CellRenderer* cell, const Gtk::TreeIter& iter);
-	Glib::ustring get_formated_name(const Linkage::TorrentPtr& torrent);
+	Glib::ustring get_state_color(int state);
 
 	bool on_button_press_event(GdkEventButton *event);
 
@@ -117,7 +120,6 @@ public:
 	{
 		COL_POSITION,
 		COL_NAME,
-		COL_NAME_FORMATED,
 		COL_PROGRESS,
 		COL_STATUS,
 		COL_DOWNLOADED,
