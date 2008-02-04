@@ -92,10 +92,15 @@ public:
 	int get_down_limit();
 	float get_stop_ratio();
 	libtorrent::sha1_hash get_hash();
+	libtorrent::size_type get_eta();
+	float get_progress();
 
 	libtorrent::size_type get_previously_downloaded();
 	libtorrent::size_type get_previously_uploaded();
 
+	libtorrent::size_type get_total_downloaded();
+	libtorrent::size_type get_total_uploaded();
+	
 	//FIXME: remove this, use composite States (w/ FINISHED) instead
 	bool is_completed();
 

@@ -772,3 +772,58 @@ libtorrent::entry Torrent::get_resume_entry()
 
 	return e;
 }
+
+libtorrent::size_type Torrent::get_eta()
+{
+	libtorrent::torrent_status status = get_status();
+	libtorrent::size_type eta;
+	libtorrent::size_type down = get_total_downloaded();
+	float ratio = (1.0f*get_total_uploaded())/(1.0f*down);
+	
+	if (get_state() & Torrent::SEEDING || get_state() & Torrent::FINISHED)
+	{
+		// show the eta for reaching the desired ratio
+		float desired_ratio = get_stop_ratio() < 0.0f ? get_stop_ratio() : 1.0f;
+		if (ratio < desired_ratio)
+			eta = status.upload_payload_rate
+				? (down * desired_ratio) / status.upload_payload_rate 
+				: 0;
+		else
+			eta = 0;
+	}
+	else
+	{
+		if (get_state() & Torrent::STOPPED)
+			eta = 0;
+		else
+			eta = status.download_payload_rate
+				? (status.total_wanted - status.total_wanted_done) / status.download_payload_rate
+				: 0;
+	}
+	return eta;
+	
+}
+
+libtorrent::size_type Torrent::get_total_downloaded()
+{
+	return get_status().total_payload_download + get_previously_downloaded();
+}
+libtorrent::size_type Torrent::get_total_uploaded()
+{
+	return get_status().total_payload_upload + get_previously_uploaded();
+}
+
+float Torrent::get_progress()
+{
+	if (get_state() & Torrent::SEEDING || get_state() & Torrent::FINISHED)
+	{
+		/// TODO: if preference is set
+		float ratio = (1.0f*get_total_uploaded())/(1.0f*get_total_downloaded());
+		float desired_ratio = get_stop_ratio() > 0.0f ? get_stop_ratio() : 1.0f;
+		if (ratio < desired_ratio)
+			return (ratio / desired_ratio) * 100;
+		else
+			return 100;
+	}
+	return get_status().progress*100;
+}

@@ -60,6 +60,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   EditColumnsDialog.hh \
                   Menu.hh \
                   Menu.cc \
+                  TorrentListRenderers.hh \
+                  TorrentListRenderers.cc \
                   main.cc
 
 
