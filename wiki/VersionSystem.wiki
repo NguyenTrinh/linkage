@@ -8,7 +8,7 @@ Linkage should follow the common [http://en.wikipedia.org/wiki/Software_versioni
 
 Even numbers represent a stable branch. These should be packaged and available for all major packaging systems. 
 
-The unstable or development branch releases should also be packaged and aim to support upcoming releases of Linux flavors or required software.
+The unstable or development branch releases should also be packaged and aim to support upcoming releases of Linux flavors or required software.  The last version of an unstable release should be identical to the first version of a stable release.
 
 == Numbering System ==
 
