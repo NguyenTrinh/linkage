@@ -1,4 +1,4 @@
-# Description of the Linkage versioning
+#summary Description of the Linkage versioning
 
 = The Release System =
 
