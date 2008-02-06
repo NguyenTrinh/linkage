@@ -312,7 +312,14 @@ void TorrentList::on_added(const TorrentPtr& torrent)
 	Gtk::TreeIter iter = model->append();
 	Gtk::TreeRow row = *iter;
 	row[columns.hash] = torrent->get_hash();
-	row[columns.name] = torrent->get_name();
+	if (Engine::get_settings_manager()->get_bool("ui/torrent_view/trunkate_names"))
+	{
+		int max_len = Engine::get_settings_manager()->get_int("ui/torrent_view/max_name_width");
+		Glib::ustring name = torrent->get_name();
+		row[columns.name] = name.size() > max_len ? name.substr(0, max_len) + "..." : name;
+	}
+	else
+		row[columns.name] = torrent->get_name();
 
 	row[columns.position] = torrent->get_position();
 	if (torrent->state_string(torrent->get_state()) != row[columns.state])
