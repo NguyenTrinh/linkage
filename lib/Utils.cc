@@ -189,8 +189,9 @@ std::string Linkage::http_get(const std::string& url, int timeout)
 	cc.limit(1);
 	conn = boost::shared_ptr<libtorrent::http_connection>
 		(new libtorrent::http_connection(ios, cc, Handler(buff), false));
-	conn->get(url, libtorrent::seconds(30));
+	conn->get(url);
 	ios.run();
+	conn->close();
 
 	if (!buff.empty())
 	{
