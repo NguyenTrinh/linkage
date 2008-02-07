@@ -2,7 +2,7 @@ m4_define([linkage_major_version], [0])
 m4_define([linkage_minor_version], [1])
 m4_define([linkage_micro_version], [5])
 m4_define([linkage_tag], [svn])
-m4_define([linkage_tag_revision], [r@REVISION@])
+m4_define([linkage_tag_revision], [r513])
 
 m4_define([linkage_version], [linkage_major_version().linkage_minor_version().linkage_micro_version()m4_ifdef(linkage_tag,,linkage_tag()-linkage_tag_revision())])
 
