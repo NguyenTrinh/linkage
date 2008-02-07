@@ -1,0 +1,8 @@
+* Add possibility for plugins to add dbus methods/signals
+* Extend dbus interface with methods/signals
+* Update TorrentCreator (DHT, multi tracker)
+* Add RSS, Scheduler and Auto-file filter (like *.nfo etc...) plugins
+* Add sort on time remaining
+* on_torrent_finished, if files are filtered and then unfiltered we should do set_complete(false)
+* Rewrite queueing algorithm, add seed queue (and group queue?)
+* Add key events to torrent list (space/enter - start/details, delete - remove)

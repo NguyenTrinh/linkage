@@ -1,0 +1,133 @@
+m4_define([linkage_major_version], [0])
+m4_define([linkage_minor_version], [1])
+m4_define([linkage_micro_version], [5])
+m4_define([linkage_tag], [svn])
+m4_define([linkage_tag_revision], [r@REVISION@])
+
+m4_define([linkage_version], [linkage_major_version().linkage_minor_version().linkage_micro_version()m4_ifdef(linkage_tag,,linkage_tag()-linkage_tag_revision())])
+
+AC_INIT([linkage], [linkage_version])
+AC_CONFIG_SRCDIR(src/main.cc)
+AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
+AM_CONFIG_HEADER([config.h])
+
+AC_DEFINE([LINKAGE_VERSION_MAJOR], [linkage_major_version()], [Major version])
+AC_DEFINE([LINKAGE_VERSION_MINOR], [linkage_minor_version()], [Minor version])
+AC_DEFINE([LINKAGE_VERSION_MICRO], [linkage_micro_version()], [Micro version])
+
+PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.10)
+AC_SUBST(GTKMM_CFLAGS)
+AC_SUBST(GTKMM_LIBS)
+
+PKG_CHECK_MODULES(LIBGLADE, libglademm-2.4 >= 2.6)
+AC_SUBST(LIBGLADE_CFLAGS)
+AC_SUBST(LIBGLADE_LIBS)
+
+PKG_CHECK_MODULES(GCONFMM, gconfmm-2.6 >= 2.6)
+AC_SUBST(GCONFMM_CFLAGS)
+AC_SUBST(GCONFMM_LIBS)
+
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= 2.10)
+AC_SUBST(GTHREAD_CFLAGS)
+AC_SUBST(GTHREAD_LIBS)
+
+PKG_CHECK_MODULES(LIBTORRENT, libtorrent >= 0.13)
+AC_SUBST(LIBTORRENT_CFLAGS)
+AC_SUBST(LIBTORRENT_LIBS)
+
+PKG_CHECK_MODULES(LIBNOTIFY, libnotify >= 0.4.4)
+AC_SUBST(LIBNOTIFY_CFLAGS)
+AC_SUBST(LIBNOTIFY_LIBS)
+
+PKG_CHECK_MODULES(DBUSGLIB,  dbus-c++-1 >= 0.5.0)
+AC_SUBST(DBUSGLIB_CFLAGS)
+AC_SUBST(DBUSGLIB_LIBS)
+
+AC_ARG_WITH([gnome],
+	[AS_HELP_STRING([--with-gnome],
+		[gnome session support @<:@default=check@:>@])],
+	[],
+	[with_gnome=check])
+AS_IF([test "x$with_gnome" != xno],
+	[PKG_CHECK_MODULES(GNOME, libgnomemm-2.6 >= 2.16 gnome-vfsmm-2.6 >= 2.16 libgnomeuimm-2.6 > 2.16,
+		AC_DEFINE([HAVE_GNOME], [1], [Have GNOME]),
+		[if test "x$with_gnome" != xcheck; then
+			AC_MSG_FAILURE([--with-gnome was given, but test for GNOME failed.])
+		else
+			AC_DEFINE([HAVE_GNOME], [0], [Have GNOME])
+	 	fi])],
+	 	AC_DEFINE([HAVE_GNOME], [0], [Have GNOME]))
+AC_SUBST(GNOME_CFLAGS)
+AC_SUBST(GNOME_LIBS)
+
+AC_ARG_WITH([exo],
+	[AS_HELP_STRING([--with-exo],
+		[xfce session support @<:@default=check@:>@])],
+	[],
+	[with_exo=check])
+AS_IF([test "x$with_exo" != xno],
+	[PKG_CHECK_MODULES(EXO, exo-0.3 >= 0.3,
+		AC_DEFINE([HAVE_EXO], [1], [Have exo]),
+		[if test "x$with_exo" != xcheck; then
+			AC_MSG_FAILURE([--with-exo was given, but test for exo failed.])
+		else
+			AC_DEFINE([HAVE_EXO], [0], [Have exo])
+	 	fi])], AC_DEFINE([HAVE_EXO], [0], [Have exo]))
+AC_SUBST(EXO_CFLAGS)
+AC_SUBST(EXO_LIBS)
+
+#CXXFLAGS="-ansi -pedantic -Wno-long-long -g -Wall -Werror"
+#AC_SUBST(CXXFLAGS)
+#CFLAGS="-pedantic -g -Wall"
+#AC_SUBST(CFLAGS)
+
+dnl Checking for gconftool-2
+AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
+
+if test "x$GCONFTOOL" = xno; then
+	AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf])
+fi
+
+AM_GCONF_SOURCE_2
+
+# Thanks to papuawm for stealing this line from the blackbox configure.ac.in script
+test x$prefix = "xNONE" && prefix="$ac_default_prefix"
+
+AC_DEFINE_UNQUOTED([FLAG_DIR], ["${prefix}/share/linkage/flags"], [Flag directory])
+AC_DEFINE_UNQUOTED([PIXMAP_DIR], ["${prefix}/share/pixmaps"], [Pixmap directory])
+AC_DEFINE_UNQUOTED([DATA_DIR], ["${prefix}/share/linkage"], [Data directory])
+# AC_DEFINE_UNQUOTED doesn't expand $libdir properly
+AS_AC_EXPAND(LIBDIR, ${libdir})
+AC_DEFINE_UNQUOTED([PLUGIN_DIR], ["$LIBDIR/linkage/plugins"], [Plugin directory])
+
+AC_DEFINE([NDEBUG], [], [Needs to be defined to link against non-debug build of libtorrent])
+
+GETTEXT_PACKAGE=$PACKAGE_NAME
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",GETTEXT_PACKAGE)
+AC_SUBST(GETTEXT_PACKAGE)
+
+dnl ALL_LINGUAS="sv"
+AM_GLIB_GNU_GETTEXT()
+AC_PROG_INTLTOOL()
+
+AC_PROG_CC()
+AC_PROG_CXX()
+AC_DISABLE_STATIC()
+AC_PROG_LIBTOOL()
+AC_PROG_INSTALL()
+
+AC_CONFIG_FILES(
+	Makefile
+	src/Makefile
+	plugins/Makefile
+	lib/Makefile
+	lib/linkage/Makefile
+	plugins/notification/Makefile
+	plugins/trayicon/Makefile
+	data/Makefile
+	data/flags/Makefile
+	po/Makefile.in
+)
+
+AC_OUTPUT()
+
