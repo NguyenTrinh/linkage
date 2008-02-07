@@ -53,7 +53,7 @@ int EditColumnsDialog::run(const ColumnDataList& cols)
 	
 	int res = Gtk::Dialog::run();
 	hide();
-	
+	m_model->clear();
 	return res;
 }
 

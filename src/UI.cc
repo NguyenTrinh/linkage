@@ -250,8 +250,6 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	targets.push_back(Gtk::TargetEntry(TARGET_MOZ_URL)); 
 	torrent_list->drag_dest_set(targets);
 	torrent_list->signal_drag_data_received().connect(sigc::mem_fun(this, &UI::on_dnd_received), false);
-
-	columns_dialog->signal_visible_toggled().connect(sigc::mem_fun(torrent_list, &TorrentList::toggle_column));
 	
 	// hack to emit groups_changed signal
 	groups_win->notify();
@@ -983,5 +981,8 @@ void UI::on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
 
 void UI::on_edit_columns()
 {
+	sigc::connection c = columns_dialog->signal_visible_toggled().connect
+		(sigc::mem_fun(torrent_list, &TorrentList::toggle_column));
 	int response = columns_dialog->run(torrent_list->get_column_data());
+	c.disconnect();
 }
