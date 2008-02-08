@@ -4,7 +4,7 @@ m4_define([linkage_micro_version], [5])
 
 m4_define([linkage_version], [linkage_major_version().linkage_minor_version().linkage_micro_version()])
 
-AC_INIT([linkage], [linkage_version])
+AC_INIT([linkage], [linkage_version()])
 AC_CONFIG_SRCDIR(src/main.cc)
 AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
 AM_CONFIG_HEADER([config.h])
