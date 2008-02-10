@@ -3,11 +3,7 @@
 
 = Introduction =
 
-Latest release is 0.1.4 available from the [http://code.google.com/p/linkage/downloads/list downloads] page.
+Latest release is 0.1.5 available from the [http://code.google.com/p/linkage/downloads/list downloads] page.
 
 = Planned releases =
-  * *0.1.6*
-    * See [ZeroPointOnePointSix]
-  * *0.1.8* Avahi support?
-
-  * *0.2* Major rewrite
+  * *0.2.0* libtorrent 0.13
