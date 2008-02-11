@@ -1,6 +1,9 @@
 #summary Installation instructions
 #labels Featured
 
+*_This page contains alot of diffrent instructions, this should be split into two separate pages. Something like GetLinkage (general information about packages and how to install them) and BuildingLinkage (detailed information on how to build linkage, options and deps)_*
+
+
 = Fedora =
 
 == Binrary packages ==
