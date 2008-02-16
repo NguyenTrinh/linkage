@@ -1,0 +1,4 @@
+2008-02-16
+
+	* lib/Torrent.cc: properly save resume file when stopping seeded torrent
+	when desired ratio is met
