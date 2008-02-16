@@ -212,8 +212,13 @@ void Torrent::on_tick()
 
 		if (ratio >= m_stop_ratio)
 		{
+			libtorrent::entry e = get_resume_entry();
+			e["stopped"] = 1;
+			save_entry(Glib::build_filename(get_data_dir(),
+				String::compose("%1", get_hash()) + ".resume"), e);
+
 			libtorrent::torrent_handle handle = get_handle();
-			set_handle (libtorrent::torrent_handle());
+			set_handle(libtorrent::torrent_handle());
 			Engine::get_session_manager()->remove_torrent(handle);
 		}
 	}
@@ -570,7 +575,6 @@ void Torrent::set_priorities(const std::vector<int>& priorities)
 			//this means file.size > ~piece_length*20 
 			while (num_prio--)
 			{
-				//priority 7, not P_MAX. See LT docs
 				get_handle().piece_priority(front++, P_MAX);
 				get_handle().piece_priority(end--, P_MAX);
 			}
