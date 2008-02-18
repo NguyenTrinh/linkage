@@ -1,4 +1,10 @@
-2008-02-16
+2008-02-18  Christian Lundgren  <zeflunk@gmail.com>
+
+	* src/SettingsWin.cc:
+	* lib/linkage/Plugin.hh: Plugins should now return a config dialog
+	instead of just a config widget.
+
+2008-02-16  Christian Lundgren  <zeflunk@gmail.com>
 
 	* lib/Torrent.cc: properly save resume file when stopping seeded torrent
 	when desired ratio is met
