@@ -266,14 +266,9 @@ void SettingsWin::on_configure_plugin()
 		PluginPtr plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
 		if (plugin)
 		{
-			Gtk::Widget* widget = plugin->get_config_widget();
-			if (widget)
-			{
-				Gtk::Dialog dialog(row[plugin_columns.name]);
-				dialog.add(*widget);
-				dialog.run();
-				dialog.remove();
-			}
+			Gtk::Dialog* dialog = plugin->get_config_dialog();
+			if (dialog)
+				dialog->run();
 		}
 	}
 }
