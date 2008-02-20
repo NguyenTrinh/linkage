@@ -252,6 +252,7 @@ void SettingsWin::on_about_plugin()
 		about.set_version(row[plugin_columns.version]);
 		about.set_website(row[plugin_columns.website]);
 		about.set_name(row[plugin_columns.name]);
+		about.set_transient_for(*this);
 		about.run();
 	}
 }
@@ -268,7 +269,10 @@ void SettingsWin::on_configure_plugin()
 		{
 			Gtk::Dialog* dialog = plugin->get_config_dialog();
 			if (dialog)
+			{
+				dialog->set_transient_for(*this);
 				dialog->run();
+			}
 		}
 	}
 }

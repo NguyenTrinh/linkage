@@ -1,3 +1,9 @@
+2008-02-20  Christian Lundgren  <zeflunk@gmail.com>
+
+	* src/SettingsWin.cc: Make plugin configure and about dialog transient
+	for settingwin
+	* src/Makefile.am: fixed intendation
+
 2008-02-18  Christian Lundgren  <zeflunk@gmail.com>
 
 	* src/SettingsWin.cc:

@@ -66,14 +66,14 @@ linkage_SOURCES = CellRendererPieceMap.hh \
 
 
 linkage_LDADD = $(LDFLAGS) \
-								$(GTKMM_LIBS) \
-								$(LIBTORRENT_LIBS) \
-								$(DBUSGLIB_LIBS) \
-								$(GTHREAD_LIBS) \
-	 							${LIBGLADE_LIBS} \
-								${GCONFMM_LIBS} \
-								$(GNOME_LIBS) \
-								$(EXO_LIBS) \
-								$(LIBGTOP_LIBS) \
-								-L$(top_srcdir)/lib -llinkage-1
+		$(GTKMM_LIBS) \
+		$(LIBTORRENT_LIBS) \
+		$(DBUSGLIB_LIBS) \
+		$(GTHREAD_LIBS) \
+		${LIBGLADE_LIBS} \
+		${GCONFMM_LIBS} \
+		$(GNOME_LIBS) \
+		$(EXO_LIBS) \
+		$(LIBGTOP_LIBS) \
+		-L$(top_srcdir)/lib -llinkage-1
 
