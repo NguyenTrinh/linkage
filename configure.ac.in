@@ -124,6 +124,7 @@ AC_CONFIG_FILES(
 	lib/linkage/Makefile
 	plugins/notification/Makefile
 	plugins/trayicon/Makefile
+	plugins/ipfilter/Makefile
 	data/Makefile
 	data/flags/Makefile
 	po/Makefile.in
