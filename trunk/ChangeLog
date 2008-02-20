@@ -1,5 +1,13 @@
 2008-02-20  Christian Lundgren  <zeflunk@gmail.com>
 
+	* plugins/ipfilter/libp2p: Added libp2p for IP filter plugin
+	* plugins/Makefile.am:
+	* plugins/ipfilter:
+	* plugins/ipfilter/IpFilterPlugin.cc:
+	* plugins/ipfilter/Makefile.am:
+	* plugins/ipfilter/IpFilterPlugin.hh:
+	* configure.ac.in: Added IP filter plugin
+
 	* src/SettingsWin.cc: Make plugin configure and about dialog transient
 	for settingwin
 	* src/Makefile.am: fixed intendation
