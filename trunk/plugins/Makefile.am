@@ -1,1 +1,1 @@
-SUBDIRS = trayicon notification ipfilter
+SUBDIRS = trayicon notification ipfilter scheduler

@@ -12,6 +12,7 @@ AM_CXXFLAGS = -I$(top_srcdir)/lib \
 							$(EXO_CFLAGS)  \
 							$(GNOME_CFLAGS)  \
 							$(LIBGTOP_CFLAGS) \
+							@BOOST_SERIALIZATION_LIB@ \
 							-DLOCALEDIR=\""$(datadir)/locale"\"
 
 linkage_SOURCES = CellRendererPieceMap.hh \
@@ -75,5 +76,6 @@ linkage_LDADD = $(LDFLAGS) \
 		$(GNOME_LIBS) \
 		$(EXO_LIBS) \
 		$(LIBGTOP_LIBS) \
+		@BOOST_SERIALIZATION_LIB@ \
 		-L$(top_srcdir)/lib -llinkage-1
 

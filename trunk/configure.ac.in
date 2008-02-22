@@ -43,6 +43,20 @@ PKG_CHECK_MODULES(DBUSGLIB,  dbus-c++-1 >= 0.5.0)
 AC_SUBST(DBUSGLIB_CFLAGS)
 AC_SUBST(DBUSGLIB_LIBS)
 
+AX_BOOST_BASE
+
+AX_BOOST_SERIALIZATION
+dnl check that Boost.Serialization was found:
+if test -z "$BOOST_SERIALIZATION_LIB"; then
+   AC_MSG_ERROR([Unable to find Boost.Serialization library, currently this is required.])
+fi
+
+AX_BOOST_DATE_TIME
+dnl check that Boost.DateTime was found:
+if test -z "$BOOST_DATE_TIME_LIB"; then
+   AC_MSG_ERROR([Unable to find Boost.DateTime library, currently this is required.])
+fi
+
 AC_ARG_WITH([gnome],
 	[AS_HELP_STRING([--with-gnome],
 		[gnome session support @<:@default=check@:>@])],
@@ -124,6 +138,7 @@ AC_CONFIG_FILES(
 	lib/linkage/Makefile
 	plugins/notification/Makefile
 	plugins/trayicon/Makefile
+	plugins/scheduler/Makefile
 	plugins/ipfilter/Makefile
 	data/Makefile
 	data/flags/Makefile

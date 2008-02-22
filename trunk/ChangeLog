@@ -1,3 +1,21 @@
+2008-02-22  Dave Moore  <wrex006@gmail.com>
+
+ * lib/SettingsManager.cc, lib/SessionManager.cc, lib/TorrentManager.cc:
+   Config dir creation seperated into the components that use them.
+ * configure.ac.in, src/Makefile.am, m4/ax_boost_base.m4, m4/ax_boost_date_time.m4
+   m4/ax_boost_serialization.m4:
+   added boost::serialization and boost::datetime to list of requried libraries
+ * lib/PluginManager.cc:
+   added some debug code
+ * plugins/Makefile.am, plugins/scheduler/PluginScheduler.cc,
+   plugins/scheduler/limit1.png, plugins/scheduler/limit2.png, 
+   plugins/scheduler/limit3.png, plugins/scheduler/blocked.png,
+   plugins/scheduler/normal.png, plugins/scheduler/PluginScheduler.hh,
+   plugins/scheduler/ScheduleWin.cc, plugins/scheduler/Makefile.am,
+   plugins/scheduler/scheduler.glade, plugins/scheduler/ScheduleWin.hh,
+   plugins/scheduler/SchedulerConfig.hh:
+   Created a bandwidth scheduler plugin.
+
 2008-02-20  Christian Lundgren  <zeflunk@gmail.com>
 
 	* plugins/ipfilter/libp2p: Added libp2p for IP filter plugin
