@@ -94,6 +94,10 @@ void PluginManager::refresh_info()
 
 				m_info.push_back(info);
 			}
+			else
+			{
+				g_warning(_("No symbol plugin_info: %s"), module.get_last_error().c_str());
+			}
 		}
 		else
 			/* TODO: notify user */

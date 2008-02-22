@@ -36,11 +36,6 @@ SettingsManagerPtr SettingsManager::create()
 
 SettingsManager::SettingsManager()
 {
-	/* Create data dir if it doesn't exists */
-	// FIXME: this belongs in SessionManager/TorrentManager
-	if (g_mkdir_with_parents(get_data_dir().c_str(), 0755) == -1)
-		g_warning(_("Could not create directory: %s"), get_data_dir().c_str());
-	
 	Gnome::Conf::init();
 	gconf = Gnome::Conf::Client::get_default_client();
 
