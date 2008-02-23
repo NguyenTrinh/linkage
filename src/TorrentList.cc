@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <gtkmm/treepath.h>
 #include <gtkmm/treeselection.h>
 #include <gtkmm/cellrenderertext.h>
+#include <gtkmm/cellrendererprogress.h>
 #include <glibmm/i18n.h>
 
 #include "StateFilter.hh"
 #include "GroupList.hh"
-#include "CellRendererProgressText.hh"
 #include "TorrentList.hh"
 
 #include "linkage/Engine.hh"
