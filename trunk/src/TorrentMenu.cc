@@ -40,9 +40,8 @@ TorrentMenu::TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 	glade_xml(refGlade)
 {
 	submenu_groups = Gtk::manage(new Gtk::Menu());
-	Gtk::MenuItem* item;
-	glade_xml->get_widget("torrent_menu_groups", item);
-	item->set_submenu(*submenu_groups);
+	glade_xml->get_widget("torrent_menu_groups", group_item);
+	group_item->set_submenu(*submenu_groups);
 
 	/* Connect update signal */
 	GroupsWin* groups_win;

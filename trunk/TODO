@@ -16,3 +16,4 @@
 * Different column setups based on selected status
 * Get rid of gconf (maybe use boost::serialization and config classes)
 * Provide versions for OSX, Windows and other flavors of linux
+* --run-in-source-tree configure option. maps DATA_DIR to ./data for gconf and glade.

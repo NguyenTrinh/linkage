@@ -157,41 +157,29 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	glade_xml->get_widget("label_done", label_done);
 	glade_xml->get_widget("label_pieces", label_pieces);
 	glade_xml->get_widget("label_remaining", label_remaining);
-
 	glade_xml->get_widget("label_path", label_path);
+	
 	glade_xml->get_widget("toolb_sort", tb_sort);
-
+	glade_xml->get_widget("toolb_remove", tb_remove);
+	glade_xml->get_widget("toolb_start", tb_start);
+	glade_xml->get_widget("toolb_stop", tb_stop);
+	glade_xml->get_widget("toolb_up", tb_up);
+	glade_xml->get_widget("toolb_down", tb_down);
+	
 	Gtk::ToolButton* toolb = 0;
 	glade_xml->get_widget("toolb_add", toolb);
 	toolb->signal_clicked().connect(sigc::mem_fun(this, &UI::on_add));
-	glade_xml->get_widget("toolb_remove", toolb);
-	toolb->signal_clicked().connect(sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
-	glade_xml->get_widget("toolb_start", toolb);
-	toolb->signal_clicked().connect(sigc::mem_fun(this, &UI::on_start));
-	glade_xml->get_widget("toolb_stop", toolb);
-	toolb->signal_clicked().connect(sigc::mem_fun(this, &UI::on_stop));
-	glade_xml->get_widget("toolb_up", toolb);
-	toolb->signal_clicked().connect(sigc::mem_fun(this, &UI::on_up));
-	glade_xml->get_widget("toolb_down", toolb);
-	toolb->signal_clicked().connect(sigc::mem_fun(this, &UI::on_down));
+	tb_remove->signal_clicked().connect(sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
+	tb_start->signal_clicked().connect(sigc::mem_fun(this, &UI::on_start));
+	tb_stop->signal_clicked().connect(sigc::mem_fun(this, &UI::on_stop));
+	tb_up->signal_clicked().connect(sigc::mem_fun(this, &UI::on_up));
+	tb_down->signal_clicked().connect(sigc::mem_fun(this, &UI::on_down));
 	tb_sort->signal_clicked().connect(sigc::mem_fun(this, &UI::on_sort));
 	
-	// to be uncommented when/if my patch makes it into libglademm
+	// to be uncommented when my patch makes it into libglademm
 	/*
 	glade_xml->connect_clicked
 		("toolb_add", sigc::mem_fun(this, &UI::on_add));
-	glade_xml->connect_clicked
-		("toolb_remove", sigc::bind(sigc::mem_fun(this, &UI::on_remove), false));
-	glade_xml->connect_clicked
-		("toolb_start", sigc::mem_fun(this, &UI::on_start));
-	glade_xml->connect_clicked
-		("toolb_stop", sigc::mem_fun(this, &UI::on_stop));
-	glade_xml->connect_clicked
-		("toolb_up", sigc::mem_fun(this, &UI::on_up));
-	glade_xml->connect_clicked
-		("toolb_down", sigc::mem_fun(this, &UI::on_down));
-	glade_xml->connect_clicked
-		("toolb_sort", sigc::mem_fun(this, &UI::on_sort));
 	*/
 
 	// attach sort menu to button
@@ -841,8 +829,34 @@ void UI::on_torrent_list_double_clicked(GdkEventButton* event)
 
 void UI::on_torrent_list_right_clicked(GdkEventButton* event)
 {
-	if (!torrent_list->get_selected_list().empty())
-		torrent_menu->popup(event->button, event->time);
+	int size = torrent_list->get_selected_list().size();
+	if (size == 0)
+	{
+		// none selected
+		glade_xml->get_widget("torrent_menu_open")->set_sensitive(false);
+		glade_xml->get_widget("torrent_menu_up")->set_sensitive(false);
+		glade_xml->get_widget("torrent_menu_down")->set_sensitive(false);
+		glade_xml->get_widget("torrent_menu_start")->set_sensitive(false);
+		glade_xml->get_widget("torrent_menu_stop")->set_sensitive(false);
+		// DIRTY HACK: for some reason calling get_widget()->set_sensitive 
+		// on torrent_menu_groups segfaults. something to do with it being dynamic?
+		torrent_menu->get_group_menu_item()->set_sensitive(false);
+		glade_xml->get_widget("torrent_menu_remove_menu")->set_sensitive(false);
+		glade_xml->get_widget("torrent_menu_check")->set_sensitive(false);
+	}
+	else
+	{
+		glade_xml->get_widget("torrent_menu_open")->set_sensitive(true);
+		glade_xml->get_widget("torrent_menu_up")->set_sensitive(true);
+		glade_xml->get_widget("torrent_menu_down")->set_sensitive(true);
+		glade_xml->get_widget("torrent_menu_start")->set_sensitive(true);
+		glade_xml->get_widget("torrent_menu_stop")->set_sensitive(true);
+		torrent_menu->get_group_menu_item()->set_sensitive(true);
+		glade_xml->get_widget("torrent_menu_remove_menu")->set_sensitive(true);
+		glade_xml->get_widget("torrent_menu_check")->set_sensitive(true);
+	}
+	
+	torrent_menu->popup(event->button, event->time);
 }
 
 void UI::on_announce_clicked()

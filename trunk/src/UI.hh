@@ -74,6 +74,11 @@ class UI : public Gtk::Window, public Linkage::Interface
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 
 	Gtk::MenuToolButton* tb_sort;
+	Gtk::ToolButton* tb_remove;
+	Gtk::ToolButton* tb_start;
+	Gtk::ToolButton* tb_stop;
+	Gtk::ToolButton* tb_up;
+	Gtk::ToolButton* tb_down;
 
 	Gtk::Button* button_add;
 	Gtk::Button* button_remove;

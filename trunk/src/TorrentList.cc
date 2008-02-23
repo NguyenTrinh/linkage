@@ -515,14 +515,13 @@ bool TorrentList::on_button_press_event(GdkEventButton* event)
 	Gtk::TreePath path;
 	Gtk::TreeViewColumn* column;
 	int cell_x, cell_y;
-	if (!get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y))
-		return false;
-
-	bool selected = get_selection()->is_selected(path);
-	int selected_rows = get_selection()->count_selected_rows();
-	if (event->button == 1 || selected_rows <= 1 ||	!selected)
-		TreeView::on_button_press_event(event);
-
+	if (get_path_at_pos((int)event->x, (int)event->y, path, column, cell_x, cell_y))
+	{
+		bool selected = get_selection()->is_selected(path);
+		int selected_rows = get_selection()->count_selected_rows();
+		if (event->button == 1 || selected_rows <= 1 ||	!selected)
+			TreeView::on_button_press_event(event);
+	}
 	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
 		m_signal_double_click.emit(event);
 	else if (event->button == 3)
