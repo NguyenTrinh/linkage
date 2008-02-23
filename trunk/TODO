@@ -1,8 +1,18 @@
 * Add possibility for plugins to add dbus methods/signals
 * Extend dbus interface with methods/signals
 * Update TorrentCreator (DHT, multi tracker)
-* Add RSS, Scheduler and Auto-file filter (like *.nfo etc...) plugins
+* Add RSS and Auto-file filter (like *.nfo etc...) plugins
 * Add sort on time remaining
 * on_torrent_finished, if files are filtered and then unfiltered we should do set_complete(false)
 * Rewrite queueing algorithm, add seed queue (and group queue?)
 * Add key events to torrent list (space/enter - start/details, delete - remove)
+* Auto write resume data at user specified intervals
+* Fix open location to use xdg-open and cleanup autoconf to get rid of exo etc.
+* Web UI built using the dbus functionality
+* Make speed limits adjustable from the statusbar with a menu
+* Add group level settings (autosave, save dir, desired ratio)
+* Groups configured by right clicking group menu
+* Optionaly autosave torrents in a seperate folder
+* Different column setups based on selected status
+* Get rid of gconf (maybe use boost::serialization and config classes)
+* Provide versions for OSX, Windows and other flavors of linux

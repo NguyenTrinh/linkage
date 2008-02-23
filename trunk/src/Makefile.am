@@ -12,7 +12,6 @@ AM_CXXFLAGS = -I$(top_srcdir)/lib \
 							$(EXO_CFLAGS)  \
 							$(GNOME_CFLAGS)  \
 							$(LIBGTOP_CFLAGS) \
-							@BOOST_SERIALIZATION_LIB@ \
 							-DLOCALEDIR=\""$(datadir)/locale"\"
 
 linkage_SOURCES = CellRendererPieceMap.hh \
@@ -35,8 +34,6 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   Group.hh \
                   Statusbar.hh \
                   Statusbar.cc \
-                  CellRendererProgressText.hh \
-                  CellRendererProgressText.cc \
                   GroupList.hh \
                   GroupList.cc \
                   GroupsWin.hh \
