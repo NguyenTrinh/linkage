@@ -1,4 +1,13 @@
-2008-02-20  dave  <dave@poonix>
+2008-02-23  Dave Moore  <wrex006@gmail.com>
+
+	* src/UI.cc, src/UI.hh, src/TorrentList.cc, src/TorrentMenu.hh, 
+	  src/TorrentMenu.cc:
+	  Made the torrent list menu popup when you click on whitespace. 
+	  Disable the menu items when no torrent selected, paved the way
+	  to do the same with tool bar buttons
+
+
+2008-02-22  Dave Moore  <wrex006@gmail.com>
 
 	* AUTHORS, TODO: 
 	  did some general housekeeping

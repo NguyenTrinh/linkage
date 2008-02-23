@@ -29,7 +29,7 @@ class TorrentMenu : public Gtk::Menu
 {
 	Glib::RefPtr<Gnome::Glade::Xml> glade_xml;
 	Gtk::Menu* submenu_groups;
-
+	Gtk::MenuItem* group_item;
 	sigc::signal<void> m_signal_open;
 	sigc::signal<void> m_signal_up;
 	sigc::signal<void> m_signal_down;
@@ -44,6 +44,7 @@ class TorrentMenu : public Gtk::Menu
 
 	friend class UI;
 
+	
 public:
 	sigc::signal<void> signal_open();
 	sigc::signal<void> signal_up();
@@ -54,6 +55,9 @@ public:
 	sigc::signal<void, bool> signal_remove();
 	sigc::signal<void> signal_check();
 	sigc::signal<void> signal_edit_columns();
+	
+	// DIRTY HACK: see UI::on_torrent_list_right_clicked
+	Gtk::MenuItem* get_group_menu_item() { return group_item; }
 	
 	TorrentMenu(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	~TorrentMenu();
