@@ -230,6 +230,7 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	torrent_list->signal_changed().connect(sigc::mem_fun(this, &UI::on_torrent_list_selection_changed));
 	torrent_list->signal_double_click().connect(sigc::mem_fun(this, &UI::on_torrent_list_double_clicked));
 	torrent_list->signal_right_click().connect(sigc::mem_fun(this, &UI::on_torrent_list_right_clicked));
+	torrent_list->signal_key_press().connect(sigc::mem_fun(this, &UI::on_torrent_list_key_pressed));
 
 	// setup drag and drop
 	std::list<Gtk::TargetEntry> targets;
@@ -821,10 +822,28 @@ void UI::on_torrent_list_selection_changed()
 	}
 }
 
-void UI::on_torrent_list_double_clicked(GdkEventButton* event)
+void UI::on_expand_details()
 {
 	if (expander_details->is_sensitive())
 		expander_details->set_expanded(!expander_details->get_expanded());
+}
+
+void UI::on_torrent_list_double_clicked(GdkEventButton* event)
+{
+	on_expand_details();
+}
+
+void UI::on_torrent_list_key_pressed(GdkEventKey* event)
+{
+	if (event->type == GDK_KEY_PRESS) {
+		if (event->keyval == GDK_Delete) {
+			on_remove(false);
+		} else if (event->keyval == GDK_space) {
+			on_expand_details();
+		} else if (event->keyval == GDK_Return) {
+			on_open_location();
+		}
+	}
 }
 
 void UI::on_torrent_list_right_clicked(GdkEventButton* event)
