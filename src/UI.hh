@@ -156,12 +156,14 @@ class UI : public Gtk::Window, public Linkage::Interface
 	void on_check();
 	void on_set_group(const Glib::ustring& group);
 	void on_edit_columns();
+	void on_expand_details();
 
 	void on_details_expanded();
 
 	void on_torrent_list_selection_changed();
 	void on_torrent_list_double_clicked(GdkEventButton* event);
 	void on_torrent_list_right_clicked(GdkEventButton* event);
+	void on_torrent_list_key_pressed(GdkEventKey* event);
 
 	void on_tick();
 

@@ -273,6 +273,12 @@ sigc::signal<void, GdkEventButton*> TorrentList::signal_right_click()
 	return m_signal_right_click;
 }
 
+sigc::signal<void, GdkEventKey*> TorrentList::signal_key_press()
+{
+	return m_signal_key_press;
+}
+
+
 Glib::SignalProxy0<void> TorrentList::signal_changed()
 {
 	return get_selection()->signal_changed();
@@ -508,6 +514,13 @@ Glib::ustring TorrentList::get_state_color(int state)
 		color = sm->get_string("ui/colors/error");
 		
 	return color;
+}
+
+bool TorrentList::on_key_press_event(GdkEventKey* event)
+{
+	TreeView::on_key_press_event(event);
+	m_signal_key_press.emit(event);
+	return true;
 }
 
 bool TorrentList::on_button_press_event(GdkEventButton* event)

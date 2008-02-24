@@ -99,11 +99,13 @@ class TorrentList : public Gtk::TreeView
 	Glib::ustring get_state_color(int state);
 
 	bool on_button_press_event(GdkEventButton *event);
+	bool on_key_press_event(GdkEventKey *event);
 
 	bool on_filter(const Gtk::TreeModel::const_iterator& iter);
 
 	sigc::signal<void, GdkEventButton*> m_signal_double_click;
 	sigc::signal<void, GdkEventButton*> m_signal_right_click;
+	sigc::signal<void, GdkEventKey*> m_signal_key_press;
 
 	void on_filter_set(const GroupPtr& group);
 	void on_state_filter_changed(Linkage::Torrent::State state);
@@ -150,6 +152,7 @@ public:
 	Glib::SignalProxy0<void> signal_changed();
 	sigc::signal<void, GdkEventButton*> signal_double_click();
 	sigc::signal<void, GdkEventButton*> signal_right_click();
+	sigc::signal<void, GdkEventKey*> signal_key_press();
 
 	TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~TorrentList();
