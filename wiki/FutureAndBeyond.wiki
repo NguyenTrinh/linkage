@@ -1,0 +1,28 @@
+#summary Ideas and planning for the rewrite
+#labels Phase-Design,Phase-Implementation
+
+= Introduction =
+Use this page to put up ideas for changes in the code base for the rewrite, and whatever new problems that arises with a Client-Server model and how to solve those etc.
+
+= Server / Client =
+_list interfaces that we need to export through xmlrpc_
+
+= Library =
+=== Merge SessionManager and TorrentManager ===
+These two are currently too intertwined, a merge makes sense in this regard.
+
+  * Remove all complex cruft, keeping it simple is the key.
+  * Move self contained stuff to stand alone classes which would be easier to extend in time, like a TorrentQueue, EventQueue.
+
+=== The Torrent class ===
+This class contains most of the "weak" code, because we're wrapping so much of the functionallity of libtorrent's torrent_handle in helper.
+
+Therefore we should really remove alot of the current helpers, just keep whats really needed and makes sense. Advanced functionallity should be done through the torrent_handle.
+
+=== Plugins ===
+Should plugins live at the Server side at all?
+Keeping them only on Client side would mean we would have to export a whole lot of functionallity through xmlrpc, and Server - Client traffic would increase.
+
+A plugin living on the Server side would probably have to register some functionallity to the core so that it can be called/notified from the Client side.
+
+= UI =
