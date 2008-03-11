@@ -38,10 +38,6 @@ int main()
 This is just a basic example. We might want to make the members private and provide accessors or break the classes up a bit more like they are in gconf. or each component that requires settings simply creates its own config class and registers it with the SettingsManager. would be nice for plugin development (but might make things messy otherwise?)
 
 = Library =
-=== No Timeouts ===
-The current model with a global timeout should not be needed on the server side. Simply using g_idle_add should be enough to pop alerts from libtorrent and then from those take appropriate action.
-
-http://www.gtkmm.org/docs/glibmm-2.4/docs/reference/html/classGlib_1_1SignalIdle.html#c8befbaf1d10a17d1f3f75143e967a3f
 
 === Merge SessionManager and TorrentManager ===
 These two are currently too intertwined, a merge makes sense in this regard.
