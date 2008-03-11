@@ -63,4 +63,12 @@ A plugin living on the Server side would probably have to register some function
 It might be useful to break out some of the client side functionality that would be common to both the web and gtk interfaces. For example:
 
   * sorting and filtering the torrent list
-  * access to settings that would be common between both clients(?)
+  * access to settings that would be common between both clients(is there any?)
+
+=== TreeView wrapper ===
+
+Not even sure if this is possible but it would be sooo nice to make a simple listview without having to write 100 lines of code.
+
+=== WebUI ===
+
+We might be better to wait until after the rewrite to do this, however doing it at the same time might help reveal any potential design flaws.  Especially in the design of the client API.
