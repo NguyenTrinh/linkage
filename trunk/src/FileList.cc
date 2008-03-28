@@ -280,6 +280,7 @@ std::pair<int,int> FileList::get_piece_range(const Gtk::TreeRow& row)
 		p_end = torrent->get_info()->map_file(index, size, 0).piece;
 	}
 
+	
 	return std::make_pair(p_begin, p_end);
 }
 
@@ -300,8 +301,9 @@ bool FileList::on_foreach(const Gtk::TreeIter& iter, const FileData& data)
 	if (index == INDEX_FOLDER)
 	{
 		libtorrent::size_type done;
+		Glib::ustring s = row[columns.name];
 		// add up all pieces in range except the last
-		done = std::accumulate(map.begin(), --map.end(), 0)*data.info->piece_length();
+		done = std::accumulate(map.begin(), map.end(), -map.back())*data.info->piece_length();
 		// add last piece (might be smaller than piece_length)
 		done += (map.back())*data.info->piece_size(stop);
 		row[columns.map] = map;
@@ -375,10 +377,13 @@ void FileList::refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>&
 		Gtk::TreeRow row;
 
 		boost::filesystem::path base = file.path.branch_path();
+		boost::filesystem::path path = base.root_path();
 		boost::filesystem::path::iterator iter;
-		for (iter = base.begin(); iter != base.end(); ++iter)
+		for (iter = base.begin(); iter != base.end(); iter++)
 		{
-			Glib::ustring name = *iter;
+			path /= *iter;
+
+			Glib::ustring name = path.string();
 			if (!tree[name])
 			{
 				if (!parent)
@@ -387,7 +392,7 @@ void FileList::refill_tree(const boost::intrusive_ptr<libtorrent::torrent_info>&
 					tree[name] = model->append(parent->children());
 			}
 			row = *tree[name];
-			row[columns.name] = name;
+			row[columns.name] = *iter;
 			row[columns.index] = INDEX_FOLDER;
 			row[columns.priority] = -1; /* non valid, to catch in default case */
 			row[columns.size] = row[columns.size] + file.size;

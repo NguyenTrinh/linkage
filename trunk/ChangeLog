@@ -1,3 +1,7 @@
+2008-03-28  Christian Lundgren  <zeflunk@gmail.com>
+
+	* src/FileList.cc: fixed segfault when two subfolders have the same name
+
 2008-02-23  Steve Mulligan <stevemulligan@gmail.com>
         * src/UI.cc, src/UI.hh, src/TorrentList.cc, src/TorrentList.hh:
 	  Delete, Space, Enter keys in torrent list to match
