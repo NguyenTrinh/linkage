@@ -74,20 +74,13 @@ SessionManagerPtr SessionManager::create()
 }
 
 SessionManager::SessionManager()
-	:	session(fingerprint(
-			"LK", 
-			LINKAGE_VERSION_MAJOR, 
-			LINKAGE_VERSION_MINOR, 
-			LINKAGE_VERSION_MICRO, 
-			0))
+ : session(fingerprint(
+	"LK", 
+	LINKAGE_VERSION_MAJOR, 
+	LINKAGE_VERSION_MINOR, 
+	LINKAGE_VERSION_MICRO, 
+	0))
 {
-	// make sure our config dir exists
-	if (!g_file_test(get_config_dir().c_str(), G_FILE_TEST_EXISTS))
-	{
-		if (g_mkdir(get_config_dir().c_str(), 0755) == -1)
-			g_warning(_("Could not create directory: %s"), get_config_dir().c_str());
-	}
-	
 	set_severity_level(alert::info);
 	Engine::get_alert_manager()->signal_torrent_finished().connect(sigc::mem_fun(this, &SessionManager::on_torrent_finished));
 	Engine::get_settings_manager()->signal_key_changed().connect(sigc::mem_fun(this, &SessionManager::on_key_changed));

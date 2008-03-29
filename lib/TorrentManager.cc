@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include <vector>
 
 #include <glibmm/i18n.h>
-#include <glib/gstdio.h>
 
 #include "linkage/TorrentManager.hh"
 #include "linkage/Engine.hh"
@@ -57,12 +56,6 @@ TorrentManagerPtr TorrentManager::create()
 
 TorrentManager::TorrentManager()
 {
-	// make data dir
-	if (!g_file_test(get_data_dir().c_str(), G_FILE_TEST_EXISTS))
-	{
-		if (g_mkdir(get_data_dir().c_str(), 0755) == -1)
-			g_warning(_("Could not create directory: %s"), get_data_dir().c_str());
-	}
 	load_torrents();
 
 	/* connect signal handlers */
