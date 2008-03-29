@@ -20,6 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include "linkage/Engine.hh"
 #include "linkage/Interface.hh"
+#include "linkage/Utils.hh"
+
+#include <glib/gstdio.h>
+#include <glibmm/i18n.h>
 
 using namespace Linkage;
 
@@ -58,6 +62,13 @@ void Engine::init(const DBus::Connection& connection)
 		creating = true;
 		self = new Engine(connection);
 		creating = false;
+	}
+
+	// make sure config/data dir exists
+	if (!g_file_test(get_data_dir().c_str(), G_FILE_TEST_EXISTS))
+	{
+		if (g_mkdir_with_parents(get_data_dir().c_str(), 0755) == -1)
+			g_warning(_("Could not create directory: %s"), get_data_dir().c_str());
 	}
 }
 
