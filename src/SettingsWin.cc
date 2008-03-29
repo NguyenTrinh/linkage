@@ -235,6 +235,16 @@ void SettingsWin::on_plugin_toggled(const Glib::ustring& path)
 {
 	Gtk::TreeRow row = *(model_plugins->get_iter(path));
 	row[plugin_columns.load] = !row[plugin_columns.load];
+
+	SettingsManagerPtr sm = Engine::get_settings_manager();
+
+	Gtk::TreeNodeChildren children = model_plugins->children();
+	std::list<Glib::ustring> plugins = sm->get_string_list("ui/plugins");
+	if (row[plugin_columns.load])
+		plugins.push_back(row[plugin_columns.name]);
+	else
+		plugins.erase(std::find(plugins.begin(), plugins.end(), row[plugin_columns.name]));
+	sm->set("ui/plugins", Glib::SListHandle<Glib::ustring>(plugins));
 }
 
 void SettingsWin::on_about_plugin()
@@ -265,6 +275,7 @@ void SettingsWin::on_configure_plugin()
 		Gtk::TreeRow row = *iter;
 
 		PluginPtr plugin = Engine::get_plugin_manager()->get_plugin(row[plugin_columns.name]);
+		Glib::ustring s = row[plugin_columns.name];
 		if (plugin)
 		{
 			Gtk::Dialog* dialog = plugin->get_config_dialog();
@@ -287,24 +298,6 @@ void SettingsWin::on_plugin_changed()
 		if (!about_plugin->is_sensitive())
 			about_plugin->set_sensitive(true);
 	}
-}
-
-void SettingsWin::on_hide()
-{
-	Gtk::Window::on_hide();
-
-	SettingsManagerPtr sm = Engine::get_settings_manager();
-
-	/* Plugins */
-	Gtk::TreeNodeChildren children = model_plugins->children();
-	std::list<Glib::ustring> plugins;
-	for (Gtk::TreeIter iter = children.begin(); iter != children.end(); ++iter)
-	{
-		Gtk::TreeRow row = *iter;
-		if (row[plugin_columns.load])
-			plugins.push_back(row[plugin_columns.name]);
-	}
-	sm->set("ui/plugins", Glib::SListHandle<Glib::ustring>(plugins));
 }
 
 void SettingsWin::on_show()
