@@ -1,5 +1,7 @@
 2008-03-28  Christian Lundgren  <zeflunk@gmail.com>
 
+	* src/SettingsWin.cc, src/SettingsWin.hh:
+	  load/unload plugins when they are toggled
 	* lib/SessionManager.cc, lib/TorrentManager.cc, lib/Engine.cc:
 	  moved config/data dir creation to engine, fix for issue #55
 

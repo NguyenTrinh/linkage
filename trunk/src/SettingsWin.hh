@@ -123,11 +123,9 @@ class SettingsWin : public Gtk::Window
 	void on_button_close();
 	void setup_settings_widgets();
 
-	void on_hide();
 	void on_show();
 
-	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model,
-										const Gtk::TreeIter& iter);
+	bool is_separator(const Glib::RefPtr<Gtk::TreeModel>& model, const Gtk::TreeIter& iter);
 public:
 	SettingsWin(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 	virtual ~SettingsWin();
