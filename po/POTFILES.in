@@ -1,6 +1,5 @@
 [encoding: UTF-8]
 src/CellRendererPieceMap.cc
-src/CellRendererProgressText.cc
 src/FileList.cc
 src/FilterRow.cc
 src/Group.cc
@@ -36,3 +35,6 @@ plugins/notification/PluginNotification.cc
 data/linkage.glade
 data/linkage.desktop.in
 data/linkage.schemas.in
+plugins/ipfilter/IpFilterPlugin.cc
+plugins/scheduler/scheduler.glade
+plugins/scheduler/PluginScheduler.cc

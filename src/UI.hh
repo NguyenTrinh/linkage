@@ -181,13 +181,12 @@ class UI : public Gtk::Window, public Linkage::Interface
 	void on_switch_page(GtkNotebookPage* child, int page);
 
 	void on_dnd_received(const Glib::RefPtr<Gdk::DragContext>& context,
-											 int x, int y,
-											 const Gtk::SelectionData& selection_data,
-											 guint info,
-											 guint time);
+		int x, int y,
+		const Gtk::SelectionData& selection_data,
+		guint info,
+		guint time);
 
-	void notify(const Glib::ustring& title,
-							const Glib::ustring& msg);
+	void notify(const Glib::ustring& title, const Glib::ustring& msg);
 
 	void on_key_changed(const Glib::ustring& key, const Linkage::Value& value);
 

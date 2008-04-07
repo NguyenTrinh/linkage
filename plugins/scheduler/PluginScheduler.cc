@@ -47,7 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #endif
 
 #define PLUGIN_NAME	"SchedulerPlugin"
-#define PLUGIN_DESC	_("Changes bandwidth settings according to s schedule")
+#define PLUGIN_DESC	_("Changes bandwidth settings according to schedule")
 #define PLUGIN_VER	PACKAGE_VERSION
 #define PLUGIN_AUTHOR	"Dave Moore"
 #define PLUGIN_WEB	"http://code.google.com/p/linkage"
@@ -170,7 +170,7 @@ void SchedulerPlugin::save_config(const SchedulerConfig & cfg)
 bool SchedulerPlugin::on_next_hour()
 {
 	using namespace boost::posix_time;
-	std::cout << "on next hour\n";
+
 	apply_limits();
 	// set the timer to go off every hour
 	Glib::signal_timeout().connect(m_hourly_slot, hours(1).total_milliseconds());
@@ -179,7 +179,6 @@ bool SchedulerPlugin::on_next_hour()
 
 bool SchedulerPlugin::on_every_hour()
 {
-	std::cout << "on every hour\n";
 	apply_limits();
 	return true;
 }

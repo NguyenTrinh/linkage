@@ -550,7 +550,7 @@ void UI::update_statics(const TorrentPtr& torrent)
 	label_path->set_text(Glib::build_filename(torrent->get_path(), info->name()));
 	label_size->set_text(suffix_value(info->total_size()));
 	label_files->set_text(String::ucompose("%1", info->num_files()));
-	label_pieces->set_text(String::ucompose("%1 x %2", info->num_pieces(), suffix_value(info->piece_length())));
+	label_pieces->set_text(String::ucompose("%1 x %2", info->num_pieces(), suffix_value((libtorrent::size_type)info->piece_length())));
 	label_private->set_text(info->priv() ? _("Yes") : _("No"));
 }
 

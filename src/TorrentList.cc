@@ -70,21 +70,21 @@ TorrentList::TorrentList(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glad
 {
 	SettingsManagerPtr sm = Engine::get_settings_manager();
 	
-	m_cols.push_back(EditColumnsDialog::ColumnData( "#", "position", "The priority of the torrent", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Name", "name", "The name of the torrent", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Progress", "progress", "The progress of the download", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Status", "status", "What the torrent is doing", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Downloaded", "downloaded", "Total amount downloaded", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Uploaded", "uploaded", "Total amount uploaded", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Down Speed", "downrate", "Download speed", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Up Speed", "uprate", "Upload speed", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Seeds", "seeds", "The number of seeds connected (Total number of seeds))", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Peers", "peers", "The number of peers connected (Total number of peers))", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "ETA", "eta", "Estimated time until completion of download", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Ratio", "ratio", "Your ratio on this torrent", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Tracker", "tracker", "The address of the tracker", true ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Tracker Status", "tracker_status", "The response from the tracker", false ));
-	m_cols.push_back(EditColumnsDialog::ColumnData( "Hash", "hash", "The info hash for the torrent", false ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("#"), "position", _("The priority of the torrent"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Name"), "name", _("The name of the torrent"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Progress"), "progress", _("The progress of the download"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Status"), "status", _("What the torrent is doing"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Downloaded"), "downloaded", _("Total amount downloaded"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Uploaded"), "uploaded", _("Total amount uploaded"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Down Speed"), "downrate", _("Download speed"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Up Speed"), "uprate", _("Upload speed"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Seeds"), "seeds", _("The number of seeds connected (Total number of seeds)"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Peers"), "peers", _("The number of peers connected (Total number of peers)"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("ETA"), "eta", _("Estimated time until completion of download"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Ratio"), "ratio", _("Your ratio on this torrent"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Tracker"), "tracker", _("The address of the tracker"), true ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Tracker Status"), "tracker_status", _("The response from the tracker"), false ));
+	m_cols.push_back(EditColumnsDialog::ColumnData( _("Hash"), "hash", _("The info hash for the torrent"), false ));
 	
 	
 	m_cur_state = Torrent::NONE;

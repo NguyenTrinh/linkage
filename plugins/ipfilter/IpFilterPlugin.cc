@@ -49,7 +49,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #endif
 
 #define PLUGIN_NAME	"IP filter"
-#define PLUGIN_DESC	_("Import IP diffrent filters")
+#define PLUGIN_DESC	_("Import IP filters")
 #define PLUGIN_VER	PACKAGE_VERSION
 #define PLUGIN_AUTHOR	"Christian Lundgren.\nLibp2p was written by Cory Nelson under the zlib license"
 #define PLUGIN_WEB	"http://code.google.com/p/linkage"
