@@ -58,6 +58,7 @@ class StateFilter;
 class AddDialog;
 class EditColumnsDialog;
 class SessionClient;
+class Loader;
 
 class Linkage::Value;
 
@@ -189,6 +190,8 @@ class UI : public Gtk::Window, public Linkage::Interface
 	void notify(const Glib::ustring& title, const Glib::ustring& msg);
 
 	void on_key_changed(const Glib::ustring& key, const Linkage::Value& value);
+
+	void on_load_done(Loader* loader);
 
 	//asserts that num selected torrents are one only
 	inline Linkage::TorrentPtr get_selected_single();

@@ -50,6 +50,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 #include "AddDialog.hh"
 #include "EditColumnsDialog.hh"
 #include "SessionClient.hh"
+#include "Loader.hh"
 #include "UI.hh"
 
 #include "linkage/Interface.hh"
@@ -302,6 +303,11 @@ UI::UI(BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 
 	add_events(Gdk::VISIBILITY_NOTIFY_MASK);
 
+	main_vpane->hide();
+	Loader* loader = new Loader();
+	loader->signal_done().connect(sigc::bind(sigc::mem_fun(this, &UI::on_load_done), loader));
+	loader->launch();
+
 	// Set up desktop session support
 	session_client = new SessionClient();
 	session_client->signal_quit().connect(sigc::mem_fun(this, &UI::quit));
@@ -340,6 +346,17 @@ UI::~UI()
 	delete columns_dialog;
 	
 	delete session_client;
+}
+
+void UI::on_load_done(Loader* loader)
+{
+	Gtk::HBox* hbox_load;
+	glade_xml->get_widget("hbox_load", hbox_load);
+	hbox_load->hide();
+	main_vpane->show();
+
+
+	delete loader;
 }
 
 // Interface stuff

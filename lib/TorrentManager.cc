@@ -38,16 +38,6 @@ struct pred
 		return rhs->get_position() < lhs->get_position();
 	}
 };
-struct pair_pred
-: public std::binary_function<const std::pair<TorrentPtr, libtorrent::entry>&,
-	const std::pair<TorrentPtr, libtorrent::entry>&, bool>
-{
-	bool operator()(const std::pair<TorrentPtr, libtorrent::entry>& rhs,
-		const std::pair<TorrentPtr, libtorrent::entry>& lhs)
-	{
-		return rhs.first->get_position() < lhs.first->get_position();
-	}
-};
 
 TorrentManagerPtr TorrentManager::create()
 {
@@ -56,8 +46,6 @@ TorrentManagerPtr TorrentManager::create()
 
 TorrentManager::TorrentManager()
 {
-	load_torrents();
-
 	/* connect signal handlers */
 	AlertManagerPtr am = Engine::get_alert_manager();
 
@@ -213,66 +201,6 @@ void TorrentManager::on_position_changed(const WeakTorrentPtr& weak)
 
 	if (iter == m_torrents.end())
 		check_queue();
-}
-
-void TorrentManager::load_torrents()
-{
-	typedef std::vector<std::pair<TorrentPtr, libtorrent::entry> > ResumeList;
-	ResumeList resumes;
-
-	/* load torrent info from disk cache */
-	Glib::Dir dir(get_data_dir());
-	for (Glib::DirIterator iter = dir.begin(); iter != dir.end(); ++iter)
-	{
-		Glib::ustring hash_str = *iter;
-		Glib::ustring file = Glib::build_filename(get_data_dir(), hash_str);
-		/* only load torrents that has a .resume file */
-		if (Glib::file_test(file + ".resume", Glib::FILE_TEST_EXISTS))
-		{
-			std::pair<TorrentPtr, libtorrent::entry> p = load_torrent(file);
-			if (p.first)
-				resumes.push_back(p);
-		}
-	}
-
-	std::sort(resumes.begin(), resumes.end(), pair_pred());
-
-	/* resume previously active torrents */
-	for (ResumeList::iterator iter = resumes.begin(); iter != resumes.end(); ++iter)
-	{
-		Engine::get_session_manager()->resume_torrent(iter->first, iter->second);
-	}
-}
-
-std::pair<TorrentPtr, libtorrent::entry> TorrentManager::load_torrent(const Glib::ustring& file)
-{
-	libtorrent::entry e, er;
-
-	/* skip if we can't load torrent file */
-	if (!load_entry(file, e))
-		return std::make_pair(TorrentPtr(), libtorrent::entry());
-
-	Torrent::InfoPtr info(new libtorrent::torrent_info(e));
-
-	/* signal if we can't load resume file */
-	if (!load_entry(file + ".resume", er))
-	{
-		m_signal_load_failed.emit(file + ".resume", info);
-		return std::make_pair(TorrentPtr(), libtorrent::entry());
-	}
-
-	/* make sure we have not lost track of the content */
-	if (!er.find_key("path"))
-	{
-		m_signal_load_failed.emit(file + ".resume", info);
-		return std::make_pair(TorrentPtr(), libtorrent::entry());
-	}
-
-	TorrentPtr torrent = add_torrent(er, info);
-	if (er.find_key("stopped") && !er["stopped"].integer())
-		return std::make_pair(torrent, er);
-
-	return std::make_pair(TorrentPtr(), libtorrent::entry());
 }
 
 TorrentPtr TorrentManager::add_torrent(libtorrent::entry& er,
