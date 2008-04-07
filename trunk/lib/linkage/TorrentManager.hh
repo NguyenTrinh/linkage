@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 
 #include <boost/smart_ptr.hpp>
 
+#include <glibmm/dispatcher.h>
+
 #include "libtorrent/intrusive_ptr_base.hpp"
 
 #include "linkage/Torrent.hh"
@@ -51,7 +53,11 @@ public:
 	TorrentList get_torrents();
 	
 	unsigned int get_torrents_count();
-	
+
+	/* These two shouldn't really be public */
+	TorrentPtr add_torrent(libtorrent::entry& er, const Torrent::InfoPtr& info);
+	void remove_torrent(const TorrentPtr& torrent);
+
 	static TorrentManagerPtr create();
 	~TorrentManager();
 
@@ -63,7 +69,6 @@ private:
 
 	sigc::signal<void, TorrentPtr> m_signal_added;
 	sigc::signal<void, TorrentPtr> m_signal_removed;
-	sigc::signal<void, Glib::ustring, Torrent::InfoPtr> m_signal_load_failed;
 
 	void on_tracker_announce(const Linkage::TorrentPtr& torrent, const Glib::ustring& msg);
 	void on_tracker_reply(const Linkage::TorrentPtr& torrent, const Glib::ustring& reply, const Glib::ustring& tracker, int peers);
@@ -78,15 +83,8 @@ private:
 	
 	void on_key_changed(const Glib::ustring& key, const Value& value);
 
-	void load_torrents();
-	std::pair<TorrentPtr, libtorrent::entry> load_torrent(const Glib::ustring& file);
-
 	TorrentManager();
 
-	friend class SessionManager;
-
-	TorrentPtr add_torrent(libtorrent::entry& er, const Torrent::InfoPtr& info);
-	void remove_torrent(const TorrentPtr& torrent);
 	void check_queue();
 };
 

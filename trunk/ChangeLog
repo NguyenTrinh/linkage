@@ -1,9 +1,17 @@
 2008-04-07  Christian Lundgren  <zeflunk@gmail.com>
 
+	* src/Loader.cc, src/Loader.hh:
+	* src/UI.hh, src/UI.cc:
+	* lib/TorrentManager.cc, lib/linkage/TorrentManager.hh:
+	* data/linkage.glade:
+	* src/Makefile.am, configure.ac.in:
+	* src/main.cc:
+	  Threaded loading of torrents on statup and made UI visible faster.
+
 	* src/FileList.cc: included definition for std::accumulate
 	* src/UI.cc: fixed ambigious suffix_value call
 	* src/TorrentList.cc: translated strings in edit columns dialog
-	* po/sv.po: updated swedish translation
+	* po/sv.po: updated swedish translation, fixed typo
 	* po/POTFILES.in: added source files for translations
 
 2008-03-28  Christian Lundgren  <zeflunk@gmail.com>

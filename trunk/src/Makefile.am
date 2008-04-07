@@ -1,18 +1,17 @@
 bin_PROGRAMS = linkage
 
 AM_CXXFLAGS = -I$(top_srcdir)/lib \
-							$(CPPFLAGS) \
-							$(CXXFLAGS) \
-							$(GTKMM_CFLAGS) \
-							$(LIBTORRENT_CFLAGS) \
-							$(DBUSGLIB_CFLAGS)  \
-							$(GTHREAD_CFLAGS)  \
-							${LIBGLADE_CFLAGS}  \
-							${GCONFMM_CFLAGS}  \
-							$(EXO_CFLAGS)  \
-							$(GNOME_CFLAGS)  \
-							$(LIBGTOP_CFLAGS) \
-							-DLOCALEDIR=\""$(datadir)/locale"\"
+		$(CPPFLAGS) \
+		$(CXXFLAGS) \
+		$(GTKMM_CFLAGS) \
+		$(LIBTORRENT_CFLAGS) \
+		$(DBUSGLIB_CFLAGS)  \
+		$(GTHREAD_CFLAGS)  \
+		${LIBGLADE_CFLAGS}  \
+		${GCONFMM_CFLAGS}  \
+		$(EXO_CFLAGS)  \
+		$(GNOME_CFLAGS)  \
+		-DLOCALEDIR=\""$(datadir)/locale"\"
 
 linkage_SOURCES = CellRendererPieceMap.hh \
                   FileList.hh \
@@ -60,6 +59,8 @@ linkage_SOURCES = CellRendererPieceMap.hh \
                   Menu.cc \
                   TorrentListRenderers.hh \
                   TorrentListRenderers.cc \
+                  Loader.hh \
+                  Loader.cc \
                   main.cc
 
 
@@ -72,7 +73,6 @@ linkage_LDADD = $(LDFLAGS) \
 		${GCONFMM_LIBS} \
 		$(GNOME_LIBS) \
 		$(EXO_LIBS) \
-		$(LIBGTOP_LIBS) \
 		@BOOST_SERIALIZATION_LIB@ \
 		-L$(top_srcdir)/lib -llinkage-1
 

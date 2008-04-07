@@ -145,6 +145,9 @@ int main(int argc, char *argv[])
 	Gtk::Main kit(&argc, &argv);
 	#endif
 
+	if(!Glib::thread_supported()) 
+                Glib::thread_init();
+
 	/* connect to dbus */
 	DBus::default_dispatcher = &dispatcher;
 	dispatcher.attach(NULL);
