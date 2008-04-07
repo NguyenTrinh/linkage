@@ -1,3 +1,11 @@
+2008-04-07  Christian Lundgren  <zeflunk@gmail.com>
+
+	* src/FileList.cc: included definition for std::accumulate
+	* src/UI.cc: fixed ambigious suffix_value call
+	* src/TorrentList.cc: translated strings in edit columns dialog
+	* po/sv.po: updated swedish translation
+	* po/POTFILES.in: added source files for translations
+
 2008-03-28  Christian Lundgren  <zeflunk@gmail.com>
 
 	* src/SettingsWin.cc, src/SettingsWin.hh:
