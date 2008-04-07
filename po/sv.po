@@ -1145,7 +1145,7 @@ msgstr "Lösenord:"
 
 #: ../data/linkage.glade.h:98
 msgid "Piece size (kB):"
-msgstr "Delstorle (kB)"
+msgstr "Delstorlek (kB)"
 
 #: ../data/linkage.glade.h:99
 msgid "Pieces:"
