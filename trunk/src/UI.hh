@@ -60,8 +60,6 @@ class EditColumnsDialog;
 class SessionClient;
 class Loader;
 
-class Linkage::Value;
-
 class UI : public Gtk::Window, public Linkage::Interface
 {
 	//Hack to let us use comboboxtext with glade
