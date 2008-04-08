@@ -1,3 +1,11 @@
+2008-04-08  Christian Lundgren  <zeflunk@gmail.com>
+
+	* src/Loader.cc, src/Loader.hh: and
+	* src/UI.hh, src/UI.cc: Added dialog for torrents that failed to reload
+	* data/linkage.glade: Added dialog and fixed label alignments
+	* src/main.cc: small fix for latest dbus-c++
+	* po/sv.po: updated translation
+
 2008-04-07  Christian Lundgren  <zeflunk@gmail.com>
 
 	* src/Loader.cc, src/Loader.hh:

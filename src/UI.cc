@@ -356,6 +356,36 @@ void UI::on_load_done(Loader* loader)
 	main_vpane->show();
 
 
+	loader->join();
+
+	const Loader::FailList& failed = loader->get_failed();
+
+	Gtk::Dialog* dialog;
+	glade_xml->get_widget("fail_dialog", dialog);
+	dialog->set_transient_for(*this);
+
+	Gtk::Label* title;
+	glade_xml->get_widget("fail_title_label", title);
+
+	for (Loader::FailList::const_iterator iter = failed.begin();
+		iter != failed.end(); ++iter)
+	{
+		const Torrent::InfoPtr& info = *iter;
+		title->set_markup(String::ucompose(_("<big>Failed to load \"%1\".</big>"), info->name()));
+		int response = dialog->run();
+		dialog->hide();
+		if (response == Gtk::RESPONSE_OK)
+		{
+			
+			open(Glib::build_filename(get_data_dir(), String::compose("%1", info->info_hash())));
+		}
+		else if (response == Gtk::RESPONSE_REJECT)
+		{
+			g_unlink(Glib::build_filename(get_data_dir(), String::compose("%1", info->info_hash())).c_str());
+			g_unlink(Glib::build_filename(get_data_dir(), String::compose("%1.resume", info->info_hash())).c_str());
+		}
+	}
+
 	delete loader;
 }
 

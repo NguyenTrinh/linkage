@@ -148,6 +148,10 @@ int main(int argc, char *argv[])
 	if(!Glib::thread_supported()) 
                 Glib::thread_init();
 
+	#ifdef DBUS_HAS_THREADS_INIT_DEFAULT
+	DBus::_init_threading();
+	#endif
+
 	/* connect to dbus */
 	DBus::default_dispatcher = &dispatcher;
 	dispatcher.attach(NULL);
