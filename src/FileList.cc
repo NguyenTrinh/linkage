@@ -304,7 +304,7 @@ bool FileList::on_foreach(const Gtk::TreeIter& iter, const FileData& data)
 		libtorrent::size_type done;
 		Glib::ustring s = row[columns.name];
 		// add up all pieces in range except the last
-		done = std::accumulate(map.begin(), map.end(), -map.back())*data.info->piece_length();
+		done = (libtorrent::size_type)(std::accumulate(map.begin(), map.end(), -map.back()))*data.info->piece_length();
 		// add last piece (might be smaller than piece_length)
 		done += (map.back())*data.info->piece_size(stop);
 		row[columns.map] = map;
