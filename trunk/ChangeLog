@@ -1,3 +1,8 @@
+2008-04-13  Christian Lundgren  <zeflunk@gmail.com>
+
+	* src/main.cc: Added workaround for glibmm bug
+	* src/UI.cc: Fixed bug where torrent list failed to show up
+
 2008-04-08  Christian Lundgren  <zeflunk@gmail.com>
 
 	* src/Loader.cc, src/Loader.hh: and
