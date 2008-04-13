@@ -354,6 +354,7 @@ void UI::on_load_done(Loader* loader)
 	glade_xml->get_widget("hbox_load", hbox_load);
 	hbox_load->hide();
 	main_vpane->show();
+	torrent_list->show();
 
 
 	loader->join();

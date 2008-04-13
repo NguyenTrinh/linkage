@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
      
 #include <gtkmm/main.h>
 #include <glibmm/i18n.h>
+#include <glibmmconfig.h>
 #include <libglademm.h>
 
 #include <dbus-c++/dbus.h>
@@ -195,6 +196,13 @@ int main(int argc, char *argv[])
 		Proxy remote;
 		remote.Quit();
 		return 0;
+	}
+
+	/* fix for glibmm bug */
+	if (GLIBMM_MINOR_VERSION == 16)
+	{
+		for (int i = 1; i < argc; i++)
+			options.files.push_back(argv[i]);
 	}
 
 	/* check if another instance is running */
