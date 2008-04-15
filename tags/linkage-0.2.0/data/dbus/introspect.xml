@@ -1,0 +1,54 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD DBUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg name="data" direction="out" type="s"/>
+    </method>
+  </interface>
+  <interface name="org.linkage.Torrent">
+    <method name="GetName">
+      <arg name="name" direction="out" type="s"/>
+    </method>
+    <method name="GetState">
+      <arg name="state" direction="out" type="s"/>
+    </method>
+    <method name="GetRates">
+      <arg name="rates" direction="out" type="(uu)"/>
+    </method>
+    <method name="GetTransfered">
+      <arg name="rates" direction="out" type="(tt)"/>
+    </method>
+    <method name="GetProgress">
+      <arg name="progress" direction="out" type="d"/>
+    </method>
+    <method name="GetPosition">
+      <arg name="position" direction="out" type="u"/>
+    </method>
+    <method name="GetPath">
+      <arg name="position" direction="out" type="s"/>
+    </method>
+    <method name="Start" />
+    <method name="Stop" />
+    <method name="Remove">
+      <arg name="erase_data" direction="in" type="b"/>
+    </method>
+  </interface>
+  <interface name="org.linkage.Interface">
+    <method name="Open">
+      <arg name="file" direction="in" type="s"/>
+    </method>
+    <method name="Add">
+      <arg name="file" direction="in" type="s"/>
+      <arg name="path" direction="in" type="s"/>
+    </method>
+    <method name="GetVisible">
+      <arg name="visible" direction="out" type="b"/>
+    </method>
+    <method name="SetVisible">
+      <arg name="visible" direction="in" type="b"/>
+    </method>
+    <method name="Quit"/>
+  </interface>
+</node>
+
