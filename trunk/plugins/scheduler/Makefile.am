@@ -12,6 +12,8 @@ scheduler_la_CXXFLAGS = -I$(top_srcdir)/lib $(LIBNOTIFY_CFLAGS) $(GTKMM_CFLAGS) 
 
 scheduler_la_LDFLAGS = -avoid-version -module -export-dynamic $(LIBNOTIFY_LIBS) $(GTKMM_LIBS) $(LIBTORRENT_LIBS) $(LIBGLADE_LIBS) ${GCONFMM_LIBS} $(GNOME_LIBS) $(EXO_LIBS) $(DBUSGLIB_LIBS) -L$(top_srcdir)/lib -llinkage-1
 
+EXTRA_DIST = scheduler.glade normal.png limit1.png limit2.png limit3.png blocked.png
+
 imagedir = ${prefix}/share/linkage
 image_DATA = normal.png limit1.png limit2.png limit3.png blocked.png
 
