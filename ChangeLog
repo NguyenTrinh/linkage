@@ -1,3 +1,8 @@
+2008-04-15  Christian Lundgren  <zeflunk@gmail.com>
+
+	* plugins/ipfilter/Makefile.am: fix for distcheck
+	* plugins/scheduler/Makefile.am: fix for distcheck
+
 2008-04-13  Christian Lundgren  <zeflunk@gmail.com>
 
 	* src/main.cc: Added workaround for glibmm bug
